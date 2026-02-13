@@ -1,0 +1,120 @@
+export interface Award {
+  tournament: string;
+  year: string;
+  award: string;
+}
+
+export interface CoachAwards {
+  [coachName: string]: Award[];
+}
+
+export const coachAwards: CoachAwards = {
+  "Rebecca Amisano": [
+    { tournament: "Canadian National Debate Championships", year: "2019", award: "Grand Finalist" },
+    { tournament: "US National Debate Championships", year: "2019", award: "Quarterfinalist" },
+    { tournament: "BP BC Provincial Debate Tournament", year: "2019", award: "Grand Champion" },
+    { tournament: "BP BC Provincial Debate Tournament", year: "2019", award: "2nd Speaker" },
+    { tournament: "UBC Fall High School Tournament", year: "2018", award: "Grand Finalist" },
+    { tournament: "UBC Summer High School Tournament", year: "2018", award: "Grand Finalist" },
+    { tournament: "UBC Spring High School Tournament", year: "2018", award: "Grand Finalist" },
+    { tournament: "UBC Spring High School Tournament", year: "2017", award: "Grand Champion" },
+    { tournament: "Illuminate Business Competition", year: "2017", award: "Grand Finalist" },
+    { tournament: "Ashurst Client Interviewing Law Competition", year: "2022", award: "Quarterfinalist" },
+    { tournament: "Johnson Winter & Slattery Law Negotiations", year: "2021", award: "Semifinalist" },
+  ],
+  "Archie Wolifson": [
+    { tournament: "World University Debate Championships", year: "2025", award: "Quarterfinalist" },
+    { tournament: "Zagreb BP World Debating Championships", year: "2023", award: "Grand Finalist" },
+    { tournament: "Princeton Debating International Championship", year: "2023", award: "Finalist" },
+    { tournament: "Australian Debating Championship", year: "2024", award: "4th Place" },
+    { tournament: "Australian BP Debating Championships", year: "2024", award: "Quarterfinalist" },
+    { tournament: "Sydney Grandslam Debating Championships", year: "2023", award: "Champion" },
+    { tournament: "University of Sydney BP", year: "2023", award: "Champion" },
+    { tournament: "BP Autumn Open Debating", year: "2023", award: "Champion" },
+    { tournament: "University of Sydney BP", year: "2022", award: "Champion" },
+  ],
+  "Timothy Hanna": [
+    { tournament: "BP Nov.", year: "2024", award: "Grand Champion" },
+    { tournament: "IITB Grand Prix", year: "2024", award: "Grand Finalist" },
+    { tournament: "Taylor AP", year: "2023", award: "Quarterfinalist" },
+    { tournament: "BP Nov.", year: "2023", award: "Grand Champion" },
+    { tournament: "Sydney Grandslam Debating Championships", year: "2023", award: "Grand Finalist" },
+    { tournament: "ABPDC", year: "2023", award: "Quarterfinalist" },
+    { tournament: "Princeton IV Nov. Tournament", year: "2023", award: "Grand Finalist" },
+    { tournament: "Sofia Open Nov. Tournament", year: "2023", award: "Grand Finalist" },
+    { tournament: "BP Nov.", year: "2022", award: "Grand Finalist" },
+  ],
+  "Gabrielle Wong": [
+    { tournament: "World Women's Open", year: "2020", award: "Grand Finalist" },
+    { tournament: "Fall Novice Open Western Championships (Senior)", year: "2020", award: "Grand Champion" },
+    { tournament: "Canadian National Debate Championships (Senior)", year: "2019", award: "Grand Finalist" },
+    { tournament: "US National Debate Championships (Senior)", year: "2019", award: "Quarterfinalist" },
+    { tournament: "BP Provincial Debate Tournament", year: "2019", award: "Grand Champion" },
+    { tournament: "BP Provincial Debate Tournament", year: "2019", award: "Top Speaker" },
+    { tournament: "UBC Fall High School Tournament (Senior)", year: "2018", award: "Grand Finalist" },
+    { tournament: "UBC Summer High School Tournament (Senior)", year: "2018", award: "Grand Finalist" },
+    { tournament: "UBC Spring High School Tournament (Senior)", year: "2018", award: "Grand Finalist" },
+    { tournament: "Canadian BP National Championships", year: "2020", award: "Grand Finalist" },
+  ],
+  "Rose Oh": [
+    { tournament: "Seattle Academy Invitational", year: "2019", award: "Co-champion" },
+    { tournament: "Tournament of Champions", year: "2019", award: "Gold Bid" },
+    { tournament: "Princeton University Invitational", year: "2019", award: "Semi-finalist" },
+    { tournament: "Lower Mainland South Regionals (Junior)", year: "2019", award: "Grand Champion" },
+    { tournament: "Georgetown Public Forum", year: "2018", award: "Runner-up" },
+    { tournament: "BC Provincial Mock Trial", year: "2017", award: "Grand Champion" },
+    { tournament: "Puget Sound University Public Forum", year: "2018", award: "Semifinalist" },
+    { tournament: "Sedro-Woolley High School Oratory", year: "2016", award: "Grand Champion" },
+  ],
+  "Serina Guo": [
+    { tournament: "University of Sydney Open Debating Championships", year: "2024", award: "Grand Finalist" },
+    { tournament: "Wollongong Novice Debating Championships", year: "2024", award: "Grand Finalist" },
+    { tournament: "UNSW Intervarsity Championships (Nov.)", year: "2024", award: "Champion" },
+    { tournament: "Australasian Women & Gender Minorities Championships", year: "2024", award: "Quarterfinalist" },
+    { tournament: "ACT Debating Union Schools' Competition", year: "2023", award: "Grand Champion" },
+    { tournament: "ACT Debating Union Schools' Competition", year: "2023", award: "Top Speaker" },
+  ],
+  "Finn Liu": [
+    { tournament: "Canadian National Cup (Junior)", year: "2021", award: "Quarterfinalist" },
+    { tournament: "BC Provincial Cup (Junior)", year: "2021", award: "Finalist" },
+    { tournament: "Lower Mainland East Regionals (Junior)", year: "2020", award: "2nd Place" },
+    { tournament: "UBC Spring Elementary School Tournament (Open)", year: "2019", award: "Semi-Finalist" },
+    { tournament: "Burnaby Mountain Invitational (Junior)", year: "2019", award: "4th Place" },
+  ],
+  "Emily Cui": [
+    { tournament: "Summer Bonanza (Open)", year: "2024", award: "Finalist" },
+    { tournament: "UBC Fall High School Tournament (Senior)", year: "2024", award: "Semi-Finalist" },
+    { tournament: "Canada Cup (Open)", year: "2023", award: "Champion" },
+    { tournament: "UBC Fall High School Tournament (Senior)", year: "2023", award: "Finalist" },
+    { tournament: "Doxbridge Worlds Schools Debate Championships", year: "2023", award: "Quarterfinalist" },
+    { tournament: "37th Annual Stanford Invitational (Varsity)", year: "2023", award: "Octofinalist" },
+    { tournament: "SFU Worlds Schools Debate Championships (Open)", year: "2023", award: "Finalist" },
+    { tournament: "Hart House Summer (Open)", year: "2023", award: "Quarterfinalist" },
+    { tournament: "SFU Worlds Schools Debate Championships (Open)", year: "2022", award: "Champion" },
+    { tournament: "Paris Worlds Schools Debate Championships (Open)", year: "2022", award: "Quarterfinalist" },
+  ],
+  "Catherine Wong": [
+    { tournament: "US National Debate Qualifier", year: "2024", award: "Top Speaker" },
+    { tournament: "Lower Mainland South Regionals", year: "2024", award: "Top Speaker" },
+    { tournament: "UBC Spring High School Tournament", year: "2024", award: "Top Speaker" },
+    { tournament: "Canadian National BP Championships", year: "2023", award: "Quarterfinalist" },
+    { tournament: "BP BC Provincials", year: "2023", award: "Finalist" },
+    { tournament: "Law Foundation Cup (BC Debate Provincials)", year: "2023", award: "3rd Place" },
+    { tournament: "UBC Fall Debate Tournament", year: "2022", award: "Semifinalist" },
+    { tournament: "SFU Worlds Debate Tournament", year: "2022", award: "Champion" },
+    { tournament: "Junior Public Speaking Nationals", year: "2022", award: "Top Debater" },
+  ],
+  "Anisha Biswas": [
+    { tournament: "Law Foundation Cup Debate Provincials (Junior)", year: "2019", award: "Nationals Qualifier" },
+    { tournament: "Lower Mainland East Regionals (Junior)", year: "2020", award: "2nd Place" },
+    { tournament: "Sir Winston Churchill Debate Invitational (Open)", year: "2020", award: "9th Place" },
+    { tournament: "Lower Mainland East Regionals (Junior)", year: "2019", award: "5th Place" },
+  ],
+  "Akash Krishnamurthy": [
+    { tournament: "Meadowridge Fall Tournament", year: "2024", award: "Champion" },
+    { tournament: "Dragon's Bowl Tournament", year: "2024", award: "Champion" },
+    { tournament: "Lower Mainland East Regionals", year: "2023", award: "Champion" },
+    { tournament: "UBC Fall Tournament (Senior)", year: "2024", award: "3rd Place (Ind.)" },
+    { tournament: "BP BC Provincials (Senior)", year: "2024", award: "5th Place (Ind.)" },
+  ],
+};

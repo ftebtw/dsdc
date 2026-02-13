@@ -1,0 +1,263 @@
+{
+  "nav": {
+    "home": "Home",
+    "team": "Our Team",
+    "classes": "Classes",
+    "awards": "Student Awards",
+    "book": "Book a Consultation",
+    "langToggle": "中文"
+  },
+  "hero": {
+    "headline": "Breaking Barriers, Building Confidence",
+    "subheadline": "World-class debate and public speaking coaching for students in Grades 4–12",
+    "cta": "Book a Free Consultation",
+    "ctaSecondary": "Explore Our Classes",
+    "scrollHint": "Scroll to explore"
+  },
+  "difference": {
+    "title": "The DSDC Difference",
+    "cards": {
+      "coaching": {
+        "title": "Expert Coaching Team",
+        "description": "Award-winning coaches from top universities worldwide, dedicated to nurturing every student's potential through our carefully curated curriculum."
+      },
+      "attention": {
+        "title": "Individualized Attention",
+        "description": "Tailored curriculum and personalized feedback every class, with semester report cards for both students and parents to track progress."
+      },
+      "leadership": {
+        "title": "Leadership Opportunities",
+        "description": "Volunteer at tournaments, advance to teaching roles, and build a resume that stands out for university and job applications."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Getting started is simple — here's what to expect.",
+    "steps": [
+      {
+        "step": "1",
+        "title": "Book a Free Call",
+        "description": "Schedule a 15-minute consultation with our team to discuss your child's interests and goals."
+      },
+      {
+        "step": "2",
+        "title": "Get a Personalized Recommendation",
+        "description": "We'll recommend the right class based on your child's age, experience level, and aspirations."
+      },
+      {
+        "step": "3",
+        "title": "Start Learning Online",
+        "description": "Your child joins live classes via Zoom with personalized feedback from expert coaches every session."
+      }
+    ]
+  },
+  "mission": {
+    "title": "Our Mission",
+    "text": "Founded in Vancouver in 2017, DSDC is a global online debate coaching institution dedicated to breaking down barriers by delivering world-class coaching at an affordable cost. We empower students to develop confidence, critical thinking, and communication skills that last a lifetime.",
+    "cta": "Meet Our Team"
+  },
+  "classesOverview": {
+    "title": "Our Classes",
+    "publicSpeaking": {
+      "title": "Public Speaking",
+      "description": "Develop confidence and eloquence through impromptu, persuasive, and interpretive speaking."
+    },
+    "debate": {
+      "title": "Debate",
+      "description": "Comprehensive training in World Schools, British Parliamentary, CNDF, and Cross-Examination formats."
+    },
+    "wsc": {
+      "title": "World Scholar's Cup",
+      "description": "Full WSC preparation with a 100% qualification rate since 2020 — from regionals to Yale."
+    },
+    "viewAll": "View All Classes",
+    "bookCta": "Book a Free Consultation"
+  },
+  "stats": {
+    "students": "Students Coached",
+    "studentsValue": "1000+",
+    "years": "Years of Experience",
+    "yearsValue": "8+",
+    "wscRate": "WSC Qualification Rate",
+    "wscRateValue": "100%",
+    "coaches": "Expert Coaches",
+    "coachesValue": "11"
+  },
+  "competitions": {
+    "title": "Where Our Students Compete",
+    "subtitle": "DSDC students have won awards at top tournaments and institutions around the world."
+  },
+  "testimonials": {
+    "title": "Hear From Our Students",
+    "items": [
+      {
+        "name": "Angela M.",
+        "role": "Student, Grade 8",
+        "quote": "DSDC has been my home for debate ever since I started three years ago. Under the guidance of Tim, Archie, and Rebecca, I've seen myself visibly improve in confidence and critical thinking. The lessons on social issues have helped broaden my horizons tremendously."
+      },
+      {
+        "name": "Ryland C.",
+        "role": "Student, Grade 9",
+        "quote": "The coaches always provide thoughtful feedback and put real effort into developing lessons with student growth in mind. The skills I've developed have been invaluable for school presentations, writing, and logical reasoning."
+      },
+      {
+        "name": "Daniel W.",
+        "role": "Student, Grade 9",
+        "quote": "The environment at DSDC is simply wonderful. The teachers are supportive of every individual student and are passionate about developing young minds. You would not believe how much I've learned over the years."
+      },
+      {
+        "name": "Bob Z.",
+        "role": "Student, Grade 12",
+        "quote": "My first class with Rebecca completely changed my perspective. Thanks to her coaching, I improved my confidence, participated in numerous tournaments, and even traveled to Australia for the World Scholar's Cup. These experiences profoundly shaped who I am today."
+      },
+      {
+        "name": "Zoe L.",
+        "role": "Junior Coach",
+        "quote": "As a former DSDC student, I've experienced firsthand how debate changes you. Every challenge I overcame built my confidence. Now as a teacher, I help students discover that the most important growth comes from facing seemingly impossible challenges."
+      },
+      {
+        "name": "Emily C.",
+        "role": "Junior Coach",
+        "quote": "DSDC shaped me into the debater I am today. Beyond argumentation, I formed lifelong friendships in a warm, collaborative environment. Rebecca sparked my interest in law and social justice, transforming me into a confident person."
+      }
+    ]
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": [
+      {
+        "q": "What ages and grades do you teach?",
+        "a": "We offer classes for students in Grades 4 through 12, with programs tailored to each age group — Novice (Grades 4–6), Junior (Grades 7–9), Senior (Grades 10–12), and Advanced Competitive (Grades 10–12)."
+      },
+      {
+        "q": "How are classes conducted?",
+        "a": "All classes are held live online via Zoom. Each session is 60 minutes, with small groups of 8–12 students to ensure personalized attention. Students receive written feedback from their coach every class."
+      },
+      {
+        "q": "How much do classes cost?",
+        "a": "DSDC is committed to fee transparency and affordability. Group classes start from approximately $25–40 per session depending on the program. Contact us for detailed pricing and package options."
+      },
+      {
+        "q": "Does my child need prior debate experience?",
+        "a": "Not at all! Our Novice and Public Speaking classes are designed for complete beginners. Many of our most successful students started with zero experience. We'll recommend the right level during your free consultation."
+      },
+      {
+        "q": "What does a typical class look like?",
+        "a": "Classes begin with a brief warm-up or lesson on a current topic, followed by structured practice (speeches or debates), and conclude with personalized feedback from the coach. Students also receive homework to continue developing their skills."
+      },
+      {
+        "q": "Can my child try a class before committing?",
+        "a": "Yes! We encourage families to book a free consultation first. We can often arrange a trial session so your child can experience the class environment before enrolling."
+      },
+      {
+        "q": "What is the World Scholar's Cup?",
+        "a": "The World Scholar's Cup (WSC) is a prestigious international academic competition. DSDC has maintained a 100% qualification rate since 2020 — every team we've coached has advanced from regionals to global rounds, with many qualifying for the Tournament of Champions at Yale University."
+      },
+      {
+        "q": "How do I register or get started?",
+        "a": "The easiest way to start is to book a free 15-minute consultation. We'll discuss your child's interests, recommend the right class, and walk you through enrollment — no commitment required."
+      }
+    ]
+  },
+  "finalCta": {
+    "title": "Ready to Unlock Your Child's Potential?",
+    "subtitle": "Join over 1,000 students who have transformed their confidence and skills through DSDC.",
+    "cta": "Book a Free Consultation",
+    "phone": "Or call us: (604) 000-0000"
+  },
+  "footer": {
+    "tagline": "Online debate and public speaking classes for students in Grades 4–12",
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "email": "contact@dsdc.ca",
+    "phone": "(604) 000-0000",
+    "copyright": "© 2025 Debate & Speech Development Community (DSDC) Incorporated. All rights reserved.",
+    "social": "Follow Us"
+  },
+  "teamPage": {
+    "title": "Our Team",
+    "subtitle": "Meet the decorated coaches behind our students' success",
+    "founderTitle": "Head Coach & Founder",
+    "founderBio": "Rebecca founded DSDC at age 15 after parents began approaching her with coaching inquiries. With nearly a decade of experience and over 1,000 students coached, she is a Grand Finalist at Canadian Nationals and a Quarterfinalist at US Nationals. Currently studying Law at the University of Sydney on a $40,000 scholarship, Rebecca is passionate about making debate accessible to all.",
+    "viewAwards": "View All Awards",
+    "hideAwards": "Hide Awards",
+    "keyAchievements": "Key Achievements",
+    "tournament": "Tournament",
+    "year": "Year",
+    "award": "Award"
+  },
+  "coaches": [
+    { "name": "Archie Wolifson", "title": "Senior Debate Coach", "bio": "A scholarship student at the University of Sydney, Archie is the 3rd Ranked Reply Speaker in Australia and Asia and a Quarterfinalist at the 2025 World University Debating Championships. His remarkable record as a Grand Finalist at the 2023 BP World Championships makes him one of the best debaters in the world." },
+    { "name": "Timothy Hanna", "title": "Senior Debate Coach", "bio": "Pursuing Law and Arts at the University of Sydney, Tim is a 14-time intervarsity grand finalist and 4-time champion. Under his guidance, students have advanced to the Semi-Finals of the Oxford Schools Championships and the Octo-Finals of the International Debating Championship." },
+    { "name": "Gabrielle Wong", "title": "Senior Debate & Public Speaking Coach", "bio": "Gabrielle represented Canada on the 2019–2020 national debate team and currently serves as President of the Debate and Speech Association of British Columbia. A Grand Champion at BP BC Provincials and Grand Finalist at Canadian Nationals, she studies at Simon Fraser University." },
+    { "name": "Rose Oh", "title": "Senior Debate Coach", "bio": "A pre-med student at Queen's University with over five years of coaching experience, Rose made history as the first Canadian to receive a Gold Bid at the US Tournament of Champions. Originally from South Korea, she brings a unique international perspective to her coaching." },
+    { "name": "Serina Guo", "title": "Senior Debate & WSC Coach", "bio": "Pursuing Law and Economics at the University of Sydney, Serina competed at the WSC Tournament of Champions at Yale and is a Quarterfinalist at the Australasian Women and Gender Minorities Championships. She has four years of coaching experience and has led teams to finals at major Sydney tournaments." },
+    { "name": "Finn Liu", "title": "Senior Debate Coach", "bio": "With five years of competitive experience in CNDF and British Parliamentary debate, Finn has earned awards at provincial and national tournaments. He is passionate about helping students develop the confidence to express their opinions analytically and persuasively." },
+    { "name": "Emily Cui", "title": "Debate & WSC Coach", "bio": "A Duke University student entering her 5th year coaching at DSDC, Emily has found success at tournaments both nationally and internationally, including winning the Canada Cup and reaching the Octo-Finals at the Stanford Invitational. She is dedicated to helping students discover their passion for debate." },
+    { "name": "Catherine Wong", "title": "Debate & Public Speaking Coach", "bio": "A University of Toronto student ranked as one of Canada's best debaters, Catherine has earned multiple Top Speaker awards at provincial and national tournaments. She has coached at DSDC for over two years, sharing the confidence and persuasion skills debate has given her." },
+    { "name": "Anisha Biswas", "title": "Debate Coach", "bio": "A UBC Neuroscience student with over five years of coaching experience, Anisha has competed at regional, provincial, and national tournaments. She co-founded a debate club at a local elementary school to spread the benefits of public speaking to younger students." },
+    { "name": "Akash Krishnamurthy", "title": "Debate Coach", "bio": "One of BC's top debaters with multiple Champion and Top Speaker titles, Akash started as a DSDC student and now coaches the next generation. His passion for debate was sparked at DSDC, and he is committed to sharing that same enthusiasm with his students." }
+  ],
+  "classesPage": {
+    "title": "Our Classes",
+    "subtitle": "Challenging students to broaden their understanding of the world",
+    "online": "All classes conducted online via Zoom with personalized feedback every session",
+    "debateTitle": "Debate Classes",
+    "otherTitle": "Other Classes",
+    "typicalClassTitle": "What a Typical Class Looks Like",
+    "typicalClassItems": [
+      { "title": "Small Groups", "description": "8–12 students per class for personalized coaching" },
+      { "title": "60-Minute Sessions", "description": "Structured live classes via Zoom" },
+      { "title": "Warm-Up & Lesson", "description": "Each class opens with a topical lesson or activity" },
+      { "title": "Practice & Debate", "description": "Structured speeches and practice debates" },
+      { "title": "Personalized Feedback", "description": "Written feedback from your coach every session" },
+      { "title": "Homework", "description": "Assignments to reinforce skills between classes" }
+    ],
+    "pricingNote": "Group classes start from approximately $25–40/session. Contact us for detailed pricing and package options.",
+    "unsure": "Not sure which class is right for your child?",
+    "bookCta": "Book a Free Consultation",
+    "classes": [
+      { "name": "Novice", "grades": "Grades 4–6", "schedule": "1x per week · 60 min · Saturdays", "category": "debate", "description": "An excellent starting point for younger scholars eager to develop public speaking and debate skills. Our coaches help students build confidence through the fundamentals of speech execution and foundational debate formats — even shy and introverted children thrive in this nurturing environment." },
+      { "name": "Junior", "grades": "Grades 7–9", "schedule": "1x per week · 60 min · Weekends", "category": "debate", "description": "Build competitive debate skills while accelerating academic growth. Coaches integrate challenging topics like International Relations, Law, Philosophy, and Economics into debate classes, with unique opportunities to compete in tournaments, volunteer, and expand knowledge." },
+      { "name": "Senior", "grades": "Grades 10–12", "schedule": "1–2x per week · 60 min", "category": "debate", "description": "Rigorous practice in British Parliamentary, CNDF, and World Schools formats, with advanced lectures on complex topics. This class pushes students to question what they already know and cultivates the competitive edge needed to excel at tournaments." },
+      { "name": "Advanced Competitive", "grades": "Grades 10–12", "schedule": "2x per week · 60 min", "category": "debate", "description": "An elite program led by world-renowned university debaters for students deeply committed to competitive debate. Through intensive drills, mock debates, and personalized coaching, students develop the advanced techniques needed to win at national and international tournaments." },
+      { "name": "World Scholar's Cup", "grades": "Grades 4–12", "schedule": "1x per week · 60 min · Seasonal", "category": "other", "description": "Full preparation for WSC from regionals to the Tournament of Champions at Yale University. Students may travel to Beijing, Amsterdam, Sydney, and beyond. We're proud to have achieved a 100% qualification rate spanning regional, global, and ToC levels over the past five years." },
+      { "name": "Public Speaking", "grades": "Grades 4–9", "schedule": "1x per week · 60 min", "category": "other", "description": "Comprehensive training in impromptu, persuasive, interpretive, and parliamentary debate formats. Designed to prepare students for BC speech provincials with the confidence, technique, and adaptability needed to excel on stage." }
+    ]
+  },
+  "bookPage": {
+    "title": "Book a Free Consultation",
+    "subtitle": "Schedule a free 15-minute call with our team to find the right class for your child.",
+    "expectTitle": "What to Expect",
+    "expectItems": [
+      "A friendly 15-minute video call via Zoom",
+      "We'll learn about your child's interests and goals",
+      "You'll receive a personalized class recommendation",
+      "Ask any questions about schedule, pricing, or curriculum",
+      "Absolutely no commitment or pressure to enroll"
+    ],
+    "formTitle": "Or Send Us a Message",
+    "name": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number (Optional)",
+    "grade": "Child's Grade",
+    "gradeOptions": ["Grade 4", "Grade 5", "Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"],
+    "heardAbout": "How did you hear about us?",
+    "heardOptions": ["Google Search", "Word of Mouth", "Social Media", "School Referral", "WeChat", "Other"],
+    "message": "Message",
+    "submit": "Send Message",
+    "success": "Thank you! We'll be in touch within 24 hours.",
+    "namePlaceholder": "Your full name",
+    "emailPlaceholder": "your@email.com",
+    "phonePlaceholder": "(604) 000-0000",
+    "messagePlaceholder": "Tell us about your child and what you're looking for..."
+  },
+  "awardsPage": {
+    "title": "Student Awards",
+    "subtitle": "Our students consistently achieve at the highest levels of competition.",
+    "debateTitle": "Debate & Public Speaking Awards",
+    "wscTitle": "World Scholar's Cup Awards",
+    "viewAll": "View All Awards"
+  }
+}
