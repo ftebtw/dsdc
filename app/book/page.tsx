@@ -52,7 +52,7 @@ export default function BookPage() {
             {/* Calendly + What to Expect */}
             <div className="space-y-8">
               <AnimatedSection>
-                <div className="bg-white rounded-2xl shadow-lg p-8 md:p-10">
+                <div className="bg-white rounded-2xl shadow-lg p-5 sm:p-8 md:p-10">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 bg-gold-400/10 rounded-xl flex items-center justify-center">
                       <Calendar className="w-5 h-5 text-gold-500" />
@@ -61,11 +61,11 @@ export default function BookPage() {
                   </div>
 
                   {/* Calendly iframe placeholder */}
-                  <div className="rounded-xl border-2 border-dashed border-warm-300 bg-warm-50 min-h-[400px] flex flex-col items-center justify-center p-8 text-center">
+                  <div className="rounded-xl border-2 border-dashed border-warm-300 bg-warm-50 min-h-[300px] sm:min-h-[400px] flex flex-col items-center justify-center p-4 sm:p-8 text-center">
                     <Calendar className="w-16 h-16 text-navy-300 mb-4" />
                     <p className="text-navy-600 font-semibold mb-2">Calendly Booking Widget</p>
                     <p className="text-charcoal/50 text-sm mb-6">Replace this placeholder with your Calendly embed</p>
-                    <code className="text-xs bg-navy-800 text-gold-400 px-4 py-2 rounded-lg font-mono">
+                    <code className="text-[10px] sm:text-xs bg-navy-800 text-gold-400 px-3 sm:px-4 py-2 rounded-lg font-mono break-all">
                       https://calendly.com/dsdc-placeholder
                     </code>
                   </div>
@@ -85,7 +85,7 @@ export default function BookPage() {
 
               {/* What to Expect */}
               <AnimatedSection delay={0.15}>
-                <div className="bg-white rounded-2xl shadow-lg p-8 md:p-10">
+                <div className="bg-white rounded-2xl shadow-lg p-5 sm:p-8 md:p-10">
                   <h3 className="text-xl font-bold text-navy-800 mb-6 font-serif">
                     {t("bookPage.expectTitle")}
                   </h3>

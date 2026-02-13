@@ -46,7 +46,7 @@ export default function Navbar() {
             <img
               src="/images/logos/logo-full.png"
               alt="DSDC Logo"
-              className={`h-8 md:h-10 w-auto transition-all duration-300 ${
+              className={`h-10 md:h-14 w-auto transition-all duration-300 ${
                 scrolled ? "" : "brightness-0 invert"
               }`}
             />
@@ -74,8 +74,8 @@ export default function Navbar() {
             <LanguageToggle variant={scrolled ? "dark" : "light"} />
             <Link
               href="/book"
-              className="px-5 py-2.5 bg-gold-400 text-navy-900 text-sm font-semibold rounded-lg
-                         hover:bg-gold-300 transition-all duration-200 shadow-md hover:shadow-lg
+              className="px-5 py-2.5 bg-gold-300 text-navy-900 text-sm font-bold rounded-lg
+                         hover:bg-gold-200 transition-all duration-200 shadow-md hover:shadow-lg
                          hover:-translate-y-0.5"
             >
               {t("nav.book")}
@@ -124,8 +124,8 @@ export default function Navbar() {
               <LanguageToggle />
               <Link
                 href="/book"
-                className="w-full text-center px-6 py-3 bg-gold-400 text-navy-900 font-semibold
-                           rounded-lg hover:bg-gold-300 transition-colors shadow-md"
+                className="w-full text-center px-6 py-3 bg-gold-300 text-navy-900 font-bold
+                           rounded-lg hover:bg-gold-200 transition-colors shadow-md"
               >
                 {t("nav.book")}
               </Link>

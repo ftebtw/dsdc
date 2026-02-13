@@ -82,17 +82,17 @@ export default function ClassesPage() {
               {t("classesPage.typicalClassTitle")}
             </h2>
           </AnimatedSection>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
             {typicalItems.map((item, i) => {
               const Icon = typicalIcons[i];
               return (
                 <AnimatedSection key={i} delay={i * 0.08}>
-                  <div className="text-center p-4 rounded-xl bg-warm-50 border border-warm-200">
-                    <div className="w-10 h-10 bg-gold-400/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      <Icon className="w-5 h-5 text-gold-500" />
+                  <div className="text-center p-3 sm:p-4 rounded-xl bg-warm-50 border border-warm-200">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gold-400/10 rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-gold-500" />
                     </div>
-                    <h4 className="text-sm font-bold text-navy-800 mb-1 font-serif">{item.title}</h4>
-                    <p className="text-xs text-charcoal/50 font-sans">{item.description}</p>
+                    <h4 className="text-xs sm:text-sm font-bold text-navy-800 mb-1 font-serif">{item.title}</h4>
+                    <p className="text-[10px] sm:text-xs text-charcoal/50 font-sans leading-snug">{item.description}</p>
                   </div>
                 </AnimatedSection>
               );
@@ -101,7 +101,7 @@ export default function ClassesPage() {
           {/* Pricing note */}
           <AnimatedSection delay={0.3}>
             <div className="mt-8 text-center">
-              <p className="inline-flex items-center gap-2 px-6 py-3 bg-gold-50 border border-gold-200 rounded-full text-sm text-gold-700 font-medium font-sans">
+              <p className="inline-flex items-center gap-2 px-4 sm:px-6 py-3 bg-gold-50 border border-gold-200 rounded-2xl sm:rounded-full text-xs sm:text-sm text-gold-700 font-medium font-sans text-center leading-relaxed">
                 <CheckCircle className="w-4 h-4" />
                 {t("classesPage.pricingNote")}
               </p>
@@ -140,12 +140,18 @@ export default function ClassesPage() {
                           {cls.grades}
                         </span>
                         {cls.schedule && (
-                          <span className="px-3 py-1 bg-gold-50 text-gold-700 text-xs font-medium rounded-full flex items-center gap-1">
+                          <span className="hidden sm:flex px-3 py-1 bg-gold-50 text-gold-700 text-xs font-medium rounded-full items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {cls.schedule}
                           </span>
                         )}
                       </div>
+                      {cls.schedule && (
+                        <p className="sm:hidden text-xs text-gold-600 font-medium mb-2 font-sans flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {cls.schedule}
+                        </p>
+                      )}
                       <h3 className="text-2xl md:text-3xl font-bold text-navy-800 mb-4 font-serif">
                         {cls.name}
                       </h3>
@@ -179,7 +185,7 @@ export default function ClassesPage() {
                     <div className="aspect-[16/9] overflow-hidden">
                       <img src={classImages[i + 4]} alt={`${cls.name} class`} className="w-full h-full object-cover" />
                     </div>
-                    <div className="p-8">
+                    <div className="p-5 sm:p-8">
                       <div className="flex flex-wrap items-center gap-2 mb-3">
                         <div className="w-10 h-10 bg-gold-400/10 rounded-xl flex items-center justify-center">
                           <Icon className="w-5 h-5 text-gold-500" />
@@ -188,12 +194,18 @@ export default function ClassesPage() {
                           {cls.grades}
                         </span>
                         {cls.schedule && (
-                          <span className="px-3 py-1 bg-gold-50 text-gold-700 text-xs font-medium rounded-full flex items-center gap-1">
+                          <span className="hidden sm:flex px-3 py-1 bg-gold-50 text-gold-700 text-xs font-medium rounded-full items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {cls.schedule}
                           </span>
                         )}
                       </div>
+                      {cls.schedule && (
+                        <p className="sm:hidden text-xs text-gold-600 font-medium mb-2 font-sans flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {cls.schedule}
+                        </p>
+                      )}
                       <h3 className="text-xl font-bold text-navy-800 mb-3 font-serif">{cls.name}</h3>
                       <p className="text-charcoal/70 leading-relaxed font-sans">{cls.description}</p>
                     </div>

@@ -32,10 +32,10 @@ export default function FAQ() {
                 <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-warm-200">
                   <button
                     onClick={() => setOpenIndex(isOpen ? null : i)}
-                    className="w-full flex items-center justify-between p-5 text-left hover:bg-warm-50 transition-colors"
+                    className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-warm-50 transition-colors"
                     aria-expanded={isOpen}
                   >
-                    <span className="text-navy-800 font-semibold pr-4 font-sans">{item.q}</span>
+                    <span className="text-navy-800 font-semibold pr-3 sm:pr-4 text-sm sm:text-base font-sans">{item.q}</span>
                     <span className="shrink-0 w-8 h-8 rounded-full bg-navy-800 flex items-center justify-center">
                       {isOpen ? (
                         <Minus className="w-4 h-4 text-white" />
@@ -53,7 +53,7 @@ export default function FAQ() {
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="overflow-hidden"
                       >
-                        <p className="px-5 pb-5 text-charcoal/70 leading-relaxed font-sans">
+                        <p className="px-4 sm:px-5 pb-4 sm:pb-5 text-sm sm:text-base text-charcoal/70 leading-relaxed font-sans">
                           {item.a}
                         </p>
                       </motion.div>

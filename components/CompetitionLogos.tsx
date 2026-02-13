@@ -32,11 +32,11 @@ export default function CompetitionLogos() {
         </AnimatedSection>
 
         <AnimatedSection delay={0.1}>
-          <div className="flex flex-wrap justify-center gap-3 md:gap-4">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
             {competitions.map((name, i) => (
               <div
                 key={i}
-                className="px-4 py-2.5 bg-white border border-warm-200 rounded-full text-xs md:text-sm
+                className="px-3 sm:px-4 py-2 sm:py-2.5 bg-white border border-warm-200 rounded-full text-[11px] sm:text-xs md:text-sm
                            font-medium text-navy-700 shadow-sm hover:shadow-md hover:border-gold-300
                            transition-all duration-200"
               >

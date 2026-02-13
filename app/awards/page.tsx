@@ -169,7 +169,7 @@ function StudentCard({ student }: { student: StudentData }) {
   const shown = expanded ? student.awards : student.awards.slice(0, 3);
 
   return (
-    <div className="bg-white rounded-xl border border-warm-200 p-5 hover:shadow-lg transition-all duration-300">
+    <div className="bg-white rounded-xl border border-warm-200 p-4 sm:p-5 hover:shadow-lg transition-all duration-300">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-9 h-9 bg-navy-100 rounded-full flex items-center justify-center">
           <span className="text-sm font-bold text-navy-600">{student.name.charAt(0)}</span>
@@ -178,9 +178,9 @@ function StudentCard({ student }: { student: StudentData }) {
       </div>
       <ul className="space-y-2">
         {shown.map((award, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm font-sans">
+          <li key={i} className="flex items-start gap-1.5 sm:gap-2 text-xs sm:text-sm font-sans">
             <span
-              className={`shrink-0 px-2 py-0.5 rounded text-xs font-semibold ${
+              className={`shrink-0 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold ${
                 award.result.includes("Champion") || award.result === "1st Place" || award.result.includes("Top Speaker") || award.result.includes("Best Delegate")
                   ? "bg-gold-50 text-gold-700"
                   : "bg-navy-50 text-navy-600"
@@ -279,7 +279,7 @@ export default function AwardsPage() {
           <div className="space-y-6">
             {wscRounds.map((round, i) => (
               <AnimatedSection key={round.name} delay={i * 0.1}>
-                <div className="bg-warm-50 rounded-xl border border-warm-200 p-6 md:p-8">
+                <div className="bg-warm-50 rounded-xl border border-warm-200 p-4 sm:p-6 md:p-8">
                   <div className="flex items-center gap-3 mb-4">
                     <Medal className="w-6 h-6 text-gold-400" />
                     <h3 className="text-xl font-bold text-navy-800 font-serif">{round.name}</h3>

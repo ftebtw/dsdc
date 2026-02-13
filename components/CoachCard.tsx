@@ -41,12 +41,12 @@ export default function CoachCard({
       <div className="bg-warm-100 rounded-2xl overflow-hidden shadow-xl">
         <div className="flex flex-col md:flex-row">
           {/* Photo — full height on desktop */}
-          <div className="md:w-1/3 h-80 md:h-auto relative bg-navy-100">
+          <div className="md:w-2/5 aspect-[3/4] md:aspect-auto md:min-h-[500px] relative bg-navy-100">
             {image ? (
               <img
                 src={image}
                 alt={name}
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
               />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-navy-700 to-navy-900 flex items-center justify-center">
@@ -56,8 +56,8 @@ export default function CoachCard({
           </div>
 
           {/* Content */}
-          <div className="md:w-2/3 p-8 md:p-12 flex flex-col justify-center">
-            <h3 className="text-3xl font-bold text-navy-800 mb-2 font-serif">
+          <div className="md:w-3/5 p-5 sm:p-8 md:p-12 flex flex-col justify-center">
+            <h3 className="text-2xl sm:text-3xl font-bold text-navy-800 mb-2 font-serif">
               {name}
             </h3>
             <p className="text-gold-500 font-medium mb-6 uppercase tracking-wider text-sm font-sans">
@@ -69,7 +69,7 @@ export default function CoachCard({
 
             {/* Key Achievements box */}
             {keyAchievements && keyAchievements.length > 0 && (
-              <div className="bg-white p-6 rounded-xl border border-warm-200">
+              <div className="bg-white p-4 sm:p-6 rounded-xl border border-warm-200">
                 <h4 className="flex items-center text-lg font-semibold text-navy-800 mb-4 font-serif">
                   <Trophy className="w-5 h-5 mr-2 text-gold-400" />
                   {t("teamPage.keyAchievements")}
@@ -150,12 +150,12 @@ export default function CoachCard({
                  hover:-translate-y-1 transition-all duration-300"
     >
       {/* Photo */}
-      <div className="h-64 relative bg-navy-100 overflow-hidden">
+      <div className="aspect-[3/4] relative bg-navy-100 overflow-hidden">
         {image ? (
           <img
             src={image}
             alt={name}
-            className="absolute inset-0 w-full h-full object-cover object-top"
+            className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-navy-100 to-navy-200 flex items-center justify-center">
@@ -165,7 +165,7 @@ export default function CoachCard({
       </div>
 
       {/* Content */}
-      <div className="p-6 flex-grow flex flex-col">
+      <div className="p-4 sm:p-6 flex-grow flex flex-col">
         <h3 className="text-xl font-bold text-navy-800 font-serif">{name}</h3>
         <p className="text-gold-500 text-sm font-medium mb-4 uppercase tracking-wider font-sans">
           {title}

@@ -30,8 +30,8 @@ export default function FinalCTA() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/book"
-              className="px-10 py-4 bg-gold-400 text-navy-900 font-semibold text-lg rounded-lg
-                         hover:bg-gold-300 transition-all duration-200 shadow-lg hover:shadow-xl
+              className="px-10 py-4 bg-gold-300 text-navy-900 font-bold text-lg rounded-lg
+                         hover:bg-gold-200 transition-all duration-200 shadow-lg hover:shadow-xl
                          hover:-translate-y-0.5"
             >
               {t("finalCta.cta")}

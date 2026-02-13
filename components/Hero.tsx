@@ -56,8 +56,8 @@ export default function Hero() {
         >
           <Link
             href="/book"
-            className="px-8 py-4 bg-gold-400 text-navy-900 font-semibold text-lg rounded-lg
-                       hover:bg-gold-300 transition-all duration-200 shadow-lg hover:shadow-xl
+            className="px-8 py-4 bg-gold-300 text-navy-900 font-bold text-lg rounded-lg
+                       hover:bg-gold-200 transition-all duration-200 shadow-lg hover:shadow-xl
                        hover:-translate-y-0.5"
           >
             {t("hero.cta")}
