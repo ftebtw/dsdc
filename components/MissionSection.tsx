@@ -8,7 +8,7 @@ export default function MissionSection() {
   const { t } = useI18n();
 
   return (
-    <section className="py-20 md:py-28 bg-white">
+    <section className="py-20 md:py-28 bg-white dark:bg-navy-900/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <AnimatedSection>
@@ -24,16 +24,16 @@ export default function MissionSection() {
 
           <AnimatedSection delay={0.2}>
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-navy-800 dark:text-white">
                 {t("mission.title")}
               </h2>
-              <p className="text-lg text-charcoal/70 leading-relaxed mb-8 font-sans">
+              <p className="text-lg text-charcoal/70 dark:text-navy-200 leading-relaxed mb-8 font-sans">
                 {t("mission.text")}
               </p>
               <Link
                 href="/team"
-                className="inline-flex items-center px-6 py-3 bg-navy-800 text-white font-semibold
-                           rounded-lg hover:bg-navy-700 transition-all duration-200 shadow-md
+                className="inline-flex items-center px-6 py-3 bg-navy-800 dark:bg-navy-700 text-white font-semibold
+                           rounded-lg hover:bg-navy-700 dark:hover:bg-navy-600 transition-all duration-200 shadow-md
                            hover:shadow-lg hover:-translate-y-0.5"
               >
                 {t("mission.cta")}

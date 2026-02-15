@@ -480,3 +480,20 @@ export const blogPosts: BlogPost[] = [
 export function getPostBySlug(slug: string): BlogPost | undefined {
   return blogPosts.find((p) => p.slug === slug);
 }
+
+/** Reads from content/blog-posts.json if it exists (e.g. after admin save); otherwise returns static blogPosts. Use in server components or API routes. */
+export function getBlogPostsSync(): BlogPost[] {
+  if (typeof window !== "undefined") return blogPosts;
+  try {
+    const path = require("path");
+    const fs = require("fs");
+    const p = path.join(process.cwd(), "content", "blog-posts.json");
+    if (fs.existsSync(p)) {
+      const data = JSON.parse(fs.readFileSync(p, "utf-8"));
+      return Array.isArray(data) ? data : blogPosts;
+    }
+  } catch {
+    // ignore
+  }
+  return blogPosts;
+}

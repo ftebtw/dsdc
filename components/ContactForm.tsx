@@ -31,8 +31,8 @@ export default function ContactForm() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-8 md:p-10">
-      <h3 className="text-2xl font-bold text-navy-800 mb-6 font-serif">
+    <div className="bg-white dark:bg-navy-800 rounded-2xl shadow-lg p-8 md:p-10">
+      <h3 className="text-2xl font-bold text-navy-800 dark:text-white mb-6 font-serif">
         {t("bookPage.formTitle")}
       </h3>
 
@@ -45,8 +45,8 @@ export default function ContactForm() {
             exit={{ opacity: 0, scale: 0.9 }}
             className="flex flex-col items-center justify-center py-12 text-center"
           >
-            <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-            <p className="text-lg font-semibold text-navy-800">{t("bookPage.success")}</p>
+            <CheckCircle className="w-16 h-16 text-green-500 dark:text-green-400 mb-4" />
+            <p className="text-lg font-semibold text-navy-800 dark:text-white">{t("bookPage.success")}</p>
           </motion.div>
         ) : (
           <motion.form
@@ -58,7 +58,7 @@ export default function ContactForm() {
             className="space-y-5"
           >
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-navy-800 mb-1.5 font-sans">
+              <label htmlFor="name" className="block text-sm font-medium text-navy-800 dark:text-navy-100 mb-1.5 font-sans">
                 {t("bookPage.name")}
               </label>
               <input
@@ -68,14 +68,14 @@ export default function ContactForm() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder={t("bookPage.namePlaceholder")}
-                className="w-full px-4 py-3 border border-warm-300 rounded-lg text-charcoal
+                className="w-full px-4 py-3 border border-warm-300 dark:border-navy-600 rounded-lg text-charcoal dark:text-navy-100 dark:bg-navy-900
                            focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none
-                           transition-all font-sans"
+                           transition-all font-sans placeholder:text-charcoal/40 dark:placeholder:text-navy-400"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-navy-800 mb-1.5 font-sans">
+              <label htmlFor="email" className="block text-sm font-medium text-navy-800 dark:text-navy-100 mb-1.5 font-sans">
                 {t("bookPage.email")}
               </label>
               <input
@@ -85,14 +85,14 @@ export default function ContactForm() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder={t("bookPage.emailPlaceholder")}
-                className="w-full px-4 py-3 border border-warm-300 rounded-lg text-charcoal
+                className="w-full px-4 py-3 border border-warm-300 dark:border-navy-600 rounded-lg text-charcoal dark:text-navy-100 dark:bg-navy-900
                            focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none
-                           transition-all font-sans"
+                           transition-all font-sans placeholder:text-charcoal/40 dark:placeholder:text-navy-400"
               />
             </div>
 
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-navy-800 mb-1.5 font-sans">
+              <label htmlFor="phone" className="block text-sm font-medium text-navy-800 dark:text-navy-100 mb-1.5 font-sans">
                 {t("bookPage.phone")}
               </label>
               <input
@@ -101,14 +101,14 @@ export default function ContactForm() {
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder={t("bookPage.phonePlaceholder")}
-                className="w-full px-4 py-3 border border-warm-300 rounded-lg text-charcoal
+                className="w-full px-4 py-3 border border-warm-300 dark:border-navy-600 rounded-lg text-charcoal dark:text-navy-100 dark:bg-navy-900
                            focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none
-                           transition-all font-sans"
+                           transition-all font-sans placeholder:text-charcoal/40 dark:placeholder:text-navy-400"
               />
             </div>
 
             <div>
-              <label htmlFor="grade" className="block text-sm font-medium text-navy-800 mb-1.5 font-sans">
+              <label htmlFor="grade" className="block text-sm font-medium text-navy-800 dark:text-navy-100 mb-1.5 font-sans">
                 {t("bookPage.grade")}
               </label>
               <select
@@ -116,7 +116,7 @@ export default function ContactForm() {
                 required
                 value={formData.grade}
                 onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
-                className="w-full px-4 py-3 border border-warm-300 rounded-lg text-charcoal
+                className="w-full px-4 py-3 border border-warm-300 dark:border-navy-600 rounded-lg text-charcoal dark:text-navy-100 dark:bg-navy-900
                            focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none
                            transition-all font-sans"
               >
@@ -128,14 +128,14 @@ export default function ContactForm() {
             </div>
 
             <div>
-              <label htmlFor="heardAbout" className="block text-sm font-medium text-navy-800 mb-1.5 font-sans">
+              <label htmlFor="heardAbout" className="block text-sm font-medium text-navy-800 dark:text-navy-100 mb-1.5 font-sans">
                 {t("bookPage.heardAbout")}
               </label>
               <select
                 id="heardAbout"
                 value={formData.heardAbout}
                 onChange={(e) => setFormData({ ...formData, heardAbout: e.target.value })}
-                className="w-full px-4 py-3 border border-warm-300 rounded-lg text-charcoal
+                className="w-full px-4 py-3 border border-warm-300 dark:border-navy-600 rounded-lg text-charcoal dark:text-navy-100 dark:bg-navy-900
                            focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none
                            transition-all font-sans"
               >
@@ -147,7 +147,7 @@ export default function ContactForm() {
             </div>
 
             <div>
-              <label htmlFor="message" className="block text-sm font-medium text-navy-800 mb-1.5 font-sans">
+              <label htmlFor="message" className="block text-sm font-medium text-navy-800 dark:text-navy-100 mb-1.5 font-sans">
                 {t("bookPage.message")}
               </label>
               <textarea
@@ -156,9 +156,9 @@ export default function ContactForm() {
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 placeholder={t("bookPage.messagePlaceholder")}
-                className="w-full px-4 py-3 border border-warm-300 rounded-lg text-charcoal
+                className="w-full px-4 py-3 border border-warm-300 dark:border-navy-600 rounded-lg text-charcoal dark:text-navy-100 dark:bg-navy-900
                            focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none
-                           transition-all resize-none font-sans"
+                           transition-all resize-none font-sans placeholder:text-charcoal/40 dark:placeholder:text-navy-400"
               />
             </div>
 

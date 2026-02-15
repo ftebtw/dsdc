@@ -80,7 +80,7 @@ const faqSchema = {
       name: "How much do classes cost?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "DSDC is committed to fee transparency and affordability. Group classes start from approximately $25–40 per session depending on the program. Contact us for detailed pricing and package options.",
+        text: "We publish our rates openly: Novice & intermediate group debate and public speaking group classes are $30/hr plus GST; World Scholars Cup group class is $40/hr plus GST; advanced debate classes are $50/hr plus GST. Private coaching (1-on-1, 2-on-1, or 3-on-1) prices vary by coach. See our Pricing page for full details.",
       },
     },
     {
@@ -236,6 +236,11 @@ export default function RootLayout({
         ))}
       </head>
       <body className="font-sans antialiased">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: 'try{var t=localStorage.getItem("dsdc-theme");var e=document.documentElement;if(t==="dark")e.classList.add("dark");else if(t==="light")e.classList.remove("dark");}catch(n){}',
+          }}
+        />
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>

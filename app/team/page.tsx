@@ -64,10 +64,10 @@ export default function TeamPage() {
       </section>
 
       {/* Founder Section */}
-      <section className="py-16 md:py-24 bg-white">
+      <section className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection>
-            <h2 className="text-3xl font-serif font-bold text-navy-800 mb-10 text-center">
+            <h2 className="text-3xl font-serif font-bold text-navy-800 dark:text-white mb-10 text-center">
               {t("teamPage.founderTitle")}
             </h2>
           </AnimatedSection>
@@ -87,7 +87,7 @@ export default function TeamPage() {
       </section>
 
       {/* Coaching Team Grid */}
-      <section className="py-16 md:py-24 bg-warm-100">
+      <section className="py-16 md:py-24 bg-warm-100 dark:bg-navy-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {coaches.map((coach, i) => (

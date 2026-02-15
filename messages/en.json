@@ -5,6 +5,7 @@
     "classes": "Classes",
     "awards": "Student Awards",
     "blog": "Blog",
+    "pricing": "Pricing",
     "book": "Book a Consultation",
     "langToggle": "中文"
   },
@@ -137,7 +138,7 @@
       },
       {
         "q": "How much do classes cost?",
-        "a": "DSDC is committed to fee transparency and affordability. Group classes start from approximately $25–40 per session depending on the program. Contact us for detailed pricing and package options."
+        "a": "We publish our rates openly: Novice & intermediate group debate and public speaking group classes are $30/hr plus GST; World Scholars Cup group class is $40/hr plus GST; advanced debate classes are $50/hr plus GST. Private coaching (1-on-1, 2-on-1, or 3-on-1) prices vary by coach. See our Pricing page for full details."
       },
       {
         "q": "Does my child need prior debate experience?",
@@ -215,7 +216,7 @@
       { "title": "Personalized Feedback", "description": "Written feedback from your coach every session" },
       { "title": "Homework", "description": "Assignments to reinforce skills between classes" }
     ],
-    "pricingNote": "Group classes start from approximately $25–40/session. Contact us for detailed pricing and package options.",
+    "pricingNote": "Group classes from $30–50/hr plus GST depending on program. See our Pricing page for full details.",
     "unsure": "Not sure which class is right for your child?",
     "bookCta": "Book a Free Consultation",
     "classes": [
@@ -266,5 +267,26 @@
     "subtitle": "Expert insights on debate, public speaking, and education from our award-winning coaches.",
     "allPosts": "All Articles",
     "relatedPosts": "You Might Also Like"
+  },
+  "pricingPage": {
+    "title": "Transparent Pricing",
+    "subtitle": "We publish our rates openly so you can make an informed decision. All group class fees are per student, per hour, plus GST.",
+    "groupClasses": "Group Classes",
+    "privateCoaching": "Private Coaching",
+    "privateNote": "Rates vary by coach and group size. Contact us for a quote.",
+    "cta": "Book a Free Consultation",
+    "ctaSubtext": "We'll help you choose the right program and answer any questions.",
+    "noviceIntermediate": "Novice & Intermediate Debate",
+    "noviceIntermediateDesc": "Grades 4–9 group debate classes",
+    "publicSpeaking": "Public Speaking",
+    "publicSpeakingDesc": "Group public speaking classes",
+    "wsc": "World Scholar's Cup",
+    "wscDesc": "WSC group preparation (regionals to ToC)",
+    "advanced": "Advanced Debate",
+    "advancedDesc": "BP competitive and advanced group classes",
+    "private": "Private Coaching",
+    "privateDesc": "1-on-1, 2-on-1, or 3-on-1 with a coach",
+    "perHour": "/hr + GST",
+    "varies": "Varies"
   }
 }

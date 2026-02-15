@@ -9,7 +9,7 @@ export default function Footer() {
   const { t } = useI18n();
 
   return (
-    <footer className="bg-navy-800 text-white">
+    <footer className="bg-navy-800 dark:bg-navy-900 text-white border-t border-navy-700 dark:border-navy-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand */}
@@ -53,6 +53,11 @@ export default function Footer() {
               <li>
                 <Link href="/blog" className="text-navy-200 hover:text-white text-sm transition-colors">
                   {t("nav.blog")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/pricing" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {t("nav.pricing")}
                 </Link>
               </li>
               <li>

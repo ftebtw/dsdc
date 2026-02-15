@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Class-based dark mode (toggle) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-navy-50: #f0f3f9;
   --color-navy-100: #d9e0ef;
@@ -46,9 +49,16 @@
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
+  .dark body {
+    background-color: #0e1525;
+    color: #e2e8f0;
+  }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-serif);
     color: var(--color-navy-800);
+  }
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    color: #f1f5f9;
   }
 }
 

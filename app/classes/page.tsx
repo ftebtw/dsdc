@@ -75,24 +75,24 @@ export default function ClassesPage() {
       </section>
 
       {/* What a Typical Class Looks Like */}
-      <section className="py-16 md:py-20 bg-white">
+      <section className="py-20 md:py-28 bg-white dark:bg-navy-900/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection>
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-14 md:mb-16 text-navy-800 dark:text-white">
               {t("classesPage.typicalClassTitle")}
             </h2>
           </AnimatedSection>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             {typicalItems.map((item, i) => {
               const Icon = typicalIcons[i];
               return (
                 <AnimatedSection key={i} delay={i * 0.08}>
-                  <div className="text-center p-3 sm:p-4 rounded-xl bg-warm-50 border border-warm-200">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gold-400/10 rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-gold-500" />
+                  <div className="text-center p-5 sm:p-6 md:p-8 rounded-2xl bg-warm-50 dark:bg-navy-800 border border-warm-200 dark:border-navy-700">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gold-400/10 dark:bg-gold-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-gold-500 dark:text-gold-400" />
                     </div>
-                    <h4 className="text-xs sm:text-sm font-bold text-navy-800 mb-1 font-serif">{item.title}</h4>
-                    <p className="text-[10px] sm:text-xs text-charcoal/50 font-sans leading-snug">{item.description}</p>
+                    <h4 className="text-sm sm:text-base font-bold text-navy-800 dark:text-white mb-2 font-serif">{item.title}</h4>
+                    <p className="text-xs sm:text-sm text-charcoal/50 dark:text-navy-300 font-sans leading-relaxed">{item.description}</p>
                   </div>
                 </AnimatedSection>
               );
@@ -100,9 +100,9 @@ export default function ClassesPage() {
           </div>
           {/* Pricing note */}
           <AnimatedSection delay={0.3}>
-            <div className="mt-8 text-center">
-              <p className="inline-flex items-center gap-2 px-4 sm:px-6 py-3 bg-gold-50 border border-gold-200 rounded-2xl sm:rounded-full text-xs sm:text-sm text-gold-700 font-medium font-sans text-center leading-relaxed">
-                <CheckCircle className="w-4 h-4" />
+            <div className="mt-10 md:mt-12 text-center">
+              <p className="inline-flex items-center gap-2 px-5 sm:px-6 py-3.5 bg-gold-50 dark:bg-gold-900/30 border border-gold-200 dark:border-gold-700 rounded-2xl text-sm sm:text-base text-gold-700 dark:text-gold-300 font-medium font-sans text-center leading-relaxed max-w-2xl mx-auto">
+                <CheckCircle className="w-5 h-5 shrink-0" />
                 {t("classesPage.pricingNote")}
               </p>
             </div>
@@ -111,10 +111,10 @@ export default function ClassesPage() {
       </section>
 
       {/* Debate Classes */}
-      <section className="py-16 md:py-24 bg-warm-100">
+      <section className="py-16 md:py-24 bg-warm-100 dark:bg-navy-900/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection>
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-navy-800 dark:text-white">
               {t("classesPage.debateTitle")}
             </h2>
           </AnimatedSection>
@@ -136,26 +136,26 @@ export default function ClassesPage() {
                         <div className="w-10 h-10 bg-gold-400/10 rounded-xl flex items-center justify-center">
                           <Icon className="w-5 h-5 text-gold-500" />
                         </div>
-                        <span className="px-3 py-1 bg-navy-100 text-navy-700 text-xs font-semibold rounded-full">
+                        <span className="px-3 py-1 bg-navy-100 dark:bg-navy-700 text-navy-700 dark:text-navy-200 text-xs font-semibold rounded-full">
                           {cls.grades}
                         </span>
                         {cls.schedule && (
-                          <span className="hidden sm:flex px-3 py-1 bg-gold-50 text-gold-700 text-xs font-medium rounded-full items-center gap-1">
+                          <span className="hidden sm:flex px-3 py-1 bg-gold-50 dark:bg-gold-900/40 text-gold-700 dark:text-gold-300 text-xs font-medium rounded-full items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {cls.schedule}
                           </span>
                         )}
                       </div>
                       {cls.schedule && (
-                        <p className="sm:hidden text-xs text-gold-600 font-medium mb-2 font-sans flex items-center gap-1">
+                        <p className="sm:hidden text-xs text-gold-600 dark:text-gold-400 font-medium mb-2 font-sans flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {cls.schedule}
                         </p>
                       )}
-                      <h3 className="text-2xl md:text-3xl font-bold text-navy-800 mb-4 font-serif">
+                      <h3 className="text-2xl md:text-3xl font-bold text-navy-800 dark:text-white mb-4 font-serif">
                         {cls.name}
                       </h3>
-                      <p className="text-charcoal/70 leading-relaxed text-lg font-sans">
+                      <p className="text-charcoal/70 dark:text-navy-200 leading-relaxed text-lg font-sans">
                         {cls.description}
                       </p>
                     </div>
@@ -168,10 +168,10 @@ export default function ClassesPage() {
       </section>
 
       {/* Other Classes */}
-      <section className="py-16 md:py-24 bg-white">
+      <section className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection>
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-navy-800 dark:text-white">
               {t("classesPage.otherTitle")}
             </h2>
           </AnimatedSection>
@@ -181,7 +181,7 @@ export default function ClassesPage() {
               const Icon = classIcons[i + 4];
               return (
                 <AnimatedSection key={cls.name} delay={i * 0.15}>
-                  <div className="bg-warm-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                  <div className="bg-warm-50 dark:bg-navy-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                     <div className="aspect-[16/9] overflow-hidden">
                       <img src={classImages[i + 4]} alt={`${cls.name} class`} className="w-full h-full object-cover" />
                     </div>
@@ -190,24 +190,24 @@ export default function ClassesPage() {
                         <div className="w-10 h-10 bg-gold-400/10 rounded-xl flex items-center justify-center">
                           <Icon className="w-5 h-5 text-gold-500" />
                         </div>
-                        <span className="px-3 py-1 bg-navy-100 text-navy-700 text-xs font-semibold rounded-full">
+                        <span className="px-3 py-1 bg-navy-100 dark:bg-navy-700 text-navy-700 dark:text-navy-200 text-xs font-semibold rounded-full">
                           {cls.grades}
                         </span>
                         {cls.schedule && (
-                          <span className="hidden sm:flex px-3 py-1 bg-gold-50 text-gold-700 text-xs font-medium rounded-full items-center gap-1">
+                          <span className="hidden sm:flex px-3 py-1 bg-gold-50 dark:bg-gold-900/40 text-gold-700 dark:text-gold-300 text-xs font-medium rounded-full items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {cls.schedule}
                           </span>
                         )}
                       </div>
                       {cls.schedule && (
-                        <p className="sm:hidden text-xs text-gold-600 font-medium mb-2 font-sans flex items-center gap-1">
+                        <p className="sm:hidden text-xs text-gold-600 dark:text-gold-400 font-medium mb-2 font-sans flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {cls.schedule}
                         </p>
                       )}
-                      <h3 className="text-xl font-bold text-navy-800 mb-3 font-serif">{cls.name}</h3>
-                      <p className="text-charcoal/70 leading-relaxed font-sans">{cls.description}</p>
+                      <h3 className="text-xl font-bold text-navy-800 dark:text-white mb-3 font-serif">{cls.name}</h3>
+                      <p className="text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans">{cls.description}</p>
                     </div>
                   </div>
                 </AnimatedSection>

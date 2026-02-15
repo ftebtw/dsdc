@@ -16,6 +16,7 @@ export default function Hero() {
         loop
         muted
         playsInline
+        preload="metadata"
         className="absolute inset-0 w-full h-full object-cover"
         poster="/images/photos/wsc-group-2.jpg"
       >

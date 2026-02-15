@@ -1,5 +1,3 @@
-"use client";
-
 import Hero from "@/components/Hero";
 import FeatureCards from "@/components/FeatureCards";
 import HowItWorks from "@/components/HowItWorks";

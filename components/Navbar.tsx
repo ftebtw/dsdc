@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import LanguageToggle from "./LanguageToggle";
+import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
   { href: "/", key: "nav.home" },
@@ -14,6 +15,7 @@ const navLinks = [
   { href: "/classes", key: "nav.classes" },
   { href: "/awards", key: "nav.awards" },
   { href: "/blog", key: "nav.blog" },
+  { href: "/pricing", key: "nav.pricing" },
 ];
 
 export default function Navbar() {
@@ -36,7 +38,7 @@ export default function Navbar() {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-lg"
+          ? "bg-white/95 dark:bg-navy-900 backdrop-blur-md shadow-lg dark:shadow-black/20"
           : "bg-transparent"
       }`}
     >
@@ -48,7 +50,7 @@ export default function Navbar() {
               src="/images/logos/logo-full.png"
               alt="DSDC Logo"
               className={`h-10 md:h-14 w-auto transition-all duration-300 ${
-                scrolled ? "" : "brightness-0 invert"
+                scrolled ? "dark:brightness-0 dark:invert" : "brightness-0 invert"
               }`}
             />
           </Link>
@@ -62,16 +64,17 @@ export default function Navbar() {
                 className={`text-sm font-medium transition-colors duration-200 ${
                   pathname === link.href
                     ? scrolled
-                      ? "text-navy-800 border-b-2 border-gold-400 pb-0.5"
+                      ? "text-navy-800 dark:text-white border-b-2 border-gold-400 pb-0.5"
                       : "text-white border-b-2 border-gold-400 pb-0.5"
                     : scrolled
-                    ? "text-charcoal hover:text-navy-800"
+                    ? "text-charcoal hover:text-navy-800 dark:text-navy-100 dark:hover:text-white"
                     : "text-white/80 hover:text-white"
                 }`}
               >
                 {t(link.key)}
               </Link>
             ))}
+            <ThemeToggle variant={scrolled ? "dark" : "light"} />
             <LanguageToggle variant={scrolled ? "dark" : "light"} />
             <Link
               href="/book"
@@ -86,13 +89,13 @@ export default function Navbar() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-400"
+            className="md:hidden p-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-400"
             aria-label="Toggle menu"
           >
             {isOpen ? (
-              <X className={`w-6 h-6 ${scrolled ? "text-charcoal" : "text-white"}`} />
+              <X className={`w-6 h-6 ${scrolled ? "text-charcoal dark:text-navy-100" : "text-white"}`} />
             ) : (
-              <Menu className={`w-6 h-6 ${scrolled ? "text-charcoal" : "text-white"}`} />
+              <Menu className={`w-6 h-6 ${scrolled ? "text-charcoal dark:text-navy-100" : "text-white"}`} />
             )}
           </button>
         </div>
@@ -106,7 +109,7 @@ export default function Navbar() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 top-16 bg-white z-40 md:hidden"
+            className="fixed inset-0 top-16 bg-white dark:bg-navy-900 z-40 md:hidden"
           >
             <div className="flex flex-col items-center gap-6 pt-12 px-6">
               {navLinks.map((link) => (
@@ -115,14 +118,17 @@ export default function Navbar() {
                   href={link.href}
                   className={`text-lg font-medium ${
                     pathname === link.href
-                      ? "text-navy-800 border-b-2 border-gold-400"
-                      : "text-charcoal hover:text-navy-800"
+                      ? "text-navy-800 dark:text-white border-b-2 border-gold-400"
+                      : "text-charcoal dark:text-navy-200 hover:text-navy-800 dark:hover:text-white"
                   }`}
                 >
                   {t(link.key)}
                 </Link>
               ))}
-              <LanguageToggle />
+              <div className="flex items-center gap-3">
+                <ThemeToggle variant="dark" />
+                <LanguageToggle />
+              </div>
               <Link
                 href="/book"
                 className="w-full text-center px-6 py-3 bg-gold-300 text-navy-900 font-bold

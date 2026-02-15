@@ -68,10 +68,10 @@ export default function TestimonialCarousel() {
   if (total === 0) return null;
 
   return (
-    <section className="py-20 md:py-28 bg-white overflow-hidden">
+    <section className="py-20 md:py-28 bg-white dark:bg-navy-900/30 overflow-hidden">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-navy-800 dark:text-white">
             {t("testimonials.title")}
           </h2>
         </AnimatedSection>
@@ -90,21 +90,21 @@ export default function TestimonialCarousel() {
                 className="w-full"
               >
                 <div className="text-center px-4 md:px-12">
-                  <Quote className="w-10 h-10 text-gold-400 mx-auto mb-6" />
-                  <blockquote className="text-lg md:text-xl text-charcoal/80 leading-relaxed mb-8 font-sans italic">
+                  <Quote className="w-10 h-10 text-gold-400 dark:text-gold-500 mx-auto mb-6" />
+                  <blockquote className="text-lg md:text-xl text-charcoal/80 dark:text-navy-200 leading-relaxed mb-8 font-sans italic">
                     &ldquo;{items[current].quote}&rdquo;
                   </blockquote>
                   <div className="flex items-center justify-center gap-4">
-                    <div className="w-12 h-12 bg-navy-100 rounded-full flex items-center justify-center">
-                      <span className="text-navy-600 font-bold text-lg">
+                    <div className="w-12 h-12 bg-navy-100 dark:bg-navy-700 rounded-full flex items-center justify-center">
+                      <span className="text-navy-600 dark:text-navy-200 font-bold text-lg">
                         {items[current].name.charAt(0)}
                       </span>
                     </div>
                     <div className="text-left">
-                      <div className="font-semibold text-navy-800 font-serif">
+                      <div className="font-semibold text-navy-800 dark:text-white font-serif">
                         {items[current].name}
                       </div>
-                      <div className="text-sm text-charcoal/60 font-sans">
+                      <div className="text-sm text-charcoal/60 dark:text-navy-300 font-sans">
                         {items[current].role}
                       </div>
                     </div>
@@ -118,20 +118,20 @@ export default function TestimonialCarousel() {
           <button
             onClick={prev}
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-6
-                       w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center
-                       hover:bg-warm-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400"
+                       w-10 h-10 bg-white dark:bg-navy-800 rounded-full shadow-lg flex items-center justify-center
+                       hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400"
             aria-label="Previous testimonial"
           >
-            <ChevronLeft className="w-5 h-5 text-navy-800" />
+            <ChevronLeft className="w-5 h-5 text-navy-800 dark:text-navy-100" />
           </button>
           <button
             onClick={next}
             className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:translate-x-6
-                       w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center
-                       hover:bg-warm-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400"
+                       w-10 h-10 bg-white dark:bg-navy-800 rounded-full shadow-lg flex items-center justify-center
+                       hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400"
             aria-label="Next testimonial"
           >
-            <ChevronRight className="w-5 h-5 text-navy-800" />
+            <ChevronRight className="w-5 h-5 text-navy-800 dark:text-navy-100" />
           </button>
         </div>
 
@@ -146,8 +146,8 @@ export default function TestimonialCarousel() {
               }}
               className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
                 i === current
-                  ? "bg-gold-400 w-8"
-                  : "bg-navy-200 hover:bg-navy-300"
+                  ? "bg-gold-400 dark:bg-gold-500 w-8"
+                  : "bg-navy-200 hover:bg-navy-300 dark:bg-navy-600 dark:hover:bg-navy-500"
               }`}
               aria-label={`Go to testimonial ${i + 1}`}
             />

@@ -17,12 +17,12 @@ export default function LanguageToggle({ variant = "dark" }: LanguageToggleProps
   return (
     <button
       onClick={toggleLocale}
-      className={`relative inline-flex items-center gap-2 pl-3.5 pr-1 py-1 text-sm font-medium rounded-full border
+      className={`relative inline-flex items-center gap-2 pl-3.5 pr-1 py-2 min-h-[44px] text-sm font-medium rounded-full border
                   transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gold-400
                   ${
                     isLight
                       ? "border-white/40 text-white hover:border-white/60"
-                      : "border-navy-200 text-navy-800 hover:border-navy-300"
+                      : "border-navy-200 text-navy-800 hover:border-navy-300 dark:border-navy-500 dark:text-navy-100 dark:hover:border-navy-400"
                   }`}
       aria-label="Toggle language"
     >
@@ -33,7 +33,7 @@ export default function LanguageToggle({ variant = "dark" }: LanguageToggleProps
         {/* Sliding highlight pill */}
         <motion.div
           className={`absolute top-0 bottom-0 rounded-full ${
-            isLight ? "bg-white/20" : "bg-navy-800/10"
+            isLight ? "bg-white/20" : "bg-navy-800/10 dark:bg-white/10"
           }`}
           initial={false}
           animate={{

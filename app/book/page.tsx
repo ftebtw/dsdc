@@ -46,37 +46,37 @@ export default function BookPage() {
       </section>
 
       {/* Content */}
-      <section className="py-16 md:py-24 bg-warm-100">
+      <section className="py-16 md:py-24 bg-warm-100 dark:bg-navy-900/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Calendly + What to Expect */}
             <div className="space-y-8">
               <AnimatedSection>
-                <div className="bg-white rounded-2xl shadow-lg p-5 sm:p-8 md:p-10">
+                <div className="bg-white dark:bg-navy-800 rounded-2xl shadow-lg p-5 sm:p-8 md:p-10">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-gold-400/10 rounded-xl flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-gold-500" />
+                    <div className="w-10 h-10 bg-gold-400/10 dark:bg-gold-500/20 rounded-xl flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-gold-500 dark:text-gold-400" />
                     </div>
-                    <h3 className="text-xl font-bold text-navy-800 font-serif">Schedule Online</h3>
+                    <h3 className="text-xl font-bold text-navy-800 dark:text-white font-serif">Schedule Online</h3>
                   </div>
 
                   {/* Calendly iframe placeholder */}
-                  <div className="rounded-xl border-2 border-dashed border-warm-300 bg-warm-50 min-h-[300px] sm:min-h-[400px] flex flex-col items-center justify-center p-4 sm:p-8 text-center">
-                    <Calendar className="w-16 h-16 text-navy-300 mb-4" />
-                    <p className="text-navy-600 font-semibold mb-2">Calendly Booking Widget</p>
-                    <p className="text-charcoal/50 text-sm mb-6">Replace this placeholder with your Calendly embed</p>
-                    <code className="text-[10px] sm:text-xs bg-navy-800 text-gold-400 px-3 sm:px-4 py-2 rounded-lg font-mono break-all">
+                  <div className="rounded-xl border-2 border-dashed border-warm-300 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 min-h-[300px] sm:min-h-[400px] flex flex-col items-center justify-center p-4 sm:p-8 text-center">
+                    <Calendar className="w-16 h-16 text-navy-300 dark:text-navy-500 mb-4" />
+                    <p className="text-navy-600 dark:text-navy-200 font-semibold mb-2">Calendly Booking Widget</p>
+                    <p className="text-charcoal/50 dark:text-navy-300 text-sm mb-6">Replace this placeholder with your Calendly embed</p>
+                    <code className="text-[10px] sm:text-xs bg-navy-800 dark:bg-navy-700 text-gold-400 px-3 sm:px-4 py-2 rounded-lg font-mono break-all">
                       https://calendly.com/dsdc-placeholder
                     </code>
                   </div>
 
                   <div className="flex flex-wrap gap-4 mt-6">
-                    <div className="flex items-center gap-2 text-sm text-charcoal/60">
-                      <Clock className="w-4 h-4 text-gold-500" />
+                    <div className="flex items-center gap-2 text-sm text-charcoal/60 dark:text-navy-300">
+                      <Clock className="w-4 h-4 text-gold-500 dark:text-gold-400" />
                       <span className="font-sans">15 minutes</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-charcoal/60">
-                      <Video className="w-4 h-4 text-gold-500" />
+                    <div className="flex items-center gap-2 text-sm text-charcoal/60 dark:text-navy-300">
+                      <Video className="w-4 h-4 text-gold-500 dark:text-gold-400" />
                       <span className="font-sans">Via Zoom</span>
                     </div>
                   </div>
@@ -85,15 +85,15 @@ export default function BookPage() {
 
               {/* What to Expect */}
               <AnimatedSection delay={0.15}>
-                <div className="bg-white rounded-2xl shadow-lg p-5 sm:p-8 md:p-10">
-                  <h3 className="text-xl font-bold text-navy-800 mb-6 font-serif">
+                <div className="bg-white dark:bg-navy-800 rounded-2xl shadow-lg p-5 sm:p-8 md:p-10">
+                  <h3 className="text-xl font-bold text-navy-800 dark:text-white mb-6 font-serif">
                     {t("bookPage.expectTitle")}
                   </h3>
                   <ul className="space-y-4">
                     {expectItems.map((item, i) => (
                       <li key={i} className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
-                        <span className="text-charcoal/70 font-sans">{item}</span>
+                        <CheckCircle className="w-5 h-5 text-gold-400 dark:text-gold-500 shrink-0 mt-0.5" />
+                        <span className="text-charcoal/70 dark:text-navy-200 font-sans">{item}</span>
                       </li>
                     ))}
                   </ul>
