@@ -23,6 +23,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const { t } = useI18n();
+  const navSolid = scrolled || isOpen;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -34,10 +35,19 @@ export default function Navbar() {
     setIsOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
+        navSolid
           ? "bg-white/95 dark:bg-navy-900 backdrop-blur-md shadow-lg dark:shadow-black/20"
           : "bg-transparent"
       }`}
@@ -50,7 +60,7 @@ export default function Navbar() {
               src="/images/logos/logo-full.png"
               alt="DSDC Logo"
               className={`h-10 md:h-14 w-auto transition-all duration-300 ${
-                scrolled ? "dark:brightness-0 dark:invert" : "brightness-0 invert"
+                navSolid ? "dark:brightness-0 dark:invert" : "brightness-0 invert"
               }`}
             />
           </Link>
@@ -63,10 +73,10 @@ export default function Navbar() {
                 href={link.href}
                 className={`text-sm font-medium transition-colors duration-200 ${
                   pathname === link.href
-                    ? scrolled
+                    ? navSolid
                       ? "text-navy-800 dark:text-white border-b-2 border-gold-400 pb-0.5"
                       : "text-white border-b-2 border-gold-400 pb-0.5"
-                    : scrolled
+                    : navSolid
                     ? "text-charcoal hover:text-navy-800 dark:text-navy-100 dark:hover:text-white"
                     : "text-white/80 hover:text-white"
                 }`}
@@ -74,8 +84,8 @@ export default function Navbar() {
                 {t(link.key)}
               </Link>
             ))}
-            <ThemeToggle variant={scrolled ? "dark" : "light"} />
-            <LanguageToggle variant={scrolled ? "dark" : "light"} />
+            <ThemeToggle variant={navSolid ? "dark" : "light"} />
+            <LanguageToggle variant={navSolid ? "dark" : "light"} />
             <Link
               href="/book"
               className="px-5 py-2.5 bg-gold-300 text-navy-900 text-sm font-bold rounded-lg
@@ -93,9 +103,9 @@ export default function Navbar() {
             aria-label="Toggle menu"
           >
             {isOpen ? (
-              <X className={`w-6 h-6 ${scrolled ? "text-charcoal dark:text-navy-100" : "text-white"}`} />
+              <X className={`w-6 h-6 ${navSolid ? "text-charcoal dark:text-navy-100" : "text-white"}`} />
             ) : (
-              <Menu className={`w-6 h-6 ${scrolled ? "text-charcoal dark:text-navy-100" : "text-white"}`} />
+              <Menu className={`w-6 h-6 ${navSolid ? "text-charcoal dark:text-navy-100" : "text-white"}`} />
             )}
           </button>
         </div>

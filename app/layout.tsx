@@ -72,7 +72,7 @@ const faqSchema = {
       name: "How are classes conducted?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "All classes are held live online via Zoom. Each session is 60 minutes, with small groups of 8–12 students to ensure personalized attention. Students receive written feedback from their coach every class.",
+        text: "All classes are held live online via Zoom. Group classes are 2 hours per session, with small groups of 8–12 students to ensure personalized attention. Private coaching is customizable in length with a 1-hour minimum. Students receive written feedback from their coach every class.",
       },
     },
     {
@@ -80,7 +80,7 @@ const faqSchema = {
       name: "How much do classes cost?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "We publish our rates openly: Novice & intermediate group debate and public speaking group classes are $30/hr plus GST; World Scholars Cup group class is $40/hr plus GST; advanced debate classes are $50/hr plus GST. Private coaching (1-on-1, 2-on-1, or 3-on-1) prices vary by coach. See our Pricing page for full details.",
+        text: "We publish our rates openly: Novice & intermediate group debate and public speaking group classes are $30/hr plus GST; World Scholars Cup group class is $40/hr plus GST; advanced debate classes are $50/hr plus GST. Group classes run for 2 hours per session. Private coaching (1-on-1, 2-on-1, or 3-on-1) prices vary by coach, is customizable in length, and has a 1-hour minimum. See our Pricing page for full details.",
       },
     },
     {
