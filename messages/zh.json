@@ -4,6 +4,7 @@
     "team": "我们的团队",
     "classes": "课程",
     "awards": "学生荣誉",
+    "blog": "博客",
     "book": "预约咨询",
     "langToggle": "EN"
   },
@@ -177,5 +178,11 @@
     "debateTitle": "辩论与演讲奖项",
     "wscTitle": "世界学者杯奖项",
     "viewAll": "查看所有奖项"
+  },
+  "blog": {
+    "title": "博客",
+    "subtitle": "来自我们获奖教练团队关于辩论、演讲和教育的专业见解。",
+    "allPosts": "所有文章",
+    "relatedPosts": "您可能还喜欢"
   }
 }

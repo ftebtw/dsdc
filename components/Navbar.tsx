@@ -13,6 +13,7 @@ const navLinks = [
   { href: "/team", key: "nav.team" },
   { href: "/classes", key: "nav.classes" },
   { href: "/awards", key: "nav.awards" },
+  { href: "/blog", key: "nav.blog" },
 ];
 
 export default function Navbar() {

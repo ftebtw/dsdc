@@ -4,6 +4,7 @@
     "team": "Our Team",
     "classes": "Classes",
     "awards": "Student Awards",
+    "blog": "Blog",
     "book": "Book a Consultation",
     "langToggle": "中文"
   },
@@ -259,5 +260,11 @@
     "debateTitle": "Debate & Public Speaking Awards",
     "wscTitle": "World Scholar's Cup Awards",
     "viewAll": "View All Awards"
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Expert insights on debate, public speaking, and education from our award-winning coaches.",
+    "allPosts": "All Articles",
+    "relatedPosts": "You Might Also Like"
   }
 }
