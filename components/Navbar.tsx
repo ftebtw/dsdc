@@ -11,11 +11,11 @@ import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
   { href: "/", key: "nav.home" },
+  { href: "/pricing", key: "nav.pricing" },
   { href: "/team", key: "nav.team" },
   { href: "/classes", key: "nav.classes" },
   { href: "/awards", key: "nav.awards" },
   { href: "/blog", key: "nav.blog" },
-  { href: "/pricing", key: "nav.pricing" },
 ];
 
 export default function Navbar() {
