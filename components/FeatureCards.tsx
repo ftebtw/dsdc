@@ -23,15 +23,15 @@ export default function FeatureCards() {
           {keys.map((key, i) => {
             const Icon = icons[i];
             return (
-              <AnimatedSection key={key} delay={i * 0.15}>
-                <div className="bg-white dark:bg-navy-800 rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-center group">
+              <AnimatedSection key={key} delay={i * 0.15} className="h-full">
+                <div className="h-full bg-white dark:bg-navy-800 rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-center group flex flex-col">
                   <div className="w-16 h-16 bg-gold-50 dark:bg-gold-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-gold-100 dark:group-hover:bg-gold-800/40 transition-colors">
                     <Icon className="w-8 h-8 text-gold-500 dark:text-gold-400" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3 font-serif text-navy-800 dark:text-white">
+                  <h3 className="text-xl font-bold mb-3 font-serif text-navy-800 dark:text-white min-h-[56px] flex items-center justify-center leading-tight line-clamp-2">
                     {t(`difference.cards.${key}.title`)}
                   </h3>
-                  <p className="text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans">
+                  <p className="text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans min-h-[96px] line-clamp-4">
                     {t(`difference.cards.${key}.description`)}
                   </p>
                 </div>

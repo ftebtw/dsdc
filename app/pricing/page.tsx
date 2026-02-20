@@ -1,40 +1,71 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Check, Users, Mic, Globe, Trophy, User, MessageCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "@/components/AnimatedSection";
+import {
+  BASE_FX_FALLBACK,
+  GROUP_TIERS,
+  SUPPORTED_CURRENCIES,
+  convertCadPrice,
+  formatDisplayPrice,
+  type GroupTierKey,
+  type SupportedCurrency,
+} from "@/lib/pricing";
 
-const groupTiers = [
-  {
-    key: "noviceIntermediate",
-    price: "30",
-    icon: Users,
-    highlight: false,
-  },
-  {
-    key: "publicSpeaking",
-    price: "30",
-    icon: Mic,
-    highlight: false,
-  },
-  {
-    key: "wsc",
-    price: "40",
-    icon: Globe,
-    highlight: true,
-  },
-  {
-    key: "advanced",
-    price: "50",
-    icon: Trophy,
-    highlight: false,
-  },
-];
+const tierIcons: Record<GroupTierKey, typeof Users> = {
+  noviceIntermediate: Users,
+  publicSpeaking: Mic,
+  wsc: Globe,
+  advanced: Trophy,
+};
+
+type FxResponse = {
+  rates: Record<SupportedCurrency, number>;
+  source: "live" | "cache" | "fallback";
+  lastUpdated: string;
+};
 
 export default function PricingPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const [currency, setCurrency] = useState<SupportedCurrency>("CAD");
+  const [rates, setRates] = useState<Record<SupportedCurrency, number>>(BASE_FX_FALLBACK);
+  const [rateSource, setRateSource] = useState<FxResponse["source"]>("fallback");
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadRates = async () => {
+      try {
+        const res = await fetch("/api/fx-rates", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json()) as FxResponse;
+        if (!ignore && data?.rates) {
+          setRates(data.rates);
+          setRateSource(data.source);
+        }
+      } catch {
+        // fall back to built-in rates silently
+      }
+    };
+
+    loadRates();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const groupTiers = useMemo(
+    () =>
+      GROUP_TIERS.map((tier) => ({
+        ...tier,
+        icon: tierIcons[tier.key],
+      })),
+    []
+  );
 
   return (
     <>
@@ -55,7 +86,7 @@ export default function PricingPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold-400/20 text-gold-300 text-sm font-medium mb-6"
           >
             <Check className="w-4 h-4" />
-            No hidden fees · All rates plus GST
+            {t("pricingPage.noHiddenFees")}
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -80,9 +111,28 @@ export default function PricingPage() {
       <section className="py-16 md:py-24 bg-warm-100 dark:bg-navy-900/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection>
-            <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-navy-800 dark:text-white">
-              {t("pricingPage.groupClasses")}
-            </h2>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-10">
+              <h2 className="text-2xl md:text-3xl font-bold text-navy-800 dark:text-white">
+                {t("pricingPage.groupClasses")}
+              </h2>
+              <div className="flex items-center gap-3">
+                <label htmlFor="currency" className="text-sm font-medium text-navy-700 dark:text-navy-200">
+                  {t("pricingPage.currency")}
+                </label>
+                <select
+                  id="currency"
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value as SupportedCurrency)}
+                  className="px-3 py-2 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 text-sm text-navy-800 dark:text-navy-100"
+                >
+                  {SUPPORTED_CURRENCIES.map((code) => (
+                    <option key={code} value={code}>
+                      {t(`pricingPage.currencyOptions.${code}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </AnimatedSection>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -91,17 +141,8 @@ export default function PricingPage() {
               return (
                 <AnimatedSection key={tier.key} delay={i * 0.08}>
                   <div
-                    className={`relative rounded-2xl border-2 p-6 sm:p-8 h-full flex flex-col transition-all duration-300 hover:shadow-xl ${
-                      tier.highlight
-                        ? "border-gold-400 bg-white dark:bg-navy-800 shadow-lg dark:border-gold-500"
-                        : "border-warm-200 dark:border-navy-700 bg-white dark:bg-navy-800 hover:border-gold-200 dark:hover:border-gold-600"
-                    }`}
+                    className="relative rounded-2xl border-2 p-6 sm:p-8 h-full flex flex-col transition-all duration-300 hover:shadow-xl border-warm-200 dark:border-navy-700 bg-white dark:bg-navy-800 hover:border-gold-200 dark:hover:border-gold-600"
                   >
-                    {tier.highlight && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gold-400 text-navy-900 text-xs font-bold">
-                        Popular
-                      </div>
-                    )}
                     <div className="w-12 h-12 rounded-xl bg-gold-400/10 dark:bg-gold-500/20 flex items-center justify-center mb-5">
                       <Icon className="w-6 h-6 text-gold-500 dark:text-gold-400" />
                     </div>
@@ -112,7 +153,13 @@ export default function PricingPage() {
                       {t(`pricingPage.${tier.key}Desc`)}
                     </p>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-navy-800 dark:text-white">${tier.price}</span>
+                      <span className="text-3xl font-bold text-navy-800 dark:text-white">
+                        {formatDisplayPrice(
+                          convertCadPrice(tier.baseCadPrice, currency, rates),
+                          currency,
+                          locale
+                        )}
+                      </span>
                       <span className="text-charcoal/50 dark:text-navy-300 text-sm font-sans">
                         {t("pricingPage.perHour")}
                       </span>
@@ -122,6 +169,12 @@ export default function PricingPage() {
               );
             })}
           </div>
+          <AnimatedSection delay={0.12}>
+            <p className="mt-5 text-sm text-charcoal/60 dark:text-navy-300 font-sans">
+              {t("pricingPage.currencyDisclaimer")}
+              {rateSource !== "live" && ` ${t("pricingPage.currencyFallback")}`}
+            </p>
+          </AnimatedSection>
         </div>
       </section>
 
@@ -129,9 +182,9 @@ export default function PricingPage() {
       <section className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection>
-            <div className="rounded-2xl border-2 border-warm-200 dark:border-navy-700 bg-warm-50 dark:bg-navy-800 p-8 sm:p-10 text-center">
-              <div className="w-14 h-14 rounded-xl bg-navy-100 dark:bg-navy-700 flex items-center justify-center mx-auto mb-5">
-                <User className="w-7 h-7 text-navy-600 dark:text-navy-200" />
+            <div className="rounded-2xl border-2 border-gold-300 dark:border-gold-600 bg-gold-50/70 dark:bg-navy-800 p-8 sm:p-10 text-center shadow-sm">
+              <div className="w-14 h-14 rounded-xl bg-gold-400/20 dark:bg-gold-500/20 flex items-center justify-center mx-auto mb-5">
+                <User className="w-7 h-7 text-gold-700 dark:text-gold-300" />
               </div>
               <h2 className="text-2xl font-bold text-navy-800 dark:text-white mb-2 font-serif">
                 {t("pricingPage.privateCoaching")}

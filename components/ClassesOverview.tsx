@@ -39,25 +39,25 @@ export default function ClassesOverview() {
           {classData.map((cls, i) => {
             const Icon = cls.icon;
             return (
-              <AnimatedSection key={cls.key} delay={i * 0.15}>
-                <Link href="/classes" className="group block">
-                  <div className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <AnimatedSection key={cls.key} delay={i * 0.15} className="h-full">
+                <Link href="/classes" className="group block h-full">
+                  <div className="relative h-full rounded-2xl overflow-hidden aspect-[3/4] shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                     <img
                       src={cls.image}
                       alt={t(`classesOverview.${cls.key}.title`)}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-navy-900/90 via-navy-900/40 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <div className="flex items-center gap-3 mb-3">
+                    <div className="absolute inset-0 bg-gradient-to-t from-navy-900/90 via-navy-900/45 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-6 min-h-[200px] md:min-h-[220px] flex flex-col justify-end">
+                      <div className="flex items-start gap-3 mb-3 min-h-[60px]">
                         <div className="w-10 h-10 bg-gold-400/90 rounded-xl flex items-center justify-center">
                           <Icon className="w-5 h-5 text-navy-900" />
                         </div>
-                        <h3 className="text-xl font-bold text-white font-serif">
+                        <h3 className="text-xl font-bold text-white font-serif leading-tight line-clamp-2">
                           {t(`classesOverview.${cls.key}.title`)}
                         </h3>
                       </div>
-                      <p className="text-white/80 text-sm leading-relaxed font-sans">
+                      <p className="text-white/80 text-sm leading-relaxed font-sans line-clamp-3 min-h-[72px]">
                         {t(`classesOverview.${cls.key}.description`)}
                       </p>
                     </div>

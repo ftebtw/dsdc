@@ -11,18 +11,6 @@ export default function TestimonialCarousel() {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
 
-  // Access testimonials array from JSON
-  const testimonials = (() => {
-    try {
-      const items = t("testimonials.items");
-      if (typeof items === "string") return [];
-      return [];
-    } catch {
-      return [];
-    }
-  })();
-
-  // We'll use a different approach: read from the imported JSON directly
   const en = require("@/messages/en.json");
   const zh = require("@/messages/zh.json");
   const msgs = locale === "zh" ? zh : en;
@@ -77,7 +65,7 @@ export default function TestimonialCarousel() {
         </AnimatedSection>
 
         <div className="relative">
-          <div className="min-h-[300px] md:min-h-[250px] flex items-center">
+          <div className="min-h-[340px] md:min-h-[250px] flex items-center">
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={current}
@@ -114,10 +102,10 @@ export default function TestimonialCarousel() {
             </AnimatePresence>
           </div>
 
-          {/* Navigation arrows */}
+          {/* Desktop navigation arrows */}
           <button
             onClick={prev}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 md:-translate-x-6
+            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 lg:-translate-x-10
                        w-10 h-10 bg-white dark:bg-navy-800 rounded-full shadow-lg flex items-center justify-center
                        hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400"
             aria-label="Previous testimonial"
@@ -126,9 +114,27 @@ export default function TestimonialCarousel() {
           </button>
           <button
             onClick={next}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 md:translate-x-6
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 lg:translate-x-10
                        w-10 h-10 bg-white dark:bg-navy-800 rounded-full shadow-lg flex items-center justify-center
                        hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400"
+            aria-label="Next testimonial"
+          >
+            <ChevronRight className="w-5 h-5 text-navy-800 dark:text-navy-100" />
+          </button>
+        </div>
+
+        {/* Mobile navigation arrows */}
+        <div className="flex md:hidden justify-center gap-3 mt-5">
+          <button
+            onClick={prev}
+            className="w-10 h-10 bg-white dark:bg-navy-800 rounded-full shadow-lg flex items-center justify-center hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400"
+            aria-label="Previous testimonial"
+          >
+            <ChevronLeft className="w-5 h-5 text-navy-800 dark:text-navy-100" />
+          </button>
+          <button
+            onClick={next}
+            className="w-10 h-10 bg-white dark:bg-navy-800 rounded-full shadow-lg flex items-center justify-center hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400"
             aria-label="Next testimonial"
           >
             <ChevronRight className="w-5 h-5 text-navy-800 dark:text-navy-100" />

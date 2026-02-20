@@ -80,7 +80,7 @@ const faqSchema = {
       name: "How much do classes cost?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "We publish our rates openly: Novice & intermediate group debate and public speaking group classes are $30/hr plus GST; World Scholars Cup group class is $40/hr plus GST; advanced debate classes are $50/hr plus GST. Group classes run for 2 hours per session. Private coaching (1-on-1, 2-on-1, or 3-on-1) prices vary by coach, is customizable in length, and has a 1-hour minimum. See our Pricing page for full details.",
+        text: "We publish our rates openly: Novice & intermediate group debate and public speaking group classes are $30/hr plus applicable taxes; World Scholars Cup group class is $40/hr plus applicable taxes; advanced debate classes are $50/hr plus applicable taxes. Group classes run for 2 hours per session. Private coaching (1-on-1, 2-on-1, or 3-on-1) prices vary by coach, is customizable in length, and has a 1-hour minimum. See our Pricing page for full details.",
       },
     },
     {
@@ -143,10 +143,13 @@ const orgSchema = {
       addressCountry: "CA",
     },
   },
-  sameAs: [],
+  sameAs: [
+    "https://instagram.com/debate_education",
+    "https://www.linkedin.com/company/debate-and-speech-development-community/",
+  ],
   contactPoint: {
     "@type": "ContactPoint",
-    email: "contact@dsdc.ca",
+    email: "education.dsdc@gmail.com",
     contactType: "customer service",
   },
 };

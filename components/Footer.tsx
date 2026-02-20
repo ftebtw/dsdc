@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, Phone, Facebook, Instagram, Youtube } from "lucide-react";
+import { Mail, Instagram, Linkedin } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import LanguageToggle from "./LanguageToggle";
 
@@ -76,20 +76,11 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href="mailto:contact@dsdc.ca"
+                  href={`mailto:${t("footer.companyEmail")}`}
                   className="text-navy-200 hover:text-white text-sm transition-colors flex items-center gap-2"
                 >
                   <Mail className="w-4 h-4" />
-                  {t("footer.email")}
-                </a>
-              </li>
-              <li>
-                <a
-                  href="tel:+16040000000"
-                  className="text-navy-200 hover:text-white text-sm transition-colors flex items-center gap-2"
-                >
-                  <Phone className="w-4 h-4" />
-                  {t("footer.phone")}
+                  {t("footer.companyEmail")}
                 </a>
               </li>
             </ul>
@@ -101,14 +92,23 @@ export default function Footer() {
               {t("footer.social")}
             </h3>
             <div className="flex gap-4 mb-6">
-              <a href="#" className="text-navy-200 hover:text-white transition-colors" aria-label="Facebook">
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-navy-200 hover:text-white transition-colors" aria-label="Instagram">
+              <a
+                href={t("footer.instagramUrl")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-navy-200 hover:text-white transition-colors"
+                aria-label="Instagram"
+              >
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="#" className="text-navy-200 hover:text-white transition-colors" aria-label="YouTube">
-                <Youtube className="w-5 h-5" />
+              <a
+                href={t("footer.linkedinUrl")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-navy-200 hover:text-white transition-colors"
+                aria-label="LinkedIn"
+              >
+                <Linkedin className="w-5 h-5" />
               </a>
             </div>
             <LanguageToggle />
