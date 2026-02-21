@@ -6,22 +6,28 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sanity": "sanity"
   },
   "dependencies": {
+    "@sanity/client": "^7.15.0",
+    "@sanity/vision": "^5.11.0",
     "@supabase/supabase-js": "^2.95.3",
     "@tailwindcss/postcss": "^4.1.4",
     "framer-motion": "^11.18.0",
     "lucide-react": "^0.474.0",
     "next": "^15.3.2",
+    "next-sanity": "^11.6.12",
     "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "sanity": "^4.22.0",
     "tailwindcss": "^4.1.4"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
     "@types/react": "^19.1.2",
+    "playwright": "^1.58.2",
     "typescript": "^5.8.3"
   }
 }

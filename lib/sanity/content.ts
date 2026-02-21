@@ -1,0 +1,113 @@
+import { unstable_cache } from "next/cache";
+import { getSanityClient } from "./client";
+import { hasSanityConfig } from "./env";
+import { cmsContentQuery } from "./queries";
+
+type Locale = "en" | "zh";
+type MessageObject = Record<string, unknown>;
+
+interface SanityCmsResponse {
+  siteSettings?: Record<string, unknown>;
+  homePage?: Record<string, unknown>;
+  pricingPage?: Record<string, unknown>;
+  teamPage?: Record<string, unknown>;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isLocalizedObject(value: unknown): value is { en?: unknown; zh?: unknown } {
+  if (!isObject(value)) return false;
+  const keys = Object.keys(value);
+  return keys.length > 0 && keys.every((k) => k === "en" || k === "zh");
+}
+
+function resolveLocale(value: unknown, locale: Locale): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => resolveLocale(item, locale));
+  }
+
+  if (isLocalizedObject(value)) {
+    if (value[locale] !== undefined && value[locale] !== null) return value[locale];
+    const fallbackLocale = locale === "en" ? "zh" : "en";
+    return value[fallbackLocale] ?? "";
+  }
+
+  if (isObject(value)) {
+    const resolved: Record<string, unknown> = {};
+    for (const [key, nested] of Object.entries(value)) {
+      if (key === "_type" || key === "_id" || key === "_createdAt" || key === "_updatedAt" || key === "_rev" || key === "_key") {
+        continue;
+      }
+      if (key === "image" && isObject(nested) && typeof nested.imageUrl === "string") {
+        resolved.image = nested.imageUrl;
+        continue;
+      }
+      resolved[key] = resolveLocale(nested, locale);
+    }
+    return resolved;
+  }
+
+  return value;
+}
+
+function deepMerge(base: MessageObject, override: MessageObject): MessageObject {
+  const merged: MessageObject = { ...base };
+  for (const [key, value] of Object.entries(override)) {
+    if (Array.isArray(value)) {
+      merged[key] = value;
+      continue;
+    }
+    const current = merged[key];
+    if (isObject(current) && isObject(value)) {
+      merged[key] = deepMerge(current, value);
+      continue;
+    }
+    merged[key] = value;
+  }
+  return merged;
+}
+
+function buildLocaleOverrides(payload: SanityCmsResponse, locale: Locale): MessageObject {
+  const parts = [payload.siteSettings, payload.homePage, payload.pricingPage, payload.teamPage]
+    .filter((part): part is Record<string, unknown> => Boolean(part))
+    .map((part) => resolveLocale(part, locale))
+    .filter((part): part is MessageObject => isObject(part));
+
+  return parts.reduce<MessageObject>((acc, part) => deepMerge(acc, part), {});
+}
+
+async function fetchSanityCmsContent(): Promise<SanityCmsResponse | null> {
+  if (!hasSanityConfig()) return null;
+  try {
+    const client = getSanityClient();
+    const data = await client.fetch<SanityCmsResponse>(cmsContentQuery, {}, { cache: "no-store" });
+    return data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+const getCachedLiveOverrides = unstable_cache(
+  async () => {
+    const data = await fetchSanityCmsContent();
+    if (!data) throw new Error("Sanity unavailable");
+    return {
+      en: buildLocaleOverrides(data, "en"),
+      zh: buildLocaleOverrides(data, "zh"),
+    };
+  },
+  ["cms-live-overrides"],
+  { revalidate: 300, tags: ["cms-content"] }
+);
+
+export async function getCmsMessageOverrides() {
+  try {
+    const overrides = await getCachedLiveOverrides();
+    return { source: "live" as const, overrides };
+  } catch {
+    // Non-sticky fallback: do not cache fallback payloads.
+    return { source: "fallback" as const, overrides: { en: {}, zh: {} } };
+  }
+}

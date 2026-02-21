@@ -15,15 +15,19 @@ const founderKeyAchievements = [
 ];
 
 export default function TeamPage() {
-  const { t, locale } = useI18n();
-
-  const en = require("@/messages/en.json");
-  const zh = require("@/messages/zh.json");
-  const msgs = locale === "zh" ? zh : en;
-  const coaches = msgs.coaches as Array<{
+  const { t, messages } = useI18n();
+  const coaches = ((messages.coaches as Array<{
     name: string;
     title: string;
     bio: string;
+    image?: string;
+    imageUrl?: string;
+  }> | undefined) ?? []) as Array<{
+    name: string;
+    title: string;
+    bio: string;
+    image?: string;
+    imageUrl?: string;
   }>;
 
   return (
@@ -97,7 +101,7 @@ export default function TeamPage() {
                 title={coach.title}
                 bio={coach.bio}
                 awards={coachAwards[coach.name] || []}
-                image={coachImages[coach.name]}
+                image={coach.image || coach.imageUrl || coachImages[coach.name]}
                 index={i}
               />
             ))}

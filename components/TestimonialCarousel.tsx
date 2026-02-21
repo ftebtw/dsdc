@@ -7,14 +7,11 @@ import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "./AnimatedSection";
 
 export default function TestimonialCarousel() {
-  const { t, locale } = useI18n();
+  const { t, messages } = useI18n();
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
-
-  const en = require("@/messages/en.json");
-  const zh = require("@/messages/zh.json");
-  const msgs = locale === "zh" ? zh : en;
-  const items = msgs.testimonials.items as Array<{
+  const items = ((messages.testimonials as { items?: Array<{ name: string; role: string; quote: string }> } | undefined)?.items ??
+    []) as Array<{
     name: string;
     role: string;
     quote: string;
@@ -77,7 +74,7 @@ export default function TestimonialCarousel() {
                 transition={{ duration: 0.4, ease: "easeInOut" }}
                 className="w-full"
               >
-                <div className="text-center px-4 md:px-12">
+                <div className="text-center max-w-3xl mx-auto px-8 md:px-20 lg:px-24">
                   <Quote className="w-10 h-10 text-gold-400 dark:text-gold-500 mx-auto mb-6" />
                   <blockquote className="text-lg md:text-xl text-charcoal/80 dark:text-navy-200 leading-relaxed mb-8 font-sans italic">
                     &ldquo;{items[current].quote}&rdquo;
@@ -105,7 +102,7 @@ export default function TestimonialCarousel() {
           {/* Desktop navigation arrows */}
           <button
             onClick={prev}
-            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 lg:-translate-x-10
+            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 lg:-translate-x-14
                        w-10 h-10 bg-white dark:bg-navy-800 rounded-full shadow-lg flex items-center justify-center
                        hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400"
             aria-label="Previous testimonial"
@@ -114,7 +111,7 @@ export default function TestimonialCarousel() {
           </button>
           <button
             onClick={next}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 lg:translate-x-10
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 lg:translate-x-14
                        w-10 h-10 bg-white dark:bg-navy-800 rounded-full shadow-lg flex items-center justify-center
                        hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400"
             aria-label="Next testimonial"

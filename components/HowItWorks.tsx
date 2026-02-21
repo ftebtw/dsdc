@@ -7,11 +7,9 @@ import AnimatedSection from "./AnimatedSection";
 const icons = [Phone, UserCheck, Monitor];
 
 export default function HowItWorks() {
-  const { t, locale } = useI18n();
-  const en = require("@/messages/en.json");
-  const zh = require("@/messages/zh.json");
-  const msgs = locale === "zh" ? zh : en;
-  const steps = msgs.howItWorks.steps as Array<{ step: string; title: string; description: string }>;
+  const { t, messages } = useI18n();
+  const steps = ((messages.howItWorks as { steps?: Array<{ step: string; title: string; description: string }> } | undefined)?.steps ??
+    []) as Array<{ step: string; title: string; description: string }>;
 
   return (
     <section className="py-20 md:py-28 bg-white dark:bg-navy-900/30">

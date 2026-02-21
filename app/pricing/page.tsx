@@ -182,20 +182,21 @@ export default function PricingPage() {
       <section className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection>
-            <div className="rounded-2xl border-2 border-gold-300 dark:border-gold-600 bg-gold-50/70 dark:bg-navy-800 p-8 sm:p-10 text-center shadow-sm">
-              <div className="w-14 h-14 rounded-xl bg-gold-400/20 dark:bg-gold-500/20 flex items-center justify-center mx-auto mb-5">
+            <div className="rounded-2xl border border-gold-300/60 dark:border-gold-500/50 bg-gold-50/70 dark:bg-navy-800/90 p-6 sm:p-8 text-center shadow-sm">
+              <div className="w-14 h-14 rounded-xl bg-gold-400/20 dark:bg-gold-500/20 flex items-center justify-center mx-auto mb-4">
                 <User className="w-7 h-7 text-gold-700 dark:text-gold-300" />
               </div>
-              <h2 className="text-2xl font-bold text-navy-800 dark:text-white mb-2 font-serif">
+              <h2 className="text-2xl font-bold text-navy-800 dark:text-white font-serif">
                 {t("pricingPage.privateCoaching")}
               </h2>
-              <p className="text-charcoal/60 dark:text-navy-200 mb-6 font-sans">
+              <p className="mt-2 text-charcoal/70 dark:text-navy-200 font-sans">
                 {t("pricingPage.privateDesc")}
               </p>
-              <p className="text-xl font-bold text-navy-800 dark:text-white mb-2">
+              <div className="my-5 h-px w-20 mx-auto bg-gold-300/70 dark:bg-gold-500/40" />
+              <p className="text-3xl font-bold text-navy-900 dark:text-white leading-none">
                 {t("pricingPage.varies")}
               </p>
-              <p className="text-sm text-charcoal/50 dark:text-navy-300 font-sans">
+              <p className="mt-3 max-w-xl mx-auto text-sm leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
                 {t("pricingPage.privateNote")}
               </p>
             </div>

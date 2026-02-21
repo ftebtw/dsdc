@@ -111,7 +111,7 @@ export default function Footer() {
                 <Linkedin className="w-5 h-5" />
               </a>
             </div>
-            <LanguageToggle />
+            <LanguageToggle variant="light" />
           </div>
         </div>
 

@@ -1,0 +1,11 @@
+{
+  "name": "dsdc-qa-tests",
+  "version": "1.0.0",
+  "description": "Responsive QA test suite for DSDC website",
+  "scripts": {
+    "qa:responsive": "node responsive-qa-test.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.40.0"
+  }
+}

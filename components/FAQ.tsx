@@ -7,13 +7,12 @@ import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "./AnimatedSection";
 
 export default function FAQ() {
-  const { t, locale } = useI18n();
+  const { t, messages } = useI18n();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  const en = require("@/messages/en.json");
-  const zh = require("@/messages/zh.json");
-  const msgs = locale === "zh" ? zh : en;
-  const items = msgs.faq.items as Array<{ q: string; a: string }>;
+  const items = ((messages.faq as { items?: Array<{ q: string; a: string }> } | undefined)?.items ?? []) as Array<{
+    q: string;
+    a: string;
+  }>;
 
   return (
     <section className="py-20 md:py-28 bg-warm-100 dark:bg-navy-900/50">

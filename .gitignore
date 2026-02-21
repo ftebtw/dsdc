@@ -5,6 +5,8 @@
 
 # testing
 /coverage
+/qa-screenshots/
+qa-test-results.json
 
 # next.js
 /.next/
