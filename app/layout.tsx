@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { draftMode } from "next/headers";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "./providers";
+import VisualEditingWrapper from "@/components/VisualEditingWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -211,11 +213,12 @@ const courseSchemas = [
   },
 ];
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { isEnabled } = await draftMode();
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
@@ -245,6 +248,7 @@ export default function RootLayout({
           }}
         />
         <ClientProviders>{children}</ClientProviders>
+        <VisualEditingWrapper enabled={isEnabled} />
       </body>
     </html>
   );
