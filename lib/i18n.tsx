@@ -54,16 +54,27 @@ function deepMerge(base: Record<string, unknown>, override: Record<string, unkno
   return merged;
 }
 
-export function I18nProvider({ children }: { children: ReactNode }) {
+type CmsOverridesPayload = { en: Record<string, unknown>; zh: Record<string, unknown> } | null;
+
+export function I18nProvider({
+  children,
+  initialCmsOverrides,
+}: {
+  children: ReactNode;
+  initialCmsOverrides?: CmsOverridesPayload;
+}) {
   const [locale, setLocale] = useState<Locale>("en");
-  const [cmsOverrides, setCmsOverrides] = useState<{ en: Record<string, unknown>; zh: Record<string, unknown> } | null>(null);
-  const [contentSource, setContentSource] = useState<"static" | "live" | "fallback">("static");
+  const [cmsOverrides, setCmsOverrides] = useState<CmsOverridesPayload>(initialCmsOverrides ?? null);
+  const [contentSource, setContentSource] = useState<"static" | "live" | "fallback">(
+    initialCmsOverrides ? "live" : "static"
+  );
 
   const toggleLocale = useCallback(() => {
     setLocale((prev) => (prev === "en" ? "zh" : "en"));
   }, []);
 
   useEffect(() => {
+    if (initialCmsOverrides) return;
     let cancelled = false;
 
     async function loadCmsOverrides() {
@@ -86,7 +97,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialCmsOverrides]);
 
   const currentMessages = useMemo(() => {
     const base = messages[locale] as unknown as Record<string, unknown>;

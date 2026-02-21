@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { draftMode } from "next/headers";
+import { getCmsMessageOverrides } from "@/lib/sanity/content";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "./providers";
@@ -219,6 +220,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const { isEnabled } = await draftMode();
+  const cmsResult = isEnabled ? await getCmsMessageOverrides({ draft: true }) : null;
+  const initialCmsOverrides = cmsResult?.source === "live" ? cmsResult.overrides : undefined;
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
@@ -247,7 +250,7 @@ export default async function RootLayout({
             __html: 'try{var t=localStorage.getItem("dsdc-theme");var e=document.documentElement;if(t==="dark")e.classList.add("dark");else if(t==="light")e.classList.remove("dark");}catch(n){}',
           }}
         />
-        <ClientProviders>{children}</ClientProviders>
+        <ClientProviders initialCmsOverrides={initialCmsOverrides}>{children}</ClientProviders>
         <VisualEditingWrapper enabled={isEnabled} />
       </body>
     </html>

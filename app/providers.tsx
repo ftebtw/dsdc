@@ -7,13 +7,21 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { usePathname } from "next/navigation";
 
-export default function ClientProviders({ children }: { children: ReactNode }) {
+type CmsOverrides = { en: Record<string, unknown>; zh: Record<string, unknown> };
+
+export default function ClientProviders({
+  children,
+  initialCmsOverrides,
+}: {
+  children: ReactNode;
+  initialCmsOverrides?: CmsOverrides;
+}) {
   const pathname = usePathname();
   const hideShell = pathname?.startsWith("/studio");
 
   return (
     <ThemeProvider>
-      <I18nProvider>
+      <I18nProvider initialCmsOverrides={initialCmsOverrides}>
         {!hideShell && <Navbar />}
         <main>{children}</main>
         {!hideShell && <Footer />}
