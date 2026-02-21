@@ -1,67 +1,66 @@
 # Sanity CMS Admin Setup
 
-This doc is for technical setup of Phase 2 (Sanity + live publish).
+This is the technical setup for live CMS content.
 
 ## 1) Environment Variables
 
-Create/update `.env.local`:
+Add to `.env.local`:
 
 ```env
 NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id
 NEXT_PUBLIC_SANITY_DATASET=production
 NEXT_PUBLIC_SANITY_API_VERSION=2025-02-01
 SANITY_API_READ_TOKEN=optional_read_token_if_dataset_private
+SANITY_API_WRITE_TOKEN=editor_token_for_seed_or_admin_scripts
 SANITY_WEBHOOK_SECRET=choose_a_long_random_secret
 ```
 
-In Vercel, add the same vars for Production and Preview.
+Set the same values in Vercel Production and Preview.
 
 ## 2) Start Studio
 
 - Run `npm run dev`
-- Open `http://localhost:3000/studio` (or the current dev port)
-- Log in with your Sanity account
+- Open `http://localhost:3000/studio`
 
-## 2b) Preview Tab (Wix-Style Editing)
+## 3) Singleton Documents
 
-- Click **Preview** in the top bar for a split view: edit form on the left, live site on the right
-- The preview shows draft content before you publish
-- Optional: set `SANITY_STUDIO_PREVIEW_ORIGIN` in production if the preview needs a different origin
+These are singleton documents with fixed IDs:
 
-## 3) Create Singletons
+- `homePageContent`
+- `pricingPageContent`
+- `teamPageContent`
+- `siteSettings`
 
-**Option A: Seed script (recommended)**  
-Creates all four documents with content from the codebase:
+The Studio structure is pinned to these IDs, duplicate actions are blocked, and global create templates are hidden.
 
-1. In [Sanity Manage](https://www.sanity.io/manage) → your project → **API** → **Tokens**, create a token with **Editor** role.
-2. Add to `.env.local`: `SANITY_API_WRITE_TOKEN=your_token`
-3. Run: `npm run seed:cms`
-4. In Studio, open each document and click **Publish**.
+## 4) Live Edit Mode (No Publish Step)
 
-**Option B: Manual**  
-In Studio, create one document each: Site Settings, Homepage Content, Pricing Page Content, Team Page Content. Leave fields blank to use codebase fallback.
+For the singleton page content above, Sanity `liveEdit` is enabled.
 
-## 4) Webhook for Live Revalidation
+- Editing updates the published document directly.
+- No draft/publish step is required for those documents.
 
-In Sanity project settings, create a webhook:
+## 5) Webhook for Revalidation
 
-- **URL:** `https://<your-vercel-domain>/api/revalidate`
-- **Method:** `POST`
-- **Header:** `Authorization: Bearer <SANITY_WEBHOOK_SECRET>` (add under HTTP headers; value = Bearer + space + your secret)
-- **Trigger:** Create, Update, Delete
-- **Filter:** `_type in ["siteSettings", "homePageContent", "pricingPageContent", "teamPageContent"]`
-- **Drafts and versions:** OFF (only published changes)
+In Sanity project settings, add webhook:
 
-**Manual test:** `GET https://<your-vercel-domain>/api/revalidate?secret=<SANITY_WEBHOOK_SECRET>` — clears cache on demand. Then hard-refresh the site.
+- URL: `https://<your-vercel-domain>/api/revalidate`
+- Method: `POST`
+- Header: `Authorization: Bearer <SANITY_WEBHOOK_SECRET>`
+- Trigger: Create, Update, Delete
+- Filter: `_type in ["siteSettings", "homePageContent", "pricingPageContent", "teamPageContent"]`
+- Drafts/versions: off
 
-## 5) Non-Sticky Fallback Behavior
+Manual test URL:
 
-If Sanity is temporarily unavailable:
+- `GET https://<your-vercel-domain>/api/revalidate?secret=<SANITY_WEBHOOK_SECRET>`
 
-- app serves local JSON fallback content
-- fallback responses are `no-store` (not long-lived cached)
-- after Sanity recovers, webhook revalidation clears CMS cache tags/paths so live content resumes quickly
+## 6) Quick Health Check
 
-## 6) Paths Revalidated
+- `GET https://<your-vercel-domain>/api/cms/debug`
+- `GET https://<your-vercel-domain>/api/cms/messages`
 
-`/`, `/pricing`, `/team`, `/classes`, `/awards`, `/blog`, `/book` plus tag `cms-content`.
+Expected:
+
+- `source` should be `"live"`
+- homepage hero values should appear in overrides after edits

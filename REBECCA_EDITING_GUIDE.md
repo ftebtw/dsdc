@@ -1,80 +1,53 @@
-# Rebecca Editing Guide (Simple)
+# Rebecca Editing Guide (Very Simple)
 
-This guide is for day-to-day content updates in the CMS.
+This CMS is now set to **live edit** for the main website content.
 
-## Important: Create Documents First
+- You do **not** need to click Publish for these pages:
+- Homepage
+- Pricing Page
+- Team Page
+- Site Settings
 
-**"No matching documents"** or **only Pricing shows** in "Documents on this page" usually means Homepage, Team, or Site Settings documents don't exist yet.
+Changes save to live automatically.
 
-**Option A – Seed (recommended):** Run `npm run seed:cms` in the project folder. This creates all four documents from the built-in content. Requires `SANITY_API_WRITE_TOKEN` in `.env.local`.
+## Fast Start (3 Steps)
 
-**Option B – Manual:** Click **Content** → for each of **Homepage**, **Pricing Page**, **Team Page**, **Site Settings** → click it, then **Create**, then **Publish** (even if empty).
+1. Open Studio: `https://dsdc-nine.vercel.app/studio`
+2. Click **Content** and choose the page you want:
+- Homepage
+- Pricing Page
+- Team Page
+- Site Settings
+3. Edit text and wait 10 to 30 seconds, then refresh the website.
 
-## Wix-Style Editing: Use the Preview Tab
+## What Each Section Controls
 
-For a **split view** (see the site while you edit):
+- **Homepage**: hero text, cards, testimonials, FAQ, final call-to-action.
+- **Pricing Page**: pricing text, currency labels, private coaching copy.
+- **Team Page**: team labels and coach bios.
+- **Site Settings**: navigation labels and footer/contact text.
 
-1. Click **Preview** in the top bar (next to Content).
-2. The site appears on the left. On the right, **Documents on this page** lists the editable documents (e.g. Homepage Content).
-3. Click a document in that list to open the edit form, edit, then Publish.
-4. If "Documents on this page" is empty: use **Content** → open the document (Homepage, Pricing, etc.) → then click **Preview**.
+## How To Confirm A Change Worked
 
-## Where to Edit What
+1. Refresh the page on `https://dsdc-nine.vercel.app/` (or the page you edited).
+2. Hard refresh if needed:
+- Windows: `Ctrl+Shift+R`
+- Mac: `Cmd+Shift+R`
+3. Wait up to 30 seconds and refresh once more.
 
-The left sidebar is organized by **page**:
+## If You Still Do Not See The New Text
 
-| Click this in Studio | What it edits on the website |
-|----------------------|------------------------------|
-| **Homepage**         | Main page (dsdc.ca or dsdc-nine.vercel.app) |
-| **Pricing Page**     | /pricing page                |
-| **Team Page**        | /team page (coaches, bios)   |
-| **Site Settings**    | Nav, footer, contact info    |
+1. Check this URL: `https://dsdc-nine.vercel.app/api/cms/debug`
+2. Confirm:
+- `"source":"live"`
+- `heroHeadlineFromCms` is not `"(none)"` (for homepage hero edits)
+3. If it still does not match, send the admin:
+- the exact text you changed
+- which page you changed
+- a screenshot of the debug URL response
 
-## How to Edit a Page
+## Important Safety Notes
 
-1. **Click the page** (e.g. Homepage) in the left sidebar.
-2. If you see a list, click the document (or **Create** if none exists yet).
-3. You’ll see sections like **Hero**, **How It Works**, **Testimonials**, etc.
-4. Each section has **English** and **Chinese** fields. Edit the one(s) you need.
-5. Click **Publish** (top right).
-6. Wait a few seconds, then refresh the live website to confirm the change.
-
-## Sections on the Homepage
-
-When you open **Homepage** and edit its content:
-
-- **Hero** → The big headline and buttons at the top.
-- **Difference Section** → The three cards (Coaching, Attention, Leadership).
-- **How It Works** → The three steps (Consultation, Trial, Enroll).
-- **Mission** → The mission block and CTA.
-- **Classes Overview** → The Public Speaking, Debate, and WSC cards.
-- **Testimonials** → Quotes from parents/students.
-- **FAQ** → Questions and answers.
-- **Final CTA** → The bottom “Book a consultation” section.
-
-## Publish
-
-- Click **Publish** (top right) after editing.
-- Wait 15–30 seconds if the site doesn’t update immediately.
-
-## If You Do Not See the Change
-
-1. **Hard refresh the page** (Ctrl+Shift+R or Cmd+Shift+R) — a normal refresh may show cached content.
-2. Wait 15–30 seconds after publishing, then hard refresh again.
-3. **In Studio Preview:** The preview pane does not auto-refresh. After publishing, refresh the preview (or click away and back) to see changes.
-4. If still not updated, message the admin:  
-   “I published in Sanity but the site did not refresh.”
-
-## Safe Editing Tips
-
-- Change one section at a time.
-- Publish small updates often.
-- Avoid deleting large blocks unless planned.
-- If unsure, copy text into a note before editing.
-
-## Rollback (If Needed)
-
-1. Open the same document in the CMS.
-2. Use document history/previous revision.
-3. Restore the previous version.
-4. Click **Publish** again.
+- Changes are live-edit, so edits affect the live site.
+- Make small edits and check the site after each one.
+- Keep a copy of old text before large rewrites.

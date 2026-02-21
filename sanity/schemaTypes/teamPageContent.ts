@@ -5,6 +5,7 @@ export const teamPageContent = defineType({
   name: "teamPageContent",
   title: "Team Page Content",
   type: "document",
+  liveEdit: true,
   fields: [
     defineField({
       name: "teamPage",

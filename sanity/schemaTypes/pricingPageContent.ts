@@ -5,6 +5,7 @@ export const pricingPageContent = defineType({
   name: "pricingPageContent",
   title: "Pricing Page Content",
   type: "document",
+  liveEdit: true,
   fields: [
     defineField({
       name: "pricingPage",

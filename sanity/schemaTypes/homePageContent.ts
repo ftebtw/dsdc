@@ -5,6 +5,7 @@ export const homePageContent = defineType({
   name: "homePageContent",
   title: "Homepage Content",
   type: "document",
+  liveEdit: true,
   fields: [
     defineField({
       name: "hero",
