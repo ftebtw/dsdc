@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { getSanityClient } from "./client";
 import { hasSanityConfig } from "./env";
 import {
@@ -113,38 +112,17 @@ async function fetchSanityCmsContent(opts?: { draft?: boolean }): Promise<Sanity
   }
 }
 
-const getCachedLiveOverrides = unstable_cache(
-  async () => {
-    const data = await fetchSanityCmsContent();
-    if (!data) throw new Error("Sanity unavailable");
-    return {
-      en: buildLocaleOverrides(data, "en"),
-      zh: buildLocaleOverrides(data, "zh"),
-    };
-  },
-  ["cms-live-overrides"],
-  { revalidate: 300, tags: ["cms-content"] }
-);
-
 export async function getCmsMessageOverrides(opts?: { draft?: boolean }) {
-  if (opts?.draft) {
-    try {
-      const data = await fetchSanityCmsContent({ draft: true });
-      if (!data) return { source: "fallback" as const, overrides: { en: {}, zh: {} } };
-      return {
-        source: "live" as const,
-        overrides: {
-          en: buildLocaleOverrides(data, "en"),
-          zh: buildLocaleOverrides(data, "zh"),
-        },
-      };
-    } catch {
-      return { source: "fallback" as const, overrides: { en: {}, zh: {} } };
-    }
-  }
   try {
-    const overrides = await getCachedLiveOverrides();
-    return { source: "live" as const, overrides };
+    const data = await fetchSanityCmsContent({ draft: opts?.draft ?? false });
+    if (!data) return { source: "fallback" as const, overrides: { en: {}, zh: {} } };
+    return {
+      source: "live" as const,
+      overrides: {
+        en: buildLocaleOverrides(data, "en"),
+        zh: buildLocaleOverrides(data, "zh"),
+      },
+    };
   } catch {
     return { source: "fallback" as const, overrides: { en: {}, zh: {} } };
   }

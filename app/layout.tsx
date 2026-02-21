@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { draftMode } from "next/headers";
+
+export const dynamic = "force-dynamic";
 import { getCmsMessageOverrides } from "@/lib/sanity/content";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
