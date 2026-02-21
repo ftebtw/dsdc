@@ -4,11 +4,11 @@ This guide is for day-to-day content updates in the CMS.
 
 ## Important: Create Documents First
 
-**"No matching documents"** means the content hasn't been created yet. Before using Preview:
+**"No matching documents"** or **only Pricing shows** in "Documents on this page" usually means Homepage, Team, or Site Settings documents don't exist yet.
 
-1. Click **Content** (not Preview) in the left sidebar.
-2. For each section—**Homepage**, **Pricing Page**, **Team Page**, **Site Settings**—click it, then click **Create** to add a document.
-3. Publish each document (even if empty). Now Preview will find them.
+**Option A – Seed (recommended):** Run `npm run seed:cms` in the project folder. This creates all four documents from the built-in content. Requires `SANITY_API_WRITE_TOKEN` in `.env.local`.
+
+**Option B – Manual:** Click **Content** → for each of **Homepage**, **Pricing Page**, **Team Page**, **Site Settings** → click it, then **Create**, then **Publish** (even if empty).
 
 ## Wix-Style Editing: Use the Preview Tab
 

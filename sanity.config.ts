@@ -32,7 +32,15 @@ export const locations = {
   siteSettings: defineLocations({
     select: { _type: "_type" },
     resolve: () => ({
-      locations: [{ title: "Homepage", href: "/" }],
+      locations: [
+        { title: "Homepage", href: "/" },
+        { title: "Pricing", href: "/pricing" },
+        { title: "Team", href: "/team" },
+        { title: "Classes", href: "/classes" },
+        { title: "Awards", href: "/awards" },
+        { title: "Blog", href: "/blog" },
+        { title: "Book", href: "/book" },
+      ],
     }),
   }),
 };

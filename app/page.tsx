@@ -8,10 +8,11 @@ import CompetitionLogos from "@/components/CompetitionLogos";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import FAQ from "@/components/FAQ";
 import FinalCTA from "@/components/FinalCTA";
+import { homePageDataSanity } from "@/lib/sanity/presentation";
 
 export default function HomePage() {
   return (
-    <>
+    <div data-sanity={homePageDataSanity()}>
       <Hero />
       <FeatureCards />
       <HowItWorks />
@@ -22,6 +23,6 @@ export default function HomePage() {
       <TestimonialCarousel />
       <FAQ />
       <FinalCTA />
-    </>
+    </div>
   );
 }

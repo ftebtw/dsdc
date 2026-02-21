@@ -1,7 +1,13 @@
 import { unstable_cache } from "next/cache";
 import { getSanityClient } from "./client";
 import { hasSanityConfig } from "./env";
-import { cmsContentQuery } from "./queries";
+import {
+  cmsContentQuery,
+  siteSettingsQuery,
+  homePageQuery,
+  pricingPageQuery,
+  teamPageQuery,
+} from "./queries";
 
 type Locale = "en" | "zh";
 type MessageObject = Record<string, unknown>;
@@ -82,13 +88,25 @@ async function fetchSanityCmsContent(opts?: { draft?: boolean }): Promise<Sanity
   if (!hasSanityConfig()) return null;
   try {
     const client = getSanityClient({ draft: opts?.draft, stega: opts?.draft });
-    const data = await client.fetch<SanityCmsResponse>(cmsContentQuery, {}, {
-      cache: "no-store",
+    const fetchOpts = {
+      cache: "no-store" as const,
       ...(opts?.draft && {
         resultSourceMap: "withKeyArraySelector" as const,
         stega: true,
       }),
-    });
+    };
+
+    if (opts?.draft) {
+      const [siteSettings, homePage, pricingPage, teamPage] = await Promise.all([
+        client.fetch<SanityCmsResponse["siteSettings"]>(siteSettingsQuery, {}, fetchOpts),
+        client.fetch<SanityCmsResponse["homePage"]>(homePageQuery, {}, fetchOpts),
+        client.fetch<SanityCmsResponse["pricingPage"]>(pricingPageQuery, {}, fetchOpts),
+        client.fetch<SanityCmsResponse["teamPage"]>(teamPageQuery, {}, fetchOpts),
+      ]);
+      return { siteSettings, homePage, pricingPage, teamPage };
+    }
+
+    const data = await client.fetch<SanityCmsResponse>(cmsContentQuery, {}, fetchOpts);
     return data ?? null;
   } catch {
     return null;

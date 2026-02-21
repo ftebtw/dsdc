@@ -6,6 +6,7 @@ import CoachCard from "@/components/CoachCard";
 import { coachAwards } from "@/lib/coachAwards";
 import { coachImages } from "@/lib/coachImages";
 import AnimatedSection from "@/components/AnimatedSection";
+import { teamPageDataSanity } from "@/lib/sanity/presentation";
 
 const founderKeyAchievements = [
   "Grand Finalist — Canadian National Championships",
@@ -36,6 +37,7 @@ export default function TeamPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
+      data-sanity={teamPageDataSanity()}
     >
       {/* Hero */}
       <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-navy-800 overflow-hidden">
