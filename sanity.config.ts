@@ -16,6 +16,13 @@ const previewOrigin =
   process.env.SANITY_STUDIO_PREVIEW_ORIGIN ||
   (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
 
+const singletonTypes = new Set([
+  "homePageContent",
+  "pricingPageContent",
+  "teamPageContent",
+  "siteSettings",
+]);
+
 export const locations = {
   homePageContent: defineLocations({
     select: { _type: "_type" },
@@ -45,11 +52,11 @@ export const locations = {
   }),
 };
 
-// Use type shorthand for singletons (required for "Documents on this page")
+// Resolve presentation documents to canonical singleton IDs.
 export const mainDocuments = defineDocuments([
-  { route: "/", type: "homePageContent" },
-  { route: "/pricing", type: "pricingPageContent" },
-  { route: "/team", type: "teamPageContent" },
+  { route: "/", filter: '_type == "homePageContent" && _id == "homePageContent"' },
+  { route: "/pricing", filter: '_type == "pricingPageContent" && _id == "pricingPageContent"' },
+  { route: "/team", filter: '_type == "teamPageContent" && _id == "teamPageContent"' },
 ]);
 
 export default defineConfig({
@@ -80,38 +87,52 @@ export default defineConfig({
               .title("Homepage")
               .icon(HomeIcon)
               .child(
-                S.documentTypeList("homePageContent")
+                S.document()
+                  .schemaType("homePageContent")
+                  .documentId("homePageContent")
                   .title("Homepage Content")
-                  .filter('_type == "homePageContent"')
               ),
             S.listItem()
               .title("Pricing Page")
               .icon(DocumentIcon)
               .child(
-                S.documentTypeList("pricingPageContent")
+                S.document()
+                  .schemaType("pricingPageContent")
+                  .documentId("pricingPageContent")
                   .title("Pricing Page Content")
-                  .filter('_type == "pricingPageContent"')
               ),
             S.listItem()
               .title("Team Page")
               .icon(UsersIcon)
               .child(
-                S.documentTypeList("teamPageContent")
+                S.document()
+                  .schemaType("teamPageContent")
+                  .documentId("teamPageContent")
                   .title("Team Page Content")
-                  .filter('_type == "teamPageContent"')
               ),
             S.divider(),
             S.listItem()
               .title("Site Settings")
               .icon(CogIcon)
               .child(
-                S.documentTypeList("siteSettings")
+                S.document()
+                  .schemaType("siteSettings")
+                  .documentId("siteSettings")
                   .title("Site Settings")
-                  .filter('_type == "siteSettings"')
               ),
           ]),
     }),
   ],
+  document: {
+    newDocumentOptions: (prev, { creationContext }) => {
+      if (creationContext.type !== "global") return prev;
+      return prev.filter((templateItem) => !singletonTypes.has(templateItem.templateId));
+    },
+    actions: (prev, context) => {
+      if (!singletonTypes.has(context.schemaType)) return prev;
+      return prev.filter((actionItem) => actionItem.action !== "duplicate");
+    },
+  },
   schema: {
     types: schemaTypes,
   },
