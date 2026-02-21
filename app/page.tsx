@@ -1,3 +1,4 @@
+import { draftMode } from "next/headers";
 import Hero from "@/components/Hero";
 import FeatureCards from "@/components/FeatureCards";
 import HowItWorks from "@/components/HowItWorks";
@@ -10,9 +11,10 @@ import FAQ from "@/components/FAQ";
 import FinalCTA from "@/components/FinalCTA";
 import { homePageDataSanity } from "@/lib/sanity/presentation";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { isEnabled } = await draftMode();
   return (
-    <div data-sanity={homePageDataSanity()}>
+    <div data-sanity={isEnabled ? homePageDataSanity() : undefined}>
       <Hero />
       <FeatureCards />
       <HowItWorks />

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 import CoachCard from "@/components/CoachCard";
@@ -17,6 +18,7 @@ const founderKeyAchievements = [
 
 export default function TeamPage() {
   const { t, messages } = useI18n();
+  const [showSanityAttr, setShowSanityAttr] = useState(false);
   const coaches = ((messages.coaches as Array<{
     name: string;
     title: string;
@@ -31,13 +33,17 @@ export default function TeamPage() {
     imageUrl?: string;
   }>;
 
+  useEffect(() => {
+    setShowSanityAttr(document.cookie.includes("__prerender_bypass"));
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      data-sanity={teamPageDataSanity()}
+      data-sanity={showSanityAttr ? teamPageDataSanity() : undefined}
     >
       {/* Hero */}
       <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-navy-800 overflow-hidden">
