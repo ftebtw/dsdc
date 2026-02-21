@@ -2,45 +2,70 @@
 
 This guide is for day-to-day content updates in the CMS.
 
-## 1) Log In
+## Wix-Style Editing: Use the Preview Tab
 
-1. Open the CMS link your team gave you.
-2. Sign in.
-3. You will see sections like **Site Settings**, **Homepage Content**, **Pricing Page Content**, and **Team Page Content**.
+For a **split view** (see the site while you edit):
 
-## 2) Make a Change
+1. Click **Preview** in the top bar (next to Content).
+2. The page will show your live site on the right and the edit form on the left.
+3. Edit in the form; the preview updates when you **Publish** (or refresh).
+4. Use the preview to jump between pages: Homepage, Pricing, Team.
 
-1. Click the section you want to edit.
-2. Edit the English and/or Chinese field.
-3. Keep wording short and clear.
+## Where to Edit What
 
-## 3) Publish
+The left sidebar is organized by **page**:
 
-1. Click **Publish** (top right).
-2. Wait a few seconds.
-3. Refresh the live website page to confirm the update.
+| Click this in Studio | What it edits on the website |
+|----------------------|------------------------------|
+| **Homepage**         | Main page (dsdc.ca or dsdc-nine.vercel.app) |
+| **Pricing Page**     | /pricing page                |
+| **Team Page**        | /team page (coaches, bios)   |
+| **Site Settings**    | Nav, footer, contact info    |
 
-## 4) If You Do Not See the Change
+## How to Edit a Page
+
+1. **Click the page** (e.g. Homepage) in the left sidebar.
+2. If you see a list, click the document (or **Create** if none exists yet).
+3. You’ll see sections like **Hero**, **How It Works**, **Testimonials**, etc.
+4. Each section has **English** and **Chinese** fields. Edit the one(s) you need.
+5. Click **Publish** (top right).
+6. Wait a few seconds, then refresh the live website to confirm the change.
+
+## Sections on the Homepage
+
+When you open **Homepage** and edit its content:
+
+- **Hero** → The big headline and buttons at the top.
+- **Difference Section** → The three cards (Coaching, Attention, Leadership).
+- **How It Works** → The three steps (Consultation, Trial, Enroll).
+- **Mission** → The mission block and CTA.
+- **Classes Overview** → The Public Speaking, Debate, and WSC cards.
+- **Testimonials** → Quotes from parents/students.
+- **FAQ** → Questions and answers.
+- **Final CTA** → The bottom “Book a consultation” section.
+
+## Publish
+
+- Click **Publish** (top right) after editing.
+- Wait 15–30 seconds if the site doesn’t update immediately.
+
+## If You Do Not See the Change
 
 1. Refresh the browser once.
-2. Wait 15-30 seconds and refresh again.
-3. If still not updated, message the admin and say:  
-   "I published in Sanity but the site did not refresh."
+2. Wait 15–30 seconds and refresh again.
+3. If still not updated, message the admin:  
+   “I published in Sanity but the site did not refresh.”
 
-## 5) Safe Editing Tips
+## Safe Editing Tips
 
 - Change one section at a time.
 - Publish small updates often.
 - Avoid deleting large blocks unless planned.
-- If unsure, duplicate text into a note before editing.
+- If unsure, copy text into a note before editing.
 
-## 6) Rollback (If Needed)
+## Rollback (If Needed)
 
-1. Open the same document in CMS.
+1. Open the same document in the CMS.
 2. Use document history/previous revision.
 3. Restore the previous version.
 4. Click **Publish** again.
-
----
-
-Add screenshots to this guide after final CMS UI is confirmed.

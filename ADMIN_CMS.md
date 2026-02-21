@@ -22,6 +22,12 @@ In Vercel, add the same vars for Production and Preview.
 - Open `http://localhost:3000/studio` (or the current dev port)
 - Log in with your Sanity account
 
+## 2b) Preview Tab (Wix-Style Editing)
+
+- Click **Preview** in the top bar for a split view: edit form on the left, live site on the right
+- The preview shows draft content before you publish
+- Optional: set `SANITY_STUDIO_PREVIEW_ORIGIN` in production if the preview needs a different origin
+
 ## 3) Create Singletons
 
 In Studio, create one document each:

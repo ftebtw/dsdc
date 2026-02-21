@@ -78,10 +78,10 @@ function buildLocaleOverrides(payload: SanityCmsResponse, locale: Locale): Messa
   return parts.reduce<MessageObject>((acc, part) => deepMerge(acc, part), {});
 }
 
-async function fetchSanityCmsContent(): Promise<SanityCmsResponse | null> {
+async function fetchSanityCmsContent(opts?: { draft?: boolean }): Promise<SanityCmsResponse | null> {
   if (!hasSanityConfig()) return null;
   try {
-    const client = getSanityClient();
+    const client = getSanityClient({ draft: opts?.draft });
     const data = await client.fetch<SanityCmsResponse>(cmsContentQuery, {}, { cache: "no-store" });
     return data ?? null;
   } catch {
@@ -102,12 +102,26 @@ const getCachedLiveOverrides = unstable_cache(
   { revalidate: 300, tags: ["cms-content"] }
 );
 
-export async function getCmsMessageOverrides() {
+export async function getCmsMessageOverrides(opts?: { draft?: boolean }) {
+  if (opts?.draft) {
+    try {
+      const data = await fetchSanityCmsContent({ draft: true });
+      if (!data) return { source: "fallback" as const, overrides: { en: {}, zh: {} } };
+      return {
+        source: "live" as const,
+        overrides: {
+          en: buildLocaleOverrides(data, "en"),
+          zh: buildLocaleOverrides(data, "zh"),
+        },
+      };
+    } catch {
+      return { source: "fallback" as const, overrides: { en: {}, zh: {} } };
+    }
+  }
   try {
     const overrides = await getCachedLiveOverrides();
     return { source: "live" as const, overrides };
   } catch {
-    // Non-sticky fallback: do not cache fallback payloads.
     return { source: "fallback" as const, overrides: { en: {}, zh: {} } };
   }
 }

@@ -1,7 +1,7 @@
 import { createClient } from "@sanity/client";
 import { hasSanityConfig, sanityEnv } from "./env";
 
-export function getSanityClient() {
+export function getSanityClient(opts?: { draft?: boolean }) {
   if (!hasSanityConfig()) {
     throw new Error("Sanity env vars are missing.");
   }
@@ -12,6 +12,6 @@ export function getSanityClient() {
     apiVersion: sanityEnv.apiVersion,
     useCdn: false,
     token: sanityEnv.token || undefined,
-    perspective: "published",
+    perspective: opts?.draft ? "previewDrafts" : "published",
   });
 }
