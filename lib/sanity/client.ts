@@ -1,7 +1,11 @@
 import { createClient } from "@sanity/client";
 import { hasSanityConfig, sanityEnv } from "./env";
 
-export function getSanityClient(opts?: { draft?: boolean }) {
+const studioUrl =
+  process.env.NEXT_PUBLIC_SANITY_STUDIO_URL ||
+  (typeof window !== "undefined" ? `${window.location.origin}/studio` : "/studio");
+
+export function getSanityClient(opts?: { draft?: boolean; stega?: boolean }) {
   if (!hasSanityConfig()) {
     throw new Error("Sanity env vars are missing.");
   }
@@ -13,5 +17,8 @@ export function getSanityClient(opts?: { draft?: boolean }) {
     useCdn: false,
     token: sanityEnv.token || undefined,
     perspective: opts?.draft ? "previewDrafts" : "published",
+    stega: opts?.stega
+      ? { enabled: true, studioUrl, filter: () => true }
+      : { enabled: false },
   });
 }

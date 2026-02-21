@@ -15,9 +15,9 @@ This guide is for day-to-day content updates in the CMS.
 For a **split view** (see the site while you edit):
 
 1. Click **Preview** in the top bar (next to Content).
-2. The page shows your site on the left. On the right, **Documents on this page** lists the editable documents (e.g. Homepage Content).
-3. Click a document in that list to open the edit form, then edit. Publish when done.
-4. Use the preview to jump between pages: Homepage, Pricing, Team.
+2. The site appears on the left. On the right, **Documents on this page** lists the editable documents (e.g. Homepage Content).
+3. Click a document in that list to open the edit form, edit, then Publish.
+4. If "Documents on this page" is empty: use **Content** → open the document (Homepage, Pricing, etc.) → then click **Preview**.
 
 ## Where to Edit What
 

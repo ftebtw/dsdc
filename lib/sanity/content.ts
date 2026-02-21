@@ -81,8 +81,14 @@ function buildLocaleOverrides(payload: SanityCmsResponse, locale: Locale): Messa
 async function fetchSanityCmsContent(opts?: { draft?: boolean }): Promise<SanityCmsResponse | null> {
   if (!hasSanityConfig()) return null;
   try {
-    const client = getSanityClient({ draft: opts?.draft });
-    const data = await client.fetch<SanityCmsResponse>(cmsContentQuery, {}, { cache: "no-store" });
+    const client = getSanityClient({ draft: opts?.draft, stega: opts?.draft });
+    const data = await client.fetch<SanityCmsResponse>(cmsContentQuery, {}, {
+      cache: "no-store",
+      ...(opts?.draft && {
+        resultSourceMap: "withKeyArraySelector" as const,
+        stega: true,
+      }),
+    });
     return data ?? null;
   } catch {
     return null;

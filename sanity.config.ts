@@ -61,6 +61,7 @@ export default defineConfig({
           enable: "/api/draft-mode/enable",
         },
       },
+      allowOrigins: [previewOrigin, "http://localhost:3000", "http://localhost:*"],
     }),
     structureTool({
       structure: (S) =>
