@@ -220,8 +220,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const { isEnabled } = await draftMode();
-  const cmsResult = isEnabled ? await getCmsMessageOverrides({ draft: true }) : null;
-  const initialCmsOverrides = cmsResult?.source === "live" ? cmsResult.overrides : undefined;
+  const cmsResult = await getCmsMessageOverrides({ draft: isEnabled });
+  const initialCmsOverrides = cmsResult.source === "live" ? cmsResult.overrides : undefined;
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
