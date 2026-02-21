@@ -2,13 +2,21 @@
 
 This guide is for day-to-day content updates in the CMS.
 
+## Important: Create Documents First
+
+**"No matching documents"** means the content hasn't been created yet. Before using Preview:
+
+1. Click **Content** (not Preview) in the left sidebar.
+2. For each section—**Homepage**, **Pricing Page**, **Team Page**, **Site Settings**—click it, then click **Create** to add a document.
+3. Publish each document (even if empty). Now Preview will find them.
+
 ## Wix-Style Editing: Use the Preview Tab
 
 For a **split view** (see the site while you edit):
 
 1. Click **Preview** in the top bar (next to Content).
-2. The page will show your live site on the right and the edit form on the left.
-3. Edit in the form; the preview updates when you **Publish** (or refresh).
+2. The page shows your site on the left. On the right, **Documents on this page** lists the editable documents (e.g. Homepage Content).
+3. Click a document in that list to open the edit form, then edit. Publish when done.
 4. Use the preview to jump between pages: Homepage, Pricing, Team.
 
 ## Where to Edit What

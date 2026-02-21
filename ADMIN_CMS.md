@@ -30,14 +30,16 @@ In Vercel, add the same vars for Production and Preview.
 
 ## 3) Create Singletons
 
-In Studio, create one document each:
+**Option A: Seed script (recommended)**  
+Creates all four documents with content from the codebase:
 
-- `Site Settings`
-- `Homepage Content`
-- `Pricing Page Content`
-- `Team Page Content`
+1. In [Sanity Manage](https://www.sanity.io/manage) → your project → **API** → **Tokens**, create a token with **Editor** role.
+2. Add to `.env.local`: `SANITY_API_WRITE_TOKEN=your_token`
+3. Run: `npm run seed:cms`
+4. In Studio, open each document and click **Publish**.
 
-Leave any field blank to use codebase fallback content from local JSON.
+**Option B: Manual**  
+In Studio, create one document each: Site Settings, Homepage Content, Pricing Page Content, Team Page Content. Leave fields blank to use codebase fallback.
 
 ## 4) Webhook for Live Revalidation
 

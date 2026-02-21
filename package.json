@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "sanity": "sanity"
+    "sanity": "sanity",
+    "seed:cms": "node scripts/seed-cms-documents.mjs"
   },
   "dependencies": {
     "@sanity/client": "^7.15.0",
@@ -31,3 +32,4 @@
     "typescript": "^5.8.3"
   }
 }
+
