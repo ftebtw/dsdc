@@ -47,8 +47,12 @@ In Sanity project settings, create a webhook:
 
 - **URL:** `https://<your-vercel-domain>/api/revalidate`
 - **Method:** `POST`
-- **Header:** `Authorization: Bearer <SANITY_WEBHOOK_SECRET>`
-- **Trigger:** publish/unpublish on relevant document types
+- **Header:** `Authorization: Bearer <SANITY_WEBHOOK_SECRET>` (add under HTTP headers; value = Bearer + space + your secret)
+- **Trigger:** Create, Update, Delete
+- **Filter:** `_type in ["siteSettings", "homePageContent", "pricingPageContent", "teamPageContent"]`
+- **Drafts and versions:** OFF (only published changes)
+
+**Manual test:** `GET https://<your-vercel-domain>/api/revalidate?secret=<SANITY_WEBHOOK_SECRET>` — clears cache on demand. Then hard-refresh the site.
 
 ## 5) Non-Sticky Fallback Behavior
 

@@ -59,9 +59,10 @@ When you open **Homepage** and edit its content:
 
 ## If You Do Not See the Change
 
-1. Refresh the browser once.
-2. Wait 15–30 seconds and refresh again.
-3. If still not updated, message the admin:  
+1. **Hard refresh the page** (Ctrl+Shift+R or Cmd+Shift+R) — a normal refresh may show cached content.
+2. Wait 15–30 seconds after publishing, then hard refresh again.
+3. **In Studio Preview:** The preview pane does not auto-refresh. After publishing, refresh the preview (or click away and back) to see changes.
+4. If still not updated, message the admin:  
    “I published in Sanity but the site did not refresh.”
 
 ## Safe Editing Tips
