@@ -8,7 +8,7 @@ import {
   UsersIcon,
   CogIcon,
 } from "@sanity/icons";
-import { defineDocuments } from "sanity/presentation";
+import { defineDocuments, defineLocations } from "sanity/presentation";
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "your-project-id";
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";
@@ -17,16 +17,31 @@ const previewOrigin =
   (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
 
 export const locations = {
-  homePageContent: { locations: [{ title: "Homepage", href: "/" }] },
-  pricingPageContent: { locations: [{ title: "Pricing", href: "/pricing" }] },
-  teamPageContent: { locations: [{ title: "Team", href: "/team" }] },
-  siteSettings: { locations: [{ title: "Site", href: "/" }] },
+  homePageContent: defineLocations({
+    select: { _type: "_type" },
+    resolve: () => ({ locations: [{ title: "Homepage", href: "/" }] }),
+  }),
+  pricingPageContent: defineLocations({
+    select: { _type: "_type" },
+    resolve: () => ({ locations: [{ title: "Pricing", href: "/pricing" }] }),
+  }),
+  teamPageContent: defineLocations({
+    select: { _type: "_type" },
+    resolve: () => ({ locations: [{ title: "Team", href: "/team" }] }),
+  }),
+  siteSettings: defineLocations({
+    select: { _type: "_type" },
+    resolve: () => ({
+      locations: [{ title: "Homepage", href: "/" }],
+    }),
+  }),
 };
 
+// Use type shorthand for singletons (required for "Documents on this page")
 export const mainDocuments = defineDocuments([
-  { route: "/", filter: `_type == "homePageContent"` },
-  { route: "/pricing", filter: `_type == "pricingPageContent"` },
-  { route: "/team", filter: `_type == "teamPageContent"` },
+  { route: "/", type: "homePageContent" },
+  { route: "/pricing", type: "pricingPageContent" },
+  { route: "/team", type: "teamPageContent" },
 ]);
 
 export default defineConfig({
