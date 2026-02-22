@@ -211,17 +211,6 @@ export default async function AdminDashboardPage() {
             </p>
           </div>
           <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending legal signatures</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{pendingLegalSignatures}</p>
-          </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending report cards</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{reportCardsCount}</p>
-            <Link href="/portal/admin/report-cards" className="text-xs underline text-navy-700 dark:text-navy-200">
-              Open queue
-            </Link>
-          </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
             <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Payroll this month</p>
             <p className="text-2xl font-bold text-navy-800 dark:text-white">{thisMonthPayrollHours.toFixed(2)}h</p>
             <Link href="/portal/admin/payroll?preset=thisMonth" className="text-xs underline text-navy-700 dark:text-navy-200">
@@ -239,6 +228,17 @@ export default async function AdminDashboardPage() {
           <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
             <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending private sessions</p>
             <p className="text-2xl font-bold text-navy-800 dark:text-white">{pendingPrivateSessionsCount}</p>
+          </div>
+          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
+            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending report cards</p>
+            <p className="text-2xl font-bold text-navy-800 dark:text-white">{reportCardsCount}</p>
+            <Link href="/portal/admin/report-cards" className="text-xs underline text-navy-700 dark:text-navy-200">
+              Open queue
+            </Link>
+          </div>
+          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
+            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending legal signatures</p>
+            <p className="text-2xl font-bold text-navy-800 dark:text-white">{pendingLegalSignatures}</p>
           </div>
         </div>
       </SectionCard>
