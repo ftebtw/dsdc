@@ -1,7 +1,7 @@
 import { randomInt } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 const CODE_LENGTH = 6;
 const MAX_ACTIVE_CODES = 5;
@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
   const session = await requireApiRole(request, ['parent']);
   if (!session) return jsonError('Unauthorized', 401);
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const nowIso = new Date().toISOString();
 
   const { count, error: countError } = await supabase
@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
     .is('claimed_by', null)
     .gt('expires_at', nowIso);
 
-  if (countError) return jsonError(countError.message, 400);
+  if (countError) return mergeCookies(supabaseResponse, jsonError(countError.message, 400));
   if ((count ?? 0) >= MAX_ACTIVE_CODES) {
-    return jsonError('You already have 5 active codes. Use or wait for one to expire.', 429);
+    return mergeCookies(supabaseResponse, jsonError('You already have 5 active codes. Use or wait for one to expire.', 429));
   }
 
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
@@ -54,17 +54,18 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!error && data) {
-      return NextResponse.json({
+      return mergeCookies(supabaseResponse, NextResponse.json({
         code: data.code,
         expiresAt: data.expires_at,
         invite: data,
-      });
+      }));
     }
 
     if (error?.code !== '23505') {
-      return jsonError(error?.message || 'Could not generate invite code.', 500);
+      return mergeCookies(supabaseResponse, jsonError(error?.message || 'Could not generate invite code.', 500));
     }
   }
 
-  return jsonError('Could not generate invite code. Please try again.', 500);
+  return mergeCookies(supabaseResponse, jsonError('Could not generate invite code. Please try again.', 500));
 }
+

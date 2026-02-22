@@ -15,6 +15,14 @@ const statusOptions: Database['public']['Enums']['report_card_status'][] = [
   'rejected',
 ];
 
+function isReportCardStatus(value: string): value is Database['public']['Enums']['report_card_status'] {
+  return statusOptions.includes(value as Database['public']['Enums']['report_card_status']);
+}
+
+type ReportCardRow = Database['public']['Tables']['report_cards']['Row'];
+type TermNameRow = Pick<Database['public']['Tables']['terms']['Row'], 'id' | 'name'>;
+type ClassNameRow = Pick<Database['public']['Tables']['classes']['Row'], 'id' | 'name'>;
+
 export default async function AdminReportCardsPage({
   searchParams,
 }: {
@@ -26,7 +34,7 @@ export default async function AdminReportCardsPage({
 
   let query = supabase.from('report_cards').select('*').order('created_at', { ascending: false });
   const selectedStatus = params.status || 'submitted';
-  if (statusOptions.includes(selectedStatus as any)) query = query.eq('status', selectedStatus as any);
+  if (isReportCardStatus(selectedStatus)) query = query.eq('status', selectedStatus);
   if (params.termId) query = query.eq('term_id', params.termId);
   if (params.classId) query = query.eq('class_id', params.classId);
   if (params.coachId) query = query.eq('written_by', params.coachId);
@@ -39,21 +47,22 @@ export default async function AdminReportCardsPage({
       supabase.from('coach_profiles').select('coach_id'),
     ]);
 
-  const rows = (rowsData ?? []) as any[];
-  const terms = (termsData ?? []) as any[];
-  const classes = (classesData ?? []) as any[];
+  const rows = (rowsData ?? []) as ReportCardRow[];
+  const terms = (termsData ?? []) as TermNameRow[];
+  const classes = (classesData ?? []) as ClassNameRow[];
   const coachIds = [
     ...new Set(((coachProfilesData ?? []) as Array<{ coach_id: string }>).map((row) => row.coach_id)),
   ];
 
-  const profileMap = await getProfileMap(supabase, [
+  const profileIds = [
     ...coachIds,
     ...rows.map((row) => row.student_id),
     ...rows.map((row) => row.written_by),
-    ...rows.map((row) => row.reviewed_by).filter(Boolean),
-  ]);
-  const classMap = Object.fromEntries(classes.map((row: any) => [row.id, row.name]));
-  const termMap = Object.fromEntries(terms.map((row: any) => [row.id, row.name]));
+    ...rows.map((row) => row.reviewed_by).filter((value): value is string => Boolean(value)),
+  ];
+  const profileMap = await getProfileMap(supabase, profileIds);
+  const classMap = Object.fromEntries(classes.map((row) => [row.id, row.name]));
+  const termMap = Object.fromEntries(terms.map((row) => [row.id, row.name]));
 
   return (
     <SectionCard
@@ -79,7 +88,7 @@ export default async function AdminReportCardsPage({
           className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
         >
           <option value="">All terms</option>
-          {terms.map((term: any) => (
+          {terms.map((term) => (
             <option key={term.id} value={term.id}>
               {term.name}
             </option>
@@ -91,7 +100,7 @@ export default async function AdminReportCardsPage({
           className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
         >
           <option value="">All classes</option>
-          {classes.map((classRow: any) => (
+          {classes.map((classRow) => (
             <option key={classRow.id} value={classRow.id}>
               {classRow.name}
             </option>

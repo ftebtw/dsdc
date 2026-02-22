@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 const slotSchema = z.object({
   availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
   const session = await requireApiRole(request, ['admin', 'coach', 'ta']);
   if (!session) return jsonError('Unauthorized', 401);
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const { searchParams } = new URL(request.url);
   const coachId = searchParams.get('coachId');
   const includePast = searchParams.get('includePast') === '1';
@@ -48,8 +48,8 @@ export async function GET(request: NextRequest) {
   }
 
   const { data, error } = await query;
-  if (error) return jsonError(error.message, 400);
-  return NextResponse.json({ slots: data ?? [] });
+  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+  return mergeCookies(supabaseResponse, NextResponse.json({ slots: data ?? [] }));
 }
 
 export async function POST(request: NextRequest) {
@@ -62,8 +62,8 @@ export async function POST(request: NextRequest) {
     return jsonError('End time must be later than start time.');
   }
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
   const { data, error } = await supabase
     .from('coach_availability')
@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
     .select('*')
     .single();
 
-  if (error) return jsonError(error.message, 400);
-  return NextResponse.json({ slot: data });
+  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+  return mergeCookies(supabaseResponse, NextResponse.json({ slot: data }));
 }
+

@@ -11,7 +11,7 @@ import {
 } from '@/lib/portal/phase-c';
 import { shouldSendNotification } from '@/lib/portal/notifications';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 const schema = z.object({
   classId: z.string().uuid(),
@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
   const parsed = schema.safeParse(await request.json());
   if (!parsed.success) return jsonError('Invalid payload.');
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const admin = getSupabaseAdminClient();
 
   const { data: classRow, error: classError } = await supabase
@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
     .select('*')
     .eq('id', parsed.data.classId)
     .maybeSingle();
-  if (classError) return jsonError(classError.message, 400);
-  if (!classRow) return jsonError('Class not found.', 404);
+  if (classError) return mergeCookies(supabaseResponse, jsonError(classError.message, 400));
+  if (!classRow) return mergeCookies(supabaseResponse, jsonError('Class not found.', 404));
   if (classRow.coach_id !== session.userId) {
-    return jsonError('You can only request TA support for your own class.', 403);
+    return mergeCookies(supabaseResponse, jsonError('You can only request TA support for your own class.', 403));
   }
 
   const { data: taRequest, error: createError } = await supabase
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     })
     .select('*')
     .single();
-  if (createError) return jsonError(createError.message, 400);
+  if (createError) return mergeCookies(supabaseResponse, jsonError(createError.message, 400));
 
   const [requestingProfile, taProfilesRaw] = await Promise.all([
     admin
@@ -115,5 +115,6 @@ export async function POST(request: NextRequest) {
   });
   await sendPortalEmails(payloads);
 
-  return NextResponse.json({ request: taRequest });
+  return mergeCookies(supabaseResponse, NextResponse.json({ request: taRequest }));
 }
+

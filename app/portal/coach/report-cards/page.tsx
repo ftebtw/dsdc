@@ -29,7 +29,7 @@ export default async function CoachReportCardsPage() {
         .eq('term_id', activeTerm.id)
         .order('schedule_start_time', { ascending: true })
     ).data ?? []
-  ) as any[];
+  ) as Array<Record<string, any>>;
   const classIds = classes.map((row) => row.id);
   const enrollments = classIds.length
     ? (
@@ -60,12 +60,12 @@ export default async function CoachReportCardsPage() {
   const studentMap = await getProfileMap(supabase, studentIds);
 
   const reportCardMap = new Map<string, any>();
-  for (const row of reportCards as any[]) {
+  for (const row of reportCards as Array<Record<string, any>>) {
     reportCardMap.set(`${row.class_id}|${row.student_id}`, row);
   }
 
   const studentsByClass = new Map<string, string[]>();
-  for (const enrollment of enrollments as any[]) {
+  for (const enrollment of enrollments as Array<Record<string, any>>) {
     const list = studentsByClass.get(enrollment.class_id) ?? [];
     list.push(enrollment.student_id);
     studentsByClass.set(enrollment.class_id, list);

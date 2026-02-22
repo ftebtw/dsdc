@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 import {
   buildReportCardStoragePath,
   isPdfFile,
@@ -41,22 +41,22 @@ export async function POST(request: NextRequest) {
   }
   if (!isPdfFile(file)) return jsonError('Only PDF files are allowed.');
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
   const { data: classRow, error: classError } = await supabase
     .from('classes')
     .select('id,coach_id,term_id')
     .eq('id', parsed.data.classId)
     .maybeSingle();
-  if (classError) return jsonError(classError.message, 400);
-  if (!classRow) return jsonError('Class not found.', 404);
+  if (classError) return mergeCookies(supabaseResponse, jsonError(classError.message, 400));
+  if (!classRow) return mergeCookies(supabaseResponse, jsonError('Class not found.', 404));
   if (classRow.term_id !== parsed.data.termId) {
-    return jsonError('Class is not in the specified term.', 400);
+    return mergeCookies(supabaseResponse, jsonError('Class is not in the specified term.', 400));
   }
 
   if (session.profile.role !== 'admin' && classRow.coach_id !== session.userId) {
-    return jsonError('Not allowed for this class.', 403);
+    return mergeCookies(supabaseResponse, jsonError('Not allowed for this class.', 403));
   }
 
   const { data: enrollment } = await supabase
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     .eq('student_id', parsed.data.studentId)
     .in('status', ['active', 'completed'])
     .maybeSingle();
-  if (!enrollment) return jsonError('Student is not enrolled in this class.', 400);
+  if (!enrollment) return mergeCookies(supabaseResponse, jsonError('Student is not enrolled in this class.', 400));
 
   const { data: existingCard, error: existingError } = await supabase
     .from('report_cards')
@@ -77,10 +77,10 @@ export async function POST(request: NextRequest) {
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (existingError) return jsonError(existingError.message, 400);
+  if (existingError) return mergeCookies(supabaseResponse, jsonError(existingError.message, 400));
 
   if (existingCard && (existingCard.status === 'submitted' || existingCard.status === 'approved')) {
-    return jsonError('Cannot replace report card while status is submitted or approved.', 409);
+    return mergeCookies(supabaseResponse, jsonError('Cannot replace report card while status is submitted or approved.', 409));
   }
 
   const reportCardId = existingCard?.id || randomUUID();
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
   const upload = await supabase.storage
     .from(bucket)
     .upload(filePath, await file.arrayBuffer(), { contentType: 'application/pdf', upsert: true });
-  if (upload.error) return jsonError(upload.error.message, 400);
+  if (upload.error) return mergeCookies(supabaseResponse, jsonError(upload.error.message, 400));
 
   const rowPayload: Database['public']['Tables']['report_cards']['Insert'] = {
     id: reportCardId,
@@ -116,6 +116,7 @@ export async function POST(request: NextRequest) {
     .select('*')
     .single();
 
-  if (upsertError) return jsonError(upsertError.message, 400);
-  return NextResponse.json({ reportCard: card });
+  if (upsertError) return mergeCookies(supabaseResponse, jsonError(upsertError.message, 400));
+  return mergeCookies(supabaseResponse, NextResponse.json({ reportCard: card }));
 }
+

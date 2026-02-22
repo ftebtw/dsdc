@@ -5,7 +5,13 @@ import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
 import { getParentSelection } from '@/lib/portal/parent';
 import { parentT } from '@/lib/portal/parent-i18n';
+import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+type TermRow = Database['public']['Tables']['terms']['Row'];
+type EnrollmentRow = Pick<Database['public']['Tables']['enrollments']['Row'], 'class_id' | 'status'>;
+type ClassRow = Pick<Database['public']['Tables']['classes']['Row'], 'id' | 'name' | 'term_id'>;
+type AttendanceRow = Database['public']['Tables']['attendance_records']['Row'];
 
 export default async function ParentAttendancePage({
   searchParams,
@@ -42,23 +48,23 @@ export default async function ParentAttendancePage({
     supabase.from('terms').select('*').order('start_date', { ascending: false }),
     getActiveTerm(supabase),
   ]);
-  const terms = (termsData.data ?? []) as any[];
+  const terms = (termsData.data ?? []) as TermRow[];
   const selectedTermId = params.term || activeTerm?.id || terms[0]?.id || '';
 
   const enrollments = ((await supabase
     .from('enrollments')
     .select('class_id,status')
     .eq('student_id', selectedStudentId)
-    .eq('status', 'active')).data ?? []) as any[];
-  const classIds = enrollments.map((row: any) => row.class_id);
+    .eq('status', 'active')).data ?? []) as EnrollmentRow[];
+  const classIds = enrollments.map((row) => row.class_id);
   const classes = classIds.length
     ? (((await supabase
         .from('classes')
         .select('id,name,term_id')
         .in('id', classIds)
-        .eq('term_id', selectedTermId)).data ?? []) as any[])
-    : ([] as any[]);
-  const selectedClassIds = classes.map((classRow: any) => classRow.id);
+        .eq('term_id', selectedTermId)).data ?? []) as ClassRow[])
+    : ([] as ClassRow[]);
+  const selectedClassIds = classes.map((classRow) => classRow.id);
 
   const attendanceRows = selectedClassIds.length
     ? (((await supabase
@@ -66,10 +72,10 @@ export default async function ParentAttendancePage({
         .select('*')
         .eq('student_id', selectedStudentId)
         .in('class_id', selectedClassIds)
-        .order('session_date', { ascending: false })).data ?? []) as any[])
-    : ([] as any[]);
+        .order('session_date', { ascending: false })).data ?? []) as AttendanceRow[])
+    : ([] as AttendanceRow[]);
 
-  const classMap = Object.fromEntries(classes.map((classRow: any) => [classRow.id, classRow.name]));
+  const classMap = Object.fromEntries(classes.map((classRow) => [classRow.id, classRow.name]));
   const statusLabel = (status: string) =>
     parentT(locale, `portal.parent.status.${status}`, status);
 
@@ -91,7 +97,7 @@ export default async function ParentAttendancePage({
             defaultValue={selectedTermId}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
           >
-            {terms.map((term: any) => (
+            {terms.map((term) => (
               <option key={term.id} value={term.id}>
                 {term.name} {term.is_active ? '(Active)' : ''}
               </option>
@@ -116,7 +122,7 @@ export default async function ParentAttendancePage({
               </tr>
             </thead>
             <tbody>
-              {attendanceRows.map((row: any) => (
+              {attendanceRows.map((row) => (
                 <tr key={row.id} className="border-t border-warm-200 dark:border-navy-700">
                   <td className="px-4 py-3">{row.session_date}</td>
                   <td className="px-4 py-3">{classMap[row.class_id] || row.class_id}</td>

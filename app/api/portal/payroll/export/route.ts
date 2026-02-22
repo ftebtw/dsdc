@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 import { fetchPayrollDataset, parsePayrollDateRange } from '@/lib/portal/payroll';
 
 function csvEscape(value: string): string {
@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
   }
 
   const coachId = searchParams.get('coachId');
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
   try {
     const dataset = await fetchPayrollDataset(supabase, {
@@ -75,14 +75,15 @@ export async function GET(request: NextRequest) {
     const csv = [header.join(','), ...lines].join('\n');
     const filename = `dsdc-payroll-${range.start}-to-${range.end}.csv`;
 
-    return new NextResponse(csv, {
+    return mergeCookies(supabaseResponse, new NextResponse(csv, {
       status: 200,
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
         'Content-Disposition': `attachment; filename="${filename}"`,
       },
-    });
+    }));
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : 'Unable to export payroll data.', 500);
+    return mergeCookies(supabaseResponse, jsonError(error instanceof Error ? error.message : 'Unable to export payroll data.', 500));
   }
 }
+

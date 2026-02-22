@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -14,8 +14,8 @@ export async function GET(
   if (!session) return jsonError('Unauthorized', 401);
 
   const { resourceId } = await params;
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const { data: resourceData, error: resourceError } = await supabase
     .from('resources')
     .select('*')
@@ -23,20 +23,20 @@ export async function GET(
     .maybeSingle();
   const resource = resourceData as any;
 
-  if (resourceError) return jsonError(resourceError.message, 400);
-  if (!resource) return jsonError('Resource not found.', 404);
+  if (resourceError) return mergeCookies(supabaseResponse, jsonError(resourceError.message, 400));
+  if (!resource) return mergeCookies(supabaseResponse, jsonError('Resource not found.', 404));
 
   if (resource.url) {
-    return NextResponse.json({ url: resource.url });
+    return mergeCookies(supabaseResponse, NextResponse.json({ url: resource.url }));
   }
 
-  if (!resource.file_path) return jsonError('Resource file path missing.', 400);
+  if (!resource.file_path) return mergeCookies(supabaseResponse, jsonError('Resource file path missing.', 400));
 
   const bucket = process.env.PORTAL_BUCKET_RESOURCES || 'portal-resources';
   const { data, error } = await supabase.storage
     .from(bucket)
     .createSignedUrl(resource.file_path, 60 * 15);
 
-  if (error || !data?.signedUrl) return jsonError(error?.message || 'Failed to create signed URL.', 400);
-  return NextResponse.json({ url: data.signedUrl });
+  if (error || !data?.signedUrl) return mergeCookies(supabaseResponse, jsonError(error?.message || 'Failed to create signed URL.', 400));
+  return mergeCookies(supabaseResponse, NextResponse.json({ url: data.signedUrl }));
 }

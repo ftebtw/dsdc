@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -14,23 +14,23 @@ export async function POST(
   if (!session) return jsonError('Unauthorized', 401);
   const { id } = await params;
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
   const { data: requestRow, error: requestError } = await supabase
     .from('ta_requests')
     .select('*')
     .eq('id', id)
     .maybeSingle();
-  if (requestError) return jsonError(requestError.message, 400);
-  if (!requestRow) return jsonError('TA request not found.', 404);
+  if (requestError) return mergeCookies(supabaseResponse, jsonError(requestError.message, 400));
+  if (!requestRow) return mergeCookies(supabaseResponse, jsonError('TA request not found.', 404));
 
   if (session.profile.role !== 'admin' && requestRow.requesting_coach_id !== session.userId) {
-    return jsonError('Only requesting coach or admin can cancel this TA request.', 403);
+    return mergeCookies(supabaseResponse, jsonError('Only requesting coach or admin can cancel this TA request.', 403));
   }
 
   if (requestRow.status === 'cancelled') {
-    return NextResponse.json({ request: requestRow });
+    return mergeCookies(supabaseResponse, NextResponse.json({ request: requestRow }));
   }
 
   const { data: updatedRow, error: updateError } = await supabase
@@ -39,7 +39,7 @@ export async function POST(
     .eq('id', id)
     .select('*')
     .single();
-  if (updateError) return jsonError(updateError.message, 400);
+  if (updateError) return mergeCookies(supabaseResponse, jsonError(updateError.message, 400));
 
-  return NextResponse.json({ request: updatedRow });
+  return mergeCookies(supabaseResponse, NextResponse.json({ request: updatedRow }));
 }

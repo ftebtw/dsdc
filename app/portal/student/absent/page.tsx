@@ -2,7 +2,15 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import PortalAbsenceManager from '@/app/portal/_components/PortalAbsenceManager';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
+import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+type EnrollmentClassRow = Pick<Database['public']['Tables']['enrollments']['Row'], 'class_id'>;
+type AbsenceClassRow = Pick<
+  Database['public']['Tables']['classes']['Row'],
+  'id' | 'name' | 'schedule_day' | 'timezone'
+>;
+type StudentAbsenceRow = Database['public']['Tables']['student_absences']['Row'];
 
 export default async function StudentAbsentPage() {
   const session = await requireRole(['student']);
@@ -21,8 +29,8 @@ export default async function StudentAbsentPage() {
     .from('enrollments')
     .select('class_id')
     .eq('student_id', session.userId)
-    .eq('status', 'active')).data ?? []) as any[];
-  const classIds = enrollmentRows.map((row: any) => row.class_id);
+    .eq('status', 'active')).data ?? []) as EnrollmentClassRow[];
+  const classIds = enrollmentRows.map((row) => row.class_id);
 
   const classes = classIds.length
     ? (((await supabase
@@ -30,9 +38,9 @@ export default async function StudentAbsentPage() {
         .select('id,name,schedule_day,timezone')
         .in('id', classIds)
         .eq('term_id', activeTerm.id)
-        .order('name')).data ?? []) as any[])
-    : ([] as any[]);
-  const classMap = Object.fromEntries(classes.map((classRow: any) => [classRow.id, classRow.name]));
+        .order('name')).data ?? []) as AbsenceClassRow[])
+    : ([] as AbsenceClassRow[]);
+  const classMap = Object.fromEntries(classes.map((classRow) => [classRow.id, classRow.name]));
 
   const absences = classIds.length
     ? (((await supabase
@@ -41,8 +49,8 @@ export default async function StudentAbsentPage() {
         .eq('student_id', session.userId)
         .in('class_id', classIds)
         .order('reported_at', { ascending: false })
-        .limit(50)).data ?? []) as any[])
-    : ([] as any[]);
+        .limit(50)).data ?? []) as StudentAbsenceRow[])
+    : ([] as StudentAbsenceRow[]);
 
   return (
     <SectionCard
@@ -54,7 +62,7 @@ export default async function StudentAbsentPage() {
       ) : (
         <PortalAbsenceManager
           classes={classes}
-          initialAbsences={absences.map((absence: any) => ({
+          initialAbsences={absences.map((absence) => ({
             id: absence.id,
             className: classMap[absence.class_id] || absence.class_id,
             session_date: absence.session_date,

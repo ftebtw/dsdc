@@ -39,7 +39,11 @@ export async function sendPortalEmail(input: SendInput): Promise<{ ok: boolean; 
 }
 
 export async function sendPortalEmails(inputs: SendInput[]): Promise<void> {
-  for (const input of inputs) {
-    await sendPortalEmail(input);
+  if (inputs.length === 0) return;
+  const results = await Promise.allSettled(inputs.map((input) => sendPortalEmail(input)));
+  for (const result of results) {
+    if (result.status === 'rejected') {
+      console.error('[email] batch send rejected', result.reason);
+    }
   }
 }

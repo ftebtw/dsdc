@@ -86,12 +86,12 @@ export default async function AdminStudentDetailPage({
     supabase.from('profiles').select('id,display_name,email').eq('role', 'parent').order('display_name'),
   ]);
 
-  const enrollments = (enrollmentsData ?? []) as any[];
-  const attendanceRows = (attendanceRowsData ?? []) as any[];
-  const classes = (classesData ?? []) as any[];
-  const terms = (termsData ?? []) as any[];
-  const parentLinks = (parentLinksData ?? []) as any[];
-  const parentProfiles = (parentProfilesData ?? []) as any[];
+  const enrollments = (enrollmentsData ?? []) as Array<Record<string, any>>;
+  const attendanceRows = (attendanceRowsData ?? []) as Array<Record<string, any>>;
+  const classes = (classesData ?? []) as Array<Record<string, any>>;
+  const terms = (termsData ?? []) as Array<Record<string, any>>;
+  const parentLinks = (parentLinksData ?? []) as Array<Record<string, any>>;
+  const parentProfiles = (parentProfilesData ?? []) as Array<Record<string, any>>;
 
   const classMap = Object.fromEntries(classes.map((classRow: any) => [classRow.id, classRow]));
   const termMap = Object.fromEntries(terms.map((term: any) => [term.id, term]));

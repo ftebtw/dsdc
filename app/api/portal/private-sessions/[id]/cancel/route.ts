@@ -10,7 +10,7 @@ import {
 } from '@/lib/portal/phase-c';
 import { shouldSendNotification } from '@/lib/portal/notifications';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -24,8 +24,8 @@ export async function POST(
   if (!session) return jsonError('Unauthorized', 401);
   const { id } = await params;
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const admin = getSupabaseAdminClient();
 
   const { data: requestRow, error: rowError } = await supabase
@@ -33,19 +33,19 @@ export async function POST(
     .select('*')
     .eq('id', id)
     .maybeSingle();
-  if (rowError) return jsonError(rowError.message, 400);
-  if (!requestRow) return jsonError('Private session not found.', 404);
+  if (rowError) return mergeCookies(supabaseResponse, jsonError(rowError.message, 400));
+  if (!requestRow) return mergeCookies(supabaseResponse, jsonError('Private session not found.', 404));
 
   const isAdmin = session.profile.role === 'admin';
   const isCoachOwner = requestRow.coach_id === session.userId;
   const isStudentOwner = requestRow.student_id === session.userId;
   if (!isAdmin && !isCoachOwner && !isStudentOwner) {
-    return jsonError('Not allowed to cancel this session.', 403);
+    return mergeCookies(supabaseResponse, jsonError('Not allowed to cancel this session.', 403));
   }
   if (isStudentOwner && requestRow.status !== 'pending') {
-    return jsonError('Students can only cancel pending sessions.', 403);
+    return mergeCookies(supabaseResponse, jsonError('Students can only cancel pending sessions.', 403));
   }
-  if (requestRow.status === 'cancelled') return NextResponse.json({ session: requestRow });
+  if (requestRow.status === 'cancelled') return mergeCookies(supabaseResponse, NextResponse.json({ session: requestRow }));
 
   const { data: updatedRow, error: updateError } = await supabase
     .from('private_sessions')
@@ -57,7 +57,7 @@ export async function POST(
     .eq('id', id)
     .select('*')
     .single();
-  if (updateError) return jsonError(updateError.message, 400);
+  if (updateError) return mergeCookies(supabaseResponse, jsonError(updateError.message, 400));
 
   const { data: people } = await admin
     .from('profiles')
@@ -107,5 +107,5 @@ export async function POST(
   });
   await sendPortalEmails(payloads);
 
-  return NextResponse.json({ session: updatedRow });
+  return mergeCookies(supabaseResponse, NextResponse.json({ session: updatedRow }));
 }

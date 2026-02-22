@@ -150,9 +150,9 @@ export default async function AdminLegalDocumentsPage() {
     supabase.from('profiles').select('id,role,display_name,email').in('role', ['student', 'coach', 'ta']),
   ]);
 
-  const documents = (documentsData ?? []) as any[];
-  const signatures = (signaturesData ?? []) as any[];
-  const profiles = (profilesData ?? []) as any[];
+  const documents = (documentsData ?? []) as Array<Record<string, any>>;
+  const signatures = (signaturesData ?? []) as Array<Record<string, any>>;
+  const profiles = (profilesData ?? []) as Array<Record<string, any>>;
 
   const profileMap = new Map(profiles.map((profile: any) => [profile.id, profile]));
   const students = profiles.filter((profile: any) => profile.role === 'student');

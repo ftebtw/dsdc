@@ -42,7 +42,7 @@ export default async function ParentPrivateSessionsPage({
     .eq('student_id', selectedStudentId)
     .order('requested_date', { ascending: true })
     .order('requested_start_time', { ascending: true });
-  const sessions = (sessionRows ?? []) as any[];
+  const sessions = (sessionRows ?? []) as Array<Record<string, any>>;
   const coachMap = await getProfileMap(
     supabase,
     [...new Set(sessions.map((row: any) => row.coach_id))]

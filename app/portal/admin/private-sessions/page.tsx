@@ -24,7 +24,7 @@ export default async function AdminPrivateSessionsPage({
   if (params.studentId) query = query.eq('student_id', params.studentId);
 
   const { data: rowsData } = await query;
-  const rows = (rowsData ?? []) as any[];
+  const rows = (rowsData ?? []) as Array<Record<string, any>>;
   const ids = [...new Set([...rows.map((row: any) => row.coach_id), ...rows.map((row: any) => row.student_id)])];
   const people = await getProfileMap(supabase, ids);
   const coaches = ids.filter((id) => people[id]?.role === 'coach' || people[id]?.role === 'ta');

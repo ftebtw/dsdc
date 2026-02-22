@@ -21,7 +21,7 @@ export default async function StudentMakeupPage() {
     .from('enrollments')
     .select('class_id,status')
     .eq('student_id', session.userId)
-    .eq('status', 'active')).data ?? []) as any[];
+    .eq('status', 'active')).data ?? []) as Array<Record<string, any>>;
   const classIds = enrollments.map((row: any) => row.class_id);
 
   const classes = classIds.length
@@ -29,8 +29,8 @@ export default async function StudentMakeupPage() {
         .from('classes')
         .select('*')
         .in('id', classIds)
-        .eq('term_id', activeTerm.id)).data ?? []) as any[])
-    : ([] as any[]);
+        .eq('term_id', activeTerm.id)).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const absences = classIds.length
     ? (((await supabase
@@ -38,8 +38,8 @@ export default async function StudentMakeupPage() {
         .select('*')
         .eq('student_id', session.userId)
         .in('class_id', classIds)
-        .order('session_date', { ascending: false })).data ?? []) as any[])
-    : ([] as any[]);
+        .order('session_date', { ascending: false })).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const classesByType = new Map<string, any[]>();
   for (const classRow of classes) {

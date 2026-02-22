@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { isValidTimezone } from "@/lib/portal/timezone";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -61,22 +62,9 @@ async function upsertProfile(
 
 async function findAuthUserByEmail(admin: any, email: string): Promise<any | null> {
   const normalized = email.trim().toLowerCase();
-  let page = 1;
-  const perPage = 100;
-
-  while (page <= 10) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-    if (error) throw new Error(error.message);
-    const found = (data?.users ?? []).find((user: any) => {
-      const userEmail = typeof user?.email === "string" ? user.email.toLowerCase() : "";
-      return userEmail === normalized;
-    });
-    if (found) return found;
-    if (!data?.users?.length || data.users.length < perPage) break;
-    page += 1;
-  }
-
-  return null;
+  const { data, error } = await admin.auth.admin.getUserByEmail(normalized);
+  if (error || !data?.user) return null;
+  return data.user;
 }
 
 async function createStudentRegistration(admin: any, body: ParsedBody) {
@@ -240,6 +228,10 @@ export async function POST(request: NextRequest) {
     body = bodySchema.parse(await request.json());
   } catch {
     return jsonError("Invalid request body.");
+  }
+
+  if (!isValidTimezone(body.timezone)) {
+    return jsonError("Invalid timezone.");
   }
 
   const admin = getSupabaseAdminClient();

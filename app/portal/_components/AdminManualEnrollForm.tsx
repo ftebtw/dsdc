@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import TimezoneSelect from '@/app/portal/_components/TimezoneSelect';
 
 type StudentOption = { id: string; label: string };
 type ClassOption = { id: string; label: string };
@@ -135,10 +136,9 @@ export default function AdminManualEnrollForm({
             onChange={(event) => setPhone(event.target.value)}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
           />
-          <input
-            placeholder="Timezone"
+          <TimezoneSelect
             value={timezone}
-            onChange={(event) => setTimezone(event.target.value)}
+            onChange={setTimezone}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
           />
           <select

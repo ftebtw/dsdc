@@ -26,8 +26,8 @@ export default async function StudentBookingPage() {
       .order('requested_start_time', { ascending: true }),
   ]);
 
-  const availability = (availabilityRaw.data ?? []) as any[];
-  const sessions = (sessionRaw.data ?? []) as any[];
+  const availability = (availabilityRaw.data ?? []) as Array<Record<string, any>>;
+  const sessions = (sessionRaw.data ?? []) as Array<Record<string, any>>;
 
   const coachIds = [...new Set([...availability.map((slot: any) => slot.coach_id), ...sessions.map((row: any) => row.coach_id)])];
   const coachMap = await getProfileMap(supabase, coachIds);

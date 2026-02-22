@@ -101,16 +101,16 @@ export default async function AdminClassesPage({
     supabase.from('terms').select('*').order('start_date', { ascending: false }),
     supabase.from('coach_profiles').select('coach_id,tier,is_ta'),
   ]);
-  const terms = (termsData ?? []) as any[];
-  const coachProfiles = (coachProfilesData ?? []) as any[];
+  const terms = (termsData ?? []) as Array<Record<string, any>>;
+  const coachProfiles = (coachProfilesData ?? []) as Array<Record<string, any>>;
 
   const selectedTermId =
     params.term || terms.find((term: any) => term.is_active)?.id || terms[0]?.id || '';
 
   const classes = selectedTermId
     ? (((await supabase.from('classes').select('*').eq('term_id', selectedTermId).order('name')).data ??
-        []) as any[])
-    : ([] as any[]);
+        []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const coachIds = coachProfiles.map((row: any) => row.coach_id);
   const coachMap = await getProfileMap(supabase, coachIds);
@@ -121,8 +121,8 @@ export default async function AdminClassesPage({
         .from('enrollments')
         .select('class_id,student_id,status')
         .in('class_id', classIds)
-        .eq('status', 'active')).data ?? []) as any[])
-    : ([] as any[]);
+        .eq('status', 'active')).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
   const studentMap = await getProfileMap(
     supabase,
     [...new Set(enrollments.map((row) => row.student_id))]

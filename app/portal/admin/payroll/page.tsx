@@ -5,6 +5,7 @@ import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
 import { fetchPayrollDataset, parsePayrollDateRange } from '@/lib/portal/payroll';
 import { formatUtcForUser } from '@/lib/portal/time';
+import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 function currentMonthRange() {
@@ -58,7 +59,8 @@ export default async function AdminPayrollPage({
     ...new Set(((coachProfilesData ?? []) as Array<{ coach_id: string }>).map((row) => row.coach_id)),
   ];
   const coachMap = await getProfileMap(supabase, coachIds);
-  const activeTerm = (termsData ?? [])[0] as any | undefined;
+  type ActiveTermRow = Pick<Database['public']['Tables']['terms']['Row'], 'id' | 'name' | 'start_date' | 'end_date'>;
+  const activeTerm = ((termsData ?? []) as ActiveTermRow[])[0];
 
   if (params.preset === 'thisTerm' && activeTerm) {
     range = { start: activeTerm.start_date, end: activeTerm.end_date };

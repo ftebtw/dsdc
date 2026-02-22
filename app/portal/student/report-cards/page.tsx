@@ -15,15 +15,15 @@ export default async function StudentReportCardsPage() {
     .eq('student_id', session.userId)
     .eq('status', 'approved')
     .order('reviewed_at', { ascending: false });
-  const rows = (rowsData ?? []) as any[];
+  const rows = (rowsData ?? []) as Array<Record<string, any>>;
 
   const [{ data: classesData }, { data: termsData }, coachMap] = await Promise.all([
     supabase.from('classes').select('id,name'),
     supabase.from('terms').select('id,name'),
     getProfileMap(supabase, [...new Set(rows.map((row) => row.written_by))]),
   ]);
-  const classMap = Object.fromEntries(((classesData ?? []) as any[]).map((row) => [row.id, row.name]));
-  const termMap = Object.fromEntries(((termsData ?? []) as any[]).map((row) => [row.id, row.name]));
+  const classMap = Object.fromEntries(((classesData ?? []) as Array<Record<string, any>>).map((row) => [row.id, row.name]));
+  const termMap = Object.fromEntries(((termsData ?? []) as Array<Record<string, any>>).map((row) => [row.id, row.name]));
 
   const groups = new Map<string, any[]>();
   for (const row of rows) {

@@ -16,6 +16,14 @@ const resourceTypes: Database['public']['Enums']['resource_type'][] = [
   'other',
 ];
 
+type EnrollmentRow = Pick<Database['public']['Tables']['enrollments']['Row'], 'class_id' | 'status'>;
+type ClassNameRow = Pick<Database['public']['Tables']['classes']['Row'], 'id' | 'name'>;
+type ResourceRow = Database['public']['Tables']['resources']['Row'];
+
+function isResourceType(value: string): value is Database['public']['Enums']['resource_type'] {
+  return resourceTypes.includes(value as Database['public']['Enums']['resource_type']);
+}
+
 export default async function ParentResourcesPage({
   searchParams,
 }: {
@@ -52,12 +60,12 @@ export default async function ParentResourcesPage({
     .from('enrollments')
     .select('class_id,status')
     .eq('student_id', selectedStudentId)
-    .eq('status', 'active')).data ?? []) as any[];
-  const classIds = enrollments.map((row: any) => row.class_id);
+    .eq('status', 'active')).data ?? []) as EnrollmentRow[];
+  const classIds = enrollments.map((row) => row.class_id);
   const classes = classIds.length
-    ? (((await supabase.from('classes').select('id,name').in('id', classIds)).data ?? []) as any[])
-    : ([] as any[]);
-  const classMap = Object.fromEntries(classes.map((classRow: any) => [classRow.id, classRow.name]));
+    ? (((await supabase.from('classes').select('id,name').in('id', classIds)).data ?? []) as ClassNameRow[])
+    : ([] as ClassNameRow[]);
+  const classMap = Object.fromEntries(classes.map((classRow) => [classRow.id, classRow.name]));
 
   let query = supabase
     .from('resources')
@@ -66,14 +74,14 @@ export default async function ParentResourcesPage({
     .order('created_at', { ascending: false });
 
   if (params.classId) query = query.eq('class_id', params.classId);
-  if (params.type && resourceTypes.includes(params.type as any)) {
-    query = query.eq('type', params.type as any);
+  if (params.type && isResourceType(params.type)) {
+    query = query.eq('type', params.type);
   }
 
   const { data: resourcesData } = await query;
-  const resources = ((resourcesData ?? []) as any[]).map((resource) => ({
+  const resources = ((resourcesData ?? []) as ResourceRow[]).map((resource) => ({
     ...resource,
-    className: classMap[resource.class_id] || null,
+    className: resource.class_id ? classMap[resource.class_id] || null : null,
   }));
 
   return (
@@ -91,7 +99,7 @@ export default async function ParentResourcesPage({
           className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
         >
           <option value="">{parentT(locale, 'portal.parent.common.allClasses', 'All classes')}</option>
-          {classes.map((classRow: any) => (
+          {classes.map((classRow) => (
             <option key={classRow.id} value={classRow.id}>
               {classRow.name}
             </option>

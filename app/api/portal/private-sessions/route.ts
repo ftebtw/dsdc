@@ -6,7 +6,7 @@ import { privateRequestedTemplate } from '@/lib/email/templates';
 import { shouldSendNotification } from '@/lib/portal/notifications';
 import { portalPathUrl, profilePreferenceUrl, sessionRangeForRecipient } from '@/lib/portal/phase-c';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 const createSchema = z.object({
   availabilityId: z.string().uuid(),
@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
   const session = await requireApiRole(request, ['admin', 'coach', 'ta', 'student', 'parent']);
   if (!session) return jsonError('Unauthorized', 401);
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
   const coachId = searchParams.get('coachId');
@@ -36,8 +36,8 @@ export async function GET(request: NextRequest) {
   }
 
   const { data, error } = await query;
-  if (error) return jsonError(error.message, 400);
-  return NextResponse.json({ sessions: data ?? [] });
+  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+  return mergeCookies(supabaseResponse, NextResponse.json({ sessions: data ?? [] }));
 }
 
 export async function POST(request: NextRequest) {
@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
   const body = createSchema.safeParse(await request.json());
   if (!body.success) return jsonError('Invalid payload.');
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const admin = getSupabaseAdminClient();
 
   const { data: enrollment } = await supabase
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     .limit(1)
     .maybeSingle();
   if (!enrollment) {
-    return jsonError('You must be enrolled in an active class to request a private session.', 403);
+    return mergeCookies(supabaseResponse, jsonError('You must be enrolled in an active class to request a private session.', 403));
   }
 
   const { data: slot, error: slotError } = await supabase
@@ -68,10 +68,10 @@ export async function POST(request: NextRequest) {
     .eq('id', body.data.availabilityId)
     .eq('is_private', true)
     .maybeSingle();
-  if (slotError) return jsonError(slotError.message, 400);
-  if (!slot) return jsonError('Availability slot not found.', 404);
+  if (slotError) return mergeCookies(supabaseResponse, jsonError(slotError.message, 400));
+  if (!slot) return mergeCookies(supabaseResponse, jsonError('Availability slot not found.', 404));
   const today = new Date().toISOString().slice(0, 10);
-  if (slot.available_date < today) return jsonError('Cannot request past availability slots.', 400);
+  if (slot.available_date < today) return mergeCookies(supabaseResponse, jsonError('Cannot request past availability slots.', 400));
 
   const { data: createdRow, error: createError } = await supabase
     .from('private_sessions')
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     })
     .select('*')
     .single();
-  if (createError) return jsonError(createError.message, 400);
+  if (createError) return mergeCookies(supabaseResponse, jsonError(createError.message, 400));
 
   const [studentProfile, coachProfile] = await Promise.all([
     admin
@@ -128,5 +128,6 @@ export async function POST(request: NextRequest) {
     await sendPortalEmails([{ to: coachProfile.data.email, ...template }]);
   }
 
-  return NextResponse.json({ session: createdRow });
+  return mergeCookies(supabaseResponse, NextResponse.json({ session: createdRow }));
 }
+

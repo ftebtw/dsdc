@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 import { fetchPayrollDataset, parsePayrollDateRange } from '@/lib/portal/payroll';
 
 function jsonError(message: string, status = 400) {
@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
   }
 
   const coachId = searchParams.get('coachId');
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
   try {
     const dataset = await fetchPayrollDataset(supabase, {
@@ -32,12 +32,13 @@ export async function GET(request: NextRequest) {
       end: range.end,
       coachId: coachId || undefined,
     });
-    return NextResponse.json({
+    return mergeCookies(supabaseResponse, NextResponse.json({
       range,
       summary: dataset.summary,
       totals: dataset.totals,
-    });
+    }));
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : 'Unable to load payroll summary.', 500);
+    return mergeCookies(supabaseResponse, jsonError(error instanceof Error ? error.message : 'Unable to load payroll summary.', 500));
   }
 }
+

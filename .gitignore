@@ -17,6 +17,7 @@ qa-test-results.json
 
 # misc
 .DS_Store
+Thumbs.db
 *.pem
 
 # debug
@@ -27,6 +28,8 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.production
+.env.development
 
 # vercel
 .vercel
@@ -34,3 +37,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Debug screenshots
+*.png
+!/public/**/*.png
+
+# Supabase
+supabase/.temp/

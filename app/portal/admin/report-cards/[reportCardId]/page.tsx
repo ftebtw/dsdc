@@ -7,7 +7,10 @@ import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
 import { getReportCardLastActivityIso } from '@/lib/portal/report-cards';
 import { formatUtcForUser } from '@/lib/portal/time';
+import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+type ReportCardRow = Database['public']['Tables']['report_cards']['Row'];
 
 export default async function AdminReportCardDetailPage({
   params,
@@ -23,7 +26,7 @@ export default async function AdminReportCardDetailPage({
     .select('*')
     .eq('id', reportCardId)
     .maybeSingle();
-  const row = rowData as any;
+  const row = rowData as ReportCardRow | null;
 
   if (!row) {
     return (
@@ -38,7 +41,10 @@ export default async function AdminReportCardDetailPage({
   const [{ data: classRow }, { data: termRow }, profileMap] = await Promise.all([
     supabase.from('classes').select('id,name').eq('id', row.class_id).maybeSingle(),
     supabase.from('terms').select('id,name').eq('id', row.term_id).maybeSingle(),
-    getProfileMap(supabase, [row.student_id, row.written_by, row.reviewed_by].filter(Boolean)),
+    getProfileMap(
+      supabase,
+      [row.student_id, row.written_by, row.reviewed_by].filter((value): value is string => Boolean(value))
+    ),
   ]);
 
   return (

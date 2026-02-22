@@ -27,7 +27,7 @@ export default async function StudentLegalSignPage({
     .from('legal_signatures')
     .select('*')
     .eq('document_id', documentId);
-  const signatures = (signaturesData ?? []) as any[];
+  const signatures = (signaturesData ?? []) as Array<Record<string, any>>;
   const existingSignature =
     signatures.find((signature) => signature.signer_id === session.userId) ||
     signatures.find((signature) => signature.signed_for_student_id === session.userId) ||

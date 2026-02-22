@@ -75,7 +75,7 @@ export default async function AdminTermsPage() {
   await requireRole(['admin']);
   const supabase = await getSupabaseServerClient();
   const { data: termsData } = await supabase.from('terms').select('*').order('start_date', { ascending: false });
-  const terms = (termsData ?? []) as any[];
+  const terms = (termsData ?? []) as Array<Record<string, any>>;
 
   return (
     <div className="space-y-6">

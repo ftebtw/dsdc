@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { formatInTimeZone } from 'date-fns-tz';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
 import { sendPortalEmails } from '@/lib/email/send';
@@ -7,7 +8,7 @@ import { parseCsvEmails } from '@/lib/portal/cron';
 import { shouldSendNotification } from '@/lib/portal/notifications';
 import { portalPathUrl, profilePreferenceUrl } from '@/lib/portal/phase-c';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 const bodySchema = z.object({
   classId: z.string().uuid(),
@@ -27,17 +28,24 @@ export async function POST(request: NextRequest) {
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) return jsonError('Invalid payload.');
 
-  const today = new Date().toISOString().slice(0, 10);
-  if (parsed.data.sessionDate < today) {
-    return jsonError('Absence date must be upcoming.');
-  }
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
+  const { data: classRow } = await supabase
+    .from('classes')
+    .select('id,timezone')
+    .eq('id', parsed.data.classId)
+    .maybeSingle();
+  if (!classRow) return mergeCookies(supabaseResponse, jsonError('Class not found.', 404));
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const classTimezone = classRow.timezone || 'America/Vancouver';
+  const todayInClassTz = formatInTimeZone(new Date(), classTimezone, 'yyyy-MM-dd');
+  if (parsed.data.sessionDate < todayInClassTz) {
+    return mergeCookies(supabaseResponse, jsonError('Absence date must be upcoming.'));
+  }
   const targetStudentId =
     session.profile.role === 'student' ? session.userId : parsed.data.studentId || null;
 
-  if (!targetStudentId) return jsonError('Student is required.', 400);
+  if (!targetStudentId) return mergeCookies(supabaseResponse, jsonError('Student is required.', 400));
 
   const { data, error } = await supabase
     .from('student_absences')
@@ -51,7 +59,7 @@ export async function POST(request: NextRequest) {
     .select('*')
     .single();
 
-  if (error) return jsonError(error.message, 400);
+  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
 
   try {
     const admin = getSupabaseAdminClient();
@@ -157,5 +165,6 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  return NextResponse.json({ absence: data });
+  return mergeCookies(supabaseResponse, NextResponse.json({ absence: data }));
 }
+

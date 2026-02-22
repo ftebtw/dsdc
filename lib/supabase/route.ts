@@ -22,3 +22,17 @@ export function getSupabaseRouteClient(request: NextRequest, response: NextRespo
     },
   }) as any;
 }
+
+/**
+ * Copy any cookies that Supabase SSR set on `supabaseResponse`
+ * onto a final NextResponse (JSON, CSV, etc.).
+ */
+export function mergeCookies(
+  supabaseResponse: NextResponse,
+  finalResponse: NextResponse
+): NextResponse {
+  for (const cookie of supabaseResponse.cookies.getAll()) {
+    finalResponse.cookies.set(cookie.name, cookie.value, cookie as any);
+  }
+  return finalResponse;
+}

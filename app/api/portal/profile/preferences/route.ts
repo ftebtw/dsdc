@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 import { normalizeClassReminderValue } from '@/lib/portal/notifications';
 
 const bodySchema = z.object({
@@ -50,8 +50,8 @@ export async function PATCH(request: NextRequest) {
     return jsonError('No allowed preference keys were provided for this role.');
   }
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
@@ -59,7 +59,7 @@ export async function PATCH(request: NextRequest) {
     .eq('id', session.userId)
     .maybeSingle();
 
-  if (profileError) return jsonError(profileError.message, 400);
+  if (profileError) return mergeCookies(supabaseResponse, jsonError(profileError.message, 400));
 
   const existing = asObject(profile?.notification_preferences);
   const nextPreferences = { ...existing, ...patch };
@@ -71,10 +71,11 @@ export async function PATCH(request: NextRequest) {
     .select('notification_preferences')
     .single();
 
-  if (updateError) return jsonError(updateError.message, 400);
+  if (updateError) return mergeCookies(supabaseResponse, jsonError(updateError.message, 400));
 
-  return NextResponse.json({
+  return mergeCookies(supabaseResponse, NextResponse.json({
     ok: true,
     preferences: updatedProfile.notification_preferences,
-  });
+  }));
 }
+

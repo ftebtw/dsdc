@@ -5,7 +5,7 @@ import { privateConfirmedTemplate } from '@/lib/email/templates';
 import { shouldSendNotification } from '@/lib/portal/notifications';
 import { portalPathUrl, profilePreferenceUrl, sessionRangeForRecipient } from '@/lib/portal/phase-c';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -19,8 +19,8 @@ export async function POST(
   if (!session) return jsonError('Unauthorized', 401);
   const { id } = await params;
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const admin = getSupabaseAdminClient();
 
   const { data: requestRow, error: rowError } = await supabase
@@ -28,14 +28,14 @@ export async function POST(
     .select('*')
     .eq('id', id)
     .maybeSingle();
-  if (rowError) return jsonError(rowError.message, 400);
-  if (!requestRow) return jsonError('Private session not found.', 404);
+  if (rowError) return mergeCookies(supabaseResponse, jsonError(rowError.message, 400));
+  if (!requestRow) return mergeCookies(supabaseResponse, jsonError('Private session not found.', 404));
 
   if (session.profile.role !== 'admin' && requestRow.coach_id !== session.userId) {
-    return jsonError('Not allowed to confirm this session.', 403);
+    return mergeCookies(supabaseResponse, jsonError('Not allowed to confirm this session.', 403));
   }
   if (requestRow.status !== 'pending') {
-    return jsonError('Only pending sessions can be confirmed.', 400);
+    return mergeCookies(supabaseResponse, jsonError('Only pending sessions can be confirmed.', 400));
   }
 
   const { data: updatedRow, error: updateError } = await supabase
@@ -50,8 +50,8 @@ export async function POST(
     .eq('status', 'pending')
     .select('*')
     .maybeSingle();
-  if (updateError) return jsonError(updateError.message, 400);
-  if (!updatedRow) return jsonError('Session is no longer pending.', 409);
+  if (updateError) return mergeCookies(supabaseResponse, jsonError(updateError.message, 400));
+  if (!updatedRow) return mergeCookies(supabaseResponse, jsonError('Session is no longer pending.', 409));
 
   const [studentProfile, coachProfile] = await Promise.all([
     admin
@@ -89,5 +89,5 @@ export async function POST(
     await sendPortalEmails([{ to: studentProfile.data.email, ...template }]);
   }
 
-  return NextResponse.json({ session: updatedRow });
+  return mergeCookies(supabaseResponse, NextResponse.json({ session: updatedRow }));
 }

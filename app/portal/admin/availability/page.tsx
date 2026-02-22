@@ -2,7 +2,11 @@ import AvailabilityCalendar from '@/app/portal/_components/AvailabilityCalendar'
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
+import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+type CoachProfileIdRow = Pick<Database['public']['Tables']['coach_profiles']['Row'], 'coach_id'>;
+type AvailabilityRow = Database['public']['Tables']['coach_availability']['Row'];
 
 export default async function AdminAvailabilityPage({
   searchParams,
@@ -14,7 +18,7 @@ export default async function AdminAvailabilityPage({
   const supabase = await getSupabaseServerClient();
 
   const { data: coachProfilesData } = await supabase.from('coach_profiles').select('coach_id').order('coach_id');
-  const coachIds = (coachProfilesData ?? []).map((row: any) => row.coach_id);
+  const coachIds = ((coachProfilesData ?? []) as CoachProfileIdRow[]).map((row) => row.coach_id);
   const coachMap = await getProfileMap(supabase, coachIds);
 
   let query = supabase
@@ -27,7 +31,7 @@ export default async function AdminAvailabilityPage({
   if (params.mode === 'private') query = query.eq('is_private', true);
 
   const { data: slotsData } = await query;
-  const slots = ((slotsData ?? []) as any[]).map((slot) => ({
+  const slots = ((slotsData ?? []) as AvailabilityRow[]).map((slot) => ({
     ...slot,
     coachName: coachMap[slot.coach_id]?.display_name || coachMap[slot.coach_id]?.email || slot.coach_id,
   }));

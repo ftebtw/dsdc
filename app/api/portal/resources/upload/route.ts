@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 import type { Database } from '@/lib/supabase/database.types';
 
 const metadataSchema = z.object({
@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
   const session = await requireApiRole(request, ['admin', 'coach', 'ta']);
   if (!session) return jsonError('Unauthorized', 401);
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const formData = await request.formData();
   const parsed = metadataSchema.safeParse({
     classId: formData.get('classId') || undefined,
@@ -33,12 +33,12 @@ export async function POST(request: NextRequest) {
     type: formData.get('type'),
     url: formData.get('url') || undefined,
   });
-  if (!parsed.success) return jsonError('Invalid upload payload.');
+  if (!parsed.success) return mergeCookies(supabaseResponse, jsonError('Invalid upload payload.'));
 
   const fileValue = formData.get('file');
   const file = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
   const hasUrl = Boolean(parsed.data.url);
-  if (!file && !hasUrl) return jsonError('Provide a file or URL.');
+  if (!file && !hasUrl) return mergeCookies(supabaseResponse, jsonError('Provide a file or URL.'));
 
   const classId = parsed.data.classId ?? null;
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const classRow = classRowData as any;
 
     if (!classRow || classRow.coach_id !== session.userId) {
-      return jsonError('Not allowed for this class.', 403);
+      return mergeCookies(supabaseResponse, jsonError('Not allowed for this class.', 403));
     }
   }
 
@@ -70,8 +70,8 @@ export async function POST(request: NextRequest) {
       .select('*')
       .single();
     const inserted = insertedData as any;
-    if (error) return jsonError(error.message, 400);
-    return NextResponse.json({ resource: inserted });
+    if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+    return mergeCookies(supabaseResponse, NextResponse.json({ resource: inserted }));
   }
 
   const resourceId = randomUUID();
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     .from(bucket)
     .upload(objectPath, arrayBuffer, { contentType: file!.type || undefined, upsert: false });
 
-  if (uploadResult.error) return jsonError(uploadResult.error.message, 400);
+  if (uploadResult.error) return mergeCookies(supabaseResponse, jsonError(uploadResult.error.message, 400));
 
   rowPayload.file_path = objectPath;
 
@@ -99,8 +99,9 @@ export async function POST(request: NextRequest) {
 
   if (insertError) {
     await supabase.storage.from(bucket).remove([objectPath]);
-    return jsonError(insertError.message, 400);
+    return mergeCookies(supabaseResponse, jsonError(insertError.message, 400));
   }
 
-  return NextResponse.json({ resource: inserted });
+  return mergeCookies(supabaseResponse, NextResponse.json({ resource: inserted }));
 }
+

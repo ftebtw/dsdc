@@ -80,7 +80,7 @@ export default async function ParentDashboardPage({
     .from('enrollments')
     .select('class_id,status')
     .eq('student_id', selectedStudentId)
-    .eq('status', 'active')).data ?? []) as any[];
+    .eq('status', 'active')).data ?? []) as Array<Record<string, any>>;
 
   const classIds = enrollmentRows.map((row: any) => row.class_id);
   const activeClasses = activeTerm && classIds.length
@@ -88,16 +88,16 @@ export default async function ParentDashboardPage({
         .from('classes')
         .select('id,name,term_id')
         .in('id', classIds)
-        .eq('term_id', activeTerm.id)).data ?? []) as any[])
-    : ([] as any[]);
+        .eq('term_id', activeTerm.id)).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const attendanceRows = classIds.length
     ? (((await supabase
         .from('attendance_records')
         .select('status')
         .eq('student_id', selectedStudentId)
-        .in('class_id', classIds)).data ?? []) as any[])
-    : ([] as any[]);
+        .in('class_id', classIds)).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const absentCount = attendanceRows.filter((row: any) => row.status === 'absent').length;
   const presentCount = attendanceRows.filter((row: any) => row.status === 'present').length;

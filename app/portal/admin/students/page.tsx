@@ -16,16 +16,16 @@ export default async function AdminStudentsPage({
     supabase.from('profiles').select('*').eq('role', 'student').order('display_name', { ascending: true }),
     supabase.from('classes').select('id,name').order('name'),
   ]);
-  const students = (studentsData ?? []) as any[];
-  const allClasses = (allClassesData ?? []) as any[];
+  const students = (studentsData ?? []) as Array<Record<string, any>>;
+  const allClasses = (allClassesData ?? []) as Array<Record<string, any>>;
 
   const studentIds = students.map((student: any) => student.id);
   const enrollments = studentIds.length
     ? (((await supabase
         .from('enrollments')
         .select('student_id,class_id,status')
-        .in('student_id', studentIds)).data ?? []) as any[])
-    : ([] as any[]);
+        .in('student_id', studentIds)).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const classMap = Object.fromEntries(allClasses.map((classRow: any) => [classRow.id, classRow]));
 

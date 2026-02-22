@@ -5,7 +5,7 @@ import { taAcceptedTemplate } from '@/lib/email/templates';
 import { shouldSendNotification } from '@/lib/portal/notifications';
 import { portalPathUrl, profilePreferenceUrl, sessionRangeForRecipient } from '@/lib/portal/phase-c';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -19,8 +19,8 @@ export async function POST(
   if (!session) return jsonError('Unauthorized', 401);
   const { id } = await params;
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const admin = getSupabaseAdminClient();
 
   const { data: requestRow, error: requestError } = await admin
@@ -28,10 +28,10 @@ export async function POST(
     .select('id,class_id,requesting_coach_id,status,session_date')
     .eq('id', id)
     .maybeSingle();
-  if (requestError) return jsonError(requestError.message, 400);
-  if (!requestRow) return jsonError('TA request not found.', 404);
+  if (requestError) return mergeCookies(supabaseResponse, jsonError(requestError.message, 400));
+  if (!requestRow) return mergeCookies(supabaseResponse, jsonError('TA request not found.', 404));
   if (requestRow.requesting_coach_id === session.userId) {
-    return jsonError('You cannot accept your own TA request.', 403);
+    return mergeCookies(supabaseResponse, jsonError('You cannot accept your own TA request.', 403));
   }
 
   const { data: taProfile } = await admin
@@ -39,7 +39,7 @@ export async function POST(
     .select('is_ta')
     .eq('coach_id', session.userId)
     .maybeSingle();
-  if (!taProfile?.is_ta) return jsonError('Only TA profiles can accept TA requests.', 403);
+  if (!taProfile?.is_ta) return mergeCookies(supabaseResponse, jsonError('Only TA profiles can accept TA requests.', 403));
 
   const { data: acceptedRow, error: acceptError } = await supabase
     .from('ta_requests')
@@ -52,9 +52,9 @@ export async function POST(
     .eq('status', 'open')
     .select('*')
     .maybeSingle();
-  if (acceptError) return jsonError(acceptError.message, 400);
+  if (acceptError) return mergeCookies(supabaseResponse, jsonError(acceptError.message, 400));
   if (!acceptedRow) {
-    return jsonError('This TA request has already been accepted or closed.', 409);
+    return mergeCookies(supabaseResponse, jsonError('This TA request has already been accepted or closed.', 409));
   }
 
   const [classRow, requestingCoach, acceptingTa] = await Promise.all([
@@ -97,5 +97,5 @@ export async function POST(
     await sendPortalEmails([{ to: requestingCoach.data.email, ...template }]);
   }
 
-  return NextResponse.json({ request: acceptedRow });
+  return mergeCookies(supabaseResponse, NextResponse.json({ request: acceptedRow }));
 }

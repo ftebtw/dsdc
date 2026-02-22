@@ -23,7 +23,7 @@ export default async function StudentClassesPage() {
     .select('class_id,status')
     .eq('student_id', session.userId)
     .eq('status', 'active');
-  const enrollmentRows = (enrollmentRowsData ?? []) as any[];
+  const enrollmentRows = (enrollmentRowsData ?? []) as Array<Record<string, any>>;
   const classIds = enrollmentRows.map((row: any) => row.class_id);
 
   const classes = classIds.length
@@ -32,8 +32,8 @@ export default async function StudentClassesPage() {
         .select('*')
         .in('id', classIds)
         .eq('term_id', activeTerm.id)
-        .order('schedule_day')).data ?? []) as any[])
-    : ([] as any[]);
+        .order('schedule_day')).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const coachIds = [...new Set(classes.map((classRow: any) => classRow.coach_id))];
   const coachMap = await getProfileMap(supabase, coachIds);
@@ -42,7 +42,7 @@ export default async function StudentClassesPage() {
     .from('class_credits')
     .select('class_type,amount_sessions,redeemed')
     .eq('student_id', session.userId)
-    .eq('redeemed', false)).data ?? []) as any[];
+    .eq('redeemed', false)).data ?? []) as Array<Record<string, any>>;
 
   const creditsByType = new Map<string, number>();
   for (const credit of creditsRows) {
@@ -58,8 +58,8 @@ export default async function StudentClassesPage() {
         .in('class_id', classIds)
         .eq('status', 'accepted')
         .gte('session_date', today)
-        .order('session_date', { ascending: true })).data ?? []) as any[])
-    : ([] as any[]);
+        .order('session_date', { ascending: true })).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
   const taRequests = classIds.length
     ? (((await supabase
         .from('ta_requests')
@@ -67,8 +67,8 @@ export default async function StudentClassesPage() {
         .in('class_id', classIds)
         .eq('status', 'accepted')
         .gte('session_date', today)
-        .order('session_date', { ascending: true })).data ?? []) as any[])
-    : ([] as any[]);
+        .order('session_date', { ascending: true })).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const subCoachIds = [...new Set(subRequests.map((row: any) => row.accepting_coach_id).filter(Boolean))];
   const taIds = [...new Set(taRequests.map((row: any) => row.accepting_ta_id).filter(Boolean))];

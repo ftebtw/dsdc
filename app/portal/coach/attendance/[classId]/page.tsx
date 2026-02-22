@@ -2,9 +2,18 @@ import { notFound } from 'next/navigation';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import CoachAttendanceEditor from '@/app/portal/_components/CoachAttendanceEditor';
 import { requireRole } from '@/lib/portal/auth';
+import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { classTypeLabel, formatClassSchedule } from '@/lib/portal/labels';
 import { getSessionDateForClassTimezone } from '@/lib/portal/time';
+
+type EnrollmentStudentRow = Pick<Database['public']['Tables']['enrollments']['Row'], 'student_id'>;
+type AttendanceRow = Pick<
+  Database['public']['Tables']['attendance_records']['Row'],
+  'student_id' | 'status' | 'camera_on' | 'marked_at'
+>;
+type AbsenceStudentRow = Pick<Database['public']['Tables']['student_absences']['Row'], 'student_id'>;
+type AttendanceStudentProfile = Pick<Database['public']['Tables']['profiles']['Row'], 'id' | 'display_name' | 'email'>;
 
 export default async function CoachAttendancePage({
   params,
@@ -39,18 +48,18 @@ export default async function CoachAttendancePage({
       .eq('class_id', classId)
       .eq('session_date', sessionDate),
   ]);
-  const enrollments = (enrollmentsData ?? []) as any[];
-  const attendanceRows = (attendanceRowsData ?? []) as any[];
-  const absences = (absencesData ?? []) as any[];
+  const enrollments = (enrollmentsData ?? []) as EnrollmentStudentRow[];
+  const attendanceRows = (attendanceRowsData ?? []) as AttendanceRow[];
+  const absences = (absencesData ?? []) as AbsenceStudentRow[];
 
-  const studentIds = enrollments.map((item: any) => item.student_id);
+  const studentIds = enrollments.map((item) => item.student_id);
   const { data: profilesData } = studentIds.length
     ? await supabase.from('profiles').select('id,display_name,email').in('id', studentIds)
     : { data: [] as Array<{ id: string; display_name: string | null; email: string }> };
-  const profiles = (profilesData ?? []) as any[];
+  const profiles = (profilesData ?? []) as AttendanceStudentProfile[];
 
   const attendanceByStudent = Object.fromEntries(
-    attendanceRows.map((row: any) => [
+    attendanceRows.map((row) => [
       row.student_id,
       {
         status: row.status,
@@ -75,7 +84,7 @@ export default async function CoachAttendancePage({
         initialSessionDate={sessionDate}
         students={profiles}
         initialAttendance={attendanceByStudent}
-        initialAbsenceStudentIds={absences.map((row: any) => row.student_id)}
+        initialAbsenceStudentIds={absences.map((row) => row.student_id)}
       />
     </SectionCard>
   );

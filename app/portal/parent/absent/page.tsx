@@ -5,7 +5,15 @@ import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
 import { getParentSelection } from '@/lib/portal/parent';
 import { parentT } from '@/lib/portal/parent-i18n';
+import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+type EnrollmentRow = Pick<Database['public']['Tables']['enrollments']['Row'], 'class_id' | 'status'>;
+type AbsenceClassRow = Pick<
+  Database['public']['Tables']['classes']['Row'],
+  'id' | 'name' | 'schedule_day' | 'timezone'
+>;
+type StudentAbsenceRow = Database['public']['Tables']['student_absences']['Row'];
 
 export default async function ParentAbsentPage({
   searchParams,
@@ -52,17 +60,17 @@ export default async function ParentAbsentPage({
     .from('enrollments')
     .select('class_id,status')
     .eq('student_id', selectedStudentId)
-    .eq('status', 'active')).data ?? []) as any[];
-  const classIds = enrollments.map((row: any) => row.class_id);
+    .eq('status', 'active')).data ?? []) as EnrollmentRow[];
+  const classIds = enrollments.map((row) => row.class_id);
   const classes = classIds.length
     ? (((await supabase
         .from('classes')
         .select('id,name,schedule_day,timezone')
         .in('id', classIds)
         .eq('term_id', activeTerm.id)
-        .order('name')).data ?? []) as any[])
-    : ([] as any[]);
-  const classMap = Object.fromEntries(classes.map((classRow: any) => [classRow.id, classRow.name]));
+        .order('name')).data ?? []) as AbsenceClassRow[])
+    : ([] as AbsenceClassRow[]);
+  const classMap = Object.fromEntries(classes.map((classRow) => [classRow.id, classRow.name]));
 
   const absences = classIds.length
     ? (((await supabase
@@ -71,8 +79,8 @@ export default async function ParentAbsentPage({
         .eq('student_id', selectedStudentId)
         .in('class_id', classIds)
         .order('reported_at', { ascending: false })
-        .limit(50)).data ?? []) as any[])
-    : ([] as any[]);
+        .limit(50)).data ?? []) as StudentAbsenceRow[])
+    : ([] as StudentAbsenceRow[]);
 
   return (
     <SectionCard
@@ -89,7 +97,7 @@ export default async function ParentAbsentPage({
         <PortalAbsenceManager
           classes={classes}
           studentId={selectedStudentId}
-          initialAbsences={absences.map((absence: any) => ({
+          initialAbsences={absences.map((absence) => ({
             id: absence.id,
             className: classMap[absence.class_id] || absence.class_id,
             session_date: absence.session_date,

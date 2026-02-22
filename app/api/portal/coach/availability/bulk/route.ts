@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 const bulkSchema = z.object({
   slots: z
@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
     return jsonError('Each slot must have end time later than start time.');
   }
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const rows = parsed.data.slots.map((slot) => ({
     coach_id: session.userId,
     available_date: slot.availableDate,
@@ -46,7 +46,8 @@ export async function POST(request: NextRequest) {
   }));
 
   const { data, error } = await supabase.from('coach_availability').insert(rows).select('*');
-  if (error) return jsonError(error.message, 400);
+  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
 
-  return NextResponse.json({ slots: data ?? [], count: (data ?? []).length });
+  return mergeCookies(supabaseResponse, NextResponse.json({ slots: data ?? [], count: (data ?? []).length }));
 }
+

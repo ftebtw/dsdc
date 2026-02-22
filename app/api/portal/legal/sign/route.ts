@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 const bodySchema = z.object({
   documentId: z.string().uuid(),
@@ -34,24 +34,24 @@ export async function POST(request: NextRequest) {
   const imageBuffer = parseDataUrl(parsed.data.dataUrl);
   if (!imageBuffer) return jsonError('Signature image is invalid.');
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const { data: document, error: documentError } = await supabase
     .from('legal_documents')
     .select('id,required_for')
     .eq('id', parsed.data.documentId)
     .maybeSingle();
 
-  if (documentError) return jsonError(documentError.message, 400);
-  if (!document) return jsonError('Document not found.', 404);
+  if (documentError) return mergeCookies(supabaseResponse, jsonError(documentError.message, 400));
+  if (!document) return mergeCookies(supabaseResponse, jsonError('Document not found.', 404));
   if (document.required_for === 'all_coaches') {
-    return jsonError('Document is not required for your role.', 403);
+    return mergeCookies(supabaseResponse, jsonError('Document is not required for your role.', 403));
   }
 
   let signedForStudentId: string | null = null;
   if (session.profile.role === 'parent') {
     signedForStudentId = parsed.data.signedForStudentId || null;
-    if (!signedForStudentId) return jsonError('Missing student selection.', 400);
+    if (!signedForStudentId) return mergeCookies(supabaseResponse, jsonError('Missing student selection.', 400));
 
     const { data: link } = await supabase
       .from('parent_student_links')
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       .eq('parent_id', session.userId)
       .eq('student_id', signedForStudentId)
       .maybeSingle();
-    if (!link) return jsonError('You can only sign for linked students.', 403);
+    if (!link) return mergeCookies(supabaseResponse, jsonError('You can only sign for linked students.', 403));
   }
 
   const duplicateClause =
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     .limit(1)
     .maybeSingle();
 
-  if (existingSignature) return jsonError('Document already signed.', 409);
+  if (existingSignature) return mergeCookies(supabaseResponse, jsonError('Document already signed.', 409));
 
   const bucket = process.env.PORTAL_BUCKET_SIGNATURES || 'portal-signatures';
   const objectPath = `signature/${parsed.data.documentId}/${session.userId}/${Date.now()}-${randomUUID()}.png`;
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     contentType: 'image/png',
     upsert: false,
   });
-  if (uploadResult.error) return jsonError(uploadResult.error.message, 400);
+  if (uploadResult.error) return mergeCookies(supabaseResponse, jsonError(uploadResult.error.message, 400));
 
   const forwardedFor = request.headers.get('x-forwarded-for');
   const ipAddress = forwardedFor ? forwardedFor.split(',')[0]?.trim() : null;
@@ -104,8 +104,9 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (signatureError) {
-    return jsonError(signatureError.message, 400);
+    return mergeCookies(supabaseResponse, jsonError(signatureError.message, 400));
   }
 
-  return NextResponse.json({ signature });
+  return mergeCookies(supabaseResponse, NextResponse.json({ signature }));
 }
+

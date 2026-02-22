@@ -11,8 +11,8 @@ export default async function AdminEnrollPage() {
     supabase.from('classes').select('id,name').order('name', { ascending: true }),
     supabase.from('profiles').select('id,display_name,email').eq('role', 'student').order('display_name', { ascending: true }),
   ]);
-  const classes = (classesData ?? []) as any[];
-  const students = (studentsData ?? []) as any[];
+  const classes = (classesData ?? []) as Array<Record<string, any>>;
+  const students = (studentsData ?? []) as Array<Record<string, any>>;
 
   const classOptions = classes.map((classRow: any) => ({
     id: classRow.id,

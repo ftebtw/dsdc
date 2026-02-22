@@ -52,7 +52,7 @@ export default async function ParentClassesPage({
     .from('enrollments')
     .select('class_id,status')
     .eq('student_id', selectedStudentId)
-    .eq('status', 'active')).data ?? []) as any[];
+    .eq('status', 'active')).data ?? []) as Array<Record<string, any>>;
   const classIds = enrollments.map((row: any) => row.class_id);
   const classes = classIds.length
     ? (((await supabase
@@ -60,8 +60,8 @@ export default async function ParentClassesPage({
         .select('*')
         .in('id', classIds)
         .eq('term_id', activeTerm.id)
-        .order('schedule_day')).data ?? []) as any[])
-    : ([] as any[]);
+        .order('schedule_day')).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const coachMap = await getProfileMap(
     supabase,
@@ -76,8 +76,8 @@ export default async function ParentClassesPage({
         .in('class_id', classIdsForSubs)
         .eq('status', 'accepted')
         .gte('session_date', today)
-        .order('session_date', { ascending: true })).data ?? []) as any[])
-    : ([] as any[]);
+        .order('session_date', { ascending: true })).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
   const taRequests = classIdsForSubs.length
     ? (((await supabase
         .from('ta_requests')
@@ -85,8 +85,8 @@ export default async function ParentClassesPage({
         .in('class_id', classIdsForSubs)
         .eq('status', 'accepted')
         .gte('session_date', today)
-        .order('session_date', { ascending: true })).data ?? []) as any[])
-    : ([] as any[]);
+        .order('session_date', { ascending: true })).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
   const nextSubByClass = new Map<string, any>();
   for (const row of subRequests) if (!nextSubByClass.has(row.class_id)) nextSubByClass.set(row.class_id, row);
   const nextTaByClass = new Map<string, any>();

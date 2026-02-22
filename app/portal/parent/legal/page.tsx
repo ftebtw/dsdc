@@ -41,15 +41,15 @@ export default async function ParentLegalPage({
     .from('legal_documents')
     .select('*')
     .in('required_for', ['all_students', 'trip', 'event'])
-    .order('created_at', { ascending: false })).data ?? []) as any[];
+    .order('created_at', { ascending: false })).data ?? []) as Array<Record<string, any>>;
   const documentIds = documents.map((document: any) => document.id);
 
   const signatures = documentIds.length
     ? (((await supabase
         .from('legal_signatures')
         .select('*')
-        .in('document_id', documentIds)).data ?? []) as any[])
-    : ([] as any[]);
+        .in('document_id', documentIds)).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const signatureByDocument = new Map<string, any>();
   for (const signature of signatures) {

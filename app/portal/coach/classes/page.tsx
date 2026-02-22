@@ -18,7 +18,7 @@ export default async function CoachClassesPage() {
         .in('class_id', classIds)
         .eq('status', 'active')
     : { data: [] as Array<{ class_id: string; student_id: string; status: string }> };
-  const enrollments = (enrollmentsData ?? []) as any[];
+  const enrollments = (enrollmentsData ?? []) as Array<Record<string, any>>;
 
   const studentIds = [...new Set(enrollments.map((row: any) => row.student_id))];
   const today = new Date().toISOString().slice(0, 10);
@@ -29,8 +29,8 @@ export default async function CoachClassesPage() {
         .in('class_id', classIds)
         .eq('status', 'accepted')
         .gte('session_date', today)
-        .order('session_date', { ascending: true })).data ?? []) as any[])
-    : ([] as any[]);
+        .order('session_date', { ascending: true })).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
   const taRows = classIds.length
     ? (((await supabase
         .from('ta_requests')
@@ -38,8 +38,8 @@ export default async function CoachClassesPage() {
         .in('class_id', classIds)
         .eq('status', 'accepted')
         .gte('session_date', today)
-        .order('session_date', { ascending: true })).data ?? []) as any[])
-    : ([] as any[]);
+        .order('session_date', { ascending: true })).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const profileMap = await getProfileMap(supabase, [
     ...studentIds,

@@ -53,7 +53,7 @@ export default async function ParentLegalSignPage({
     .select('*')
     .eq('document_id', documentId)
     .order('signed_at', { ascending: false });
-  const signatures = (signaturesData ?? []) as any[];
+  const signatures = (signaturesData ?? []) as Array<Record<string, any>>;
   const existingSignature =
     signatures.find((signature) => signature.signer_id === selectedStudentId) ||
     signatures.find((signature) => signature.signed_for_student_id === selectedStudentId) ||

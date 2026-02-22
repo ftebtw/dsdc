@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 const bodySchema = z.object({
   subject: z.string().min(1).max(200),
@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) return jsonError('Invalid payload.');
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
   const roleHint = session.profile.role === 'parent' ? 'parent' : 'student';
   const { error } = await supabase.from('anonymous_feedback').insert({
@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
     body: parsed.data.body.trim(),
   });
 
-  if (error) return jsonError(error.message, 400);
-  return NextResponse.json({ ok: true });
+  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+  return mergeCookies(supabaseResponse, NextResponse.json({ ok: true }));
 }
+

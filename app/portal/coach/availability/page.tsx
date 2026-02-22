@@ -1,6 +1,7 @@
 import SectionCard from '@/app/portal/_components/SectionCard';
 import CoachAvailabilityManager from '@/app/portal/_components/CoachAvailabilityManager';
 import { requireRole } from '@/lib/portal/auth';
+import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function CoachAvailabilityPage() {
@@ -15,7 +16,7 @@ export default async function CoachAvailabilityPage() {
     .gte('available_date', today)
     .order('available_date', { ascending: true })
     .order('start_time', { ascending: true });
-  const slots = (slotsData ?? []) as any[];
+  const slots = (slotsData ?? []) as Database['public']['Tables']['coach_availability']['Row'][];
 
   return (
     <SectionCard

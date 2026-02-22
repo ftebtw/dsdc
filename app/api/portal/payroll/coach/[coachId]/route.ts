@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 import { fetchPayrollDataset, parsePayrollDateRange } from '@/lib/portal/payroll';
 
 function jsonError(message: string, status = 400) {
@@ -26,8 +26,8 @@ export async function GET(
     return jsonError(error instanceof Error ? error.message : 'Invalid date range.');
   }
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
   try {
     const dataset = await fetchPayrollDataset(supabase, {
@@ -36,12 +36,12 @@ export async function GET(
       coachId,
     });
     const summary = dataset.summary[0] ?? null;
-    return NextResponse.json({
+    return mergeCookies(supabaseResponse, NextResponse.json({
       range,
       summary,
       sessions: dataset.sessions,
-    });
+    }));
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : 'Unable to load coach payroll detail.', 500);
+    return mergeCookies(supabaseResponse, jsonError(error instanceof Error ? error.message : 'Unable to load coach payroll detail.', 500));
   }
 }

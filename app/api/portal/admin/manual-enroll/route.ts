@@ -5,6 +5,7 @@ import { sendPortalEmails } from '@/lib/email/send';
 import { manualEnrollmentNotice } from '@/lib/email/templates';
 import { shouldSendNotification } from '@/lib/portal/notifications';
 import { portalPathUrl, profilePreferenceUrl } from '@/lib/portal/phase-c';
+import { isValidTimezone } from '@/lib/portal/timezone';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/lib/supabase/database.types';
 
@@ -46,6 +47,10 @@ export async function POST(request: NextRequest) {
   let createdStudent = false;
 
   if (!studentId && body.newStudent) {
+    if (!isValidTimezone(body.newStudent.timezone)) {
+      return jsonError('Invalid timezone.');
+    }
+
     const defaultPassword = process.env.PORTAL_DEFAULT_STUDENT_PASSWORD || 'ChangeMe123!Temp';
     const meta = {
       role: 'student',

@@ -2,7 +2,13 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import AttendanceSummary, { attendanceStatusClass } from '@/app/portal/_components/AttendanceSummary';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
+import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+type TermRow = Database['public']['Tables']['terms']['Row'];
+type EnrollmentClassRow = Pick<Database['public']['Tables']['enrollments']['Row'], 'class_id' | 'status'>;
+type StudentClassRow = Pick<Database['public']['Tables']['classes']['Row'], 'id' | 'name' | 'term_id'>;
+type AttendanceRow = Database['public']['Tables']['attendance_records']['Row'];
 
 export default async function StudentAttendancePage({
   searchParams,
@@ -17,35 +23,35 @@ export default async function StudentAttendancePage({
     supabase.from('terms').select('*').order('start_date', { ascending: false }),
     getActiveTerm(supabase),
   ]);
-  const terms = (termsData ?? []) as any[];
+  const terms = (termsData ?? []) as TermRow[];
   const selectedTermId = params.term || activeTerm?.id || terms[0]?.id || '';
 
   const studentEnrollmentRows = ((await supabase
     .from('enrollments')
     .select('class_id,status')
     .eq('student_id', session.userId)
-    .eq('status', 'active')).data ?? []) as any[];
-  const studentClassIds = studentEnrollmentRows.map((row: any) => row.class_id);
+    .eq('status', 'active')).data ?? []) as EnrollmentClassRow[];
+  const studentClassIds = studentEnrollmentRows.map((row) => row.class_id);
 
   const classes = studentClassIds.length
     ? (((await supabase
         .from('classes')
         .select('id,name,term_id')
         .in('id', studentClassIds)
-        .eq('term_id', selectedTermId)).data ?? []) as any[])
-    : ([] as any[]);
+        .eq('term_id', selectedTermId)).data ?? []) as StudentClassRow[])
+    : ([] as StudentClassRow[]);
 
-  const classIds = classes.map((classRow: any) => classRow.id);
+  const classIds = classes.map((classRow) => classRow.id);
   const attendanceRows = classIds.length
     ? (((await supabase
         .from('attendance_records')
         .select('*')
         .eq('student_id', session.userId)
         .in('class_id', classIds)
-        .order('session_date', { ascending: false })).data ?? []) as any[])
-    : ([] as any[]);
+        .order('session_date', { ascending: false })).data ?? []) as AttendanceRow[])
+    : ([] as AttendanceRow[]);
 
-  const classMap = Object.fromEntries(classes.map((classRow: any) => [classRow.id, classRow]));
+  const classMap = Object.fromEntries(classes.map((classRow) => [classRow.id, classRow]));
 
   return (
     <div className="space-y-6">
@@ -57,7 +63,7 @@ export default async function StudentAttendancePage({
             defaultValue={selectedTermId}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
           >
-            {terms.map((term: any) => (
+            {terms.map((term) => (
               <option key={term.id} value={term.id}>
                 {term.name} {term.is_active ? '(Active)' : ''}
               </option>
@@ -81,7 +87,7 @@ export default async function StudentAttendancePage({
               </tr>
             </thead>
             <tbody>
-              {attendanceRows.map((row: any) => (
+              {attendanceRows.map((row) => (
                 <tr key={row.id} className="border-t border-warm-200 dark:border-navy-700">
                   <td className="px-4 py-3">{row.session_date}</td>
                   <td className="px-4 py-3">{classMap[row.class_id]?.name || row.class_id}</td>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
+import { isValidTimezone } from '@/lib/portal/timezone';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/lib/supabase/database.types';
 
@@ -29,6 +30,10 @@ export async function POST(request: NextRequest) {
     body = bodySchema.parse(await request.json());
   } catch {
     return jsonError('Invalid request body.');
+  }
+
+  if (!isValidTimezone(body.timezone)) {
+    return jsonError('Invalid timezone.');
   }
 
   if ((body.role === 'coach' || body.role === 'ta') && !body.tier) {

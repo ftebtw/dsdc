@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 const updateSchema = z.object({
   availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -34,17 +34,17 @@ export async function PUT(
     return jsonError('End time must be later than start time.');
   }
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const { data: slot, error: fetchError } = await supabase
     .from('coach_availability')
     .select('*')
     .eq('id', id)
     .maybeSingle();
-  if (fetchError) return jsonError(fetchError.message, 400);
-  if (!slot) return jsonError('Availability slot not found.', 404);
+  if (fetchError) return mergeCookies(supabaseResponse, jsonError(fetchError.message, 400));
+  if (!slot) return mergeCookies(supabaseResponse, jsonError('Availability slot not found.', 404));
   if (session.profile.role !== 'admin' && slot.coach_id !== session.userId) {
-    return jsonError('Not allowed to update this slot.', 403);
+    return mergeCookies(supabaseResponse, jsonError('Not allowed to update this slot.', 403));
   }
 
   const { data, error } = await supabase
@@ -61,8 +61,8 @@ export async function PUT(
     .select('*')
     .single();
 
-  if (error) return jsonError(error.message, 400);
-  return NextResponse.json({ slot: data });
+  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+  return mergeCookies(supabaseResponse, NextResponse.json({ slot: data }));
 }
 
 export async function DELETE(
@@ -73,18 +73,18 @@ export async function DELETE(
   if (!session) return jsonError('Unauthorized', 401);
   const { id } = await params;
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
   const { data: slot, error: fetchError } = await supabase
     .from('coach_availability')
     .select('*')
     .eq('id', id)
     .maybeSingle();
-  if (fetchError) return jsonError(fetchError.message, 400);
-  if (!slot) return jsonError('Availability slot not found.', 404);
+  if (fetchError) return mergeCookies(supabaseResponse, jsonError(fetchError.message, 400));
+  if (!slot) return mergeCookies(supabaseResponse, jsonError('Availability slot not found.', 404));
   if (session.profile.role !== 'admin' && slot.coach_id !== session.userId) {
-    return jsonError('Not allowed to delete this slot.', 403);
+    return mergeCookies(supabaseResponse, jsonError('Not allowed to delete this slot.', 403));
   }
 
   const { data: confirmedSession, error: confirmedError } = await supabase
@@ -94,12 +94,12 @@ export async function DELETE(
     .eq('status', 'confirmed')
     .limit(1)
     .maybeSingle();
-  if (confirmedError) return jsonError(confirmedError.message, 400);
+  if (confirmedError) return mergeCookies(supabaseResponse, jsonError(confirmedError.message, 400));
   if (confirmedSession) {
-    return jsonError('Cannot delete availability with a confirmed private session.', 409);
+    return mergeCookies(supabaseResponse, jsonError('Cannot delete availability with a confirmed private session.', 409));
   }
 
   const { error } = await supabase.from('coach_availability').delete().eq('id', id);
-  if (error) return jsonError(error.message, 400);
-  return NextResponse.json({ ok: true });
+  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+  return mergeCookies(supabaseResponse, NextResponse.json({ ok: true }));
 }

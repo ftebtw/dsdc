@@ -46,9 +46,9 @@ export default async function AdminSubsPage({
     taQuery,
     supabase.from('classes').select('*'),
   ]);
-  const subRequests = (subRaw.data ?? []) as any[];
-  const taRequests = (taRaw.data ?? []) as any[];
-  const classes = (classesRaw.data ?? []) as any[];
+  const subRequests = (subRaw.data ?? []) as Array<Record<string, any>>;
+  const taRequests = (taRaw.data ?? []) as Array<Record<string, any>>;
+  const classes = (classesRaw.data ?? []) as Array<Record<string, any>>;
   const classMap = Object.fromEntries(classes.map((classRow: any) => [classRow.id, classRow]));
 
   const ids = [

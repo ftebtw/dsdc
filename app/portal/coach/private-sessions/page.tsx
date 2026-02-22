@@ -15,7 +15,7 @@ export default async function CoachPrivateSessionsPage() {
     .eq('coach_id', session.userId)
     .order('requested_date', { ascending: true })
     .order('requested_start_time', { ascending: true });
-  const sessions = (sessionsData ?? []) as any[];
+  const sessions = (sessionsData ?? []) as Array<Record<string, any>>;
 
   const studentMap = await getProfileMap(
     supabase,

@@ -48,9 +48,9 @@ export default async function AdminCoachesPage() {
     supabase.from('coach_checkins').select('*').order('checked_in_at', { ascending: false }).limit(200),
   ]);
 
-  const coachProfiles = (coachProfilesData ?? []) as any[];
-  const classes = (classesData ?? []) as any[];
-  const checkins = (checkinsData ?? []) as any[];
+  const coachProfiles = (coachProfilesData ?? []) as Array<Record<string, any>>;
+  const classes = (classesData ?? []) as Array<Record<string, any>>;
+  const checkins = (checkinsData ?? []) as Array<Record<string, any>>;
 
   const coachIds = coachProfiles.map((row: any) => row.coach_id);
   const profileMap = await getProfileMap(supabase, coachIds);

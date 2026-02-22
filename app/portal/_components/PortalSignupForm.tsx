@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Database } from '@/lib/supabase/database.types';
+import TimezoneSelect from '@/app/portal/_components/TimezoneSelect';
 
 type AppRole = Database['public']['Enums']['app_role'];
 type CoachTier = Database['public']['Enums']['coach_tier'];
@@ -80,7 +81,11 @@ export default function PortalSignupForm() {
           <option value="zh">Chinese</option>
         </select>
         <input placeholder="Phone" value={state.phone} onChange={(e) => setState({ ...state, phone: e.target.value })} className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2" />
-        <input placeholder="Timezone" value={state.timezone} onChange={(e) => setState({ ...state, timezone: e.target.value })} className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2" />
+        <TimezoneSelect
+          value={state.timezone}
+          onChange={(timezone) => setState({ ...state, timezone })}
+          className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+        />
       </div>
 
       {isCoachLike ? (

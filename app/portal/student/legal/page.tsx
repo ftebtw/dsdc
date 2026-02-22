@@ -13,15 +13,15 @@ export default async function StudentLegalPage() {
     .select('*')
     .in('required_for', ['all_students', 'trip', 'event'])
     .order('created_at', { ascending: false });
-  const documents = (documentsData ?? []) as any[];
+  const documents = (documentsData ?? []) as Array<Record<string, any>>;
 
   const documentIds = documents.map((document: any) => document.id);
   const signatures = documentIds.length
     ? (((await supabase
         .from('legal_signatures')
         .select('*')
-        .in('document_id', documentIds)).data ?? []) as any[])
-    : ([] as any[]);
+        .in('document_id', documentIds)).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
 
   const signatureByDocument = new Map<string, any>();
   for (const signature of signatures) {

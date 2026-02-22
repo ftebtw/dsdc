@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
-import { getSupabaseRouteClient } from '@/lib/supabase/route';
+import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 import { canReviewReportCard } from '@/lib/portal/report-cards';
 import { sendPortalEmails } from '@/lib/email/send';
 import { reportCardRejected } from '@/lib/email/templates';
@@ -26,18 +26,18 @@ export async function POST(
   const parsed = bodySchema.safeParse(await request.json());
   if (!parsed.success) return jsonError('Reviewer notes are required.');
 
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
+  const supabaseResponse = NextResponse.next();
+  const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
   const { data: row, error: rowError } = await supabase
     .from('report_cards')
     .select('id,status,student_id,class_id,written_by')
     .eq('id', id)
     .maybeSingle();
-  if (rowError) return jsonError(rowError.message, 400);
-  if (!row) return jsonError('Report card not found.', 404);
+  if (rowError) return mergeCookies(supabaseResponse, jsonError(rowError.message, 400));
+  if (!row) return mergeCookies(supabaseResponse, jsonError('Report card not found.', 404));
   if (!canReviewReportCard(row.status)) {
-    return jsonError('Only submitted report cards can be rejected.', 409);
+    return mergeCookies(supabaseResponse, jsonError('Only submitted report cards can be rejected.', 409));
   }
 
   const { data: updated, error: updateError } = await supabase
@@ -51,7 +51,7 @@ export async function POST(
     .eq('id', id)
     .select('*')
     .single();
-  if (updateError) return jsonError(updateError.message, 400);
+  if (updateError) return mergeCookies(supabaseResponse, jsonError(updateError.message, 400));
 
   const [{ data: coach }, { data: student }, { data: classRow }] = await Promise.all([
     supabase
@@ -82,5 +82,5 @@ export async function POST(
     ]);
   }
 
-  return NextResponse.json({ reportCard: updated });
+  return mergeCookies(supabaseResponse, NextResponse.json({ reportCard: updated }));
 }
