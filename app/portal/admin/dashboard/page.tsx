@@ -83,6 +83,7 @@ export default async function AdminDashboardPage() {
     openSubRequestsCountResponse,
     openTaRequestsCountResponse,
     pendingPrivateSessionsCountResponse,
+    pendingEtransfersCountResponse,
     { data: checkinRowsData },
     { data: attendanceRowsData },
     { data: todayCheckinsData },
@@ -96,6 +97,7 @@ export default async function AdminDashboardPage() {
     supabase.from('sub_requests').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     supabase.from('ta_requests').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     supabase.from('private_sessions').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('enrollments').select('id', { count: 'exact', head: true }).in('status', ['pending_etransfer', 'etransfer_sent']),
     supabase
       .from('coach_checkins')
       .select('id,coach_id,class_id,checked_in_at,session_date')
@@ -154,6 +156,7 @@ export default async function AdminDashboardPage() {
   const openSubRequestsCount = openSubRequestsCountResponse.count ?? 0;
   const openTaRequestsCount = openTaRequestsCountResponse.count ?? 0;
   const pendingPrivateSessionsCount = pendingPrivateSessionsCountResponse.count ?? 0;
+  const pendingEtransfersCount = pendingEtransfersCountResponse.count ?? 0;
   const studentCount = studentCountResponse.count ?? 0;
   const coachCount = coachCountResponse.count ?? 0;
   const activeStudentsCount = new Set(activeEnrollments.map((row) => row.student_id)).size;
@@ -228,6 +231,13 @@ export default async function AdminDashboardPage() {
           <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
             <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending private sessions</p>
             <p className="text-2xl font-bold text-navy-800 dark:text-white">{pendingPrivateSessionsCount}</p>
+          </div>
+          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
+            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending E-Transfers</p>
+            <p className="text-2xl font-bold text-navy-800 dark:text-white">{pendingEtransfersCount}</p>
+            <Link href="/portal/admin/etransfers" className="text-xs underline text-navy-700 dark:text-navy-200">
+              Open queue
+            </Link>
           </div>
           <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
             <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending report cards</p>

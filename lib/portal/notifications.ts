@@ -1,3 +1,5 @@
+import 'server-only';
+
 export type NotificationPreferences = Record<string, unknown> | null | undefined;
 
 export type ClassReminderPreference = 'both' | '1day' | '1hour' | 'none';
@@ -49,4 +51,30 @@ export function normalizeClassReminderValue(
   if (value === '1day' || value === 'day_before') return '1day';
   if (value === '1hour' || value === 'hour_before') return '1hour';
   return null;
+}
+
+export async function shouldSendAndRecord(
+  supabaseAdmin: any,
+  recipientId: string,
+  notificationType: string,
+  referenceId: string
+): Promise<boolean> {
+  const { error } = await supabaseAdmin.from('notification_log').insert({
+    recipient_id: recipientId,
+    notification_type: notificationType,
+    reference_id: referenceId,
+  });
+
+  if (error) {
+    if (error.code === '23505') return false;
+    console.error('[notification_log] insert error', {
+      recipientId,
+      notificationType,
+      referenceId,
+      error: error.message,
+    });
+    return false;
+  }
+
+  return true;
 }

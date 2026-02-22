@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import RegisterClassesClient from "./RegisterClassesClient";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -62,9 +62,9 @@ export default async function RegisterClassesPage({
   const copy =
     lang === "zh"
       ? {
-          title: "选择课程",
-          noLinked: "当前家长账号尚未关联学生，请联系 DSDC 支持。",
-          noActiveTerm: "当前没有可报名的学期。",
+          title: "\u9009\u62e9\u8bfe\u7a0b",
+          noLinked: "\u5f53\u524d\u5bb6\u957f\u8d26\u53f7\u5c1a\u672a\u5173\u8054\u5b66\u751f\uff0c\u8bf7\u8054\u7cfb DSDC \u652f\u6301\u3002",
+          noActiveTerm: "\u5f53\u524d\u6ca1\u6709\u53ef\u62a5\u540d\u7684\u5b66\u671f\u3002",
         }
       : {
           title: "Class selection",
@@ -163,7 +163,11 @@ export default async function RegisterClassesPage({
 
   const [{ data: enrollmentsData }, { data: studentEnrollmentsData }] = await Promise.all([
     classIds.length
-      ? supabase.from("enrollments").select("class_id,status").in("class_id", classIds).eq("status", "active")
+      ? supabase
+          .from("enrollments")
+          .select("class_id,status")
+          .in("class_id", classIds)
+          .in("status", ["active", "pending_etransfer", "etransfer_sent"])
       : Promise.resolve({ data: [] as any[] }),
     classIds.length
       ? supabase
@@ -171,7 +175,7 @@ export default async function RegisterClassesPage({
           .select("class_id,status")
           .in("class_id", classIds)
           .eq("student_id", studentId)
-          .eq("status", "active")
+          .in("status", ["active", "pending_etransfer", "etransfer_sent"])
       : Promise.resolve({ data: [] as any[] }),
   ]);
 
@@ -231,3 +235,4 @@ export default async function RegisterClassesPage({
     </section>
   );
 }
+

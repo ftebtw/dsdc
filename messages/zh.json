@@ -489,7 +489,28 @@
     "checkoutError": "无法启动支付。",
     "paymentCadOnly": "所有付款均以加元（CAD）结算。",
     "successTitle": "报名成功！",
-    "successSubtitle": "支付已完成，课程详情已发送到邮箱。"
+    "successSubtitle": "支付已完成，课程详情已发送到邮箱。",
+    "payByCard": "银行卡支付",
+    "payByEtransfer": "电子转账支付",
+    "etransferNote": "您的名额将保留24小时，请在此期间完成电子转账。",
+    "reserveSpot": "预留我的名额",
+    "etransferError": "无法完成预留，请稍后重试。",
+    "etransferPending": {
+      "title": "名额已预留！",
+      "instructions": "请将Interac电子转账发送至：",
+      "amount": "总金额",
+      "messageNote": "请在转账留言中注明您的全名及'DSDC Enrollment'。",
+      "timeRemaining": "剩余时间",
+      "markSent": "我已发送电子转账",
+      "markingSent": "提交中...",
+      "expiryNote": "如果24小时内未确认，您的名额预留将过期。",
+      "sentTitle": "我们已收到您的转账通知！",
+      "sentBody": "您的报名正在等待管理员确认，转账核实后您将收到确认邮件。",
+      "moreInfo": "如需更多信息（如无法找到转账记录），我们将通过邮件或电话联系您。",
+      "sentAt": "已标记发送时间",
+      "expired": "您的预留已过期。",
+      "registerAgain": "重新注册"
+    }
   },
   "portal": {
     "parent": {

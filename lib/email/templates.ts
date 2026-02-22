@@ -561,3 +561,205 @@ export function reportCardNudgeTemplate(input: {
   });
   return { subject, html, text };
 }
+
+type EtransferClassItem = { name: string; type?: string };
+
+function formatEtransferClassLines(classes: EtransferClassItem[]): string[] {
+  return classes.map((classRow) =>
+    classRow.type ? `- ${classRow.name} (${classRow.type})` : `- ${classRow.name}`
+  );
+}
+
+export function etransferInstructions(input: {
+  studentName: string;
+  classes: EtransferClassItem[];
+  totalAmountCad: number;
+  etransferEmail: string;
+  pendingPageUrl: string;
+  expiresAt: string;
+  locale?: 'en' | 'zh';
+  isParentVersion?: boolean;
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh
+    ? 'DSDC报名电子转账说明'
+    : 'E-Transfer Instructions for Your DSDC Enrollment';
+
+  const intro = isZh
+    ? input.isParentVersion
+      ? `您好，您已为 ${input.studentName} 预留以下课程名额：`
+      : `您好 ${input.studentName}，您已预留以下课程名额：`
+    : input.isParentVersion
+      ? `You've reserved a spot for ${input.studentName} in the following classes:`
+      : `Hi ${input.studentName}, your spot has been reserved for the following classes:`;
+
+  const bodyLines = [
+    intro,
+    ...formatEtransferClassLines(input.classes),
+    isZh
+      ? `请向 ${input.etransferEmail} 发送 Interac 电子转账，金额为 CAD $${input.totalAmountCad.toFixed(2)}。`
+      : `Please send an Interac e-transfer for CAD $${input.totalAmountCad.toFixed(2)} to ${input.etransferEmail}.`,
+    isZh
+      ? "请在转账留言中注明您的全名和 'DSDC Enrollment'。"
+      : "Include your full name and 'DSDC Enrollment' in the transfer message.",
+    isZh ? '完成后请点击下方按钮确认。' : 'After sending, please confirm using the button below.',
+    isZh
+      ? `名额将于 ${input.expiresAt} 过期。`
+      : `Your reservation will expire in 24 hours (${input.expiresAt}).`,
+    isZh ? '如有问题请联系 education.dsdc@gmail.com。' : 'Questions? Contact education.dsdc@gmail.com.',
+  ];
+
+  const { html, text } = renderTemplate({
+    title: isZh ? '电子转账报名说明' : 'E-Transfer Enrollment Instructions',
+    bodyLines,
+    buttonLabel: isZh ? '我已发送电子转账' : 'I Have Sent the E-Transfer',
+    buttonUrl: input.pendingPageUrl,
+  });
+
+  return { subject, html, text };
+}
+
+export function etransferReminder(input: {
+  studentName: string;
+  pendingPageUrl: string;
+  locale?: 'en' | 'zh';
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh
+    ? '提醒：您的DSDC报名尚未完成'
+    : "Reminder: Your DSDC enrollment isn't finalized yet";
+
+  const { html, text } = renderTemplate({
+    title: isZh ? '报名提醒' : 'Enrollment Reminder',
+    bodyLines: [
+      isZh
+        ? `您好 ${input.studentName}，我们注意到您尚未确认电子转账。`
+        : `Hi ${input.studentName}, we noticed you haven't confirmed your e-transfer yet.`,
+      isZh
+        ? '您的课程预留即将到期。如果您已发送转账，请点击下方确认。'
+        : "Your class reservation will expire soon. If you've already sent the e-transfer, please confirm below.",
+      isZh ? '如需帮助，请联系 education.dsdc@gmail.com。' : 'If you need help, contact education.dsdc@gmail.com.',
+    ],
+    buttonLabel: isZh ? '我已发送电子转账' : 'I Have Sent the E-Transfer',
+    buttonUrl: input.pendingPageUrl,
+  });
+
+  return { subject, html, text };
+}
+
+export function etransferSentConfirmation(input: {
+  studentName: string;
+  classes: EtransferClassItem[];
+  locale?: 'en' | 'zh';
+  isParentVersion?: boolean;
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh
+    ? '我们已收到您的转账通知——报名待确认'
+    : "We've noted your e-transfer - enrollment pending";
+
+  const bodyLines = [
+    isZh
+      ? input.isParentVersion
+        ? `您好，感谢您确认 ${input.studentName} 的电子转账：`
+        : `您好 ${input.studentName}，感谢您确认电子转账：`
+      : input.isParentVersion
+        ? `Thank you for confirming ${input.studentName}'s e-transfer for:`
+        : `Hi ${input.studentName}, thank you for confirming your e-transfer for:`,
+    ...formatEtransferClassLines(input.classes),
+    isZh
+      ? '报名正在等待管理员核实转账。核实后您将收到确认邮件。'
+      : "Enrollment is now pending admin verification. You'll receive a confirmation email once the transfer is verified.",
+    isZh
+      ? '如需更多信息（如我们无法找到转账记录），我们会通过邮件或电话联系您。'
+      : "If we need more information (e.g. we can't locate the e-transfer), we'll contact you by email or phone.",
+    isZh ? '如有问题请联系 education.dsdc@gmail.com。' : 'Questions? Contact education.dsdc@gmail.com.',
+  ];
+
+  const { html, text } = renderTemplate({
+    title: isZh ? '转账通知已收到' : 'E-Transfer Noted',
+    bodyLines,
+  });
+  return { subject, html, text };
+}
+
+export function etransferLapsed(input: {
+  studentName: string;
+  classes: EtransferClassItem[];
+  registerUrl: string;
+  locale?: 'en' | 'zh';
+  isParentVersion?: boolean;
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh
+    ? '您的DSDC报名预留已过期'
+    : 'Your DSDC enrollment reservation has expired';
+
+  const bodyLines = [
+    isZh
+      ? input.isParentVersion
+        ? `您好，${input.studentName} 以下课程的预留已过期：`
+        : `您好 ${input.studentName}，以下课程的预留已过期：`
+      : input.isParentVersion
+        ? `${input.studentName}'s reservation for the following classes has expired:`
+        : `Hi ${input.studentName}, your reservation for the following classes has expired:`,
+    ...formatEtransferClassLines(input.classes),
+    isZh
+      ? '如仍需报名，请重新提交注册申请。'
+      : 'If you still want to enroll, please submit a new registration request.',
+    isZh ? '如有问题请联系 education.dsdc@gmail.com。' : 'Questions? Contact education.dsdc@gmail.com.',
+  ];
+
+  const { html, text } = renderTemplate({
+    title: isZh ? '预留已过期' : 'Reservation Expired',
+    bodyLines,
+    buttonLabel: isZh ? '重新注册' : 'Register Again',
+    buttonUrl: input.registerUrl,
+  });
+  return { subject, html, text };
+}
+
+export function etransferCancelled(input: {
+  studentName: string;
+  classes: EtransferClassItem[];
+  reason?: string;
+  contactEmail: string;
+  registerUrl: string;
+  locale?: 'en' | 'zh';
+  isParentVersion?: boolean;
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh
+    ? '您的DSDC报名申请已取消'
+    : 'Your DSDC enrollment request has been cancelled';
+
+  const bodyLines = [
+    isZh
+      ? input.isParentVersion
+        ? `您好，${input.studentName} 以下课程的报名申请已取消：`
+        : `您好 ${input.studentName}，您以下课程的报名申请已取消：`
+      : input.isParentVersion
+        ? `${input.studentName}'s enrollment request for the following classes has been cancelled:`
+        : `Hi ${input.studentName}, your enrollment request for the following classes has been cancelled:`,
+    ...formatEtransferClassLines(input.classes),
+  ];
+
+  if (input.reason?.trim()) {
+    bodyLines.push(isZh ? `取消原因：${input.reason}` : `Reason: ${input.reason}`);
+  }
+
+  bodyLines.push(
+    isZh
+      ? `如您认为有误，请联系 ${input.contactEmail}。`
+      : `If you believe this is an error, please contact ${input.contactEmail}.`,
+    isZh ? '您可随时重新提交报名申请。' : 'You can submit a new enrollment request at any time.'
+  );
+
+  const { html, text } = renderTemplate({
+    title: isZh ? '报名已取消' : 'Enrollment Cancelled',
+    bodyLines,
+    buttonLabel: isZh ? '重新注册' : 'Register Again',
+    buttonUrl: input.registerUrl,
+  });
+  return { subject, html, text };
+}

@@ -181,13 +181,17 @@ async function handleRegistrationCheckout(
   }
 
   const [{ data: enrollmentRows }, { data: existingStudentRows }] = await Promise.all([
-    supabase.from("enrollments").select("class_id,status").in("class_id", parsed.classIds).eq("status", "active"),
+    supabase
+      .from("enrollments")
+      .select("class_id,status")
+      .in("class_id", parsed.classIds)
+      .in("status", ["active", "pending_etransfer", "etransfer_sent"]),
     supabase
       .from("enrollments")
       .select("class_id,status")
       .in("class_id", parsed.classIds)
       .eq("student_id", parsed.studentId)
-      .eq("status", "active"),
+      .in("status", ["active", "pending_etransfer", "etransfer_sent"]),
   ]);
 
   if ((existingStudentRows ?? []).length > 0) {
