@@ -18,19 +18,23 @@ const classImages = [
 const typicalIcons = [Users, Clock, BookOpen, Swords, MessageSquare, ClipboardList];
 
 export default function ClassesPage() {
-  const { t, locale } = useI18n();
-
-  const en = require("@/messages/en.json");
-  const zh = require("@/messages/zh.json");
-  const msgs = locale === "zh" ? zh : en;
-  const classes = msgs.classesPage.classes as Array<{
+  const { t, messages } = useI18n();
+  const classes = ((messages.classesPage as { classes?: Array<{
+    name: string;
+    grades: string;
+    schedule?: string;
+    category: string;
+    description: string;
+  }> } | undefined)?.classes ?? []) as Array<{
     name: string;
     grades: string;
     schedule?: string;
     category: string;
     description: string;
   }>;
-  const typicalItems = msgs.classesPage.typicalClassItems as Array<{ title: string; description: string }>;
+  const typicalItems = ((messages.classesPage as {
+    typicalClassItems?: Array<{ title: string; description: string }>;
+  } | undefined)?.typicalClassItems ?? []) as Array<{ title: string; description: string }>;
 
   const debateClasses = classes.filter((c) => c.category === "debate");
   const otherClasses = classes.filter((c) => c.category === "other");
@@ -121,14 +125,15 @@ export default function ClassesPage() {
 
           <div className="space-y-12">
             {debateClasses.map((cls, i) => {
-              const Icon = classIcons[i];
+              const Icon = classIcons[i % classIcons.length];
+              const image = classImages[i % classImages.length];
               const isEven = i % 2 === 0;
               return (
                 <AnimatedSection key={cls.name} delay={i * 0.1}>
                   <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-8 items-center`}>
                     <div className="w-full lg:w-1/2">
                       <div className="rounded-2xl overflow-hidden aspect-[16/10] shadow-lg">
-                        <img src={classImages[i]} alt={`${cls.name} class`} className="w-full h-full object-cover" />
+                        <img src={image} alt={`${cls.name} class`} className="w-full h-full object-cover" />
                       </div>
                     </div>
                     <div className="w-full lg:w-1/2">
@@ -178,12 +183,13 @@ export default function ClassesPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {otherClasses.map((cls, i) => {
-              const Icon = classIcons[i + 4];
+              const Icon = classIcons[(i + 4) % classIcons.length];
+              const image = classImages[(i + 4) % classImages.length];
               return (
                 <AnimatedSection key={cls.name} delay={i * 0.15}>
                   <div className="bg-warm-50 dark:bg-navy-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                     <div className="aspect-[16/9] overflow-hidden">
-                      <img src={classImages[i + 4]} alt={`${cls.name} class`} className="w-full h-full object-cover" />
+                      <img src={image} alt={`${cls.name} class`} className="w-full h-full object-cover" />
                     </div>
                     <div className="p-5 sm:p-8">
                       <div className="flex flex-wrap items-center gap-2 mb-3">

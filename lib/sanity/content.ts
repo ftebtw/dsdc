@@ -5,6 +5,7 @@ import {
   siteSettingsQuery,
   homePageQuery,
   pricingPageQuery,
+  additionalPageQuery,
   teamPageQuery,
 } from "./queries";
 
@@ -15,6 +16,7 @@ interface SanityCmsResponse {
   siteSettings?: Record<string, unknown>;
   homePage?: Record<string, unknown>;
   pricingPage?: Record<string, unknown>;
+  additionalPage?: Record<string, unknown>;
   teamPage?: Record<string, unknown>;
 }
 
@@ -75,7 +77,7 @@ function deepMerge(base: MessageObject, override: MessageObject): MessageObject 
 }
 
 function buildLocaleOverrides(payload: SanityCmsResponse, locale: Locale): MessageObject {
-  const parts = [payload.siteSettings, payload.homePage, payload.pricingPage, payload.teamPage]
+  const parts = [payload.siteSettings, payload.homePage, payload.pricingPage, payload.additionalPage, payload.teamPage]
     .filter((part): part is Record<string, unknown> => Boolean(part))
     .map((part) => resolveLocale(part, locale))
     .filter((part): part is MessageObject => isObject(part));
@@ -96,13 +98,14 @@ async function fetchSanityCmsContent(opts?: { draft?: boolean }): Promise<Sanity
     };
 
     if (opts?.draft) {
-      const [siteSettings, homePage, pricingPage, teamPage] = await Promise.all([
+      const [siteSettings, homePage, pricingPage, additionalPage, teamPage] = await Promise.all([
         client.fetch<SanityCmsResponse["siteSettings"]>(siteSettingsQuery, {}, fetchOpts),
         client.fetch<SanityCmsResponse["homePage"]>(homePageQuery, {}, fetchOpts),
         client.fetch<SanityCmsResponse["pricingPage"]>(pricingPageQuery, {}, fetchOpts),
+        client.fetch<SanityCmsResponse["additionalPage"]>(additionalPageQuery, {}, fetchOpts),
         client.fetch<SanityCmsResponse["teamPage"]>(teamPageQuery, {}, fetchOpts),
       ]);
-      return { siteSettings, homePage, pricingPage, teamPage };
+      return { siteSettings, homePage, pricingPage, additionalPage, teamPage };
     }
 
     const data = await client.fetch<SanityCmsResponse>(cmsContentQuery, {}, fetchOpts);

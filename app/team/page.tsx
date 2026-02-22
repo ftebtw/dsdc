@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -8,13 +8,6 @@ import { coachAwards } from "@/lib/coachAwards";
 import { coachImages } from "@/lib/coachImages";
 import AnimatedSection from "@/components/AnimatedSection";
 import { teamPageDataSanity } from "@/lib/sanity/presentation";
-
-const founderKeyAchievements = [
-  "Grand Finalist — Canadian National Championships",
-  "Quarterfinalist — US National Championships",
-  "Top Speaker — UBC High School Debate",
-  "Scholarship Recipient — University of Sydney",
-];
 
 export default function TeamPage() {
   const { t, messages } = useI18n();
@@ -32,6 +25,14 @@ export default function TeamPage() {
     image?: string;
     imageUrl?: string;
   }>;
+
+  const teamPageMessages =
+    ((messages.teamPage as { founderName?: string; founderKeyAchievements?: string[] } | undefined) ?? {
+      founderName: "Rebecca Amisano",
+      founderKeyAchievements: [],
+    });
+  const founderName = teamPageMessages.founderName || "Rebecca Amisano";
+  const founderKeyAchievements = teamPageMessages.founderKeyAchievements || [];
 
   useEffect(() => {
     setShowSanityAttr(document.cookie.includes("__prerender_bypass"));
@@ -85,11 +86,11 @@ export default function TeamPage() {
           </AnimatedSection>
           <AnimatedSection delay={0.1}>
             <CoachCard
-              name="Rebecca Amisano"
+              name={founderName}
               title={t("teamPage.founderTitle")}
               bio={t("teamPage.founderBio")}
-              awards={coachAwards["Rebecca Amisano"] || []}
-              image={coachImages["Rebecca Amisano"]}
+              awards={coachAwards[founderName] || coachAwards["Rebecca Amisano"] || []}
+              image={coachImages[founderName] || coachImages["Rebecca Amisano"]}
               keyAchievements={founderKeyAchievements}
               index={0}
               featured

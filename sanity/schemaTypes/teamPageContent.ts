@@ -1,5 +1,5 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
-import { localizedStringField, localizedTextField } from "./helpers";
+import { localizedStringArrayField, localizedStringField, localizedTextField } from "./helpers";
 
 export const teamPageContent = defineType({
   name: "teamPageContent",
@@ -14,8 +14,10 @@ export const teamPageContent = defineType({
       fields: [
         localizedStringField("title", "Title"),
         localizedTextField("subtitle", "Subtitle"),
+        localizedStringField("founderName", "Founder Name"),
         localizedStringField("founderTitle", "Founder Title"),
         localizedTextField("founderBio", "Founder Bio"),
+        localizedStringArrayField("founderKeyAchievements", "Founder Key Achievements"),
         localizedStringField("viewAwards", "View Awards"),
         localizedStringField("hideAwards", "Hide Awards"),
         localizedStringField("keyAchievements", "Key Achievements Label"),

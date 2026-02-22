@@ -165,6 +165,7 @@ const wscRounds: WscRound[] = [
 ];
 
 function StudentCard({ student }: { student: StudentData }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const shown = expanded ? student.awards : student.awards.slice(0, 3);
 
@@ -199,7 +200,7 @@ function StudentCard({ student }: { student: StudentData }) {
           onClick={() => setExpanded(!expanded)}
           className="flex items-center gap-1 mt-3 text-xs font-semibold text-navy-700 dark:text-navy-200 hover:text-gold-500 dark:hover:text-gold-400 transition-colors"
         >
-          {expanded ? "Show less" : `+${student.awards.length - 3} more`}
+          {expanded ? t("awardsPage.showLess") : `+${student.awards.length - 3} ${t("awardsPage.moreSuffix")}`}
           {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
       )}

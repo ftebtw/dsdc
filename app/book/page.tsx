@@ -7,12 +7,9 @@ import ContactForm from "@/components/ContactForm";
 import AnimatedSection from "@/components/AnimatedSection";
 
 export default function BookPage() {
-  const { t, locale } = useI18n();
-
-  const en = require("@/messages/en.json");
-  const zh = require("@/messages/zh.json");
-  const msgs = locale === "zh" ? zh : en;
-  const expectItems = msgs.bookPage.expectItems as string[];
+  const { t, messages } = useI18n();
+  const expectItems = ((messages.bookPage as { expectItems?: string[] } | undefined)?.expectItems ??
+    []) as string[];
 
   return (
     <>
@@ -57,27 +54,27 @@ export default function BookPage() {
                     <div className="w-10 h-10 bg-gold-400/10 dark:bg-gold-500/20 rounded-xl flex items-center justify-center">
                       <Calendar className="w-5 h-5 text-gold-500 dark:text-gold-400" />
                     </div>
-                    <h3 className="text-xl font-bold text-navy-800 dark:text-white font-serif">Schedule Online</h3>
+                    <h3 className="text-xl font-bold text-navy-800 dark:text-white font-serif">{t("bookPage.scheduleOnline")}</h3>
                   </div>
 
                   {/* Calendly iframe placeholder */}
-                  <div className="rounded-xl border-2 border-dashed border-warm-300 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 min-h-[300px] sm:min-h-[400px] flex flex-col items-center justify-center p-4 sm:p-8 text-center">
-                    <Calendar className="w-16 h-16 text-navy-300 dark:text-navy-500 mb-4" />
-                    <p className="text-navy-600 dark:text-navy-200 font-semibold mb-2">Calendly Booking Widget</p>
-                    <p className="text-charcoal/50 dark:text-navy-300 text-sm mb-6">Replace this placeholder with your Calendly embed</p>
+                    <div className="rounded-xl border-2 border-dashed border-warm-300 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 min-h-[300px] sm:min-h-[400px] flex flex-col items-center justify-center p-4 sm:p-8 text-center">
+                      <Calendar className="w-16 h-16 text-navy-300 dark:text-navy-500 mb-4" />
+                    <p className="text-navy-600 dark:text-navy-200 font-semibold mb-2">{t("bookPage.calendlyWidgetTitle")}</p>
+                    <p className="text-charcoal/50 dark:text-navy-300 text-sm mb-6">{t("bookPage.calendlyWidgetSubtitle")}</p>
                     <code className="text-[10px] sm:text-xs bg-navy-800 dark:bg-navy-700 text-gold-400 px-3 sm:px-4 py-2 rounded-lg font-mono break-all">
-                      https://calendly.com/dsdc-placeholder
+                      {t("bookPage.calendlyPlaceholderUrl")}
                     </code>
                   </div>
 
                   <div className="flex flex-wrap gap-4 mt-6">
                     <div className="flex items-center gap-2 text-sm text-charcoal/60 dark:text-navy-300">
                       <Clock className="w-4 h-4 text-gold-500 dark:text-gold-400" />
-                      <span className="font-sans">15 minutes</span>
+                      <span className="font-sans">{t("bookPage.consultationDuration")}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-charcoal/60 dark:text-navy-300">
                       <Video className="w-4 h-4 text-gold-500 dark:text-gold-400" />
-                      <span className="font-sans">Via Zoom</span>
+                      <span className="font-sans">{t("bookPage.consultationMode")}</span>
                     </div>
                   </div>
                 </div>

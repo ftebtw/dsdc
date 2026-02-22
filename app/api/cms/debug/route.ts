@@ -5,13 +5,19 @@ import { hasSanityConfig } from "@/lib/sanity/env";
 
 export const dynamic = "force-dynamic";
 
-type SingletonKey = "homePageContent" | "pricingPageContent" | "teamPageContent" | "siteSettings";
+type SingletonKey =
+  | "homePageContent"
+  | "pricingPageContent"
+  | "teamPageContent"
+  | "siteSettings"
+  | "additionalPageContent";
 
 const singletonIds: SingletonKey[] = [
   "homePageContent",
   "pricingPageContent",
   "teamPageContent",
   "siteSettings",
+  "additionalPageContent",
 ];
 
 /** GET /api/cms/debug - quick health snapshot for non-technical troubleshooting */
@@ -28,13 +34,14 @@ export async function GET() {
     pricingPageContent: { exists: false, updatedAt: null },
     teamPageContent: { exists: false, updatedAt: null },
     siteSettings: { exists: false, updatedAt: null },
+    additionalPageContent: { exists: false, updatedAt: null },
   };
 
   if (hasSanityConfig()) {
     try {
       const client = getSanityClient({ draft: false });
       const docs = await client.fetch<Array<{ _id: string; _updatedAt: string }>>(
-        `*[_id in ["homePageContent","pricingPageContent","teamPageContent","siteSettings"]]{_id,_updatedAt}`,
+        `*[_id in ["homePageContent","pricingPageContent","teamPageContent","siteSettings","additionalPageContent"]]{_id,_updatedAt}`,
         {},
         { cache: "no-store" }
       );

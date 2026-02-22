@@ -1,15 +1,15 @@
-"use client";
+﻿"use client";
 
 import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "./AnimatedSection";
 
-const competitions = [
+const fallbackCompetitions = [
   "Canadian National Debate Championships",
   "US National Debate Championships",
   "World University Debating Championships",
   "Stanford Invitational",
   "Princeton Invitational",
-  "World Scholar's Cup — Yale",
+  "World Scholar's Cup - Yale",
   "Oxford Schools Championships",
   "Georgetown Public Forum",
   "UBC Debate Tournaments",
@@ -19,7 +19,9 @@ const competitions = [
 ];
 
 export default function CompetitionLogos() {
-  const { t } = useI18n();
+  const { t, messages } = useI18n();
+  const competitionItems =
+    ((messages.competitions as { items?: string[] } | undefined)?.items ?? fallbackCompetitions) as string[];
 
   return (
     <section className="py-16 md:py-20 bg-warm-50 dark:bg-navy-900/30 border-y border-warm-200 dark:border-navy-800">
@@ -33,7 +35,7 @@ export default function CompetitionLogos() {
 
         <AnimatedSection delay={0.1}>
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
-            {competitions.map((name, i) => (
+            {competitionItems.map((name, i) => (
               <div
                 key={i}
                 className="px-3 sm:px-4 py-2 sm:py-2.5 bg-white dark:bg-navy-800 border border-warm-200 dark:border-navy-700 rounded-full text-[11px] sm:text-xs md:text-sm

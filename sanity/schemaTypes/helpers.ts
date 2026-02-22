@@ -1,4 +1,4 @@
-import { defineField } from "sanity";
+import { defineArrayMember, defineField } from "sanity";
 
 export function localizedStringField(name: string, title: string) {
   return defineField({
@@ -21,6 +21,29 @@ export function localizedTextField(name: string, title: string) {
     fields: [
       defineField({ name: "en", title: "English", type: "text", rows: 3 }),
       defineField({ name: "zh", title: "Chinese", type: "text", rows: 3 }),
+    ],
+    validation: (rule) => rule.required(),
+  });
+}
+
+export function localizedStringArrayField(name: string, title: string) {
+  return defineField({
+    name,
+    title,
+    type: "object",
+    fields: [
+      defineField({
+        name: "en",
+        title: "English",
+        type: "array",
+        of: [defineArrayMember({ type: "string" })],
+      }),
+      defineField({
+        name: "zh",
+        title: "Chinese",
+        type: "array",
+        of: [defineArrayMember({ type: "string" })],
+      }),
     ],
     validation: (rule) => rule.required(),
   });

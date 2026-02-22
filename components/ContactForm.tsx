@@ -6,7 +6,7 @@ import { Send, CheckCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export default function ContactForm() {
-  const { t, locale } = useI18n();
+  const { t, messages } = useI18n();
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -17,11 +17,10 @@ export default function ContactForm() {
     message: "",
   });
 
-  const en = require("@/messages/en.json");
-  const zh = require("@/messages/zh.json");
-  const msgs = locale === "zh" ? zh : en;
-  const gradeOptions = msgs.bookPage.gradeOptions as string[];
-  const heardOptions = msgs.bookPage.heardOptions as string[];
+  const gradeOptions = ((messages.bookPage as { gradeOptions?: string[] } | undefined)?.gradeOptions ??
+    []) as string[];
+  const heardOptions = ((messages.bookPage as { heardOptions?: string[] } | undefined)?.heardOptions ??
+    []) as string[];
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();

@@ -21,6 +21,7 @@ const singletonTypes = new Set([
   "pricingPageContent",
   "teamPageContent",
   "siteSettings",
+  "additionalPageContent",
 ]);
 
 export const locations = {
@@ -50,6 +51,19 @@ export const locations = {
       ],
     }),
   }),
+  additionalPageContent: defineLocations({
+    select: { _type: "_type" },
+    resolve: () => ({
+      locations: [
+        { title: "Homepage", href: "/" },
+        { title: "Classes", href: "/classes" },
+        { title: "Book", href: "/book" },
+        { title: "Awards", href: "/awards" },
+        { title: "Blog", href: "/blog" },
+        { title: "Payment Success", href: "/payment/success" },
+      ],
+    }),
+  }),
 };
 
 // Resolve presentation documents to canonical singleton IDs.
@@ -57,6 +71,10 @@ export const mainDocuments = defineDocuments([
   { route: "/", filter: '_type == "homePageContent" && _id == "homePageContent"' },
   { route: "/pricing", filter: '_type == "pricingPageContent" && _id == "pricingPageContent"' },
   { route: "/team", filter: '_type == "teamPageContent" && _id == "teamPageContent"' },
+  { route: "/classes", filter: '_type == "additionalPageContent" && _id == "additionalPageContent"' },
+  { route: "/book", filter: '_type == "additionalPageContent" && _id == "additionalPageContent"' },
+  { route: "/awards", filter: '_type == "additionalPageContent" && _id == "additionalPageContent"' },
+  { route: "/blog", filter: '_type == "additionalPageContent" && _id == "additionalPageContent"' },
 ]);
 
 export default defineConfig({
@@ -109,6 +127,15 @@ export default defineConfig({
                   .schemaType("teamPageContent")
                   .documentId("teamPageContent")
                   .title("Team Page Content")
+              ),
+            S.listItem()
+              .title("Additional Pages")
+              .icon(DocumentIcon)
+              .child(
+                S.document()
+                  .schemaType("additionalPageContent")
+                  .documentId("additionalPageContent")
+                  .title("Additional Pages Content")
               ),
             S.divider(),
             S.listItem()

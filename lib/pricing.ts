@@ -11,11 +11,13 @@ export interface GroupTier {
   baseCadPrice: number;
 }
 
+export const SESSIONS_PER_TERM = 13;
+
 export const GROUP_TIERS: GroupTier[] = [
-  { key: "noviceIntermediate", baseCadPrice: 30 },
-  { key: "publicSpeaking", baseCadPrice: 30 },
-  { key: "wsc", baseCadPrice: 40 },
-  { key: "advanced", baseCadPrice: 50 },
+  { key: "noviceIntermediate", baseCadPrice: 390 },
+  { key: "publicSpeaking", baseCadPrice: 390 },
+  { key: "wsc", baseCadPrice: 520 },
+  { key: "advanced", baseCadPrice: 650 },
 ];
 
 export const SUPPORTED_CURRENCIES: SupportedCurrency[] = ["CAD", "USD", "RMB"];

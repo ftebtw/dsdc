@@ -85,7 +85,7 @@ const faqSchema = {
       name: "How much do classes cost?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "We publish our rates openly: Novice & intermediate group debate and public speaking group classes are $30/hr plus applicable taxes; World Scholars Cup group class is $40/hr plus applicable taxes; advanced debate classes are $50/hr plus applicable taxes. Group classes run for 2 hours per session. Private coaching (1-on-1, 2-on-1, or 3-on-1) prices vary by coach, is customizable in length, and has a 1-hour minimum. See our Pricing page for full details.",
+        text: "We publish our rates openly: Novice & Intermediate Debate and Public Speaking are $390 CAD per 13-week term plus applicable taxes, World Scholar's Cup is $520 CAD per term plus applicable taxes, and Advanced Debate is $650 CAD per term plus applicable taxes. Private coaching (1-on-1, 2-on-1, or 3-on-1) is priced separately based on coach and group size. See our Pricing page for full details.",
       },
     },
     {

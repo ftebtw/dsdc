@@ -82,7 +82,7 @@ export default function BlogListingContent({ initialPosts }: { initialPosts: Blo
                   {featured.excerpt}
                 </p>
                 <span className="inline-flex items-center gap-2 text-gold-500 dark:text-gold-400 font-semibold text-sm group-hover:gap-3 transition-all font-sans">
-                  Read Article <ArrowRight className="w-4 h-4" />
+                  {t("blog.readArticle")} <ArrowRight className="w-4 h-4" />
                 </span>
               </div>
             </Link>
@@ -121,7 +121,7 @@ export default function BlogListingContent({ initialPosts }: { initialPosts: Blo
                         {new Date(post.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </span>
                       <span className="inline-flex items-center gap-1 text-gold-500 dark:text-gold-400 font-semibold text-xs group-hover:gap-2 transition-all font-sans">
-                        Read <ArrowRight className="w-3 h-3" />
+                        {t("blog.read")} <ArrowRight className="w-3 h-3" />
                       </span>
                     </div>
                   </article>

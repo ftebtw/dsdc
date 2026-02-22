@@ -66,7 +66,7 @@ export default function BlogPostContent({
               className="inline-flex items-center gap-1.5 text-white/60 hover:text-white text-sm font-sans mb-6 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to Blog
+              {t("blog.backToBlog")}
             </Link>
           </motion.div>
 
@@ -164,10 +164,10 @@ export default function BlogPostContent({
           <AnimatedSection delay={0.1}>
             <div className="mt-12 p-6 sm:p-8 bg-navy-800 dark:bg-navy-700 rounded-2xl text-center">
               <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 font-serif">
-                Ready to Get Started?
+                {t("blog.readyTitle")}
               </h3>
               <p className="text-white/60 text-sm sm:text-base mb-6 font-sans max-w-lg mx-auto">
-                Book a free 15-minute consultation with our team to find the right class for your child.
+                {t("blog.readySubtitle")}
               </p>
               <Link
                 href="/book"
