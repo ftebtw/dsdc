@@ -2,7 +2,11 @@ import { randomUUID } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';
+import { sendPortalEmails } from '@/lib/email/send';
+import { legalDocumentUploaded } from '@/lib/email/templates';
 import { requireRole } from '@/lib/portal/auth';
+import { shouldSendNotification } from '@/lib/portal/notifications';
+import { portalPathUrl, profilePreferenceUrl } from '@/lib/portal/phase-c';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 
@@ -54,6 +58,62 @@ async function createLegalDocument(formData: FormData) {
   if (error) {
     await supabase.storage.from(bucket).remove([objectPath]);
     return;
+  }
+
+  try {
+    const recipientProfiles =
+      requiredFor === 'all_coaches'
+        ? (
+            (
+              await supabase
+                .from('profiles')
+                .select('id,email,role,notification_preferences')
+                .in('role', ['coach', 'ta'])
+            ).data ?? []
+          )
+        : (
+            (
+              await supabase
+                .from('profiles')
+                .select('id,email,role,notification_preferences')
+                .in('role', ['student', 'parent'])
+            ).data ?? []
+          );
+
+    const messages: Array<{ to: string; subject: string; html: string; text: string }> = [];
+    for (const profile of recipientProfiles as Array<{
+      id: string;
+      email: string;
+      role: string;
+      notification_preferences: Record<string, unknown> | null;
+    }>) {
+      if (!profile.email) continue;
+      if (!shouldSendNotification(profile.notification_preferences, 'general_updates', true)) continue;
+
+      messages.push({
+        to: profile.email,
+        ...legalDocumentUploaded({
+          documentTitle: title,
+          portalUrl:
+            profile.role === 'parent'
+              ? portalPathUrl('/portal/parent/legal')
+              : profile.role === 'student'
+                ? portalPathUrl('/portal/student/legal')
+                : portalPathUrl('/portal/login'),
+          preferenceUrl: profilePreferenceUrl(profile.role),
+        }),
+      });
+    }
+
+    if (messages.length) {
+      await sendPortalEmails(messages);
+    }
+  } catch (emailError) {
+    console.error('[legal-docs] upload notification send failed', {
+      error: emailError instanceof Error ? emailError.message : String(emailError),
+      title,
+      requiredFor,
+    });
   }
 
   revalidatePath('/portal/admin/legal');

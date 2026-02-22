@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
+import { sendPortalEmails } from '@/lib/email/send';
+import { manualEnrollmentNotice } from '@/lib/email/templates';
+import { shouldSendNotification } from '@/lib/portal/notifications';
+import { portalPathUrl, profilePreferenceUrl } from '@/lib/portal/phase-c';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/lib/supabase/database.types';
 
@@ -93,6 +97,104 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (enrollmentError) return jsonError(enrollmentError.message, 400);
+
+  try {
+    const [{ data: classRow }, { data: studentProfile }, { data: parentLinks }] = await Promise.all([
+      supabaseAdmin
+        .from('classes')
+        .select('id,name,term_id')
+        .eq('id', body.classId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from('profiles')
+        .select('id,email,display_name,role,notification_preferences')
+        .eq('id', studentId)
+        .maybeSingle(),
+      supabaseAdmin.from('parent_student_links').select('parent_id').eq('student_id', studentId),
+    ]);
+
+    const termName = classRow?.term_id
+      ? (
+          (
+            await supabaseAdmin
+              .from('terms')
+              .select('name')
+              .eq('id', classRow.term_id)
+              .maybeSingle()
+          ).data?.name || 'Current Term'
+        )
+      : 'Current Term';
+
+    const parentIds = [
+      ...new Set(
+        ((parentLinks ?? []) as Array<{ parent_id: string | null }>)
+          .map((link) => link.parent_id)
+          .filter((value): value is string => Boolean(value))
+      ),
+    ];
+    const parentProfiles = parentIds.length
+      ? (
+          (
+            await supabaseAdmin
+              .from('profiles')
+              .select('id,email,display_name,role,notification_preferences')
+              .in('id', parentIds)
+              .eq('role', 'parent')
+          ).data ?? []
+        )
+      : [];
+
+    const className = classRow?.name || 'Class';
+    const studentName = studentProfile?.display_name || studentProfile?.email || 'Student';
+    const messages: Array<{ to: string; subject: string; html: string; text: string }> = [];
+
+    if (
+      studentProfile?.email &&
+      shouldSendNotification(
+        studentProfile.notification_preferences as Record<string, unknown> | null,
+        'general_updates',
+        true
+      )
+    ) {
+      messages.push({
+        to: studentProfile.email,
+        ...manualEnrollmentNotice({
+          studentName,
+          className,
+          termName,
+          portalUrl: portalPathUrl('/portal/student/classes'),
+          preferenceUrl: profilePreferenceUrl(studentProfile.role),
+        }),
+      });
+    }
+
+    for (const parent of parentProfiles) {
+      if (!parent?.email) continue;
+      if (!shouldSendNotification(parent.notification_preferences as Record<string, unknown> | null, 'general_updates', true)) {
+        continue;
+      }
+      messages.push({
+        to: parent.email,
+        ...manualEnrollmentNotice({
+          studentName,
+          className,
+          termName,
+          portalUrl: portalPathUrl('/portal/parent/classes'),
+          preferenceUrl: profilePreferenceUrl(parent.role),
+        }),
+      });
+    }
+
+    if (messages.length) {
+      await sendPortalEmails(messages);
+    }
+  } catch (emailError) {
+    console.error('[manual-enroll] notification send failed', {
+      error: emailError instanceof Error ? emailError.message : String(emailError),
+      classId: body.classId,
+      studentId,
+    });
+  }
 
   return NextResponse.json({
     enrollment,

@@ -406,3 +406,158 @@ export function reportCardRejected(input: {
   });
   return { subject, html, text };
 }
+
+export function absenceReported(input: {
+  studentName: string;
+  className: string;
+  sessionDate: string;
+  reportedBy: string;
+  portalUrl: string;
+  preferenceUrl?: string;
+}) {
+  const subject = `Absence reported: ${input.studentName}`;
+  const { html, text } = renderTemplate({
+    title: 'Absence Reported',
+    bodyLines: [
+      `${input.reportedBy} reported an absence.`,
+      `Student: ${input.studentName}`,
+      `Class: ${input.className}`,
+      `Session date: ${input.sessionDate}`,
+    ],
+    buttonLabel: 'Open Portal',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function manualEnrollmentNotice(input: {
+  studentName: string;
+  className: string;
+  termName: string;
+  portalUrl: string;
+  preferenceUrl?: string;
+}) {
+  const subject = `Enrollment update: ${input.className}`;
+  const { html, text } = renderTemplate({
+    title: 'Manual Enrollment Confirmation',
+    bodyLines: [
+      `Hi ${input.studentName}, you were enrolled in a class by the DSDC team.`,
+      `Class: ${input.className}`,
+      `Term: ${input.termName}`,
+    ],
+    buttonLabel: 'Open Portal',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function parentLinkedNotice(input: { studentName: string; portalUrl: string }) {
+  const subject = 'Student linked to your parent account';
+  const { html, text } = renderTemplate({
+    title: 'Parent Link Confirmed',
+    bodyLines: [
+      `${input.studentName} is now linked to your parent account.`,
+      'You can now view classes, attendance, resources, and legal documents for this student.',
+    ],
+    buttonLabel: 'Open Parent Portal',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}
+
+export function legalDocumentUploaded(input: {
+  documentTitle: string;
+  portalUrl: string;
+  preferenceUrl?: string;
+}) {
+  const subject = `New legal document: ${input.documentTitle}`;
+  const { html, text } = renderTemplate({
+    title: 'New Legal Document Requires Signature',
+    bodyLines: [
+      `A new legal document was posted: ${input.documentTitle}.`,
+      'Please review and sign it in the portal.',
+    ],
+    buttonLabel: 'Review Document',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function classReminderTemplate(input: {
+  className: string;
+  whenText: string;
+  reminderType: '1day' | '1hour';
+  zoomLink?: string | null;
+  portalUrl: string;
+  preferenceUrl?: string;
+}) {
+  const lead =
+    input.reminderType === '1day'
+      ? `Reminder: ${input.className} starts in about 24 hours.`
+      : `Reminder: ${input.className} starts in about 1 hour.`;
+
+  const lines = [lead, `When: ${input.whenText}`];
+  if (input.zoomLink) {
+    lines.push(`Zoom: ${input.zoomLink}`);
+  }
+
+  const subject =
+    input.reminderType === '1day'
+      ? `Class reminder (tomorrow): ${input.className}`
+      : `Class reminder (1 hour): ${input.className}`;
+  const { html, text } = renderTemplate({
+    title: 'Upcoming Class Reminder',
+    bodyLines: lines,
+    buttonLabel: 'Open Portal',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function legalDocReminderTemplate(input: {
+  documentTitle: string;
+  recipientName: string;
+  portalUrl: string;
+}) {
+  const subject = `Unsigned legal document reminder: ${input.documentTitle}`;
+  const { html, text } = renderTemplate({
+    title: 'Action Required: Legal Document Signature',
+    bodyLines: [
+      `Hi ${input.recipientName}, you still have unsigned legal documents in the DSDC portal.`,
+      `Document: ${input.documentTitle}`,
+      'Please sign as soon as possible.',
+    ],
+    buttonLabel: 'Sign Document',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}
+
+export function reportCardNudgeTemplate(input: {
+  coachName: string;
+  className: string;
+  missingCount: number;
+  termEndDate: string;
+  portalUrl: string;
+}) {
+  const subject = `Report card nudge: ${input.className} (${input.missingCount} pending)`;
+  const { html, text } = renderTemplate({
+    title: 'Report Card Submission Reminder',
+    bodyLines: [
+      `Hi ${input.coachName}, you still have report cards pending.`,
+      `Class: ${input.className}`,
+      `Pending report cards: ${input.missingCount}`,
+      `Term end date: ${input.termEndDate}`,
+    ],
+    buttonLabel: 'Open Report Cards',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}

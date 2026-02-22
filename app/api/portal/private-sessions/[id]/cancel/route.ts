@@ -8,6 +8,7 @@ import {
   sessionRangeForRecipient,
   uniqueEmails,
 } from '@/lib/portal/phase-c';
+import { shouldSendNotification } from '@/lib/portal/notifications';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 
@@ -60,7 +61,7 @@ export async function POST(
 
   const { data: people } = await admin
     .from('profiles')
-    .select('id,email,timezone,role,display_name')
+    .select('id,email,timezone,role,display_name,notification_preferences')
     .in('id', [updatedRow.student_id, updatedRow.coach_id, session.userId]);
   const typedPeople = (people ?? []) as Array<{
     id: string;
@@ -68,10 +69,20 @@ export async function POST(
     timezone: string;
     role: string;
     display_name: string | null;
+    notification_preferences: Record<string, unknown> | null;
   }>;
   const peopleMap = new Map(typedPeople.map((person) => [person.id, person]));
   const cancelledBy = peopleMap.get(session.userId);
-  const recipients = [peopleMap.get(updatedRow.student_id), peopleMap.get(updatedRow.coach_id)].filter(Boolean);
+  const recipients = [peopleMap.get(updatedRow.student_id), peopleMap.get(updatedRow.coach_id)]
+    .filter(
+      (person): person is NonNullable<typeof person> =>
+        Boolean(person) &&
+        shouldSendNotification(
+          (person as NonNullable<typeof person>).notification_preferences,
+          'private_session_alerts',
+          true
+        )
+    );
   const emails = uniqueEmails(recipients.map((person) => person?.email));
 
   const payloads = emails.map((email) => {

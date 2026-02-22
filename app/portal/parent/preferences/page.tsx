@@ -1,6 +1,7 @@
 import { revalidatePath } from 'next/cache';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
+import { normalizeClassReminderValue } from '@/lib/portal/notifications';
 import { parentT } from '@/lib/portal/parent-i18n';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -10,7 +11,7 @@ async function updatePreferences(formData: FormData) {
   const supabase = await getSupabaseServerClient();
 
   const preferences = {
-    class_reminders: String(formData.get('class_reminders') || 'both'),
+    class_reminders: normalizeClassReminderValue(formData.get('class_reminders')) || 'both',
     absence_alerts: formData.get('absence_alerts') === 'on',
     general_updates: formData.get('general_updates') === 'on',
   };
@@ -28,7 +29,7 @@ export default async function ParentPreferencesPage() {
   const locale = session.profile.locale === 'zh' ? 'zh' : 'en';
   const prefs = (session.profile.notification_preferences || {}) as Record<string, unknown>;
 
-  const classReminders = String(prefs.class_reminders || 'both');
+  const classReminders = normalizeClassReminderValue(prefs.class_reminders) || 'both';
   const absenceAlerts = Boolean(prefs.absence_alerts ?? true);
   const generalUpdates = Boolean(prefs.general_updates ?? true);
 
@@ -38,7 +39,7 @@ export default async function ParentPreferencesPage() {
       description={parentT(
         locale,
         'portal.parent.preferences.description',
-        'These preferences are saved now and email automation will be enabled in a later phase.'
+        'Control your class reminder and notification preferences.'
       )}
     >
       <form action={updatePreferences} className="space-y-4 max-w-xl">
@@ -51,8 +52,8 @@ export default async function ParentPreferencesPage() {
             defaultValue={classReminders}
             className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
           >
-            <option value="day_before">{parentT(locale, 'portal.parent.preferences.dayBefore', '1 day before')}</option>
-            <option value="hour_before">{parentT(locale, 'portal.parent.preferences.hourBefore', '1 hour before')}</option>
+            <option value="1day">{parentT(locale, 'portal.parent.preferences.dayBefore', '1 day before')}</option>
+            <option value="1hour">{parentT(locale, 'portal.parent.preferences.hourBefore', '1 hour before')}</option>
             <option value="both">{parentT(locale, 'portal.parent.preferences.both', 'Both')}</option>
             <option value="none">{parentT(locale, 'portal.parent.preferences.none', 'None')}</option>
           </select>

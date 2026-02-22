@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/portal/auth';
 import { sendPortalEmails } from '@/lib/email/send';
 import { subCancelledTemplate } from '@/lib/email/templates';
+import { shouldSendNotification } from '@/lib/portal/notifications';
 import { portalPathUrl, profilePreferenceUrl, sessionRangeForRecipient } from '@/lib/portal/phase-c';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
@@ -51,11 +52,19 @@ export async function POST(
       admin.from('classes').select('*').eq('id', requestRow.class_id).maybeSingle(),
       admin
         .from('profiles')
-        .select('id,email,timezone,role')
+        .select('id,email,timezone,role,notification_preferences')
         .eq('id', requestRow.accepting_coach_id)
         .maybeSingle(),
     ]);
-    if (classRow.data && acceptingCoach.data?.email) {
+    if (
+      classRow.data &&
+      acceptingCoach.data?.email &&
+      shouldSendNotification(
+        acceptingCoach.data.notification_preferences as Record<string, unknown> | null,
+        'sub_request_alerts',
+        true
+      )
+    ) {
       const whenText = sessionRangeForRecipient({
         sessionDate: requestRow.session_date,
         startTime: classRow.data.schedule_start_time,

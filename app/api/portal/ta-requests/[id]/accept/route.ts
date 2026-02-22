@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/portal/auth';
 import { sendPortalEmails } from '@/lib/email/send';
 import { taAcceptedTemplate } from '@/lib/email/templates';
+import { shouldSendNotification } from '@/lib/portal/notifications';
 import { portalPathUrl, profilePreferenceUrl, sessionRangeForRecipient } from '@/lib/portal/phase-c';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
@@ -60,7 +61,7 @@ export async function POST(
     admin.from('classes').select('*').eq('id', requestRow.class_id).maybeSingle(),
     admin
       .from('profiles')
-      .select('id,email,timezone,role,display_name')
+      .select('id,email,timezone,role,display_name,notification_preferences')
       .eq('id', requestRow.requesting_coach_id)
       .maybeSingle(),
     admin
@@ -70,7 +71,15 @@ export async function POST(
       .maybeSingle(),
   ]);
 
-  if (classRow.data && requestingCoach.data?.email) {
+  if (
+    classRow.data &&
+    requestingCoach.data?.email &&
+    shouldSendNotification(
+      requestingCoach.data.notification_preferences as Record<string, unknown> | null,
+      'ta_request_alerts',
+      true
+    )
+  ) {
     const whenText = sessionRangeForRecipient({
       sessionDate: requestRow.session_date,
       startTime: classRow.data.schedule_start_time,

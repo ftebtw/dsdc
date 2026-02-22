@@ -8,6 +8,7 @@ import {
   sessionRangeForRecipient,
   uniqueEmails,
 } from '@/lib/portal/phase-c';
+import { shouldSendNotification } from '@/lib/portal/notifications';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 
@@ -66,7 +67,7 @@ export async function POST(
   const [requestingCoach, acceptingCoach, enrollments] = await Promise.all([
     admin
       .from('profiles')
-      .select('id,email,timezone,role,display_name')
+      .select('id,email,timezone,role,display_name,notification_preferences')
       .eq('id', requestRow.requesting_coach_id)
       .maybeSingle(),
     admin
@@ -86,10 +87,10 @@ export async function POST(
   const studentProfiles = studentIds.length
     ? (
         await admin
-          .from('profiles')
-          .select('id,email,timezone,role')
-          .in('id', studentIds)
-          .eq('role', 'student')
+      .from('profiles')
+      .select('id,email,timezone,role,notification_preferences')
+      .in('id', studentIds)
+      .eq('role', 'student')
       ).data ?? []
     : [];
   const typedStudentProfiles = studentProfiles as Array<{
@@ -97,12 +98,61 @@ export async function POST(
     email: string;
     timezone: string;
     role: string;
+    notification_preferences: Record<string, unknown> | null;
   }>;
+  const parentLinks = studentIds.length
+    ? (
+        (
+          await admin
+            .from('parent_student_links')
+            .select('student_id,parent_id')
+            .in('student_id', studentIds)
+        ).data ?? []
+      )
+    : [];
+  const parentIds = [
+    ...new Set(
+      (parentLinks as Array<{ student_id: string; parent_id: string }>)
+        .map((link) => link.parent_id)
+        .filter((value): value is string => Boolean(value))
+    ),
+  ];
+  const parentProfiles = parentIds.length
+    ? (
+        (
+          await admin
+            .from('profiles')
+            .select('id,email,timezone,role,notification_preferences')
+            .in('id', parentIds)
+            .eq('role', 'parent')
+        ).data ?? []
+      )
+    : [];
+  const typedParentProfiles = parentProfiles as Array<{
+    id: string;
+    email: string;
+    timezone: string;
+    role: string;
+    notification_preferences: Record<string, unknown> | null;
+  }>;
+  const parentIdsByStudent = new Map<string, string[]>();
+  for (const link of parentLinks as Array<{ student_id: string; parent_id: string }>) {
+    const existing = parentIdsByStudent.get(link.student_id) ?? [];
+    existing.push(link.parent_id);
+    parentIdsByStudent.set(link.student_id, existing);
+  }
 
   const coachPortalUrl = portalPathUrl('/portal/coach/subs');
   const studentPortalUrl = portalPathUrl('/portal/student/classes');
+  const parentPortalUrl = portalPathUrl('/portal/parent/classes');
 
-  const toRequester = requestingCoach.data?.email
+  const toRequester =
+    requestingCoach.data?.email &&
+    shouldSendNotification(
+      requestingCoach.data.notification_preferences as Record<string, unknown> | null,
+      'sub_request_alerts',
+      true
+    )
     ? (() => {
         const whenText = sessionRangeForRecipient({
           sessionDate: requestRow.session_date,
@@ -122,9 +172,32 @@ export async function POST(
       })()
     : [];
 
-  const studentEmails = uniqueEmails(typedStudentProfiles.map((profile) => profile.email));
-  const toStudents = studentEmails.map((email) => {
-    const student = typedStudentProfiles.find((profile) => profile.email?.toLowerCase() === email);
+  const recipientProfiles = new Map<
+    string,
+    {
+      id: string;
+      email: string;
+      timezone: string;
+      role: string;
+      notification_preferences: Record<string, unknown> | null;
+    }
+  >();
+  for (const student of typedStudentProfiles) {
+    if (shouldSendNotification(student.notification_preferences, 'general_updates', true)) {
+      recipientProfiles.set(student.id, student);
+    }
+    for (const parentId of parentIdsByStudent.get(student.id) ?? []) {
+      const parent = typedParentProfiles.find((profile) => profile.id === parentId);
+      if (!parent) continue;
+      if (!shouldSendNotification(parent.notification_preferences, 'general_updates', true)) continue;
+      recipientProfiles.set(parent.id, parent);
+    }
+  }
+
+  const notificationRecipients = [...recipientProfiles.values()];
+  const recipientEmails = uniqueEmails(notificationRecipients.map((profile) => profile.email));
+  const toStudents = recipientEmails.map((email) => {
+    const student = notificationRecipients.find((profile) => profile.email?.toLowerCase() === email);
     const whenText = sessionRangeForRecipient({
       sessionDate: requestRow.session_date,
       startTime: classRow.schedule_start_time,
@@ -136,7 +209,7 @@ export async function POST(
       className: classRow.name,
       whenText,
       subCoach: acceptingCoach.data?.display_name || acceptingCoach.data?.email || 'Coach',
-      portalUrl: studentPortalUrl,
+      portalUrl: student?.role === 'parent' ? parentPortalUrl : studentPortalUrl,
       preferenceUrl: profilePreferenceUrl(student?.role),
     });
     return { to: email, ...template };

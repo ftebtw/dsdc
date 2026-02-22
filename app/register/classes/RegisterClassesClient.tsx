@@ -120,8 +120,8 @@ export default function RegisterClassesClient({
               key={classRow.id}
               className={`block rounded-xl border p-4 transition-colors cursor-pointer ${
                 isSelected
-                  ? "border-gold-400 bg-gold-50/70 dark:bg-gold-900/20"
-                  : "border-warm-200 dark:border-navy-700 bg-warm-50 dark:bg-navy-950"
+                  ? "border-gold-400 bg-gold-50/70 dark:border-gold-400/80 dark:bg-gold-900/25"
+                  : "border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-800/80"
               }`}
             >
               <div className="flex items-start gap-3">
@@ -129,15 +129,15 @@ export default function RegisterClassesClient({
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => toggleClass(classRow.id)}
-                  className="mt-1 h-4 w-4"
+                  className="mt-1 h-4 w-4 accent-gold-400 dark:accent-gold-300 rounded border-warm-300 dark:border-navy-400"
                 />
                 <div>
-                  <p className="font-semibold text-navy-900 dark:text-white">{classRow.name}</p>
-                  <p className="text-sm text-charcoal/70 dark:text-navy-300">
+                  <p className="font-semibold text-navy-900 dark:text-navy-50">{classRow.name}</p>
+                  <p className="text-sm text-charcoal/70 dark:text-navy-100">
                     {classRow.typeLabel} · {tx("registerPage.coach", "Coach")}: {classRow.coachName}
                   </p>
-                  <p className="text-sm text-charcoal/70 dark:text-navy-300">{classRow.scheduleText}</p>
-                  <p className="text-xs text-charcoal/60 dark:text-navy-400">
+                  <p className="text-sm text-charcoal/70 dark:text-navy-100">{classRow.scheduleText}</p>
+                  <p className="text-xs text-charcoal/60 dark:text-navy-200">
                     {tx("registerPage.spots", "Spots remaining")}: {classRow.spotsRemaining}
                   </p>
                 </div>

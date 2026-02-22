@@ -9,6 +9,7 @@ import {
   sessionRangeForRecipient,
   uniqueEmails,
 } from '@/lib/portal/phase-c';
+import { shouldSendNotification } from '@/lib/portal/notifications';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseRouteClient } from '@/lib/supabase/route';
 
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
     ? (
         await admin
           .from('profiles')
-          .select('id,email,timezone,role')
+          .select('id,email,timezone,role,notification_preferences')
           .in('id', taIds)
           .in('role', ['coach', 'ta'])
       ).data ?? []
@@ -86,12 +87,16 @@ export async function POST(request: NextRequest) {
     email: string;
     timezone: string;
     role: string;
+    notification_preferences: Record<string, unknown> | null;
   }>;
 
   const portalUrl = portalPathUrl('/portal/coach/subs');
-  const emails = uniqueEmails(typedTaProfiles.map((profile) => profile.email));
+  const optedInTaProfiles = typedTaProfiles.filter((profile) =>
+    shouldSendNotification(profile.notification_preferences, 'ta_request_alerts', true)
+  );
+  const emails = uniqueEmails(optedInTaProfiles.map((profile) => profile.email));
   const payloads = emails.map((email) => {
-    const taProfile = typedTaProfiles.find((profile) => profile.email?.toLowerCase() === email);
+    const taProfile = optedInTaProfiles.find((profile) => profile.email?.toLowerCase() === email);
     const whenText = sessionRangeForRecipient({
       sessionDate: parsed.data.sessionDate,
       startTime: classRow.schedule_start_time,

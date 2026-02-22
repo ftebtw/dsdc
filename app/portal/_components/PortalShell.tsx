@@ -272,6 +272,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
             { href: "/portal/coach/availability", label: "Availability", icon: Calendar },
             { href: "/portal/coach/subs", label: "Sub Requests", icon: Users },
             { href: "/portal/coach/private-sessions", label: "Private Sessions", icon: ClipboardCheck },
+            { href: "/portal/preferences", label: "Preferences", icon: Shield },
           ],
         },
       ];
@@ -292,10 +293,12 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
           title: "Actions",
           items: [
             { href: "/portal/student/booking", label: "Book Private Session", icon: Calendar },
+            { href: "/portal/student/link-parent", label: "Link Parent", icon: Users },
             { href: "/portal/student/legal", label: "Legal Documents", icon: FileCheck2 },
             { href: "/portal/student/absent", label: "Mark Absent", icon: FileText },
             { href: "/portal/student/feedback", label: "Feedback", icon: MessageSquare },
             { href: "/portal/student/report-cards", label: "Report Cards", icon: GraduationCap },
+            { href: "/portal/preferences", label: "Preferences", icon: Shield },
           ],
         },
       ];

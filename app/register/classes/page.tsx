@@ -111,7 +111,7 @@ export default async function RegisterClassesPage({
     const linkedStudentIds = (links ?? []).map((row: any) => row.student_id as string);
     if (!linkedStudentIds.length) {
       return (
-        <section className="min-h-screen bg-gradient-to-br from-warm-100 via-white to-gold-50 dark:from-navy-950 dark:via-navy-900 dark:to-navy-950 pt-28 pb-16">
+        <section className="min-h-screen bg-gradient-to-br from-warm-100 via-white to-gold-50 dark:from-navy-900 dark:via-navy-800 dark:to-navy-900 pt-28 pb-16">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="rounded-2xl border border-warm-200 dark:border-navy-700 bg-white/95 dark:bg-navy-900/95 shadow-xl p-6">
               <h1 className="text-2xl font-bold text-navy-900 dark:text-white">{copy.title}</h1>
@@ -140,7 +140,7 @@ export default async function RegisterClassesPage({
 
   if (!activeTerm) {
     return (
-      <section className="min-h-screen bg-gradient-to-br from-warm-100 via-white to-gold-50 dark:from-navy-950 dark:via-navy-900 dark:to-navy-950 pt-28 pb-16">
+      <section className="min-h-screen bg-gradient-to-br from-warm-100 via-white to-gold-50 dark:from-navy-900 dark:via-navy-800 dark:to-navy-900 pt-28 pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl border border-warm-200 dark:border-navy-700 bg-white/95 dark:bg-navy-900/95 shadow-xl p-6">
             <h1 className="text-2xl font-bold text-navy-900 dark:text-white">{copy.title}</h1>
@@ -216,7 +216,7 @@ export default async function RegisterClassesPage({
     .filter((row) => row.spotsRemaining > 0 || studentEnrollments.has(row.id));
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-warm-100 via-white to-gold-50 dark:from-navy-950 dark:via-navy-900 dark:to-navy-950 pt-28 pb-16">
+    <section className="min-h-screen bg-gradient-to-br from-warm-100 via-white to-gold-50 dark:from-navy-900 dark:via-navy-800 dark:to-navy-900 pt-28 pb-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <RegisterClassesClient
           studentId={studentId}

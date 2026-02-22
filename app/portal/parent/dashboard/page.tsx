@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import ParentInviteCodePanel from '@/app/portal/_components/ParentInviteCodePanel';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
@@ -21,21 +22,51 @@ export default async function ParentDashboardPage({
     session.userId,
     params.student
   );
+  const inviteCodes = (
+    (
+      await supabase
+        .from('invite_codes')
+        .select('id,code,expires_at,claimed_at,claimed_by,created_at')
+        .eq('parent_id', session.userId)
+        .order('created_at', { ascending: false })
+        .limit(10)
+    ).data ?? []
+  ) as Array<{
+    id: string;
+    code: string;
+    expires_at: string;
+    claimed_at: string | null;
+    claimed_by: string | null;
+    created_at: string;
+  }>;
 
   if (!linkedStudents.length) {
     return (
-      <SectionCard
-        title={parentT(locale, 'portal.parent.dashboard.title', 'Parent Dashboard')}
-        description={parentT(locale, 'portal.parent.common.noLinkedStudentsShort', 'No linked students yet.')}
-      >
-        <p className="text-sm text-charcoal/70 dark:text-navy-300">
-          {parentT(
+      <div className="space-y-6">
+        <SectionCard
+          title={parentT(locale, 'portal.parent.dashboard.title', 'Parent Dashboard')}
+          description={parentT(locale, 'portal.parent.common.noLinkedStudentsShort', 'No linked students yet.')}
+        >
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {parentT(
+              locale,
+              'portal.parent.common.noLinkedStudents',
+              'Ask admin to link your parent account from the student detail page.'
+            )}
+          </p>
+        </SectionCard>
+
+        <SectionCard
+          title={parentT(locale, 'portal.parent.linkStudent.title', 'Link Student')}
+          description={parentT(
             locale,
-            'portal.parent.common.noLinkedStudents',
-            'Ask admin to link your parent account from the student detail page.'
+            'portal.parent.linkStudent.description',
+            'Generate invite codes to let students link to your parent account.'
           )}
-        </p>
-      </SectionCard>
+        >
+          <ParentInviteCodePanel initialCodes={inviteCodes} />
+        </SectionCard>
+      </div>
     );
   }
 
@@ -70,7 +101,6 @@ export default async function ParentDashboardPage({
 
   const absentCount = attendanceRows.filter((row: any) => row.status === 'absent').length;
   const presentCount = attendanceRows.filter((row: any) => row.status === 'present').length;
-
   return (
     <div className="space-y-6">
       <SectionCard
@@ -99,6 +129,17 @@ export default async function ParentDashboardPage({
             <p className="text-2xl font-bold text-red-700 dark:text-red-400">{absentCount}</p>
           </div>
         </div>
+      </SectionCard>
+
+      <SectionCard
+        title={parentT(locale, 'portal.parent.linkStudent.title', 'Link Student')}
+        description={parentT(
+          locale,
+          'portal.parent.linkStudent.description',
+          'Generate invite codes to let students link to your parent account.'
+        )}
+      >
+        <ParentInviteCodePanel initialCodes={inviteCodes} />
       </SectionCard>
     </div>
   );
