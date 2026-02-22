@@ -10,10 +10,20 @@ import {
 } from "@sanity/icons";
 import { defineDocuments, defineLocations } from "sanity/presentation";
 
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "your-project-id";
-const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";
+function cleanEnv(value: string | undefined, fallback: string) {
+  return (value || fallback).trim().replace(/^['"]|['"]$/g, "");
+}
+
+const rawProjectId = cleanEnv(
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  "your-project-id"
+);
+const projectId = /^[a-z0-9-]+$/.test(rawProjectId)
+  ? rawProjectId
+  : "your-project-id";
+const dataset = cleanEnv(process.env.NEXT_PUBLIC_SANITY_DATASET, "production");
 const previewOrigin =
-  process.env.SANITY_STUDIO_PREVIEW_ORIGIN ||
+  cleanEnv(process.env.SANITY_STUDIO_PREVIEW_ORIGIN, "") ||
   (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
 
 const singletonTypes = new Set([

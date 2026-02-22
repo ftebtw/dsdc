@@ -117,7 +117,7 @@ export default function Navbar() {
 
             <Link
               href="/portal/login"
-              className={`hidden 2xl:inline-flex rounded-full px-3 py-2 text-sm font-medium transition-colors ${
+              className={`hidden xl:inline-flex rounded-full px-3 py-2 text-sm font-medium transition-colors ${
                 navSolid
                   ? "text-navy-800 hover:text-navy-900 dark:text-navy-100 dark:hover:text-white"
                   : "text-white/90 hover:text-white"
