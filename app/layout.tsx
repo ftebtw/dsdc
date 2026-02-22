@@ -7,6 +7,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "./providers";
 import VisualEditingWrapper from "@/components/VisualEditingWrapper";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -254,6 +255,7 @@ export default async function RootLayout({
         />
         <ClientProviders initialCmsOverrides={initialCmsOverrides}>{children}</ClientProviders>
         <VisualEditingWrapper enabled={isEnabled} />
+        <Analytics />
       </body>
     </html>
   );
