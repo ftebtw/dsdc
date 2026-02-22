@@ -67,6 +67,34 @@ export default async function ParentClassesPage({
     supabase,
     [...new Set(classes.map((classRow: any) => classRow.coach_id))]
   );
+  const today = new Date().toISOString().slice(0, 10);
+  const classIdsForSubs = classes.map((classRow: any) => classRow.id);
+  const subRequests = classIdsForSubs.length
+    ? (((await supabase
+        .from('sub_requests')
+        .select('class_id,accepting_coach_id,session_date,status')
+        .in('class_id', classIdsForSubs)
+        .eq('status', 'accepted')
+        .gte('session_date', today)
+        .order('session_date', { ascending: true })).data ?? []) as any[])
+    : ([] as any[]);
+  const taRequests = classIdsForSubs.length
+    ? (((await supabase
+        .from('ta_requests')
+        .select('class_id,accepting_ta_id,session_date,status')
+        .in('class_id', classIdsForSubs)
+        .eq('status', 'accepted')
+        .gte('session_date', today)
+        .order('session_date', { ascending: true })).data ?? []) as any[])
+    : ([] as any[]);
+  const nextSubByClass = new Map<string, any>();
+  for (const row of subRequests) if (!nextSubByClass.has(row.class_id)) nextSubByClass.set(row.class_id, row);
+  const nextTaByClass = new Map<string, any>();
+  for (const row of taRequests) if (!nextTaByClass.has(row.class_id)) nextTaByClass.set(row.class_id, row);
+  const subPeople = await getProfileMap(supabase, [
+    ...subRequests.map((row: any) => row.accepting_coach_id).filter(Boolean),
+    ...taRequests.map((row: any) => row.accepting_ta_id).filter(Boolean),
+  ]);
 
   return (
     <SectionCard
@@ -96,6 +124,16 @@ export default async function ParentClassesPage({
                 {parentT(locale, 'portal.parent.common.coachLabel', 'Coach')}:{' '}
                 {coachMap[classRow.coach_id]?.display_name || coachMap[classRow.coach_id]?.email || classRow.coach_id}
               </p>
+              {nextSubByClass.get(classRow.id) ? (
+                <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
+                  Sub: {subPeople[nextSubByClass.get(classRow.id).accepting_coach_id]?.display_name || subPeople[nextSubByClass.get(classRow.id).accepting_coach_id]?.email || nextSubByClass.get(classRow.id).accepting_coach_id} on {nextSubByClass.get(classRow.id).session_date}
+                </p>
+              ) : null}
+              {nextTaByClass.get(classRow.id) ? (
+                <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
+                  TA: {subPeople[nextTaByClass.get(classRow.id).accepting_ta_id]?.display_name || subPeople[nextTaByClass.get(classRow.id).accepting_ta_id]?.email || nextTaByClass.get(classRow.id).accepting_ta_id} on {nextTaByClass.get(classRow.id).session_date}
+                </p>
+              ) : null}
               {classRow.zoom_link ? (
                 <p className="text-sm mt-1">
                   {parentT(locale, 'portal.parent.common.zoomLabel', 'Zoom')}:{' '}

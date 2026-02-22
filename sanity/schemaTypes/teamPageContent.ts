@@ -24,6 +24,44 @@ export const teamPageContent = defineType({
         localizedStringField("tournament", "Tournament Label"),
         localizedStringField("year", "Year Label"),
         localizedStringField("award", "Award Label"),
+        defineField({
+          name: "founderAwards",
+          title: "Founder Awards (Optional Override)",
+          type: "array",
+          description:
+            "Set this to edit Rebecca's awards directly in Studio. If left empty, the site will use the built-in defaults.",
+          of: [
+            defineArrayMember({
+              type: "object",
+              fields: [
+                defineField({
+                  name: "award",
+                  title: "Award",
+                  type: "string",
+                  validation: (rule) => rule.required(),
+                }),
+                defineField({
+                  name: "tournament",
+                  title: "Tournament",
+                  type: "string",
+                  validation: (rule) => rule.required(),
+                }),
+                defineField({
+                  name: "year",
+                  title: "Year",
+                  type: "string",
+                  validation: (rule) => rule.required(),
+                }),
+              ],
+              preview: {
+                select: {
+                  title: "award",
+                  subtitle: "tournament",
+                },
+              },
+            }),
+          ],
+        }),
       ],
     }),
     defineField({
@@ -38,6 +76,44 @@ export const teamPageContent = defineType({
             localizedStringField("title", "Title"),
             localizedTextField("bio", "Bio"),
             defineField({ name: "image", title: "Photo", type: "image", options: { hotspot: true } }),
+            defineField({
+              name: "awards",
+              title: "Awards (Optional Override)",
+              type: "array",
+              description:
+                "Optional: add awards for this coach. If left empty, the site uses built-in defaults for matching coach names.",
+              of: [
+                defineArrayMember({
+                  type: "object",
+                  fields: [
+                    defineField({
+                      name: "award",
+                      title: "Award",
+                      type: "string",
+                      validation: (rule) => rule.required(),
+                    }),
+                    defineField({
+                      name: "tournament",
+                      title: "Tournament",
+                      type: "string",
+                      validation: (rule) => rule.required(),
+                    }),
+                    defineField({
+                      name: "year",
+                      title: "Year",
+                      type: "string",
+                      validation: (rule) => rule.required(),
+                    }),
+                  ],
+                  preview: {
+                    select: {
+                      title: "award",
+                      subtitle: "tournament",
+                    },
+                  },
+                }),
+              ],
+            }),
           ],
         }),
       ],

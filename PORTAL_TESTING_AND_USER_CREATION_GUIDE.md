@@ -5,9 +5,9 @@ This is a copy/paste checklist you can give Rebecca to test all current portal f
 ## Current Scope
 
 1. Built now:
-   Admin portal, Coach/TA portal, Student portal core, Parent portal core.
+   Admin portal, Coach/TA portal, Student portal core, Parent portal core, plus Phase C scheduling/substitute/private-session flows.
 2. Still placeholder pages:
-   Student private booking, Student report cards, Parent report cards.
+   Student report cards, Parent report cards.
 
 ## Portal Login URLs
 
@@ -38,7 +38,7 @@ All seeded accounts use password: `PortalSeed123!Temp` (unless changed by env ov
 1. Open `https://dsdc-nine.vercel.app/portal/login`.
 2. Log in with `admin@dsdc.local`.
 3. Confirm left menu shows:
-   Dashboard, Terms, Classes, Students, Coaches, Enroll, Legal Docs, Create User.
+   Dashboard, Terms, Classes, Availability, Sub Requests, Private Sessions, Students, Coaches, Enroll, Legal Docs, Create User.
 4. Click each menu item and confirm pages open with no errors.
 
 ### B) Admin Core Features
@@ -97,6 +97,10 @@ All seeded accounts use password: `PortalSeed123!Temp` (unless changed by env ov
 9. Change one student status (for example `Present -> Late`), wait 1 second, refresh, confirm it saved.
 10. Open class resources page.
 11. Upload one small file, click `Open`, then click `Delete`.
+12. Open `Availability`, create one slot, refresh, confirm it persists.
+13. Create one `Sub Request` and one `TA Request`.
+14. If using TA account, open available TA requests and accept one.
+15. Open `Private Sessions` and confirm pending requests are visible for assigned coach.
 
 If there are no classes scheduled for today, seeing `No classes scheduled for today.` is normal.
 
@@ -114,14 +118,16 @@ If there are no classes scheduled for today, seeing `No classes scheduled for to
    if doc exists, open document and sign once.
 9. Open `Feedback`, submit test message, confirm thank-you message.
 10. Open `Make-up Classes`, confirm info appears (or a fallback message if no absence scenario exists).
-11. Open `Book Private Session` and `Report Cards` and confirm they show coming soon text.
+11. Open `Book Private Session`, select a slot, submit request, confirm it appears in My Bookings.
+12. Cancel a pending private request and confirm status updates.
+13. Open `Report Cards` and confirm it still shows coming soon text.
 
 ### H) Parent Features
 
 1. Log out.
 2. Log in as `parent.1@dsdc.local`.
 3. Confirm parent menu shows:
-   Dashboard, My Student's Classes, Attendance, Resources, Report Cards, Legal Documents, Mark Absent, Notification Preferences.
+   Dashboard, My Student's Classes, Attendance, Resources, Report Cards, Legal Documents, Mark Absent, Private Sessions, Notification Preferences.
 4. Confirm Student selector appears in sidebar and can switch linked students.
 5. Open `Dashboard`, `Classes`, `Attendance`, `Resources` and confirm data changes when switching student.
 6. Open `Mark Absent`, submit one upcoming absence, confirm it appears in list.
@@ -129,8 +135,18 @@ If there are no classes scheduled for today, seeing `No classes scheduled for to
    if a doc is unsigned, sign it; if already signed, confirm signed status and view signature works.
 8. Open `Notification Preferences`, change options, click save, refresh, confirm saved values persist.
 9. Change parent language to Chinese using sidebar language selector and confirm parent page labels update.
+10. Open `Private Sessions` and confirm it shows selected student's private session history (read-only).
 
-### I) Permission Guard Test
+### I) Admin Phase C Features
+
+1. Open `Availability` and confirm coach slots are visible with filter controls.
+2. Open `Sub Requests` and confirm both Sub and TA requests appear.
+3. Cancel one open request from admin page and verify status updates.
+4. Open `Private Sessions` and confirm pending/confirmed/cancelled/completed rows appear.
+5. Confirm one pending session and verify status changes.
+6. Mark one confirmed session as completed.
+
+### J) Permission Guard Test
 
 1. While logged in as coach, try opening `/portal/admin/dashboard`.
 2. Confirm redirect away from admin routes.
@@ -139,7 +155,7 @@ If there are no classes scheduled for today, seeing `No classes scheduled for to
 5. While logged in as parent, try opening `/portal/student/classes`.
 6. Confirm redirect away from student routes.
 
-### J) Optional Visual Check
+### K) Optional Visual Check
 
 1. If page appears unstyled, press `Ctrl + Shift + R` once.
 2. If still unstyled, close tab and reopen URL.

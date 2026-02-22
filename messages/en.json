@@ -503,6 +503,9 @@
         "generalUpdates": "General updates",
         "save": "Save Preferences"
       },
+      "privateSessions": {
+        "title": "Private Sessions"
+      },
       "reportCards": {
         "title": "Report Cards",
         "comingSoon": "Report cards are coming soon."

@@ -21,13 +21,45 @@ export default async function CoachClassesPage() {
   const enrollments = (enrollmentsData ?? []) as any[];
 
   const studentIds = [...new Set(enrollments.map((row: any) => row.student_id))];
-  const profileMap = await getProfileMap(supabase, studentIds);
+  const today = new Date().toISOString().slice(0, 10);
+  const subRows = classIds.length
+    ? (((await supabase
+        .from('sub_requests')
+        .select('class_id,session_date,accepting_coach_id,status')
+        .in('class_id', classIds)
+        .eq('status', 'accepted')
+        .gte('session_date', today)
+        .order('session_date', { ascending: true })).data ?? []) as any[])
+    : ([] as any[]);
+  const taRows = classIds.length
+    ? (((await supabase
+        .from('ta_requests')
+        .select('class_id,session_date,accepting_ta_id,status')
+        .in('class_id', classIds)
+        .eq('status', 'accepted')
+        .gte('session_date', today)
+        .order('session_date', { ascending: true })).data ?? []) as any[])
+    : ([] as any[]);
+
+  const profileMap = await getProfileMap(supabase, [
+    ...studentIds,
+    ...subRows.map((row: any) => row.accepting_coach_id).filter(Boolean),
+    ...taRows.map((row: any) => row.accepting_ta_id).filter(Boolean),
+  ]);
 
   const enrollmentsByClass = new Map<string, string[]>();
   for (const enrollment of enrollments) {
     const existing = enrollmentsByClass.get(enrollment.class_id) ?? [];
     existing.push(enrollment.student_id);
     enrollmentsByClass.set(enrollment.class_id, existing);
+  }
+  const nextSubByClass = new Map<string, any>();
+  for (const row of subRows) {
+    if (!nextSubByClass.has(row.class_id)) nextSubByClass.set(row.class_id, row);
+  }
+  const nextTaByClass = new Map<string, any>();
+  for (const row of taRows) {
+    if (!nextTaByClass.has(row.class_id)) nextTaByClass.set(row.class_id, row);
   }
 
   return (
@@ -38,6 +70,8 @@ export default async function CoachClassesPage() {
         <div className="space-y-4">
           {classes.map((classRow) => {
             const studentIdsForClass = enrollmentsByClass.get(classRow.id) ?? [];
+            const nextSub = nextSubByClass.get(classRow.id);
+            const nextTa = nextTaByClass.get(classRow.id);
             return (
               <article
                 key={classRow.id}
@@ -77,6 +111,16 @@ export default async function CoachClassesPage() {
                         {studentIdsForClass
                           .map((studentId) => profileMap[studentId]?.display_name || profileMap[studentId]?.email || studentId)
                           .join(', ')}
+                      </p>
+                    ) : null}
+                    {nextSub ? (
+                      <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
+                        Sub: {profileMap[nextSub.accepting_coach_id]?.display_name || profileMap[nextSub.accepting_coach_id]?.email || nextSub.accepting_coach_id} on {nextSub.session_date}
+                      </p>
+                    ) : null}
+                    {nextTa ? (
+                      <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
+                        TA: {profileMap[nextTa.accepting_ta_id]?.display_name || profileMap[nextTa.accepting_ta_id]?.email || nextTa.accepting_ta_id} on {nextTa.session_date}
                       </p>
                     ) : null}
                   </div>

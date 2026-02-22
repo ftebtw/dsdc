@@ -60,13 +60,29 @@ export default async function StudentClassesPage() {
         .gte('session_date', today)
         .order('session_date', { ascending: true })).data ?? []) as any[])
     : ([] as any[]);
+  const taRequests = classIds.length
+    ? (((await supabase
+        .from('ta_requests')
+        .select('class_id,accepting_ta_id,session_date,status')
+        .in('class_id', classIds)
+        .eq('status', 'accepted')
+        .gte('session_date', today)
+        .order('session_date', { ascending: true })).data ?? []) as any[])
+    : ([] as any[]);
 
   const subCoachIds = [...new Set(subRequests.map((row: any) => row.accepting_coach_id).filter(Boolean))];
-  const subCoachMap = await getProfileMap(supabase, subCoachIds);
+  const taIds = [...new Set(taRequests.map((row: any) => row.accepting_ta_id).filter(Boolean))];
+  const subCoachMap = await getProfileMap(supabase, [...subCoachIds, ...taIds]);
   const nextSubByClass = new Map<string, any>();
   for (const subRequest of subRequests) {
     if (!nextSubByClass.has(subRequest.class_id)) {
       nextSubByClass.set(subRequest.class_id, subRequest);
+    }
+  }
+  const nextTaByClass = new Map<string, any>();
+  for (const taRequest of taRequests) {
+    if (!nextTaByClass.has(taRequest.class_id)) {
+      nextTaByClass.set(taRequest.class_id, taRequest);
     }
   }
 
@@ -80,6 +96,7 @@ export default async function StudentClassesPage() {
             {classes.map((classRow: any) => {
               const coach = coachMap[classRow.coach_id];
               const nextSub = nextSubByClass.get(classRow.id);
+              const nextTa = nextTaByClass.get(classRow.id);
               const creditBalance = creditsByType.get(classRow.type) ?? 0;
               return (
                 <article
@@ -114,6 +131,14 @@ export default async function StudentClassesPage() {
                       {subCoachMap[nextSub.accepting_coach_id]?.display_name ||
                         subCoachMap[nextSub.accepting_coach_id]?.email ||
                         nextSub.accepting_coach_id}
+                    </p>
+                  ) : null}
+                  {nextTa ? (
+                    <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
+                      TA on {nextTa.session_date}:{' '}
+                      {subCoachMap[nextTa.accepting_ta_id]?.display_name ||
+                        subCoachMap[nextTa.accepting_ta_id]?.email ||
+                        nextTa.accepting_ta_id}
                     </p>
                   ) : null}
                   <p className="mt-2 text-sm text-charcoal/80 dark:text-navy-200">

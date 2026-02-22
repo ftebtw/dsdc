@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 import CoachCard from "@/components/CoachCard";
-import { coachAwards } from "@/lib/coachAwards";
+import { Award, coachAwards } from "@/lib/coachAwards";
 import { coachImages } from "@/lib/coachImages";
 import AnimatedSection from "@/components/AnimatedSection";
 import { teamPageDataSanity } from "@/lib/sanity/presentation";
@@ -18,21 +18,32 @@ export default function TeamPage() {
     bio: string;
     image?: string;
     imageUrl?: string;
+    awards?: Award[];
   }> | undefined) ?? []) as Array<{
     name: string;
     title: string;
     bio: string;
     image?: string;
     imageUrl?: string;
+    awards?: Award[];
   }>;
 
   const teamPageMessages =
-    ((messages.teamPage as { founderName?: string; founderKeyAchievements?: string[] } | undefined) ?? {
+    ((messages.teamPage as {
+      founderName?: string;
+      founderKeyAchievements?: string[];
+      founderAwards?: Award[];
+    } | undefined) ?? {
       founderName: "Rebecca Amisano",
       founderKeyAchievements: [],
+      founderAwards: [],
     });
   const founderName = teamPageMessages.founderName || "Rebecca Amisano";
   const founderKeyAchievements = teamPageMessages.founderKeyAchievements || [];
+  const founderAwards =
+    Array.isArray(teamPageMessages.founderAwards) && teamPageMessages.founderAwards.length > 0
+      ? teamPageMessages.founderAwards
+      : coachAwards[founderName] || coachAwards["Rebecca Amisano"] || [];
 
   useEffect(() => {
     setShowSanityAttr(document.cookie.includes("__prerender_bypass"));
@@ -89,7 +100,7 @@ export default function TeamPage() {
               name={founderName}
               title={t("teamPage.founderTitle")}
               bio={t("teamPage.founderBio")}
-              awards={coachAwards[founderName] || coachAwards["Rebecca Amisano"] || []}
+              awards={founderAwards}
               image={coachImages[founderName] || coachImages["Rebecca Amisano"]}
               keyAchievements={founderKeyAchievements}
               index={0}
@@ -109,7 +120,11 @@ export default function TeamPage() {
                 name={coach.name}
                 title={coach.title}
                 bio={coach.bio}
-                awards={coachAwards[coach.name] || []}
+                awards={
+                  Array.isArray(coach.awards) && coach.awards.length > 0
+                    ? coach.awards
+                    : coachAwards[coach.name] || []
+                }
                 image={coach.image || coach.imageUrl || coachImages[coach.name]}
                 index={i}
               />

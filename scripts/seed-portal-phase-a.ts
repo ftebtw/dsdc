@@ -179,6 +179,188 @@ async function ensureEnrollment(studentId: string, classId: string) {
   if (error) throw error;
 }
 
+function addDaysYmd(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+async function ensureAvailability(
+  coachId: string,
+  availableDate: string,
+  startTime: string,
+  endTime: string,
+  isGroup: boolean,
+  isPrivate: boolean
+) {
+  const { data: existing } = await supabase
+    .from('coach_availability')
+    .select('*')
+    .eq('coach_id', coachId)
+    .eq('available_date', availableDate)
+    .eq('start_time', startTime)
+    .eq('end_time', endTime)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase
+      .from('coach_availability')
+      .update({
+        timezone: 'America/Vancouver',
+        is_group: isGroup,
+        is_private: isPrivate,
+      })
+      .eq('id', existing.id);
+    return existing.id;
+  }
+
+  const { data, error } = await supabase
+    .from('coach_availability')
+    .insert({
+      coach_id: coachId,
+      available_date: availableDate,
+      start_time: startTime,
+      end_time: endTime,
+      timezone: 'America/Vancouver',
+      is_group: isGroup,
+      is_private: isPrivate,
+    })
+    .select('id')
+    .single();
+  if (error) throw error;
+  return data.id;
+}
+
+async function ensureSubRequest(
+  requestingCoachId: string,
+  classId: string,
+  sessionDate: string,
+  status: 'open' | 'accepted' | 'cancelled',
+  acceptingCoachId?: string
+) {
+  const { data: existing } = await supabase
+    .from('sub_requests')
+    .select('*')
+    .eq('requesting_coach_id', requestingCoachId)
+    .eq('class_id', classId)
+    .eq('session_date', sessionDate)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await supabase
+      .from('sub_requests')
+      .update({
+        status,
+        accepting_coach_id: acceptingCoachId || null,
+        accepted_at: status === 'accepted' ? new Date().toISOString() : null,
+      })
+      .eq('id', existing.id);
+    if (error) throw error;
+    return;
+  }
+
+  const { error } = await supabase.from('sub_requests').insert({
+    requesting_coach_id: requestingCoachId,
+    class_id: classId,
+    session_date: sessionDate,
+    reason: 'Seeded Phase C request',
+    status,
+    accepting_coach_id: acceptingCoachId || null,
+    accepted_at: status === 'accepted' ? new Date().toISOString() : null,
+  });
+  if (error) throw error;
+}
+
+async function ensureTaRequest(
+  requestingCoachId: string,
+  classId: string,
+  sessionDate: string,
+  status: 'open' | 'accepted' | 'cancelled',
+  acceptingTaId?: string
+) {
+  const { data: existing } = await supabase
+    .from('ta_requests')
+    .select('*')
+    .eq('requesting_coach_id', requestingCoachId)
+    .eq('class_id', classId)
+    .eq('session_date', sessionDate)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await supabase
+      .from('ta_requests')
+      .update({
+        status,
+        accepting_ta_id: acceptingTaId || null,
+        accepted_at: status === 'accepted' ? new Date().toISOString() : null,
+      })
+      .eq('id', existing.id);
+    if (error) throw error;
+    return;
+  }
+
+  const { error } = await supabase.from('ta_requests').insert({
+    requesting_coach_id: requestingCoachId,
+    class_id: classId,
+    session_date: sessionDate,
+    reason: 'Seeded Phase C TA request',
+    status,
+    accepting_ta_id: acceptingTaId || null,
+    accepted_at: status === 'accepted' ? new Date().toISOString() : null,
+  });
+  if (error) throw error;
+}
+
+async function ensurePrivateSession(
+  studentId: string,
+  coachId: string,
+  availabilityId: string | null,
+  requestedDate: string,
+  startTime: string,
+  endTime: string,
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
+) {
+  const { data: existing } = await (supabase as any)
+    .from('private_sessions')
+    .select('*')
+    .eq('student_id', studentId)
+    .eq('coach_id', coachId)
+    .eq('requested_date', requestedDate)
+    .eq('requested_start_time', startTime)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await (supabase as any)
+      .from('private_sessions')
+      .update({
+        availability_id: availabilityId,
+        requested_end_time: endTime,
+        timezone: 'America/Vancouver',
+        status,
+        confirmed_at: status === 'confirmed' ? new Date().toISOString() : null,
+        cancelled_at: status === 'cancelled' ? new Date().toISOString() : null,
+      })
+      .eq('id', existing.id);
+    if (error) throw error;
+    return;
+  }
+
+  const { error } = await (supabase as any).from('private_sessions').insert({
+    student_id: studentId,
+    coach_id: coachId,
+    availability_id: availabilityId,
+    requested_date: requestedDate,
+    requested_start_time: startTime,
+    requested_end_time: endTime,
+    timezone: 'America/Vancouver',
+    status,
+    student_notes: 'Seeded request',
+    confirmed_at: status === 'confirmed' ? new Date().toISOString() : null,
+    cancelled_at: status === 'cancelled' ? new Date().toISOString() : null,
+  });
+  if (error) throw error;
+}
+
 async function run() {
   console.log('Seeding Phase A portal data...');
 
@@ -315,6 +497,76 @@ async function run() {
   await ensureEnrollment(studentIds[3], classIds.publicSpeaking);
   await ensureEnrollment(studentIds[4], classIds.wsc);
   await ensureEnrollment(studentIds[0], classIds.wsc);
+
+  // Phase C seed rows (idempotent)
+  const slotA = await ensureAvailability(coachIds['coach.junior@dsdc.local'], addDaysYmd(2), '15:00', '16:00', true, true);
+  const slotB = await ensureAvailability(coachIds['coach.senior@dsdc.local'], addDaysYmd(3), '16:30', '17:30', false, true);
+  const slotC = await ensureAvailability(coachIds['coach.wsc@dsdc.local'], addDaysYmd(5), '18:00', '19:00', true, false);
+
+  await ensureSubRequest(
+    coachIds['coach.junior@dsdc.local'],
+    classIds.novice,
+    addDaysYmd(4),
+    'open'
+  );
+  await ensureSubRequest(
+    coachIds['coach.senior@dsdc.local'],
+    classIds.intermediate,
+    addDaysYmd(6),
+    'accepted',
+    coachIds['coach.wsc@dsdc.local']
+  );
+
+  await ensureTaRequest(
+    coachIds['coach.junior@dsdc.local'],
+    classIds.publicSpeaking,
+    addDaysYmd(4),
+    'open'
+  );
+  await ensureTaRequest(
+    coachIds['coach.wsc@dsdc.local'],
+    classIds.wsc,
+    addDaysYmd(7),
+    'accepted',
+    coachIds['ta.assistant@dsdc.local']
+  );
+
+  await ensurePrivateSession(
+    studentIds[0],
+    coachIds['coach.junior@dsdc.local'],
+    slotA,
+    addDaysYmd(2),
+    '15:00',
+    '16:00',
+    'pending'
+  );
+  await ensurePrivateSession(
+    studentIds[1],
+    coachIds['coach.senior@dsdc.local'],
+    slotB,
+    addDaysYmd(3),
+    '16:30',
+    '17:30',
+    'confirmed'
+  );
+  await ensurePrivateSession(
+    studentIds[2],
+    coachIds['coach.junior@dsdc.local'],
+    null,
+    addDaysYmd(1),
+    '14:00',
+    '15:00',
+    'cancelled'
+  );
+  await ensurePrivateSession(
+    studentIds[3],
+    coachIds['coach.wsc@dsdc.local'],
+    slotC,
+    addDaysYmd(5),
+    '18:00',
+    '19:00',
+    'completed'
+  );
 
   console.log('Portal Phase A seed complete.');
   console.log('Seed password for all users:', SEED_PASSWORD);

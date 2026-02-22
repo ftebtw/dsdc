@@ -1,4 +1,4 @@
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+import { formatInTimeZone, fromZonedTime, toZonedTime } from 'date-fns-tz';
 import type { Database } from '@/lib/supabase/database.types';
 
 type ClassRow = Database['public']['Tables']['classes']['Row'];
@@ -36,4 +36,39 @@ export function formatUtcForUser(
   pattern = 'yyyy-MM-dd HH:mm zzz'
 ): string {
   return formatInTimeZone(new Date(utcIso), timezone, pattern);
+}
+
+export function formatSessionTimeForViewer(
+  sessionDate: string,
+  sessionTime: string,
+  sourceTimezone: string,
+  viewerTimezone: string,
+  pattern = 'yyyy-MM-dd HH:mm zzz'
+): string {
+  const utcDate = fromZonedTime(`${sessionDate}T${sessionTime}`, sourceTimezone);
+  return formatInTimeZone(utcDate, viewerTimezone, pattern);
+}
+
+export function formatSessionRangeForViewer(
+  sessionDate: string,
+  startTime: string,
+  endTime: string,
+  sourceTimezone: string,
+  viewerTimezone: string
+): string {
+  const start = formatSessionTimeForViewer(
+    sessionDate,
+    startTime,
+    sourceTimezone,
+    viewerTimezone,
+    'yyyy-MM-dd HH:mm'
+  );
+  const end = formatSessionTimeForViewer(
+    sessionDate,
+    endTime,
+    sourceTimezone,
+    viewerTimezone,
+    'HH:mm zzz'
+  );
+  return `${start}-${end}`;
 }
