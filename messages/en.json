@@ -7,6 +7,8 @@
     "blog": "Blog",
     "pricing": "Pricing",
     "book": "Book a Consultation",
+    "register": "Register",
+    "portalLogin": "Portal Login",
     "langToggle": "中文"
   },
   "hero": {
@@ -457,6 +459,37 @@
     "classTier": "Class tier",
     "receipt": "View receipt",
     "backHome": "Back to Home"
+  },
+  "registerPage": {
+    "badge": "Quick Enrollment",
+    "title": "Create your account",
+    "subtitle": "Create an account in under a minute, then choose classes and pay securely.",
+    "studentRole": "I'm a Student",
+    "parentRole": "I'm a Parent",
+    "displayName": "Display name",
+    "email": "Email",
+    "password": "Password",
+    "parentName": "Parent display name",
+    "parentEmail": "Parent email",
+    "parentPassword": "Parent password",
+    "studentName": "Student name",
+    "studentEmail": "Student email",
+    "creating": "Creating account...",
+    "continue": "Continue to class selection",
+    "portalHint": "Already have an account?",
+    "portalLogin": "Portal Login",
+    "error": "Registration failed. Please try again.",
+    "classesTitle": "Choose your classes",
+    "stepClasses": "Step 2 of 2",
+    "coach": "Coach",
+    "spots": "Spots remaining",
+    "noClasses": "No classes with open spots are available right now.",
+    "continuePayment": "Continue to Payment",
+    "redirectingCheckout": "Redirecting to checkout...",
+    "checkoutError": "Checkout could not start.",
+    "paymentCadOnly": "All payments are processed in CAD.",
+    "successTitle": "You're enrolled!",
+    "successSubtitle": "Payment is complete. Class details were emailed to you."
   },
   "portal": {
     "parent": {

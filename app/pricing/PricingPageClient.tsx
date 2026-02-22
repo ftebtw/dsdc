@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { loadStripe } from "@stripe/stripe-js";
 import { Check, Users, Mic, Globe, Trophy, User, MessageCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "@/components/AnimatedSection";
@@ -31,24 +30,12 @@ type FxResponse = {
   lastUpdated: string;
 };
 
-type CheckoutResponse = {
-  url?: string;
-  error?: string;
-};
-
-type PricingPageClientProps = {
-  stripePriceIds: Record<GroupTierKey, string>;
-};
-
-const stripeClientPromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
-
-export default function PricingPageClient({ stripePriceIds }: PricingPageClientProps) {
+export default function PricingPageClient() {
   const { t, locale } = useI18n();
   const [currency, setCurrency] = useState<SupportedCurrency>("CAD");
   const [rates, setRates] = useState<Record<SupportedCurrency, number>>(BASE_FX_FALLBACK);
   const [rateSource, setRateSource] = useState<FxResponse["source"]>("fallback");
   const [loadingTier, setLoadingTier] = useState<GroupTierKey | null>(null);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const termLengthLabelRaw = t("pricingPage.termLength");
   const termLengthLabel =
     termLengthLabelRaw === "pricingPage.termLength"
@@ -88,34 +75,12 @@ export default function PricingPageClient({ stripePriceIds }: PricingPageClientP
   );
 
   async function startCheckout(tierKey: GroupTierKey) {
-    const priceId = stripePriceIds[tierKey];
-
-    setCheckoutError(null);
     setLoadingTier(tierKey);
-
-    try {
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          priceId,
-          locale,
-        }),
-      });
-
-      const payload = (await response.json()) as CheckoutResponse;
-      if (!response.ok || !payload.url) {
-        setCheckoutError(payload.error || t("pricingPage.checkoutError"));
-        return;
-      }
-
-      await stripeClientPromise;
-      window.location.assign(payload.url);
-    } catch {
-      setCheckoutError(t("pricingPage.checkoutError"));
-    } finally {
-      setLoadingTier(null);
-    }
+    const query = new URLSearchParams({
+      lang: locale === "zh" ? "zh" : "en",
+      tier: tierKey,
+    });
+    window.location.assign(`/register?${query.toString()}`);
   }
 
   return (
@@ -237,12 +202,6 @@ export default function PricingPageClient({ stripePriceIds }: PricingPageClientP
               );
             })}
           </div>
-
-          {checkoutError ? (
-            <AnimatedSection delay={0.08}>
-              <p className="mt-5 text-sm font-medium text-red-700 dark:text-red-300">{checkoutError}</p>
-            </AnimatedSection>
-          ) : null}
 
           <AnimatedSection delay={0.12}>
             <p className="mt-5 text-sm text-charcoal/60 dark:text-navy-300 font-sans">

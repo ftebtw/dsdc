@@ -1,8 +1,10 @@
 import "server-only";
 import type { GroupTierKey } from "@/lib/pricing";
+import type { Database } from "@/lib/supabase/database.types";
 
 type PriceEnvByTier = Record<GroupTierKey, string>;
 export type StripePriceMap = Record<GroupTierKey, string>;
+type ClassType = Database["public"]["Enums"]["class_type"];
 
 const priceEnvByTier: PriceEnvByTier = {
   // One-time Stripe price IDs for per-term enrollment checkout.
@@ -60,4 +62,17 @@ export function getTierForPriceId(priceId: string): GroupTierKey | null {
     }
   }
   return null;
+}
+
+export function getPriceIdForClassType(classType: ClassType): string {
+  if (classType === "novice_debate" || classType === "intermediate_debate") {
+    return getPriceIdForTier("noviceIntermediate");
+  }
+  if (classType === "public_speaking") {
+    return getPriceIdForTier("publicSpeaking");
+  }
+  if (classType === "wsc") {
+    return getPriceIdForTier("wsc");
+  }
+  return getPriceIdForTier("advanced");
 }

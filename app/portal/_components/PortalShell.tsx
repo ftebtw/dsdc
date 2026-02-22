@@ -219,6 +219,8 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
             { href: "/portal/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
             { href: "/portal/admin/terms", label: "Terms", icon: Calendar },
             { href: "/portal/admin/classes", label: "Classes", icon: BookOpen },
+            { href: "/portal/admin/report-cards", label: "Report Cards", icon: GraduationCap },
+            { href: "/portal/admin/payroll", label: "Payroll", icon: ClipboardCheck },
             { href: "/portal/admin/availability", label: "Availability", icon: Calendar },
             { href: "/portal/admin/subs", label: "Sub Requests", icon: Users },
             { href: "/portal/admin/private-sessions", label: "Private Sessions", icon: ClipboardCheck },
@@ -248,6 +250,8 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
             { href: "/portal/coach/dashboard", label: "Dashboard", icon: LayoutDashboard },
             { href: "/portal/coach/checkin", label: "Check-in", icon: ClipboardCheck },
             { href: "/portal/coach/classes", label: "My Classes", icon: BookOpen },
+            { href: "/portal/coach/report-cards", label: "Report Cards", icon: GraduationCap },
+            { href: "/portal/coach/hours", label: "My Hours", icon: Calendar },
           ],
         },
         {

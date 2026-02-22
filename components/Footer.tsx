@@ -6,7 +6,8 @@ import { useI18n } from "@/lib/i18n";
 import LanguageToggle from "./LanguageToggle";
 
 export default function Footer() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const registerHref = `/register?lang=${locale === "zh" ? "zh" : "en"}`;
 
   return (
     <footer className="bg-navy-800 dark:bg-navy-900 text-white border-t border-navy-700 dark:border-navy-800">
@@ -63,6 +64,16 @@ export default function Footer() {
               <li>
                 <Link href="/book" className="text-navy-200 hover:text-white text-sm transition-colors">
                   {t("nav.book")}
+                </Link>
+              </li>
+              <li>
+                <Link href={registerHref} className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {t("nav.register")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/portal/login" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {t("nav.portalLogin")}
                 </Link>
               </li>
             </ul>

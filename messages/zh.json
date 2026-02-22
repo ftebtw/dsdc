@@ -7,6 +7,8 @@
     "blog": "博客",
     "pricing": "价格",
     "book": "预约咨询",
+    "register": "立即报名",
+    "portalLogin": "门户登录",
     "langToggle": "EN"
   },
   "hero": {
@@ -457,6 +459,37 @@
     "classTier": "课程",
     "receipt": "查看收据",
     "backHome": "返回首页"
+  },
+  "registerPage": {
+    "badge": "快速报名",
+    "title": "创建账户",
+    "subtitle": "1分钟内完成建档，选择课程并安全支付。",
+    "studentRole": "我是学生",
+    "parentRole": "我是家长",
+    "displayName": "姓名",
+    "email": "邮箱",
+    "password": "密码",
+    "parentName": "家长姓名",
+    "parentEmail": "家长邮箱",
+    "parentPassword": "家长密码",
+    "studentName": "学生姓名",
+    "studentEmail": "学生邮箱",
+    "creating": "正在创建账户...",
+    "continue": "继续选择课程",
+    "portalHint": "已经有账户？",
+    "portalLogin": "门户登录",
+    "error": "报名失败，请重试。",
+    "classesTitle": "选择课程",
+    "stepClasses": "第 2 步（共 2 步）",
+    "coach": "教练",
+    "spots": "剩余名额",
+    "noClasses": "当前没有可报名的课程。",
+    "continuePayment": "继续支付",
+    "redirectingCheckout": "正在跳转支付...",
+    "checkoutError": "无法启动支付。",
+    "paymentCadOnly": "所有付款均以加元（CAD）结算。",
+    "successTitle": "报名成功！",
+    "successSubtitle": "支付已完成，课程详情已发送到邮箱。"
   },
   "portal": {
     "parent": {

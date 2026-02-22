@@ -1,4 +1,6 @@
+﻿import Link from 'next/link';
 import SectionCard from '@/app/portal/_components/SectionCard';
+import AdminNotificationTestTools from '@/app/portal/_components/AdminNotificationTestTools';
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getActiveTerm, getProfileMap } from '@/lib/portal/data';
@@ -8,11 +10,18 @@ import {
   isClassInDateRange,
   isClassToday,
 } from '@/lib/portal/time';
+import { fetchPayrollTotalHours } from '@/lib/portal/payroll';
 
 export default async function AdminDashboardPage() {
   const session = await requireRole(['admin']);
   const supabase = await getSupabaseServerClient();
   const now = new Date();
+  const thisMonthStart = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
+  const thisMonthEnd = now.toISOString().slice(0, 10);
+  const payrollHoursPromise = fetchPayrollTotalHours(supabase, {
+    start: thisMonthStart,
+    end: thisMonthEnd,
+  });
 
   const [
     activeTerm,
@@ -169,11 +178,12 @@ export default async function AdminDashboardPage() {
   }
 
   const checkinsCompletedCount = checkinsToday.filter((row) => row.checkedInAt).length;
+  const thisMonthPayrollHours = await payrollHoursPromise;
 
   return (
     <div className="space-y-6">
       <SectionCard title="Admin Dashboard" description="Operational snapshot for the active term.">
-        <div className="grid sm:grid-cols-2 xl:grid-cols-8 gap-3">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-9 gap-3">
           <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
             <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Active students</p>
             <p className="text-2xl font-bold text-navy-800 dark:text-white">{activeStudentsCount}</p>
@@ -195,6 +205,16 @@ export default async function AdminDashboardPage() {
           <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
             <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending report cards</p>
             <p className="text-2xl font-bold text-navy-800 dark:text-white">{reportCardsCount}</p>
+            <Link href="/portal/admin/report-cards" className="text-xs underline text-navy-700 dark:text-navy-200">
+              Open queue
+            </Link>
+          </div>
+          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
+            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Payroll this month</p>
+            <p className="text-2xl font-bold text-navy-800 dark:text-white">{thisMonthPayrollHours.toFixed(2)}h</p>
+            <Link href="/portal/admin/payroll?preset=thisMonth" className="text-xs underline text-navy-700 dark:text-navy-200">
+              View payroll
+            </Link>
           </div>
           <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
             <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Open sub requests</p>
@@ -221,8 +241,8 @@ export default async function AdminDashboardPage() {
                 key={row.classId}
                 className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-3 text-sm"
               >
-                <span className="font-medium text-navy-800 dark:text-white">{row.className}</span> •{' '}
-                {coachMap[row.coachId]?.display_name || coachMap[row.coachId]?.email || row.coachId} •{' '}
+                <span className="font-medium text-navy-800 dark:text-white">{row.className}</span> -{' '}
+                {coachMap[row.coachId]?.display_name || coachMap[row.coachId]?.email || row.coachId} -{' '}
                 {row.checkedInAt ? (
                   <span className="text-green-700 dark:text-green-400">
                     {formatUtcForUser(row.checkedInAt, session.profile.timezone)}
@@ -242,7 +262,7 @@ export default async function AdminDashboardPage() {
             {checkinRows.length === 0 ? <p className="text-charcoal/70 dark:text-navy-300">No check-ins yet.</p> : null}
             {checkinRows.map((row) => (
               <p key={row.id} className="text-charcoal/80 dark:text-navy-200">
-                {formatUtcForUser(row.checked_in_at, session.profile.timezone)} •{' '}
+                {formatUtcForUser(row.checked_in_at, session.profile.timezone)} -{' '}
                 {classMap[row.class_id]?.name || row.class_id}
               </p>
             ))}
@@ -256,14 +276,22 @@ export default async function AdminDashboardPage() {
             ) : null}
             {attendanceRows.map((row) => (
               <p key={row.id} className="text-charcoal/80 dark:text-navy-200">
-                {formatUtcForUser(row.marked_at, session.profile.timezone)} • {classMap[row.class_id]?.name || row.class_id} •{' '}
-                {(studentMap[row.student_id]?.display_name || studentMap[row.student_id]?.email || row.student_id)} •{' '}
-                {row.status} • by {markerMap[row.marked_by]?.display_name || markerMap[row.marked_by]?.email || row.marked_by}
+                {formatUtcForUser(row.marked_at, session.profile.timezone)} - {classMap[row.class_id]?.name || row.class_id} -{' '}
+                {(studentMap[row.student_id]?.display_name || studentMap[row.student_id]?.email || row.student_id)} -{' '}
+                {row.status} - by {markerMap[row.marked_by]?.display_name || markerMap[row.marked_by]?.email || row.marked_by}
               </p>
             ))}
           </div>
         </SectionCard>
       </div>
+
+      <SectionCard
+        title="Admin Test Tools"
+        description="Send test notification emails without changing student records."
+      >
+        <AdminNotificationTestTools defaultRecipient={session.profile.email} />
+      </SectionCard>
     </div>
   );
 }
+
