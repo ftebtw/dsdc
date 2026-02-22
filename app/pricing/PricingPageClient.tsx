@@ -192,7 +192,7 @@ export default function PricingPageClient() {
                       onClick={() => {
                         void startCheckout(tier.key);
                       }}
-                      className="mt-6 w-full px-4 py-3 rounded-lg bg-navy-800 text-white font-semibold hover:bg-navy-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="mt-6 w-full px-4 py-3 rounded-lg bg-navy-800 text-white font-semibold hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                       disabled={Boolean(loadingTier)}
                     >
                       {isLoading ? t("pricingPage.checkoutLoading") : t("pricingPage.enrollNow")}
@@ -235,7 +235,7 @@ export default function PricingPageClient() {
               </p>
               <Link
                 href="/book"
-                className="inline-block mt-6 px-6 py-3 rounded-lg bg-navy-800 text-white font-semibold hover:bg-navy-700 transition-colors"
+                className="inline-block mt-6 px-6 py-3 rounded-lg bg-navy-800 text-white font-semibold hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors"
               >
                 {t("pricingPage.contactUs")}
               </Link>

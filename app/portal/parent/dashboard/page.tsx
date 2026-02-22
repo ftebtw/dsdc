@@ -80,23 +80,23 @@ export default async function ParentDashboardPage({
         }`}
       >
         <div className="grid sm:grid-cols-3 gap-3">
-          <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-3">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">
+          <div className="rounded-lg border border-warm-200 dark:border-navy-600/70 bg-warm-50 dark:bg-navy-900/65 p-3 shadow-sm dark:shadow-black/20">
+            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
               {parentT(locale, 'portal.parent.dashboard.activeClasses', 'Active classes')}
             </p>
             <p className="text-2xl font-bold text-navy-800 dark:text-white">{activeClasses.length}</p>
           </div>
-          <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-3">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">
+          <div className="rounded-lg border border-warm-200 dark:border-navy-600/70 bg-warm-50 dark:bg-navy-900/65 p-3 shadow-sm dark:shadow-black/20">
+            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
               {parentT(locale, 'portal.parent.dashboard.presentCount', 'Present sessions')}
             </p>
-            <p className="text-2xl font-bold text-green-700">{presentCount}</p>
+            <p className="text-2xl font-bold text-green-700 dark:text-green-400">{presentCount}</p>
           </div>
-          <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-3">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">
+          <div className="rounded-lg border border-warm-200 dark:border-navy-600/70 bg-warm-50 dark:bg-navy-900/65 p-3 shadow-sm dark:shadow-black/20">
+            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
               {parentT(locale, 'portal.parent.dashboard.absentCount', 'Absent sessions')}
             </p>
-            <p className="text-2xl font-bold text-red-700">{absentCount}</p>
+            <p className="text-2xl font-bold text-red-700 dark:text-red-400">{absentCount}</p>
           </div>
         </div>
       </SectionCard>

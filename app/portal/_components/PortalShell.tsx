@@ -109,37 +109,41 @@ function PortalNav({
   role,
   pathname,
   sections,
+  pendingPath,
   studentParam,
   isParent,
   parentCopy,
   localeUpdating,
   currentParentLocale,
   onLocaleChange,
+  onNavClick,
 }: {
   role: PortalRole | null;
   pathname: string | null;
   sections: NavSection[];
+  pendingPath: string | null;
   studentParam: string | null;
   isParent: boolean;
   parentCopy: ParentCopy;
   localeUpdating: boolean;
   currentParentLocale: "en" | "zh";
   onLocaleChange: (nextLocale: "en" | "zh") => Promise<void>;
+  onNavClick: (href: string) => void;
 }) {
   return (
     <>
       {isParent ? (
-        <div className="mb-4 space-y-3 rounded-xl border border-warm-200 dark:border-navy-700 bg-warm-50 dark:bg-navy-900/40 p-3">
+        <div className="mb-4 space-y-3 rounded-xl border border-warm-200 dark:border-navy-600/60 bg-warm-50 dark:bg-navy-900/55 p-3 shadow-sm dark:shadow-black/25">
           <StudentSelector label={parentCopy.student} emptyLabel={parentCopy.noStudents} />
           <label className="block">
-            <span className="block text-xs mb-1 uppercase tracking-wide text-charcoal/60 dark:text-navy-300">
+            <span className="block text-xs mb-1 uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
               {parentCopy.language}
             </span>
             <select
               disabled={localeUpdating}
               value={currentParentLocale}
               onChange={(event) => onLocaleChange(event.target.value as "en" | "zh")}
-              className="w-full rounded-md border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-2 py-1.5 text-sm"
+              className="w-full rounded-md border border-warm-300 dark:border-navy-500 bg-white dark:bg-navy-900 px-2 py-1.5 text-sm"
             >
               <option value="en">English</option>
               <option value="zh">{"\u4e2d\u6587"}</option>
@@ -151,12 +155,12 @@ function PortalNav({
       <div className="space-y-4">
         {sections.map((section) => (
           <section key={section.title}>
-            <p className="px-2 mb-2 text-[11px] uppercase tracking-[0.14em] text-charcoal/50 dark:text-navy-300">
+            <p className="px-2 mb-2 text-[11px] uppercase tracking-[0.14em] text-charcoal/50 dark:text-navy-200/60">
               {section.title}
             </p>
             <nav className="space-y-1">
               {section.items.map((link) => {
-                const active = pathname?.startsWith(link.href);
+                const active = pathname?.startsWith(link.href) || pendingPath?.startsWith(link.href);
                 const href =
                   role === "parent" && studentParam
                     ? `${link.href}?student=${encodeURIComponent(studentParam)}`
@@ -166,10 +170,13 @@ function PortalNav({
                   <Link
                     key={link.href}
                     href={href}
-                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    prefetch
+                    scroll={false}
+                    onClick={() => onNavClick(link.href)}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       active
-                        ? "bg-gold-300 text-navy-900 shadow-sm"
-                        : "text-navy-700 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700"
+                        ? "bg-gradient-to-r from-gold-300 to-gold-200 text-navy-900 shadow-[0_8px_24px_rgba(217,173,74,0.28)]"
+                        : "text-navy-700 dark:text-navy-100/90 hover:bg-warm-100 dark:hover:bg-navy-700/80 hover:text-navy-900 dark:hover:text-white"
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -192,6 +199,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
   const hideShell = pathname === "/portal/login";
   const [localeUpdating, setLocaleUpdating] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [pendingPath, setPendingPath] = useState<string | null>(null);
 
   const currentParentLocale = locale === "zh" ? "zh" : "en";
   const studentParam = searchParams.get("student");
@@ -199,6 +207,10 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
 
   useEffect(() => {
     setMobileNavOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    setPendingPath(null);
   }, [pathname]);
 
   useEffect(() => {
@@ -316,6 +328,19 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
     return [];
   }, [parentCopy, role]);
 
+  useEffect(() => {
+    for (const section of navSections) {
+      for (const item of section.items) {
+        router.prefetch(item.href);
+      }
+    }
+  }, [navSections, router]);
+
+  function onNavClick(href: string) {
+    if (pathname?.startsWith(href)) return;
+    setPendingPath(href);
+  }
+
   async function onLocaleChange(nextLocale: "en" | "zh") {
     if (nextLocale === currentParentLocale) return;
     setLocaleUpdating(true);
@@ -333,11 +358,12 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-warm-100 to-white dark:from-navy-900 dark:to-navy-950">
-      <header className="fixed top-0 left-0 right-0 border-b border-warm-200 dark:border-navy-700 bg-white/95 dark:bg-navy-900/95 backdrop-blur z-40">
+    <div className="relative min-h-screen bg-gradient-to-b from-warm-100 to-white dark:bg-[radial-gradient(circle_at_top,rgba(40,76,145,0.35),rgba(8,16,36,1)_55%)] dark:text-navy-100">
+      <div className="pointer-events-none fixed inset-0 hidden dark:block bg-[radial-gradient(circle_at_20%_10%,rgba(236,197,90,0.08),transparent_45%)]" />
+      <header className="fixed top-0 left-0 right-0 border-b border-warm-200/80 dark:border-navy-600/70 bg-white/90 dark:bg-navy-900/70 backdrop-blur-xl z-40 shadow-sm dark:shadow-black/30">
         <div className="px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.16em] text-charcoal/60 dark:text-navy-300">DSDC Portal</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-charcoal/60 dark:text-navy-200/70">DSDC Portal</p>
             <div className="flex items-center gap-2">
               <p className="font-semibold text-navy-800 dark:text-white truncate">{name || "Portal User"}</p>
               <span className="hidden sm:inline-flex items-center rounded-full border border-gold-400/50 bg-gold-100 dark:bg-gold-900/25 px-2 py-0.5 text-[11px] font-semibold text-navy-900 dark:text-gold-100">
@@ -349,17 +375,17 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
             <button
               type="button"
               onClick={() => setMobileNavOpen(true)}
-              className="lg:hidden inline-flex items-center justify-center p-2 rounded-md border border-warm-300 dark:border-navy-600"
+              className="lg:hidden inline-flex items-center justify-center p-2 rounded-md border border-warm-300 dark:border-navy-500 dark:bg-navy-800/80 dark:text-navy-100"
               aria-label="Open navigation"
             >
               <Menu className="w-4 h-4" />
             </button>
             <ThemeToggle />
-            <Link href="/" className="hidden sm:inline-flex px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+            <Link href="/" className="hidden sm:inline-flex px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-500 text-sm text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700/80 transition-colors">
               Main Site
             </Link>
             <form action="/portal/logout" method="post">
-              <button type="submit" className="px-3 py-1.5 rounded-md bg-navy-800 text-white text-sm">
+              <button type="submit" className="px-3 py-1.5 rounded-md bg-navy-800 text-white text-sm hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors">
                 Logout
               </button>
             </form>
@@ -370,14 +396,14 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
       <div className="pt-[68px]">
         {mobileNavOpen ? (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setMobileNavOpen(false)} />
-            <div className="absolute inset-y-0 left-0 w-[300px] max-w-[90vw] bg-white dark:bg-navy-900 shadow-xl p-4 overflow-y-auto">
+            <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" onClick={() => setMobileNavOpen(false)} />
+            <div className="absolute inset-y-0 left-0 w-[300px] max-w-[90vw] bg-white dark:bg-gradient-to-b dark:from-navy-900 dark:to-navy-950 shadow-xl p-4 overflow-y-auto">
               <div className="mb-3 flex items-center justify-between">
                 <p className="font-semibold text-navy-900 dark:text-white">Navigation</p>
                 <button
                   type="button"
                   onClick={() => setMobileNavOpen(false)}
-                  className="inline-flex items-center justify-center p-2 rounded-md border border-warm-300 dark:border-navy-600"
+                  className="inline-flex items-center justify-center p-2 rounded-md border border-warm-300 dark:border-navy-500 dark:bg-navy-800/80"
                   aria-label="Close navigation"
                 >
                   <X className="w-4 h-4" />
@@ -387,36 +413,40 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
                 role={role}
                 pathname={pathname}
                 sections={navSections}
+                pendingPath={pendingPath}
                 studentParam={studentParam}
                 isParent={role === "parent"}
                 parentCopy={parentCopy}
                 localeUpdating={localeUpdating}
                 currentParentLocale={currentParentLocale}
                 onLocaleChange={onLocaleChange}
+                onNavClick={onNavClick}
               />
             </div>
           </div>
         ) : null}
 
-        <aside className="hidden lg:block fixed left-0 top-[68px] bottom-0 w-[290px] border-r border-warm-200 dark:border-navy-700 bg-white/95 dark:bg-navy-900/95">
+        <aside className="hidden lg:block fixed left-0 top-[68px] bottom-0 w-[290px] border-r border-warm-200 dark:border-navy-600/65 bg-white/80 dark:bg-navy-900/55 backdrop-blur-xl">
           <div className="h-full overflow-y-auto p-4">
-            <div className="rounded-2xl border border-warm-200 dark:border-navy-700 bg-white dark:bg-navy-800 shadow-sm p-4">
+            <div className="rounded-2xl border border-warm-200 dark:border-navy-600/70 bg-white/90 dark:bg-navy-800/55 shadow-md dark:shadow-black/25 p-4">
               <PortalNav
                 role={role}
                 pathname={pathname}
                 sections={navSections}
+                pendingPath={pendingPath}
                 studentParam={studentParam}
                 isParent={role === "parent"}
                 parentCopy={parentCopy}
                 localeUpdating={localeUpdating}
                 currentParentLocale={currentParentLocale}
                 onLocaleChange={onLocaleChange}
+                onNavClick={onNavClick}
               />
             </div>
           </div>
         </aside>
 
-        <main className="min-w-0 lg:ml-[290px] px-4 sm:px-6 lg:px-8 py-6">
+        <main className="min-w-0 lg:ml-[290px] px-4 sm:px-6 lg:px-8 py-7">
           <div className="max-w-6xl">{children}</div>
         </main>
       </div>
