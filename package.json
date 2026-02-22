@@ -9,14 +9,20 @@
     "lint": "next lint",
     "sanity": "sanity",
     "seed:cms": "node scripts/seed-cms-documents.mjs",
-    "seed:stripe": "tsx scripts/seed-stripe-products.ts"
+    "seed:stripe": "tsx scripts/seed-stripe-products.ts",
+    "db:migrate": "supabase db push",
+    "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts",
+    "db:seed:portal": "tsx scripts/seed-portal-phase-a.ts"
   },
   "dependencies": {
     "@sanity/client": "^7.15.0",
     "@sanity/vision": "^5.11.0",
     "@stripe/stripe-js": "^8.8.0",
+    "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.95.3",
     "@tailwindcss/postcss": "^4.1.4",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "framer-motion": "^11.18.0",
     "lucide-react": "^0.474.0",
     "next": "^15.3.2",
@@ -24,13 +30,16 @@
     "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-signature-canvas": "^1.1.0-alpha.2",
     "sanity": "^4.22.0",
     "stripe": "^20.3.1",
-    "tailwindcss": "^4.1.4"
+    "tailwindcss": "^4.1.4",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
     "@types/react": "^19.1.2",
+    "@types/react-signature-canvas": "^1.0.6",
     "playwright": "^1.58.2",
     "tsx": "^4.21.0",
     "typescript": "^5.8.3"

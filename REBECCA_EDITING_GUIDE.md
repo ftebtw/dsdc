@@ -1,5 +1,9 @@
 # Rebecca Editing Guide (Very Simple)
 
+Portal testing guide:
+
+- `PORTAL_TESTING_AND_USER_CREATION_GUIDE.md`
+
 This CMS is now set to **live edit** for the main website content.
 
 - You do **not** need to click Publish for these pages:

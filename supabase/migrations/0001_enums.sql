@@ -1,0 +1,12 @@
+create type public.app_role as enum ('admin', 'coach', 'ta', 'student', 'parent');
+create type public.coach_tier as enum ('junior', 'senior', 'wsc');
+create type public.locale_code as enum ('en', 'zh');
+create type public.schedule_day as enum ('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun');
+create type public.class_type as enum ('novice_debate', 'intermediate_debate', 'advanced_debate', 'public_speaking', 'wsc');
+create type public.enrollment_status as enum ('active', 'dropped', 'completed');
+create type public.attendance_status as enum ('present', 'absent', 'late', 'sick', 'makeup');
+create type public.sub_request_status as enum ('open', 'accepted', 'cancelled');
+create type public.resource_type as enum ('homework', 'lesson_plan', 'slides', 'document', 'recording', 'other');
+create type public.legal_required_for as enum ('all_students', 'all_coaches', 'trip', 'event');
+create type public.report_card_status as enum ('draft', 'submitted', 'approved', 'rejected');
+create type public.feedback_role_hint as enum ('student', 'parent');

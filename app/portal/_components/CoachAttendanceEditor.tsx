@@ -1,0 +1,239 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { attendanceStatusOptions } from '@/lib/portal/labels';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/database.types';
+
+type AttendanceStatus = Database['public']['Enums']['attendance_status'];
+
+type Student = {
+  id: string;
+  display_name: string | null;
+  email: string;
+};
+
+type AttendanceRow = {
+  status: AttendanceStatus;
+  camera_on: boolean;
+  marked_at?: string;
+  saving?: boolean;
+  saveError?: string | null;
+};
+
+type Props = {
+  classId: string;
+  userId: string;
+  initialSessionDate: string;
+  students: Student[];
+  initialAttendance: Record<string, AttendanceRow>;
+  initialAbsenceStudentIds: string[];
+};
+
+function blankRow(): AttendanceRow {
+  return { status: 'present', camera_on: true, saveError: null };
+}
+
+export default function CoachAttendanceEditor({
+  classId,
+  userId,
+  initialSessionDate,
+  students,
+  initialAttendance,
+  initialAbsenceStudentIds,
+}: Props) {
+  const [sessionDate, setSessionDate] = useState(initialSessionDate);
+  const [attendance, setAttendance] = useState<Record<string, AttendanceRow>>(initialAttendance);
+  const [absenceStudentIds, setAbsenceStudentIds] = useState<Set<string>>(
+    new Set(initialAbsenceStudentIds)
+  );
+  const [loadingDate, setLoadingDate] = useState(false);
+  const timerRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  const studentRows = useMemo(() => {
+    return students.map((student) => {
+      const record = attendance[student.id] ?? blankRow();
+      return { student, record };
+    });
+  }, [students, attendance]);
+
+  useEffect(() => {
+    return () => {
+      for (const key of Object.keys(timerRef.current)) {
+        clearTimeout(timerRef.current[key]);
+      }
+    };
+  }, []);
+
+  async function refreshForDate(date: string) {
+    setLoadingDate(true);
+    const supabase = getSupabaseBrowserClient();
+
+    const [attendanceResult, absenceResult] = await Promise.all([
+      supabase
+        .from('attendance_records')
+        .select('student_id,status,camera_on,marked_at')
+        .eq('class_id', classId)
+        .eq('session_date', date),
+      supabase
+        .from('student_absences')
+        .select('student_id')
+        .eq('class_id', classId)
+        .eq('session_date', date),
+    ]);
+
+    const nextAttendance: Record<string, AttendanceRow> = {};
+    for (const row of attendanceResult.data ?? []) {
+      nextAttendance[row.student_id] = {
+        status: row.status,
+        camera_on: row.camera_on,
+        marked_at: row.marked_at,
+        saveError: null,
+      };
+    }
+
+    setAttendance(nextAttendance);
+    setAbsenceStudentIds(new Set((absenceResult.data ?? []).map((item: any) => item.student_id)));
+    setLoadingDate(false);
+  }
+
+  async function persist(studentId: string, nextRecord: AttendanceRow, date: string) {
+    const supabase = getSupabaseBrowserClient();
+    const { error } = await supabase.from('attendance_records').upsert(
+      {
+        class_id: classId,
+        student_id: studentId,
+        session_date: date,
+        status: nextRecord.status,
+        camera_on: nextRecord.camera_on,
+        marked_by: userId,
+        marked_at: new Date().toISOString(),
+      },
+      { onConflict: 'class_id,student_id,session_date' }
+    );
+
+    setAttendance((prev) => ({
+      ...prev,
+      [studentId]: {
+        ...nextRecord,
+        saving: false,
+        saveError: error ? error.message : null,
+      },
+    }));
+  }
+
+  function scheduleSave(studentId: string, nextRecord: AttendanceRow) {
+    if (timerRef.current[studentId]) {
+      clearTimeout(timerRef.current[studentId]);
+    }
+    timerRef.current[studentId] = setTimeout(() => {
+      void persist(studentId, nextRecord, sessionDate);
+    }, 500);
+  }
+
+  function updateStudentRecord(studentId: string, updates: Partial<AttendanceRow>) {
+    setAttendance((prev) => {
+      const current = prev[studentId] ?? blankRow();
+      const nextRecord: AttendanceRow = {
+        ...current,
+        ...updates,
+        saving: true,
+        saveError: null,
+      };
+      scheduleSave(studentId, nextRecord);
+      return { ...prev, [studentId]: nextRecord };
+    });
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <label className="text-sm font-medium text-navy-700 dark:text-navy-200">Session date</label>
+        <input
+          type="date"
+          value={sessionDate}
+          onChange={(event) => {
+            const nextDate = event.target.value;
+            setSessionDate(nextDate);
+            void refreshForDate(nextDate);
+          }}
+          className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+        />
+        {loadingDate ? (
+          <span className="text-xs text-charcoal/60 dark:text-navy-300">Loading date...</span>
+        ) : null}
+      </div>
+
+      <div className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-x-auto">
+        <table className="w-full min-w-[760px] text-sm">
+          <thead className="bg-warm-100 dark:bg-navy-900/60">
+            <tr>
+              <th className="text-left px-4 py-3">Student</th>
+              <th className="text-left px-4 py-3">Status</th>
+              <th className="text-left px-4 py-3">Camera</th>
+              <th className="text-left px-4 py-3">Absence Reported</th>
+              <th className="text-left px-4 py-3">Save State</th>
+            </tr>
+          </thead>
+          <tbody>
+            {studentRows.map(({ student, record }) => (
+              <tr key={student.id} className="border-t border-warm-200 dark:border-navy-700">
+                <td className="px-4 py-3">
+                  <p className="font-medium text-navy-800 dark:text-white">
+                    {student.display_name || student.email}
+                  </p>
+                  <p className="text-xs text-charcoal/60 dark:text-navy-300">{student.email}</p>
+                </td>
+                <td className="px-4 py-3">
+                  <select
+                    value={record.status}
+                    onChange={(event) =>
+                      updateStudentRecord(student.id, {
+                        status: event.target.value as AttendanceStatus,
+                      })
+                    }
+                    className="rounded-md border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+                  >
+                    {attendanceStatusOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td className="px-4 py-3">
+                  <label className="inline-flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={record.camera_on}
+                      onChange={(event) => updateStudentRecord(student.id, { camera_on: event.target.checked })}
+                    />
+                    <span>{record.camera_on ? 'On' : 'Off'}</span>
+                  </label>
+                </td>
+                <td className="px-4 py-3">
+                  {absenceStudentIds.has(student.id) ? (
+                    <span className="inline-block px-2 py-1 rounded-full text-xs bg-gold-200 text-navy-900">
+                      Reported
+                    </span>
+                  ) : (
+                    <span className="text-charcoal/60 dark:text-navy-300">No</span>
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {record.saving ? (
+                    <span className="text-xs text-navy-600 dark:text-navy-300">Saving...</span>
+                  ) : record.saveError ? (
+                    <span className="text-xs text-red-700">{record.saveError}</span>
+                  ) : (
+                    <span className="text-xs text-green-700 dark:text-green-400">Saved</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

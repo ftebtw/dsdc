@@ -1,0 +1,81 @@
+import { revalidatePath } from 'next/cache';
+import SectionCard from '@/app/portal/_components/SectionCard';
+import { requireRole } from '@/lib/portal/auth';
+import { parentT } from '@/lib/portal/parent-i18n';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+async function updatePreferences(formData: FormData) {
+  'use server';
+  const session = await requireRole(['parent']);
+  const supabase = await getSupabaseServerClient();
+
+  const preferences = {
+    class_reminders: String(formData.get('class_reminders') || 'both'),
+    absence_alerts: formData.get('absence_alerts') === 'on',
+    general_updates: formData.get('general_updates') === 'on',
+  };
+
+  await supabase
+    .from('profiles')
+    .update({ notification_preferences: preferences })
+    .eq('id', session.userId);
+
+  revalidatePath('/portal/parent/preferences');
+}
+
+export default async function ParentPreferencesPage() {
+  const session = await requireRole(['parent']);
+  const locale = session.profile.locale === 'zh' ? 'zh' : 'en';
+  const prefs = (session.profile.notification_preferences || {}) as Record<string, unknown>;
+
+  const classReminders = String(prefs.class_reminders || 'both');
+  const absenceAlerts = Boolean(prefs.absence_alerts ?? true);
+  const generalUpdates = Boolean(prefs.general_updates ?? true);
+
+  return (
+    <SectionCard
+      title={parentT(locale, 'portal.parent.preferences.title', 'Notification Preferences')}
+      description={parentT(
+        locale,
+        'portal.parent.preferences.description',
+        'These preferences are saved now and email automation will be enabled in a later phase.'
+      )}
+    >
+      <form action={updatePreferences} className="space-y-4 max-w-xl">
+        <label className="block">
+          <span className="text-sm text-navy-700 dark:text-navy-200">
+            {parentT(locale, 'portal.parent.preferences.classReminders', 'Class reminders')}
+          </span>
+          <select
+            name="class_reminders"
+            defaultValue={classReminders}
+            className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          >
+            <option value="day_before">{parentT(locale, 'portal.parent.preferences.dayBefore', '1 day before')}</option>
+            <option value="hour_before">{parentT(locale, 'portal.parent.preferences.hourBefore', '1 hour before')}</option>
+            <option value="both">{parentT(locale, 'portal.parent.preferences.both', 'Both')}</option>
+            <option value="none">{parentT(locale, 'portal.parent.preferences.none', 'None')}</option>
+          </select>
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
+          <input type="checkbox" name="absence_alerts" defaultChecked={absenceAlerts} />
+          {parentT(
+            locale,
+            'portal.parent.preferences.absenceAlerts',
+            'Notify me when my student is marked absent'
+          )}
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
+          <input type="checkbox" name="general_updates" defaultChecked={generalUpdates} />
+          {parentT(locale, 'portal.parent.preferences.generalUpdates', 'General updates')}
+        </label>
+
+        <button className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold">
+          {parentT(locale, 'portal.parent.preferences.save', 'Save Preferences')}
+        </button>
+      </form>
+    </SectionCard>
+  );
+}

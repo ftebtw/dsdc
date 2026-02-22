@@ -17,7 +17,7 @@ export default function ClientProviders({
   initialCmsOverrides?: CmsOverrides;
 }) {
   const pathname = usePathname();
-  const hideShell = pathname?.startsWith("/studio");
+  const hideShell = pathname?.startsWith("/studio") || pathname?.startsWith("/portal");
 
   return (
     <ThemeProvider>

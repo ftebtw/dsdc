@@ -1,0 +1,90 @@
+import SectionCard from '@/app/portal/_components/SectionCard';
+import ResourceList from '@/app/portal/_components/ResourceList';
+import { requireRole } from '@/lib/portal/auth';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
+import type { Database } from '@/lib/supabase/database.types';
+
+const resourceTypes: Database['public']['Enums']['resource_type'][] = [
+  'homework',
+  'lesson_plan',
+  'slides',
+  'document',
+  'recording',
+  'other',
+];
+
+export default async function StudentResourcesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ classId?: string; type?: string }>;
+}) {
+  const session = await requireRole(['student']);
+  const params = await searchParams;
+  const supabase = await getSupabaseServerClient();
+
+  const enrollmentRows = ((await supabase
+    .from('enrollments')
+    .select('class_id,status')
+    .eq('student_id', session.userId)
+    .eq('status', 'active')).data ?? []) as any[];
+  const classIds = enrollmentRows.map((row: any) => row.class_id);
+
+  const classes = classIds.length
+    ? (((await supabase.from('classes').select('id,name').in('id', classIds)).data ?? []) as any[])
+    : ([] as any[]);
+  const classMap = Object.fromEntries(classes.map((classRow: any) => [classRow.id, classRow.name]));
+
+  let query = supabase
+    .from('resources')
+    .select('*')
+    .in('class_id', classIds.length ? classIds : ['00000000-0000-0000-0000-000000000000'])
+    .order('created_at', { ascending: false });
+
+  if (params.classId) query = query.eq('class_id', params.classId);
+  if (params.type && resourceTypes.includes(params.type as any)) {
+    query = query.eq('type', params.type as any);
+  }
+
+  const { data: resourcesData } = await query;
+  const resources = ((resourcesData ?? []) as any[]).map((resource) => ({
+    ...resource,
+    className: classMap[resource.class_id] || null,
+  }));
+
+  return (
+    <div className="space-y-6">
+      <SectionCard title="Resources" description="Class materials and recordings posted by coaches.">
+        <form method="get" className="grid sm:grid-cols-3 gap-3 mb-4">
+          <select
+            name="classId"
+            defaultValue={params.classId || ''}
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          >
+            <option value="">All classes</option>
+            {classes.map((classRow: any) => (
+              <option key={classRow.id} value={classRow.id}>
+                {classRow.name}
+              </option>
+            ))}
+          </select>
+          <select
+            name="type"
+            defaultValue={params.type || ''}
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          >
+            <option value="">All types</option>
+            {resourceTypes.map((type) => (
+              <option key={type} value={type}>
+                {type.replace('_', ' ')}
+              </option>
+            ))}
+          </select>
+          <button className="justify-self-start px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+            Apply
+          </button>
+        </form>
+        <ResourceList resources={resources} />
+      </SectionCard>
+    </div>
+  );
+}

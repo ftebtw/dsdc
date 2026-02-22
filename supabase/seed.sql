@@ -1,0 +1,2 @@
+-- Optional SQL seed file placeholder.
+-- Phase A runtime seed uses scripts/seed-portal-phase-a.ts

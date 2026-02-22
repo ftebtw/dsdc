@@ -457,5 +457,89 @@
     "classTier": "Class tier",
     "receipt": "View receipt",
     "backHome": "Back to Home"
+  },
+  "portal": {
+    "parent": {
+      "selectedStudent": "Selected student",
+      "backToLegal": "Back to legal documents",
+      "dashboard": {
+        "title": "Parent Dashboard",
+        "activeClasses": "Active classes",
+        "presentCount": "Present sessions",
+        "absentCount": "Absent sessions"
+      },
+      "classes": {
+        "title": "My Student's Classes"
+      },
+      "attendance": {
+        "title": "Attendance",
+        "sessionLog": "Session Log"
+      },
+      "resources": {
+        "title": "Resources"
+      },
+      "absent": {
+        "title": "Mark Absent"
+      },
+      "legal": {
+        "title": "Legal Documents",
+        "openDocument": "Open Document",
+        "viewSignature": "View Signature",
+        "signNow": "Sign Now",
+        "signedByStudent": "Signed by student",
+        "signedByParent": "Signed by parent",
+        "signTitle": "Sign",
+        "alreadySigned": "This document is already signed."
+      },
+      "preferences": {
+        "title": "Notification Preferences",
+        "description": "Save reminder preferences now. Notification sending will be enabled in a later phase.",
+        "classReminders": "Class reminders",
+        "dayBefore": "1 day before",
+        "hourBefore": "1 hour before",
+        "both": "Both",
+        "none": "None",
+        "absenceAlerts": "Notify me when my student is marked absent",
+        "generalUpdates": "General updates",
+        "save": "Save Preferences"
+      },
+      "reportCards": {
+        "title": "Report Cards",
+        "comingSoon": "Report cards are coming soon."
+      },
+      "common": {
+        "noLinkedStudents": "No students linked to your account yet.",
+        "noLinkedStudentsShort": "No linked students yet.",
+        "noActiveTerm": "No active term is configured.",
+        "noActiveEnrollments": "No active enrollments.",
+        "noActiveClassesForStudent": "No active classes for this student.",
+        "noResources": "No resources available.",
+        "noAttendanceForTerm": "No attendance records for this term.",
+        "noLegalDocs": "No legal documents assigned right now.",
+        "coachLabel": "Coach",
+        "zoomLabel": "Zoom",
+        "openLink": "Open Link",
+        "openButton": "Open",
+        "deleteButton": "Delete",
+        "termLabel": "Term",
+        "loadButton": "Load",
+        "applyButton": "Apply",
+        "allClasses": "All classes",
+        "allTypes": "All types",
+        "dateHeader": "Date",
+        "classHeader": "Class",
+        "statusHeader": "Status",
+        "cameraHeader": "Camera",
+        "cameraOn": "On",
+        "cameraOff": "Off"
+      },
+      "status": {
+        "present": "Present",
+        "absent": "Absent",
+        "late": "Late",
+        "sick": "Sick",
+        "makeup": "Make-up"
+      }
+    }
   }
 }

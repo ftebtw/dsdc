@@ -1,0 +1,82 @@
+import { notFound } from 'next/navigation';
+import SectionCard from '@/app/portal/_components/SectionCard';
+import CoachAttendanceEditor from '@/app/portal/_components/CoachAttendanceEditor';
+import { requireRole } from '@/lib/portal/auth';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { classTypeLabel, formatClassSchedule } from '@/lib/portal/labels';
+import { getSessionDateForClassTimezone } from '@/lib/portal/time';
+
+export default async function CoachAttendancePage({
+  params,
+}: {
+  params: Promise<{ classId: string }>;
+}) {
+  const { classId } = await params;
+  const session = await requireRole(['coach', 'ta']);
+  const supabase = await getSupabaseServerClient();
+
+  const { data: classRow } = await supabase
+    .from('classes')
+    .select('*')
+    .eq('id', classId)
+    .maybeSingle();
+
+  if (!classRow) notFound();
+  if (classRow.coach_id !== session.userId) notFound();
+
+  const sessionDate = getSessionDateForClassTimezone(classRow.timezone);
+
+  const [{ data: enrollmentsData }, { data: attendanceRowsData }, { data: absencesData }] = await Promise.all([
+    supabase.from('enrollments').select('student_id').eq('class_id', classId).eq('status', 'active'),
+    supabase
+      .from('attendance_records')
+      .select('student_id,status,camera_on,marked_at')
+      .eq('class_id', classId)
+      .eq('session_date', sessionDate),
+    supabase
+      .from('student_absences')
+      .select('student_id')
+      .eq('class_id', classId)
+      .eq('session_date', sessionDate),
+  ]);
+  const enrollments = (enrollmentsData ?? []) as any[];
+  const attendanceRows = (attendanceRowsData ?? []) as any[];
+  const absences = (absencesData ?? []) as any[];
+
+  const studentIds = enrollments.map((item: any) => item.student_id);
+  const { data: profilesData } = studentIds.length
+    ? await supabase.from('profiles').select('id,display_name,email').in('id', studentIds)
+    : { data: [] as Array<{ id: string; display_name: string | null; email: string }> };
+  const profiles = (profilesData ?? []) as any[];
+
+  const attendanceByStudent = Object.fromEntries(
+    attendanceRows.map((row: any) => [
+      row.student_id,
+      {
+        status: row.status,
+        camera_on: row.camera_on,
+        marked_at: row.marked_at,
+      },
+    ])
+  );
+
+  return (
+    <SectionCard
+      title={`Attendance • ${classRow.name}`}
+      description={`${classTypeLabel[classRow.type as keyof typeof classTypeLabel] || String(classRow.type)} • ${formatClassSchedule(
+        classRow.schedule_day,
+        classRow.schedule_start_time,
+        classRow.schedule_end_time
+      )} (${classRow.timezone})`}
+    >
+      <CoachAttendanceEditor
+        classId={classId}
+        userId={session.userId}
+        initialSessionDate={sessionDate}
+        students={profiles}
+        initialAttendance={attendanceByStudent}
+        initialAbsenceStudentIds={absences.map((row: any) => row.student_id)}
+      />
+    </SectionCard>
+  );
+}
