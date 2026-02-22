@@ -11,22 +11,27 @@ export type PortalRole = Database['public']['Enums']['app_role'];
 export type PortalProfile = Database['public']['Tables']['profiles']['Row'];
 
 export async function getCurrentSessionProfile(): Promise<{ userId: string; profile: PortalProfile } | null> {
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await getSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) return null;
+    if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
 
-  if (!profile) return null;
+    if (!profile) return null;
 
-  return { userId: user.id, profile };
+    return { userId: user.id, profile };
+  } catch (error) {
+    console.error('[portal-auth] getCurrentSessionProfile failed', error);
+    return null;
+  }
 }
 
 export async function requireSession() {
@@ -59,23 +64,28 @@ export async function redirectByCurrentRole() {
 }
 
 export async function getRequestSessionProfile(request: NextRequest): Promise<{ userId: string; profile: PortalProfile } | null> {
-  const response = NextResponse.next();
-  const supabase = getSupabaseRouteClient(request, response);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const response = NextResponse.next();
+    const supabase = getSupabaseRouteClient(request, response);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) return null;
+    if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
 
-  if (!profile) return null;
+    if (!profile) return null;
 
-  return { userId: user.id, profile };
+    return { userId: user.id, profile };
+  } catch (error) {
+    console.error('[portal-auth] getRequestSessionProfile failed', error);
+    return null;
+  }
 }
 
 export async function requireApiRole(request: NextRequest, allowed: PortalRole[]) {

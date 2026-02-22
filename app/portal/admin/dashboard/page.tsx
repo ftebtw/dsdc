@@ -198,7 +198,7 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <SectionCard title="Admin Dashboard" description="Operational snapshot for the active term.">
-        <div className="grid sm:grid-cols-2 xl:grid-cols-9 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 auto-rows-fr">
           <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
             <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Active students</p>
             <p className="text-2xl font-bold text-navy-800 dark:text-white">{activeStudentsCount}</p>
