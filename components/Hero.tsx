@@ -21,7 +21,7 @@ export default function Hero() {
         poster="/images/photos/wsc-group-2.jpg"
       >
         <source
-          src="https://dsdcca.wordpress.com/wp-content/uploads/2019/10/dsdc-cover-video-shorter_2.mp4"
+          src="https://9rjkctzpxtq3g6gf.public.blob.vercel-storage.com/dsdc-cover-video-shorter_2.mp4"
           type="video/mp4"
         />
       </video>

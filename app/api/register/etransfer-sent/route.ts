@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendPortalEmails } from "@/lib/email/send";
-import { etransferSentConfirmation } from "@/lib/email/templates";
+import { getPortalAppUrl } from "@/lib/email/resend";
+import { etransferAdminSentNotice, etransferSentConfirmation } from "@/lib/email/templates";
 import { classTypeLabel } from "@/lib/portal/labels";
+import { getCadPriceForClassType } from "@/lib/portal/class-pricing";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -80,6 +82,10 @@ export async function POST(request: NextRequest) {
       type: classTypeLabel[classRow.type] || classRow.type,
     })
   );
+  const totalAmountCad = ((classesData ?? []) as Array<{ id: string; name: string; type: ClassType }>).reduce(
+    (sum, classRow) => sum + getCadPriceForClassType(classRow.type),
+    0
+  );
 
   const parentLinkRows = (parentLinks ?? []) as Array<{ parent_id: string; student_id: string }>;
   const parentIds = [...new Set(parentLinkRows.map((row) => row.parent_id).filter(Boolean))] as string[];
@@ -125,6 +131,26 @@ export async function POST(request: NextRequest) {
 
   if (messages.length) {
     await sendPortalEmails(messages);
+  }
+
+  const { data: admins } = await admin
+    .from("profiles")
+    .select("email")
+    .eq("role", "admin");
+
+  const adminRows = (admins ?? []) as Array<{ email: string | null }>;
+  const adminEmails = [...new Set(adminRows.map((row) => row.email?.trim()).filter(Boolean) as string[])];
+
+  if (adminEmails.length > 0 && studentProfile?.email) {
+    const adminTemplate = etransferAdminSentNotice({
+      studentName: studentName,
+      studentEmail: studentProfile.email,
+      classes: classItems.map((classItem) => ({ name: classItem.name })),
+      totalAmountCad,
+      queueUrl: `${getPortalAppUrl()}/portal/admin/etransfers`,
+    });
+    const adminPayloads = adminEmails.map((email) => ({ to: email, ...adminTemplate }));
+    await sendPortalEmails(adminPayloads);
   }
 
   return NextResponse.json({

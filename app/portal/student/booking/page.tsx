@@ -1,9 +1,19 @@
-import SectionCard from '@/app/portal/_components/SectionCard';
+﻿import SectionCard from '@/app/portal/_components/SectionCard';
 import StudentBookingManager from '@/app/portal/_components/StudentBookingManager';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
 import { formatSessionRangeForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+function stepForStatus(status: string): number {
+  if (status === 'pending') return 1;
+  if (status === 'rescheduled_by_coach' || status === 'rescheduled_by_student') return 2;
+  if (status === 'coach_accepted') return 3;
+  if (status === 'awaiting_payment') return 4;
+  if (status === 'confirmed') return 5;
+  if (status === 'completed') return 6;
+  return 1;
+}
 
 export default async function StudentBookingPage() {
   const session = await requireRole(['student']);
@@ -29,7 +39,13 @@ export default async function StudentBookingPage() {
   const availability = (availabilityRaw.data ?? []) as Array<Record<string, any>>;
   const sessions = (sessionRaw.data ?? []) as Array<Record<string, any>>;
 
-  const coachIds = [...new Set([...availability.map((slot: any) => slot.coach_id), ...sessions.map((row: any) => row.coach_id)])];
+  const coachIds = [
+    ...new Set([
+      ...availability.map((slot: any) => slot.coach_id),
+      ...sessions.map((row: any) => row.coach_id),
+      ...sessions.map((row: any) => row.proposed_by).filter(Boolean),
+    ]),
+  ];
   const coachMap = await getProfileMap(supabase, coachIds);
 
   const availableSlots = availability.map((slot: any) => ({
@@ -44,21 +60,33 @@ export default async function StudentBookingPage() {
     ),
   }));
 
-  const sessionItems = sessions.map((row: any) => ({
-    ...row,
-    coachName: coachMap[row.coach_id]?.display_name || coachMap[row.coach_id]?.email || row.coach_id,
-    studentName: session.profile.display_name || session.profile.email,
-    whenText: formatSessionRangeForViewer(
-      row.requested_date,
-      row.requested_start_time,
-      row.requested_end_time,
-      row.timezone,
-      session.profile.timezone
-    ),
-    canCancel: row.status === 'pending',
-    canConfirm: false,
-    canComplete: false,
-  }));
+  const sessionItems = sessions.map((row: any) => {
+    const status = String(row.status || 'pending');
+    return {
+      ...row,
+      coachName: coachMap[row.coach_id]?.display_name || coachMap[row.coach_id]?.email || row.coach_id,
+      studentName: session.profile.display_name || session.profile.email,
+      proposedByName: row.proposed_by
+        ? coachMap[row.proposed_by]?.display_name || coachMap[row.proposed_by]?.email || row.proposed_by
+        : null,
+      whenText: formatSessionRangeForViewer(
+        row.requested_date,
+        row.requested_start_time,
+        row.requested_end_time,
+        row.timezone,
+        session.profile.timezone
+      ),
+      step: stepForStatus(status),
+      canAccept: false,
+      canReject: false,
+      canReschedule: ['pending', 'rescheduled_by_coach'].includes(status),
+      canAcceptReschedule: status === 'rescheduled_by_coach',
+      canApprove: false,
+      canPay: status === 'awaiting_payment',
+      canCancel: ['pending', 'rescheduled_by_coach', 'rescheduled_by_student', 'awaiting_payment'].includes(status),
+      canComplete: false,
+    };
+  });
 
   return (
     <SectionCard

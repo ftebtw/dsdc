@@ -90,7 +90,10 @@ export default async function AdminCoachesPage() {
                       {profile?.display_name || profile?.email || coachProfile.coach_id}
                     </h3>
                     <p className="text-sm text-charcoal/65 dark:text-navy-300">
-                      {profile?.email} - tier: {coachProfile.tier} - {coachProfile.is_ta ? 'TA' : 'Coach'}
+                      {profile?.email} -{' '}
+                      {coachProfile.is_ta
+                        ? 'TA'
+                        : `${coachProfile.tier ? `${coachProfile.tier} ` : ''}Coach`}
                     </p>
                     <p className="text-sm mt-2">
                       Assigned classes:{' '}

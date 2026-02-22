@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Calendar, Clock, Video, CheckCircle } from "lucide-react";
+import Script from "next/script";
 import { useI18n } from "@/lib/i18n";
 import ContactForm from "@/components/ContactForm";
 import AnimatedSection from "@/components/AnimatedSection";
@@ -57,15 +58,17 @@ export default function BookPage() {
                     <h3 className="text-xl font-bold text-navy-800 dark:text-white font-serif">{t("bookPage.scheduleOnline")}</h3>
                   </div>
 
-                  {/* Calendly iframe placeholder */}
-                    <div className="rounded-xl border-2 border-dashed border-warm-300 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 min-h-[300px] sm:min-h-[400px] flex flex-col items-center justify-center p-4 sm:p-8 text-center">
-                      <Calendar className="w-16 h-16 text-navy-300 dark:text-navy-500 mb-4" />
-                    <p className="text-navy-600 dark:text-navy-200 font-semibold mb-2">{t("bookPage.calendlyWidgetTitle")}</p>
-                    <p className="text-charcoal/50 dark:text-navy-300 text-sm mb-6">{t("bookPage.calendlyWidgetSubtitle")}</p>
-                    <code className="text-[10px] sm:text-xs bg-navy-800 dark:bg-navy-700 text-gold-400 px-3 sm:px-4 py-2 rounded-lg font-mono break-all">
-                      {t("bookPage.calendlyPlaceholderUrl")}
-                    </code>
+                  <div className="rounded-xl overflow-hidden border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900">
+                    <div
+                      className="calendly-inline-widget"
+                      data-url="https://calendly.com/rebecca-dsdc"
+                      style={{ minWidth: "320px", height: "700px" }}
+                    />
                   </div>
+                  <Script
+                    src="https://assets.calendly.com/assets/external/widget.js"
+                    strategy="afterInteractive"
+                  />
 
                   <div className="flex flex-wrap gap-4 mt-6">
                     <div className="flex items-center gap-2 text-sm text-charcoal/60 dark:text-navy-300">

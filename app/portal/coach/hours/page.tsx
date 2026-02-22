@@ -66,12 +66,13 @@ export default async function CoachHoursPage({
         />
       </SectionCard>
 
-      <SectionCard title="Session Detail" description="Check-ins in selected date range.">
+      <SectionCard title="Session Detail" description="Group check-ins and completed private sessions in selected date range.">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-sm">
             <thead className="bg-warm-100 dark:bg-navy-800">
               <tr>
                 <th className="px-3 py-2 text-left">Date</th>
+                <th className="px-3 py-2 text-left">Type</th>
                 <th className="px-3 py-2 text-left">Class</th>
                 <th className="px-3 py-2 text-left">Checked in</th>
                 <th className="px-3 py-2 text-left">Class time</th>
@@ -83,6 +84,7 @@ export default async function CoachHoursPage({
               {dataset.sessions.map((row) => (
                 <tr key={row.id} className="border-t border-warm-200 dark:border-navy-700">
                   <td className="px-3 py-2">{row.sessionDate}</td>
+                  <td className="px-3 py-2">{row.isPrivateSession ? 'Private' : 'Group'}</td>
                   <td className="px-3 py-2">{row.className}</td>
                   <td className="px-3 py-2">{formatUtcForUser(row.checkedInAt, session.profile.timezone)}</td>
                   <td className="px-3 py-2">
@@ -96,7 +98,7 @@ export default async function CoachHoursPage({
               ))}
               {dataset.sessions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-4 text-center text-charcoal/65 dark:text-navy-300">
+                  <td colSpan={7} className="px-3 py-4 text-center text-charcoal/65 dark:text-navy-300">
                     No sessions found in this range.
                   </td>
                 </tr>

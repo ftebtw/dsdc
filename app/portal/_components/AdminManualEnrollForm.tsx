@@ -14,7 +14,7 @@ export default function AdminManualEnrollForm({
   studentOptions: StudentOption[];
 }) {
   const [mode, setMode] = useState<'existing' | 'new'>('existing');
-  const [classId, setClassId] = useState(classOptions[0]?.id || '');
+  const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
   const [studentId, setStudentId] = useState(studentOptions[0]?.id || '');
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -33,9 +33,9 @@ export default function AdminManualEnrollForm({
 
     const payload =
       mode === 'existing'
-        ? { classId, studentId }
+        ? { classIds: selectedClassIds, studentId }
         : {
-            classId,
+            classIds: selectedClassIds,
             newStudent: {
               email,
               display_name: displayName,
@@ -50,7 +50,11 @@ export default function AdminManualEnrollForm({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-    const data = (await response.json()) as { error?: string; createdStudent?: boolean };
+    const data = (await response.json()) as {
+      error?: string;
+      createdStudent?: boolean;
+      enrollments?: Array<{ id: string }>;
+    };
     setLoading(false);
 
     if (!response.ok) {
@@ -58,7 +62,12 @@ export default function AdminManualEnrollForm({
       return;
     }
 
-    setMessage(data.createdStudent ? 'Student created and enrolled.' : 'Enrollment saved.');
+    const count = data.enrollments?.length ?? selectedClassIds.length;
+    setMessage(
+      data.createdStudent
+        ? `Student created and enrolled in ${count} class(es).`
+        : `Enrolled in ${count} class(es).`
+    );
     if (mode === 'new') {
       setEmail('');
       setDisplayName('');
@@ -70,19 +79,31 @@ export default function AdminManualEnrollForm({
     <form onSubmit={submit} className="space-y-4">
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">Class</label>
-          <select
-            required
-            value={classId}
-            onChange={(event) => setClassId(event.target.value)}
-            className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-          >
+          <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">Classes</label>
+          <div className="max-h-48 overflow-y-auto rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 p-2 space-y-1">
             {classOptions.map((option) => (
-              <option key={option.id} value={option.id}>
+              <label
+                key={option.id}
+                className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-warm-50 dark:hover:bg-navy-800 cursor-pointer text-sm"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedClassIds.includes(option.id)}
+                  onChange={() => {
+                    setSelectedClassIds((previous) =>
+                      previous.includes(option.id)
+                        ? previous.filter((id) => id !== option.id)
+                        : [...previous, option.id]
+                    );
+                  }}
+                />
                 {option.label}
-              </option>
+              </label>
             ))}
-          </select>
+          </div>
+          <p className="mt-2 text-xs text-charcoal/70 dark:text-navy-300">
+            {selectedClassIds.length} class(es) selected
+          </p>
         </div>
         <div>
           <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">Enrollment Mode</label>
@@ -157,7 +178,7 @@ export default function AdminManualEnrollForm({
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || selectedClassIds.length === 0}
         className="rounded-lg bg-navy-800 text-white px-4 py-2 font-semibold disabled:opacity-70"
       >
         {loading ? 'Saving...' : 'Save Enrollment'}

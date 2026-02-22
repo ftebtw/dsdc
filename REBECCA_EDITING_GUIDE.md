@@ -16,7 +16,7 @@ Changes save to live automatically.
 
 ## Fast Start (3 Steps)
 
-1. Open Studio: `https://dsdc-nine.vercel.app/studio`
+1. Open Studio: `https://dsdc.ca/studio`
 2. Click **Content** and choose the page you want:
 - Homepage
 - Pricing Page
@@ -33,7 +33,7 @@ Changes save to live automatically.
 
 ## How To Confirm A Change Worked
 
-1. Refresh the page on `https://dsdc-nine.vercel.app/` (or the page you edited).
+1. Refresh the page on `https://dsdc.ca/` (or the page you edited).
 2. Hard refresh if needed:
 - Windows: `Ctrl+Shift+R`
 - Mac: `Cmd+Shift+R`
@@ -41,7 +41,7 @@ Changes save to live automatically.
 
 ## If You Still Do Not See The New Text
 
-1. Check this URL: `https://dsdc-nine.vercel.app/api/cms/debug`
+1. Check this URL: `https://dsdc.ca/api/cms/debug`
 2. Confirm:
 - `"source":"live"`
 - `heroHeadlineFromCms` is not `"(none)"` (for homepage hero edits)

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import PrivateSessionCard from '@/app/portal/_components/PrivateSessionCard';
 
@@ -10,18 +10,53 @@ type SessionItem = {
   status: string;
   student_notes?: string | null;
   coach_notes?: string | null;
-  canConfirm?: boolean;
+  price_cad?: number | null;
+  zoom_link?: string | null;
+  payment_method?: string | null;
+  proposed_date?: string | null;
+  proposed_start_time?: string | null;
+  proposed_end_time?: string | null;
+  proposedByName?: string | null;
+  step?: number;
+
+  canAccept?: boolean;
+  canReject?: boolean;
+  canReschedule?: boolean;
+  canAcceptReschedule?: boolean;
+  canApprove?: boolean;
+  canPay?: boolean;
   canCancel?: boolean;
   canComplete?: boolean;
 };
 
-export default function PrivateSessionsManager({ sessions }: { sessions: SessionItem[] }) {
-  async function callAction(endpoint: string) {
-    const response = await fetch(endpoint, { method: 'POST' });
-    const data = (await response.json()) as { error?: string };
+export default function PrivateSessionsManager({
+  sessions,
+  viewerRole,
+}: {
+  sessions: SessionItem[];
+  viewerRole: 'admin' | 'coach' | 'student' | 'parent';
+}) {
+  async function callAction(endpoint: string, body?: unknown) {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+
+    const payload = (await response.json()) as {
+      error?: string;
+      checkoutUrl?: string;
+    };
+
     if (!response.ok) {
-      return { ok: false, error: data.error || 'Action failed.' };
+      return { ok: false, error: payload.error || 'Action failed.' };
     }
+
+    if (payload.checkoutUrl) {
+      window.location.assign(payload.checkoutUrl);
+      return { ok: true };
+    }
+
     window.location.reload();
     return { ok: true };
   }
@@ -41,14 +76,70 @@ export default function PrivateSessionsManager({ sessions }: { sessions: Session
           status={session.status}
           studentNotes={session.student_notes}
           coachNotes={session.coach_notes}
-          canConfirm={Boolean(session.canConfirm)}
+          priceCad={session.price_cad}
+          zoomLink={session.zoom_link}
+          paymentMethod={session.payment_method}
+          proposedDate={session.proposed_date}
+          proposedStartTime={session.proposed_start_time}
+          proposedEndTime={session.proposed_end_time}
+          proposedByName={session.proposedByName}
+          step={session.step}
+          viewerRole={viewerRole}
+          canAccept={Boolean(session.canAccept)}
+          canReject={Boolean(session.canReject)}
+          canReschedule={Boolean(session.canReschedule)}
+          canAcceptReschedule={Boolean(session.canAcceptReschedule)}
+          canApprove={Boolean(session.canApprove)}
+          canPay={Boolean(session.canPay)}
           canCancel={Boolean(session.canCancel)}
           canComplete={Boolean(session.canComplete)}
-          onConfirm={
-            session.canConfirm ? () => callAction(`/api/portal/private-sessions/${session.id}/confirm`) : undefined
+          onAccept={
+            session.canAccept ? () => callAction(`/api/portal/private-sessions/${session.id}/accept`) : undefined
+          }
+          onReject={
+            session.canReject
+              ? (notes) => callAction(`/api/portal/private-sessions/${session.id}/reject`, { coachNotes: notes })
+              : undefined
+          }
+          onReschedule={
+            session.canReschedule
+              ? (data) =>
+                  callAction(`/api/portal/private-sessions/${session.id}/reschedule`, {
+                    proposedDate: data.date,
+                    proposedStartTime: data.start,
+                    proposedEndTime: data.end,
+                    notes: data.notes,
+                  })
+              : undefined
+          }
+          onAcceptReschedule={
+            session.canAcceptReschedule
+              ? () => callAction(`/api/portal/private-sessions/${session.id}/accept-reschedule`)
+              : undefined
+          }
+          onApprove={
+            session.canApprove
+              ? ({ priceCad, zoomLink }) =>
+                  callAction(`/api/portal/private-sessions/${session.id}/confirm`, {
+                    priceCad,
+                    zoomLink,
+                  })
+              : undefined
+          }
+          onPayCard={
+            session.canPay
+              ? () => callAction(`/api/portal/private-sessions/${session.id}/checkout`)
+              : undefined
+          }
+          onPayEtransfer={
+            session.canPay
+              ? () => callAction(`/api/portal/private-sessions/${session.id}/etransfer`)
+              : undefined
           }
           onCancel={
-            session.canCancel ? () => callAction(`/api/portal/private-sessions/${session.id}/cancel`) : undefined
+            session.canCancel
+              ? (reason) => callAction(`/api/portal/private-sessions/${session.id}/cancel`, { reason })
+              : undefined
           }
           onComplete={
             session.canComplete ? () => callAction(`/api/portal/private-sessions/${session.id}/complete`) : undefined

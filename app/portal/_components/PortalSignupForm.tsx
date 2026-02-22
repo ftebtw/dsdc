@@ -14,7 +14,7 @@ type FormState = {
   locale: Database['public']['Enums']['locale_code'];
   phone: string;
   timezone: string;
-  tier: CoachTier;
+  tier: CoachTier | null;
   is_ta: boolean;
   send_invite: boolean;
 };
@@ -61,15 +61,25 @@ export default function PortalSignupForm() {
     setState(initialState);
   }
 
-  const isCoachLike = state.role === 'coach' || state.role === 'ta';
-
   return (
     <form onSubmit={submit} className="space-y-4 rounded-2xl border border-warm-200 dark:border-navy-700 bg-white dark:bg-navy-800 p-6">
       <h1 className="text-xl font-bold text-navy-800 dark:text-white">Create Portal User</h1>
       <div className="grid sm:grid-cols-2 gap-4">
         <input required placeholder="Email" value={state.email} onChange={(e) => setState({ ...state, email: e.target.value })} className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2" />
         <input required placeholder="Display name" value={state.display_name} onChange={(e) => setState({ ...state, display_name: e.target.value })} className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2" />
-        <select value={state.role} onChange={(e) => setState({ ...state, role: e.target.value as AppRole })} className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2">
+        <select
+          value={state.role}
+          onChange={(event) => {
+            const newRole = event.target.value as AppRole;
+            setState((previous) => ({
+              ...previous,
+              role: newRole,
+              tier: newRole === 'coach' ? previous.tier || 'junior' : null,
+              is_ta: newRole === 'ta',
+            }));
+          }}
+          className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+        >
           <option value="admin">Admin</option>
           <option value="coach">Coach</option>
           <option value="ta">TA</option>
@@ -88,17 +98,20 @@ export default function PortalSignupForm() {
         />
       </div>
 
-      {isCoachLike ? (
+      {state.role === 'coach' ? (
         <div className="grid sm:grid-cols-2 gap-4">
-          <select value={state.tier} onChange={(e) => setState({ ...state, tier: e.target.value as CoachTier })} className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2">
-            <option value="junior">Junior</option>
-            <option value="senior">Senior</option>
-            <option value="wsc">WSC</option>
-          </select>
-          <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
-            <input type="checkbox" checked={state.is_ta} onChange={(e) => setState({ ...state, is_ta: e.target.checked })} />
-            Is TA
-          </label>
+          <div>
+            <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">Tier</label>
+            <select
+              value={state.tier || 'junior'}
+              onChange={(event) => setState({ ...state, tier: event.target.value as CoachTier })}
+              className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+            >
+              <option value="junior">Junior</option>
+              <option value="senior">Senior</option>
+              <option value="wsc">WSC</option>
+            </select>
+          </div>
         </div>
       ) : null}
 

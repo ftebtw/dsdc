@@ -13,9 +13,9 @@ Use this as a copy/paste checklist for Rebecca to test live features safely.
 
 ## URLs to Test
 
-1. Live portal login: `https://dsdc-nine.vercel.app/portal/login`
-2. Live registration: `https://dsdc-nine.vercel.app/register`
-3. Live pricing: `https://dsdc-nine.vercel.app/pricing`
+1. Live portal login: `https://dsdc.ca/portal/login`
+2. Live registration: `https://dsdc.ca/register`
+3. Live pricing: `https://dsdc.ca/pricing`
 4. Local portal login: `http://localhost:3001/portal/login`
 5. Local registration: `http://localhost:3001/register`
 
@@ -41,7 +41,7 @@ Default seeded password is `PortalSeed123!Temp` unless env overrides changed it.
 1. Confirm one active term exists in `Admin -> Terms` (example `Winter 2026`).
 2. Confirm classes exist in active term with coach assignment and Zoom links.
 3. Confirm Stripe webhook is set to:
-   `https://dsdc-nine.vercel.app/api/webhooks/stripe`
+   `https://dsdc.ca/api/webhooks/stripe`
 4. Confirm email env vars in Vercel:
    `RESEND_API_KEY`, `PORTAL_FROM_EMAIL`, `PORTAL_APP_URL`.
 5. Confirm Stripe test mode is enabled for payment tests.
@@ -267,7 +267,7 @@ After each successful registration payment:
 
 ## Defaults and Assumptions
 
-1. Primary test target is `https://dsdc-nine.vercel.app`.
+1. Primary test target is `https://dsdc.ca`.
 2. Non-invite temporary password is `PortalStudent123!Temp`.
 3. Seed password default is `PortalSeed123!Temp` unless env override changed.
 4. Stripe tests run in test mode.

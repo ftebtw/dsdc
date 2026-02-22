@@ -43,34 +43,69 @@ export async function GET(request: NextRequest) {
     const header = [
       'coach_name',
       'coach_email',
+      'type',
       'tier',
       'is_ta',
-      'sessions',
-      'total_hours',
-      'late_count',
+      'session_date',
+      'session_name',
+      'student_name',
+      'duration_hours',
+      'late',
       'hourly_rate',
       'calculated_pay',
       'date_range_start',
       'date_range_end',
     ];
 
-    const lines = dataset.summary.map((row) =>
-      [
+    const summaryByCoach = new Map(dataset.summary.map((row) => [row.coachId, row]));
+
+    const lines = dataset.sessions.map((row) => {
+      const coachSummary = summaryByCoach.get(row.coachId);
+      const hourlyRate = coachSummary?.hourlyRate ?? null;
+      const calculatedPay = hourlyRate == null ? null : row.durationHours * hourlyRate;
+
+      return [
         row.coachName,
         row.coachEmail,
-        row.coachTier,
+        row.isPrivateSession ? 'Private' : 'Group',
+        row.coachTier ?? '',
         row.isTa ? 'true' : 'false',
-        String(row.sessions),
-        row.totalHours.toFixed(2),
-        String(row.lateCount),
-        row.hourlyRate == null ? '' : row.hourlyRate.toFixed(2),
-        row.calculatedPay == null ? '' : row.calculatedPay.toFixed(2),
+        row.sessionDate,
+        row.className,
+        row.studentName ?? '',
+        row.durationHours.toFixed(2),
+        row.late ? 'true' : 'false',
+        hourlyRate == null ? '' : hourlyRate.toFixed(2),
+        calculatedPay == null ? '' : calculatedPay.toFixed(2),
         range.start,
         range.end,
       ]
         .map(csvEscape)
-        .join(',')
-    );
+        .join(',');
+    });
+
+    if (lines.length === 0) {
+      lines.push(
+        [
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '',
+          '0.00',
+          '',
+          '',
+          '',
+          range.start,
+          range.end,
+        ]
+          .map(csvEscape)
+          .join(',')
+      );
+    }
 
     const csv = [header.join(','), ...lines].join('\n');
     const filename = `dsdc-payroll-${range.start}-to-${range.end}.csv`;

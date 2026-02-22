@@ -11,7 +11,8 @@ import type { Database } from '@/lib/supabase/database.types';
 
 const bodySchema = z
   .object({
-    classId: z.string().uuid(),
+    classIds: z.array(z.string().uuid()).min(1).max(20).optional(),
+    classId: z.string().uuid().optional(),
     studentId: z.string().uuid().optional(),
     newStudent: z
       .object({
@@ -25,6 +26,9 @@ const bodySchema = z
   })
   .refine((value) => Boolean(value.studentId || value.newStudent), {
     message: 'Provide either studentId or newStudent.',
+  })
+  .refine((value) => Boolean(value.classIds?.length || value.classId), {
+    message: 'Provide classIds or classId.',
   });
 
 function jsonError(message: string, status = 400) {
@@ -43,6 +47,7 @@ export async function POST(request: NextRequest) {
   }
 
   const supabaseAdmin = getSupabaseAdminClient();
+  const classIds = body.classIds ?? (body.classId ? [body.classId] : []);
   let studentId = body.studentId;
   let createdStudent = false;
 
@@ -89,27 +94,44 @@ export async function POST(request: NextRequest) {
 
   if (!studentId) return jsonError('Missing student.');
 
-  const enrollmentPayload: Database['public']['Tables']['enrollments']['Insert'] = {
-    class_id: body.classId,
-    student_id: studentId,
-    status: 'active',
-  };
+  const enrollments: Database['public']['Tables']['enrollments']['Row'][] = [];
+  const errors: Array<{ classId: string; error: string }> = [];
 
-  const { data: enrollment, error: enrollmentError } = await supabaseAdmin
-    .from('enrollments')
-    .upsert(enrollmentPayload, { onConflict: 'student_id,class_id' })
-    .select('*')
-    .single();
+  for (const classId of classIds) {
+    const enrollmentPayload: Database['public']['Tables']['enrollments']['Insert'] = {
+      class_id: classId,
+      student_id: studentId,
+      status: 'active',
+    };
 
-  if (enrollmentError) return jsonError(enrollmentError.message, 400);
+    const { data: enrollment, error: enrollmentError } = await supabaseAdmin
+      .from('enrollments')
+      .upsert(enrollmentPayload, { onConflict: 'student_id,class_id' })
+      .select('*')
+      .single();
+
+    if (enrollmentError) {
+      errors.push({ classId, error: enrollmentError.message });
+      continue;
+    }
+
+    if (enrollment) {
+      enrollments.push(enrollment);
+    }
+  }
+
+  if (enrollments.length === 0) {
+    return jsonError(errors[0]?.error || 'Enrollment failed.', 400);
+  }
 
   try {
-    const [{ data: classRow }, { data: studentProfile }, { data: parentLinks }] = await Promise.all([
+    const enrolledClassIds = [...new Set(enrollments.map((row) => row.class_id))];
+
+    const [{ data: classRows }, { data: studentProfile }, { data: parentLinks }] = await Promise.all([
       supabaseAdmin
         .from('classes')
         .select('id,name,term_id')
-        .eq('id', body.classId)
-        .maybeSingle(),
+        .in('id', enrolledClassIds),
       supabaseAdmin
         .from('profiles')
         .select('id,email,display_name,role,notification_preferences')
@@ -118,17 +140,22 @@ export async function POST(request: NextRequest) {
       supabaseAdmin.from('parent_student_links').select('parent_id').eq('student_id', studentId),
     ]);
 
-    const termName = classRow?.term_id
+    const classList =
+      (classRows ?? []) as Array<Pick<Database['public']['Tables']['classes']['Row'], 'id' | 'name' | 'term_id'>>;
+    const termIds = [...new Set(classList.map((row) => row.term_id).filter(Boolean))] as string[];
+    const termRows = termIds.length
       ? (
           (
             await supabaseAdmin
               .from('terms')
-              .select('name')
-              .eq('id', classRow.term_id)
-              .maybeSingle()
-          ).data?.name || 'Current Term'
+              .select('id,name')
+              .in('id', termIds)
+          ).data ?? []
         )
-      : 'Current Term';
+      : [];
+    const termMap = Object.fromEntries(
+      (termRows as Array<{ id: string; name: string }>).map((row) => [row.id, row.name])
+    ) as Record<string, string>;
 
     const parentIds = [
       ...new Set(
@@ -149,7 +176,6 @@ export async function POST(request: NextRequest) {
         )
       : [];
 
-    const className = classRow?.name || 'Class';
     const studentName = studentProfile?.display_name || studentProfile?.email || 'Student';
     const messages: Array<{ to: string; subject: string; html: string; text: string }> = [];
 
@@ -161,16 +187,18 @@ export async function POST(request: NextRequest) {
         true
       )
     ) {
-      messages.push({
-        to: studentProfile.email,
-        ...manualEnrollmentNotice({
-          studentName,
-          className,
-          termName,
-          portalUrl: portalPathUrl('/portal/student/classes'),
-          preferenceUrl: profilePreferenceUrl(studentProfile.role),
-        }),
-      });
+      for (const classRow of classList) {
+        messages.push({
+          to: studentProfile.email,
+          ...manualEnrollmentNotice({
+            studentName,
+            className: classRow.name || 'Class',
+            termName: termMap[classRow.term_id] || 'Current Term',
+            portalUrl: portalPathUrl('/portal/student/classes'),
+            preferenceUrl: profilePreferenceUrl(studentProfile.role),
+          }),
+        });
+      }
     }
 
     for (const parent of parentProfiles) {
@@ -178,16 +206,18 @@ export async function POST(request: NextRequest) {
       if (!shouldSendNotification(parent.notification_preferences as Record<string, unknown> | null, 'general_updates', true)) {
         continue;
       }
-      messages.push({
-        to: parent.email,
-        ...manualEnrollmentNotice({
-          studentName,
-          className,
-          termName,
-          portalUrl: portalPathUrl('/portal/parent/classes'),
-          preferenceUrl: profilePreferenceUrl(parent.role),
-        }),
-      });
+      for (const classRow of classList) {
+        messages.push({
+          to: parent.email,
+          ...manualEnrollmentNotice({
+            studentName,
+            className: classRow.name || 'Class',
+            termName: termMap[classRow.term_id] || 'Current Term',
+            portalUrl: portalPathUrl('/portal/parent/classes'),
+            preferenceUrl: profilePreferenceUrl(parent.role),
+          }),
+        });
+      }
     }
 
     if (messages.length) {
@@ -196,13 +226,15 @@ export async function POST(request: NextRequest) {
   } catch (emailError) {
     console.error('[manual-enroll] notification send failed', {
       error: emailError instanceof Error ? emailError.message : String(emailError),
-      classId: body.classId,
+      classIds,
       studentId,
     });
   }
 
   return NextResponse.json({
-    enrollment,
+    enrollment: enrollments[0] || null,
+    enrollments,
+    errors,
     createdStudent,
     studentId,
   });

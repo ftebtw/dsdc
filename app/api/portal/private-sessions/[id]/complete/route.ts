@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/portal/auth';
+import { type PrivateSessionWorkflowRow } from '@/lib/portal/private-sessions';
 import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 function jsonError(message: string, status = 400) {
@@ -17,26 +18,35 @@ export async function POST(
   const supabaseResponse = NextResponse.next();
   const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
-  const { data: row, error: rowError } = await supabase
+  const { data: rowData, error: rowError } = await supabase
     .from('private_sessions')
     .select('*')
     .eq('id', id)
     .maybeSingle();
   if (rowError) return mergeCookies(supabaseResponse, jsonError(rowError.message, 400));
-  if (!row) return mergeCookies(supabaseResponse, jsonError('Private session not found.', 404));
+  if (!rowData) return mergeCookies(supabaseResponse, jsonError('Private session not found.', 404));
 
+  const row = rowData as PrivateSessionWorkflowRow;
   if (session.profile.role !== 'admin' && row.coach_id !== session.userId) {
     return mergeCookies(supabaseResponse, jsonError('Not allowed to complete this session.', 403));
   }
-  if (row.status === 'cancelled') return mergeCookies(supabaseResponse, jsonError('Cancelled sessions cannot be completed.', 400));
+
+  if (row.status !== 'confirmed') {
+    return mergeCookies(supabaseResponse, jsonError('Only confirmed sessions can be marked complete.', 400));
+  }
 
   const { data: updatedRow, error: updateError } = await supabase
     .from('private_sessions')
-    .update({ status: 'completed' })
+    .update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+    })
     .eq('id', id)
+    .eq('status', 'confirmed')
     .select('*')
-    .single();
+    .maybeSingle();
   if (updateError) return mergeCookies(supabaseResponse, jsonError(updateError.message, 400));
+  if (!updatedRow) return mergeCookies(supabaseResponse, jsonError('Session is no longer confirmed.', 409));
 
   return mergeCookies(supabaseResponse, NextResponse.json({ session: updatedRow }));
 }

@@ -208,16 +208,312 @@ export function privateConfirmedTemplate(input: {
 export function privateCancelledTemplate(input: {
   whenText: string;
   cancelledBy: string;
+  reason?: string | null;
   portalUrl: string;
   preferenceUrl: string;
 }) {
+  const lines = [`When: ${input.whenText}`, `Cancelled by: ${input.cancelledBy}`];
+  if (input.reason?.trim()) {
+    lines.push(`Reason: ${input.reason.trim()}`);
+  }
   const subject = 'Private session cancelled';
   const { html, text } = renderTemplate({
     title: 'Private Session Cancelled',
-    bodyLines: [`When: ${input.whenText}`, `Cancelled by: ${input.cancelledBy}`],
+    bodyLines: lines,
     buttonLabel: 'Open Portal',
     buttonUrl: input.portalUrl,
     preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function privateCoachAcceptedTemplate(input: {
+  coachName: string;
+  studentName: string;
+  whenText: string;
+  portalUrl: string;
+  preferenceUrl?: string;
+  locale?: 'en' | 'zh';
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh ? '私教申请已通过教练确认' : 'Coach accepted your private session request';
+  const { html, text } = renderTemplate({
+    title: isZh ? '教练已确认' : 'Coach Accepted',
+    bodyLines: isZh
+      ? [
+          `${input.coachName} 已接受 ${input.studentName} 的私教申请。`,
+          `时间：${input.whenText}`,
+          '当前状态：等待管理员审批与定价。',
+        ]
+      : [
+          `${input.coachName} has accepted ${input.studentName}'s private session request.`,
+          `When: ${input.whenText}`,
+          'Status: awaiting admin approval and pricing.',
+        ],
+    buttonLabel: isZh ? '查看私教安排' : 'View Session',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function privateCoachRejectedTemplate(input: {
+  coachName: string;
+  studentName: string;
+  reason?: string | null;
+  portalUrl: string;
+  preferenceUrl?: string;
+  locale?: 'en' | 'zh';
+}) {
+  const isZh = input.locale === 'zh';
+  const lines = isZh
+    ? [
+        `很抱歉，${input.coachName} 未通过 ${input.studentName} 的私教申请。`,
+      ]
+    : [
+        `Coach ${input.coachName} has declined ${input.studentName}'s private session request.`,
+      ];
+  if (input.reason?.trim()) {
+    lines.push(isZh ? `原因：${input.reason.trim()}` : `Reason: ${input.reason.trim()}`);
+  }
+  const subject = isZh ? '私教申请未通过' : 'Private session request declined';
+  const { html, text } = renderTemplate({
+    title: isZh ? '私教申请未通过' : 'Private Session Declined',
+    bodyLines: lines,
+    buttonLabel: isZh ? '查看私教安排' : 'View Session',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function privateRescheduleProposedTemplate(input: {
+  proposerName: string;
+  proposedWhenText: string;
+  portalUrl: string;
+  preferenceUrl?: string;
+  locale?: 'en' | 'zh';
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh ? '私教时间调整提议' : 'Private session reschedule proposed';
+  const { html, text } = renderTemplate({
+    title: isZh ? '新的时间提议' : 'New Time Proposed',
+    bodyLines: isZh
+      ? [
+          `${input.proposerName} 为私教课提出了新时间：`,
+          input.proposedWhenText,
+          '您可以接受该时间或继续提出其他时间。',
+        ]
+      : [
+          `${input.proposerName} proposed a new private session time:`,
+          input.proposedWhenText,
+          'You can accept this time or propose another one.',
+        ],
+    buttonLabel: isZh ? '查看私教安排' : 'View Session',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function privateRescheduleAcceptedTemplate(input: {
+  whenText: string;
+  portalUrl: string;
+  preferenceUrl?: string;
+  locale?: 'en' | 'zh';
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh ? '私教改期已确认' : 'Private session reschedule accepted';
+  const { html, text } = renderTemplate({
+    title: isZh ? '改期已确认' : 'Reschedule Accepted',
+    bodyLines: isZh
+      ? ['新的私教时间已确认：', input.whenText, '当前状态：等待管理员审批。']
+      : ['The new private session time has been accepted:', input.whenText, 'Status: awaiting admin approval.'],
+    buttonLabel: isZh ? '查看私教安排' : 'View Session',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function privateAdminApprovedTemplate(input: {
+  studentName: string;
+  coachName: string;
+  whenText: string;
+  priceCad: number;
+  portalUrl: string;
+  preferenceUrl?: string;
+  locale?: 'en' | 'zh';
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh ? '私教课已审批，请完成支付' : 'Private session approved - payment required';
+  const { html, text } = renderTemplate({
+    title: isZh ? '私教课已审批' : 'Private Session Approved',
+    bodyLines: isZh
+      ? [
+          `${input.studentName} 的私教课已审批。`,
+          `教练：${input.coachName}`,
+          `时间：${input.whenText}`,
+          `价格：CAD $${input.priceCad.toFixed(2)}`,
+          '请在门户中完成银行卡或电子转账支付以确认课程。',
+        ]
+      : [
+          `${input.studentName}'s private session has been approved.`,
+          `Coach: ${input.coachName}`,
+          `When: ${input.whenText}`,
+          `Price: CAD $${input.priceCad.toFixed(2)}`,
+          'Please complete payment in the portal (card or e-transfer) to confirm the session.',
+        ],
+    buttonLabel: isZh ? '完成支付' : 'Complete Payment',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function privateAdminApprovedCoachTemplate(input: {
+  coachName: string;
+  studentName: string;
+  whenText: string;
+  priceCad: number;
+  portalUrl: string;
+  preferenceUrl?: string;
+  locale?: 'en' | 'zh';
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh ? '私教课已通过管理员审批' : 'Admin approved private session';
+  const { html, text } = renderTemplate({
+    title: isZh ? '管理员已审批' : 'Admin Approval Complete',
+    bodyLines: isZh
+      ? [
+          `${input.coachName}，管理员已审批您与 ${input.studentName} 的私教课。`,
+          `时间：${input.whenText}`,
+          `价格：CAD $${input.priceCad.toFixed(2)}`,
+          '当前状态：等待学生支付确认。',
+        ]
+      : [
+          `Hi ${input.coachName}, admin approved your private session with ${input.studentName}.`,
+          `When: ${input.whenText}`,
+          `Price: CAD $${input.priceCad.toFixed(2)}`,
+          'Status: awaiting student payment.',
+        ],
+    buttonLabel: isZh ? '查看私教安排' : 'View Session',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function privatePaymentConfirmedTemplate(input: {
+  studentName: string;
+  coachName: string;
+  whenText: string;
+  zoomLink?: string | null;
+  paymentMethod: 'stripe' | 'etransfer';
+  isCoachVersion?: boolean;
+  portalUrl: string;
+  preferenceUrl?: string;
+  locale?: 'en' | 'zh';
+}) {
+  const isZh = input.locale === 'zh';
+  const paymentLabel = input.paymentMethod === 'etransfer'
+    ? (isZh ? '电子转账' : 'E-Transfer')
+    : (isZh ? '银行卡' : 'Card');
+  const subject = isZh ? '私教课已确认' : 'Private session confirmed';
+
+  const intro = input.isCoachVersion
+    ? isZh
+      ? `学生 ${input.studentName} 已完成支付，课程已确认。`
+      : `${input.studentName} has completed payment. The session is confirmed.`
+    : isZh
+      ? '支付已确认，您的私教课已确认。'
+      : 'Payment is confirmed and your private session is booked.';
+
+  const lines = [
+    intro,
+    isZh ? `教练：${input.coachName}` : `Coach: ${input.coachName}`,
+    isZh ? `时间：${input.whenText}` : `When: ${input.whenText}`,
+    isZh ? `支付方式：${paymentLabel}` : `Payment method: ${paymentLabel}`,
+  ];
+  if (input.zoomLink?.trim()) {
+    lines.push(isZh ? `Zoom 链接：${input.zoomLink.trim()}` : `Zoom link: ${input.zoomLink.trim()}`);
+  }
+
+  const { html, text } = renderTemplate({
+    title: isZh ? '私教课已确认' : 'Private Session Confirmed',
+    bodyLines: lines,
+    buttonLabel: isZh ? '查看课程' : 'View Session',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function privateEtransferInstructionsTemplate(input: {
+  studentName: string;
+  coachName: string;
+  whenText: string;
+  amountCad: number;
+  etransferEmail: string;
+  zoomLink?: string | null;
+  portalUrl: string;
+  preferenceUrl?: string;
+  locale?: 'en' | 'zh';
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh ? '私教课电子转账支付说明' : 'E-Transfer instructions for your private session';
+  const lines = isZh
+    ? [
+        `${input.studentName} 的私教课已确认，支付方式为电子转账。`,
+        `教练：${input.coachName}`,
+        `时间：${input.whenText}`,
+        `应付金额：CAD $${input.amountCad.toFixed(2)}`,
+        `请将电子转账发送至：${input.etransferEmail}`,
+        '请在转账留言中注明您的姓名和 “DSDC Private Session”。',
+        '管理员核实到账后将完成内部确认。',
+      ]
+    : [
+        `${input.studentName}'s private session is confirmed with e-transfer payment.`,
+        `Coach: ${input.coachName}`,
+        `When: ${input.whenText}`,
+        `Amount due: CAD $${input.amountCad.toFixed(2)}`,
+        `Send e-transfer to: ${input.etransferEmail}`,
+        "Include your name and 'DSDC Private Session' in the transfer message.",
+        'Admin will verify receipt and finalize internally.',
+      ];
+  if (input.zoomLink?.trim()) {
+    lines.push(isZh ? `Zoom 链接：${input.zoomLink.trim()}` : `Zoom link: ${input.zoomLink.trim()}`);
+  }
+
+  const { html, text } = renderTemplate({
+    title: isZh ? '电子转账说明' : 'E-Transfer Instructions',
+    bodyLines: lines,
+    buttonLabel: isZh ? '查看私教安排' : 'View Session',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+  return { subject, html, text };
+}
+
+export function privateEtransferAdminNoticeTemplate(input: {
+  studentName: string;
+  coachName: string;
+  whenText: string;
+  amountCad: number;
+  portalUrl: string;
+}) {
+  const subject = `Private session e-transfer selected: ${input.studentName}`;
+  const { html, text } = renderTemplate({
+    title: 'Private Session E-Transfer Selected',
+    bodyLines: [
+      `${input.studentName} selected e-transfer for a private session.`,
+      `Coach: ${input.coachName}`,
+      `When: ${input.whenText}`,
+      `Amount: CAD $${input.amountCad.toFixed(2)}`,
+      'Please verify receipt of funds.',
+    ],
+    buttonLabel: 'Open Admin Portal',
+    buttonUrl: input.portalUrl,
   });
   return { subject, html, text };
 }
@@ -679,6 +975,29 @@ export function etransferSentConfirmation(input: {
   const { html, text } = renderTemplate({
     title: isZh ? '转账通知已收到' : 'E-Transfer Noted',
     bodyLines,
+  });
+  return { subject, html, text };
+}
+
+export function etransferAdminSentNotice(input: {
+  studentName: string;
+  studentEmail: string;
+  classes: { name: string }[];
+  totalAmountCad: number;
+  queueUrl: string;
+}) {
+  const classList = input.classes.map((classItem) => classItem.name).join(', ');
+  const subject = `E-transfer sent: ${input.studentName} ($${input.totalAmountCad.toFixed(2)} CAD)`;
+  const { html, text } = renderTemplate({
+    title: 'E-Transfer Marked as Sent',
+    bodyLines: [
+      `${input.studentName} (${input.studentEmail}) has confirmed sending an e-transfer.`,
+      `Classes: ${classList}`,
+      `Amount: CAD $${input.totalAmountCad.toFixed(2)}`,
+      'Please verify receipt and confirm their enrollment in the admin portal.',
+    ],
+    buttonLabel: 'Open E-Transfer Queue',
+    buttonUrl: input.queueUrl,
   });
   return { subject, html, text };
 }

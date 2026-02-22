@@ -37,7 +37,7 @@ export default function PayrollTable({ rows, showPayColumns = true, totals }: Pr
             <tr key={row.coachId} className="border-t border-warm-200 dark:border-navy-700">
               <td className="px-3 py-2">{row.coachName}</td>
               <td className="px-3 py-2">{row.coachEmail}</td>
-              <td className="px-3 py-2">{row.coachTier}{row.isTa ? ' (TA)' : ''}</td>
+              <td className="px-3 py-2">{row.coachTier ?? '—'}{row.isTa ? ' (TA)' : ''}</td>
               <td className="px-3 py-2 text-right">{row.sessions}</td>
               <td className="px-3 py-2 text-right">{row.totalHours.toFixed(2)}</td>
               <td className="px-3 py-2 text-right">{row.lateCount}</td>

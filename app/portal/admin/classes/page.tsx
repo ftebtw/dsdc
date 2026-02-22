@@ -27,6 +27,13 @@ const scheduleDays: Database['public']['Enums']['schedule_day'][] = [
 
 const tiers: Database['public']['Enums']['coach_tier'][] = ['junior', 'senior', 'wsc'];
 
+function formatCoachTier(coach: { tier: Database['public']['Enums']['coach_tier'] | null; is_ta: boolean }) {
+  if (coach.is_ta) {
+    return coach.tier ? `${coach.tier}, TA` : 'TA';
+  }
+  return coach.tier ? coach.tier : 'Coach';
+}
+
 async function createClass(formData: FormData) {
   'use server';
   await requireRole(['admin']);
@@ -183,8 +190,7 @@ export default async function AdminClassesPage({
               {coachProfiles.map((coach: any) => (
                 <option key={coach.coach_id} value={coach.coach_id}>
                   {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id} (
-                  {coach.tier}
-                  {coach.is_ta ? ', TA' : ''})
+                  {formatCoachTier(coach)})
                 </option>
               ))}
             </select>
@@ -292,8 +298,7 @@ export default async function AdminClassesPage({
                   {coachProfiles.map((coach: any) => (
                     <option key={coach.coach_id} value={coach.coach_id}>
                       {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id} (
-                      {coach.tier}
-                      {coach.is_ta ? ', TA' : ''})
+                      {formatCoachTier(coach)})
                     </option>
                   ))}
                 </select>

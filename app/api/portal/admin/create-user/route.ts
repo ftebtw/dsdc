@@ -12,7 +12,7 @@ const bodySchema = z.object({
   locale: z.enum(['en', 'zh']).default('en'),
   phone: z.string().max(40).optional().or(z.literal('')),
   timezone: z.string().min(1).max(80).default('America/Vancouver'),
-  tier: z.enum(['junior', 'senior', 'wsc']).optional(),
+  tier: z.enum(['junior', 'senior', 'wsc']).nullable().optional(),
   is_ta: z.boolean().default(false),
   send_invite: z.boolean().default(true),
 });
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
     return jsonError('Invalid timezone.');
   }
 
-  if ((body.role === 'coach' || body.role === 'ta') && !body.tier) {
-    return jsonError('Coach tier is required for coach/TA users.');
+  if (body.role === 'coach' && !body.tier) {
+    return jsonError('Coach tier is required for coaches.');
   }
 
   const supabaseAdmin = getSupabaseAdminClient();
@@ -90,8 +90,8 @@ export async function POST(request: NextRequest) {
     const { error: coachError } = await supabaseAdmin.from('coach_profiles').upsert(
       {
         coach_id: userId,
-        tier: body.tier!,
-        is_ta: body.role === 'ta' ? true : body.is_ta,
+        tier: body.role === 'ta' ? null : body.tier!,
+        is_ta: body.role === 'ta',
       },
       { onConflict: 'coach_id' }
     );

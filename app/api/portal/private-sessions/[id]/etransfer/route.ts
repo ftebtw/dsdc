@@ -1,12 +1,14 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+import {
+  privateEtransferAdminNoticeTemplate,
+  privateEtransferInstructionsTemplate,
+  privatePaymentConfirmedTemplate,
+} from '@/lib/email/templates';
+import { sendPortalEmails } from '@/lib/email/send';
 import { requireApiRole } from '@/lib/portal/auth';
 import {
-  privateAdminApprovedCoachTemplate,
-  privateAdminApprovedTemplate,
-} from '@/lib/email/templates';
-import {
   loadPrivateSessionParticipants,
+  managementEmails,
   nameOrEmail,
   sendToCoach,
   sendToStudentAndParents,
@@ -14,11 +16,6 @@ import {
 } from '@/lib/portal/private-sessions';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
-
-const bodySchema = z.object({
-  priceCad: z.number().positive().max(9999),
-  zoomLink: z.string().url().max(500).optional(),
-});
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -28,13 +25,10 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireApiRole(request, ['admin']);
+  const session = await requireApiRole(request, ['student', 'parent']);
   if (!session) return jsonError('Unauthorized', 401);
+
   const { id } = await params;
-
-  const parsed = bodySchema.safeParse(await request.json());
-  if (!parsed.success) return jsonError('Invalid payload.');
-
   const supabaseResponse = NextResponse.next();
   const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const admin = getSupabaseAdminClient();
@@ -48,34 +42,46 @@ export async function POST(
   if (!rowData) return mergeCookies(supabaseResponse, jsonError('Private session not found.', 404));
 
   const row = rowData as PrivateSessionWorkflowRow;
-  if (row.status !== 'coach_accepted' && row.status !== 'awaiting_payment') {
-    return mergeCookies(
-      supabaseResponse,
-      jsonError('Only coach-accepted sessions can be approved for payment.', 400)
-    );
+  if (row.status !== 'awaiting_payment') {
+    return mergeCookies(supabaseResponse, jsonError('This session is not awaiting payment.', 400));
+  }
+
+  if (session.profile.role === 'student') {
+    if (row.student_id !== session.userId) {
+      return mergeCookies(supabaseResponse, jsonError('Not allowed to confirm payment for this session.', 403));
+    }
+  } else {
+    const { data: linkRow } = await supabase
+      .from('parent_student_links')
+      .select('id')
+      .eq('parent_id', session.userId)
+      .eq('student_id', row.student_id)
+      .maybeSingle();
+    if (!linkRow) {
+      return mergeCookies(supabaseResponse, jsonError('Parent is not linked to this student.', 403));
+    }
   }
 
   const { data: updatedData, error: updateError } = await supabase
     .from('private_sessions')
     .update({
-      status: 'awaiting_payment',
-      price_cad: parsed.data.priceCad,
-      zoom_link: parsed.data.zoomLink?.trim() || null,
-      admin_approved_at: new Date().toISOString(),
-      admin_approved_by: session.userId,
-      cancelled_at: null,
-      cancelled_by: null,
+      status: 'confirmed',
+      payment_method: 'etransfer',
+      confirmed_at: new Date().toISOString(),
     })
     .eq('id', id)
+    .eq('status', 'awaiting_payment')
     .select('*')
     .maybeSingle();
   if (updateError) return mergeCookies(supabaseResponse, jsonError(updateError.message, 400));
-  if (!updatedData) return mergeCookies(supabaseResponse, jsonError('Unable to update session.', 409));
+  if (!updatedData) return mergeCookies(supabaseResponse, jsonError('Session is no longer awaiting payment.', 409));
 
   const updatedRow = updatedData as PrivateSessionWorkflowRow;
   const participants = await loadPrivateSessionParticipants(admin, updatedRow);
-  const studentName = nameOrEmail(participants.student, 'Student');
   const coachName = nameOrEmail(participants.coach, 'Coach');
+  const studentName = nameOrEmail(participants.student, 'Student');
+  const amountCad = Number(updatedRow.price_cad || 0);
+  const etransferEmail = process.env.NEXT_PUBLIC_ETRANSFER_EMAIL || 'education.dsdc@gmail.com';
 
   await sendToStudentAndParents({
     participants,
@@ -86,11 +92,13 @@ export async function POST(
       parent: '/portal/parent/private-sessions',
     },
     buildTemplate: ({ locale, whenText, portalUrl, preferenceUrl }) =>
-      privateAdminApprovedTemplate({
+      privateEtransferInstructionsTemplate({
         studentName,
         coachName,
         whenText,
-        priceCad: parsed.data.priceCad,
+        amountCad,
+        etransferEmail,
+        zoomLink: updatedRow.zoom_link,
         portalUrl,
         preferenceUrl,
         locale,
@@ -106,16 +114,32 @@ export async function POST(
       ta: '/portal/coach/private-sessions',
     },
     buildTemplate: ({ locale, whenText, portalUrl, preferenceUrl }) =>
-      privateAdminApprovedCoachTemplate({
-        coachName,
+      privatePaymentConfirmedTemplate({
         studentName,
+        coachName,
         whenText,
-        priceCad: parsed.data.priceCad,
+        paymentMethod: 'etransfer',
+        zoomLink: updatedRow.zoom_link,
+        isCoachVersion: true,
         portalUrl,
         preferenceUrl,
         locale,
       }),
   });
+
+  const adminEmails = managementEmails();
+  if (adminEmails.length > 0) {
+    const adminWhenText = `${updatedRow.requested_date} ${updatedRow.requested_start_time.slice(0, 5)}-${updatedRow.requested_end_time.slice(0, 5)} (${updatedRow.timezone})`;
+    const adminTemplate = privateEtransferAdminNoticeTemplate({
+      studentName,
+      coachName,
+      whenText: adminWhenText,
+      amountCad,
+      portalUrl: `${request.nextUrl.origin}/portal/admin/private-sessions`,
+    });
+
+    await sendPortalEmails(adminEmails.map((to) => ({ to, ...adminTemplate })));
+  }
 
   return mergeCookies(supabaseResponse, NextResponse.json({ session: updatedRow }));
 }

@@ -1,24 +1,14 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
-import {
-  privateAdminApprovedCoachTemplate,
-  privateAdminApprovedTemplate,
-} from '@/lib/email/templates';
+import { privateCoachAcceptedTemplate } from '@/lib/email/templates';
 import {
   loadPrivateSessionParticipants,
   nameOrEmail,
-  sendToCoach,
   sendToStudentAndParents,
   type PrivateSessionWorkflowRow,
 } from '@/lib/portal/private-sessions';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
-
-const bodySchema = z.object({
-  priceCad: z.number().positive().max(9999),
-  zoomLink: z.string().url().max(500).optional(),
-});
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -28,44 +18,55 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireApiRole(request, ['admin']);
+  const session = await requireApiRole(request, ['admin', 'coach', 'ta']);
   if (!session) return jsonError('Unauthorized', 401);
+
   const { id } = await params;
-
-  const parsed = bodySchema.safeParse(await request.json());
-  if (!parsed.success) return jsonError('Invalid payload.');
-
   const supabaseResponse = NextResponse.next();
   const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const admin = getSupabaseAdminClient();
 
-  const { data: rowData, error: rowError } = await supabase
+  const { data: currentRow, error: currentRowError } = await supabase
     .from('private_sessions')
     .select('*')
     .eq('id', id)
     .maybeSingle();
-  if (rowError) return mergeCookies(supabaseResponse, jsonError(rowError.message, 400));
-  if (!rowData) return mergeCookies(supabaseResponse, jsonError('Private session not found.', 404));
+  if (currentRowError) return mergeCookies(supabaseResponse, jsonError(currentRowError.message, 400));
+  if (!currentRow) return mergeCookies(supabaseResponse, jsonError('Private session not found.', 404));
 
-  const row = rowData as PrivateSessionWorkflowRow;
-  if (row.status !== 'coach_accepted' && row.status !== 'awaiting_payment') {
+  const row = currentRow as PrivateSessionWorkflowRow;
+  const isAdmin = session.profile.role === 'admin';
+  const isCoachOwner = row.coach_id === session.userId;
+  if (!isAdmin && !isCoachOwner) {
+    return mergeCookies(supabaseResponse, jsonError('Not allowed to accept this session.', 403));
+  }
+
+  if (row.status !== 'pending' && row.status !== 'rescheduled_by_student') {
     return mergeCookies(
       supabaseResponse,
-      jsonError('Only coach-accepted sessions can be approved for payment.', 400)
+      jsonError('Only pending or student-rescheduled sessions can be accepted.', 400)
     );
+  }
+
+  const updates: Record<string, unknown> = {
+    status: 'coach_accepted',
+    cancelled_at: null,
+    cancelled_by: null,
+  };
+
+  if (row.status === 'rescheduled_by_student') {
+    updates.requested_date = row.proposed_date || row.requested_date;
+    updates.requested_start_time = row.proposed_start_time || row.requested_start_time;
+    updates.requested_end_time = row.proposed_end_time || row.requested_end_time;
+    updates.proposed_date = null;
+    updates.proposed_start_time = null;
+    updates.proposed_end_time = null;
+    updates.proposed_by = null;
   }
 
   const { data: updatedData, error: updateError } = await supabase
     .from('private_sessions')
-    .update({
-      status: 'awaiting_payment',
-      price_cad: parsed.data.priceCad,
-      zoom_link: parsed.data.zoomLink?.trim() || null,
-      admin_approved_at: new Date().toISOString(),
-      admin_approved_by: session.userId,
-      cancelled_at: null,
-      cancelled_by: null,
-    })
+    .update(updates)
     .eq('id', id)
     .select('*')
     .maybeSingle();
@@ -74,8 +75,8 @@ export async function POST(
 
   const updatedRow = updatedData as PrivateSessionWorkflowRow;
   const participants = await loadPrivateSessionParticipants(admin, updatedRow);
-  const studentName = nameOrEmail(participants.student, 'Student');
   const coachName = nameOrEmail(participants.coach, 'Coach');
+  const studentName = nameOrEmail(participants.student, 'Student');
 
   await sendToStudentAndParents({
     participants,
@@ -86,31 +87,10 @@ export async function POST(
       parent: '/portal/parent/private-sessions',
     },
     buildTemplate: ({ locale, whenText, portalUrl, preferenceUrl }) =>
-      privateAdminApprovedTemplate({
-        studentName,
-        coachName,
-        whenText,
-        priceCad: parsed.data.priceCad,
-        portalUrl,
-        preferenceUrl,
-        locale,
-      }),
-  });
-
-  await sendToCoach({
-    participants,
-    row: updatedRow,
-    includePreferenceCheck: true,
-    pathByRole: {
-      coach: '/portal/coach/private-sessions',
-      ta: '/portal/coach/private-sessions',
-    },
-    buildTemplate: ({ locale, whenText, portalUrl, preferenceUrl }) =>
-      privateAdminApprovedCoachTemplate({
+      privateCoachAcceptedTemplate({
         coachName,
         studentName,
         whenText,
-        priceCad: parsed.data.priceCad,
         portalUrl,
         preferenceUrl,
         locale,

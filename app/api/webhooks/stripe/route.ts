@@ -4,9 +4,16 @@ import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { getStripeClient } from "@/lib/stripe";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { classTypeLabel } from "@/lib/portal/labels";
+import {
+  loadPrivateSessionParticipants,
+  nameOrEmail,
+  sendToCoach,
+  sendToStudentAndParents,
+  type PrivateSessionWorkflowRow,
+} from "@/lib/portal/private-sessions";
 import { getPortalAppUrl } from "@/lib/email/resend";
 import { sendPortalEmails } from "@/lib/email/send";
-import { enrollmentConfirmationFull } from "@/lib/email/templates";
+import { enrollmentConfirmationFull, privatePaymentConfirmedTemplate } from "@/lib/email/templates";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,10 +71,105 @@ function parseMetadataClassIds(value: string | null | undefined): string[] {
   }
 }
 
+async function handlePrivateSessionCheckoutCompleted(session: Stripe.Checkout.Session) {
+  const metadata = session.metadata ?? {};
+  const privateSessionId = metadata.privateSessionId || "";
+  if (!privateSessionId) return;
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  const { data: rowData, error: rowError } = await supabaseAdmin
+    .from("private_sessions")
+    .select("*")
+    .eq("id", privateSessionId)
+    .maybeSingle();
+  if (rowError) {
+    console.error("[stripe-webhook] private session lookup failed", rowError);
+    return;
+  }
+  if (!rowData) return;
+
+  const row = rowData as PrivateSessionWorkflowRow;
+  if (row.status !== "awaiting_payment") {
+    return;
+  }
+
+  const { data: updateData, error: updateError } = await supabaseAdmin
+    .from("private_sessions")
+    .update({
+      status: "confirmed",
+      payment_method: "stripe",
+      stripe_checkout_session_id: session.id,
+      confirmed_at: new Date().toISOString(),
+    })
+    .eq("id", row.id)
+    .eq("status", "awaiting_payment")
+    .select("*")
+    .maybeSingle();
+  if (updateError) {
+    console.error("[stripe-webhook] private session update failed", updateError);
+    return;
+  }
+  if (!updateData) return;
+  const updatedRow = updateData as PrivateSessionWorkflowRow;
+
+  const participants = await loadPrivateSessionParticipants(supabaseAdmin, updatedRow);
+  const studentName = nameOrEmail(participants.student, "Student");
+  const coachName = nameOrEmail(participants.coach, "Coach");
+
+  await sendToStudentAndParents({
+    participants,
+    row: updatedRow,
+    includePreferenceCheck: true,
+    pathByRole: {
+      student: "/portal/student/booking",
+      parent: "/portal/parent/private-sessions",
+    },
+    buildTemplate: ({ locale, whenText, portalUrl, preferenceUrl }) =>
+      privatePaymentConfirmedTemplate({
+        studentName,
+        coachName,
+        whenText,
+        paymentMethod: "stripe",
+        zoomLink: updatedRow.zoom_link,
+        portalUrl,
+        preferenceUrl,
+        locale,
+      }),
+  });
+
+  await sendToCoach({
+    participants,
+    row: updatedRow,
+    includePreferenceCheck: true,
+    pathByRole: {
+      coach: "/portal/coach/private-sessions",
+      ta: "/portal/coach/private-sessions",
+    },
+    buildTemplate: ({ locale, whenText, portalUrl, preferenceUrl }) =>
+      privatePaymentConfirmedTemplate({
+        studentName,
+        coachName,
+        whenText,
+        paymentMethod: "stripe",
+        zoomLink: updatedRow.zoom_link,
+        isCoachVersion: true,
+        portalUrl,
+        preferenceUrl,
+        locale,
+      }),
+  });
+}
+
 async function handleCheckoutSessionCompleted(
   stripe: Stripe,
   session: Stripe.Checkout.Session
 ) {
+  const metadata = session.metadata ?? {};
+  if (metadata.type === "private_session") {
+    await handlePrivateSessionCheckoutCompleted(session);
+    return;
+  }
+
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
     limit: 20,
     expand: ["data.price.product"],
@@ -103,7 +205,6 @@ async function handleCheckoutSessionCompleted(
 
   console.log("[stripe-webhook]", JSON.stringify(payload));
 
-  const metadata = session.metadata ?? {};
   const studentId = metadata.studentId || "";
   const classIds = parseMetadataClassIds(metadata.classIds);
 

@@ -1,6 +1,8 @@
-"use client";
+﻿"use client";
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+
+type ActionResult = { ok: boolean; error?: string };
 
 type Props = {
   coachName: string;
@@ -9,97 +11,391 @@ type Props = {
   status: string;
   studentNotes?: string | null;
   coachNotes?: string | null;
-  canConfirm?: boolean;
+  priceCad?: number | null;
+  zoomLink?: string | null;
+  paymentMethod?: string | null;
+  proposedDate?: string | null;
+  proposedStartTime?: string | null;
+  proposedEndTime?: string | null;
+  proposedByName?: string | null;
+  step?: number;
+  viewerRole: 'admin' | 'coach' | 'student' | 'parent';
+
+  canAccept?: boolean;
+  canReject?: boolean;
+  canReschedule?: boolean;
+  canAcceptReschedule?: boolean;
+  canApprove?: boolean;
+  canPay?: boolean;
   canCancel?: boolean;
   canComplete?: boolean;
-  onConfirm?: () => Promise<{ ok: boolean; error?: string }>;
-  onCancel?: () => Promise<{ ok: boolean; error?: string }>;
-  onComplete?: () => Promise<{ ok: boolean; error?: string }>;
+
+  onAccept?: () => Promise<ActionResult>;
+  onReject?: (notes?: string) => Promise<ActionResult>;
+  onReschedule?: (data: {
+    date: string;
+    start: string;
+    end: string;
+    notes?: string;
+  }) => Promise<ActionResult>;
+  onAcceptReschedule?: () => Promise<ActionResult>;
+  onApprove?: (data: { priceCad: number; zoomLink?: string }) => Promise<ActionResult>;
+  onPayCard?: () => Promise<ActionResult>;
+  onPayEtransfer?: () => Promise<ActionResult>;
+  onCancel?: (reason?: string) => Promise<ActionResult>;
+  onComplete?: () => Promise<ActionResult>;
 };
 
 function statusClass(status: string) {
-  if (status === 'confirmed') return 'bg-green-100 text-green-800';
-  if (status === 'cancelled') return 'bg-red-100 text-red-800';
-  if (status === 'completed') return 'bg-blue-100 text-blue-800';
-  return 'bg-amber-100 text-amber-800';
+  if (status === 'confirmed') return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200';
+  if (status === 'cancelled') return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200';
+  if (status === 'completed') return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200';
+  if (status === 'coach_accepted') return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200';
+  if (status === 'awaiting_payment') return 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-200';
+  if (status === 'rescheduled_by_coach' || status === 'rescheduled_by_student') {
+    return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200';
+  }
+  return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200';
 }
 
-export default function PrivateSessionCard({
-  coachName,
-  studentName,
-  whenText,
-  status,
-  studentNotes,
-  coachNotes,
-  canConfirm = false,
-  canCancel = false,
-  canComplete = false,
-  onConfirm,
-  onCancel,
-  onComplete,
-}: Props) {
-  const [loading, setLoading] = useState<'confirm' | 'cancel' | 'complete' | null>(null);
+const stepLabels = ['Request', 'Coach Review', 'Admin Approval', 'Payment', 'Confirmed', 'Complete'];
+
+function normalizeTimeInput(value: string): string {
+  const trimmed = value.trim();
+  if (/^\d{2}:\d{2}:\d{2}$/.test(trimmed)) return trimmed.slice(0, 5);
+  return trimmed;
+}
+
+function sessionStatusText(status: string) {
+  switch (status) {
+    case 'pending':
+      return 'Awaiting coach response';
+    case 'rescheduled_by_coach':
+      return 'Coach proposed a new time';
+    case 'rescheduled_by_student':
+      return 'Student proposed a new time';
+    case 'coach_accepted':
+      return 'Coach accepted. Awaiting admin approval';
+    case 'awaiting_payment':
+      return 'Approved. Awaiting payment';
+    case 'confirmed':
+      return 'Confirmed';
+    case 'completed':
+      return 'Completed';
+    case 'cancelled':
+      return 'Cancelled';
+    default:
+      return status;
+  }
+}
+
+export default function PrivateSessionCard(props: Props) {
+  const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function runAction(
-    kind: 'confirm' | 'cancel' | 'complete',
-    fn?: () => Promise<{ ok: boolean; error?: string }>
-  ) {
+  const [rejectNotes, setRejectNotes] = useState('');
+  const [cancelReason, setCancelReason] = useState('');
+  const [rescheduleDate, setRescheduleDate] = useState(props.proposedDate || '');
+  const [rescheduleStart, setRescheduleStart] = useState(
+    normalizeTimeInput(props.proposedStartTime || '')
+  );
+  const [rescheduleEnd, setRescheduleEnd] = useState(
+    normalizeTimeInput(props.proposedEndTime || '')
+  );
+  const [rescheduleNotes, setRescheduleNotes] = useState('');
+
+  const [priceCad, setPriceCad] = useState(
+    props.priceCad != null && Number.isFinite(Number(props.priceCad))
+      ? Number(props.priceCad).toFixed(2)
+      : ''
+  );
+  const [zoomLink, setZoomLink] = useState(props.zoomLink || '');
+
+  const canRunActions = loading === null;
+
+  const resolvedStep = useMemo(() => {
+    if (props.step) return Math.max(1, Math.min(6, props.step));
+    if (props.status === 'pending') return 1;
+    if (props.status === 'rescheduled_by_coach' || props.status === 'rescheduled_by_student') return 2;
+    if (props.status === 'coach_accepted') return 3;
+    if (props.status === 'awaiting_payment') return 4;
+    if (props.status === 'confirmed') return 5;
+    return props.status === 'completed' ? 6 : 1;
+  }, [props.step, props.status]);
+
+  async function runAction(label: string, fn?: () => Promise<ActionResult>) {
     if (!fn) return;
-    setLoading(kind);
+    setLoading(label);
     setError(null);
     const result = await fn();
     setLoading(null);
-    if (!result.ok) setError(result.error || 'Action failed.');
+    if (!result.ok) {
+      setError(result.error || 'Action failed.');
+    }
   }
 
   return (
-    <article className="rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900 p-4">
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
-        <div>
-          <h3 className="font-semibold text-navy-800 dark:text-white">{whenText}</h3>
-          <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">Coach: {coachName}</p>
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">Student: {studentName}</p>
-          {studentNotes ? <p className="text-sm mt-1">Student notes: {studentNotes}</p> : null}
-          {coachNotes ? <p className="text-sm mt-1">Coach notes: {coachNotes}</p> : null}
-          <span className={`inline-block px-2 py-1 rounded-full text-xs uppercase mt-2 ${statusClass(status)}`}>
-            {status}
-          </span>
+    <article className="rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900 p-4 space-y-3">
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-1">
+          <h3 className="font-semibold text-navy-800 dark:text-white">{props.whenText}</h3>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">Coach: {props.coachName}</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">Student: {props.studentName}</p>
+          <p className="text-xs text-charcoal/65 dark:text-navy-300">{sessionStatusText(props.status)}</p>
         </div>
-        <div className="flex items-center gap-2">
-          {canConfirm && onConfirm ? (
-            <button
-              type="button"
-              className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold disabled:opacity-70"
-              onClick={() => void runAction('confirm', onConfirm)}
-              disabled={loading !== null}
-            >
-              {loading === 'confirm' ? 'Confirming...' : 'Confirm'}
-            </button>
-          ) : null}
-          {canComplete && onComplete ? (
-            <button
-              type="button"
-              className="px-3 py-1.5 rounded-md bg-navy-800 text-white text-sm disabled:opacity-70"
-              onClick={() => void runAction('complete', onComplete)}
-              disabled={loading !== null}
-            >
-              {loading === 'complete' ? 'Completing...' : 'Complete'}
-            </button>
-          ) : null}
-          {canCancel && onCancel ? (
-            <button
-              type="button"
-              className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm disabled:opacity-70"
-              onClick={() => void runAction('cancel', onCancel)}
-              disabled={loading !== null}
-            >
-              {loading === 'cancel' ? 'Cancelling...' : 'Cancel'}
-            </button>
-          ) : null}
-        </div>
+        <span className={`inline-flex px-2 py-1 rounded-full text-xs uppercase ${statusClass(props.status)}`}>
+          {props.status}
+        </span>
       </div>
-      {error ? <p className="text-sm text-red-700 mt-2">{error}</p> : null}
+
+      <div className="grid gap-2 md:grid-cols-6 text-xs">
+        {stepLabels.map((label, index) => {
+          const stepNum = index + 1;
+          const active = stepNum === resolvedStep;
+          const done = stepNum < resolvedStep;
+          return (
+            <div
+              key={label}
+              className={`rounded-md px-2 py-1 border text-center ${
+                active
+                  ? 'border-gold-400 bg-gold-100/70 text-navy-900 dark:bg-gold-400/20 dark:text-gold-100'
+                  : done
+                    ? 'border-green-400 bg-green-50 text-green-800 dark:bg-green-500/20 dark:text-green-200'
+                    : 'border-warm-200 text-charcoal/65 dark:border-navy-700 dark:text-navy-300'
+              }`}
+            >
+              {done ? '✓ ' : ''}
+              {label}
+            </div>
+          );
+        })}
+      </div>
+
+      {props.studentNotes ? <p className="text-sm">Student notes: {props.studentNotes}</p> : null}
+      {props.coachNotes ? <p className="text-sm">Coach notes: {props.coachNotes}</p> : null}
+
+      {props.proposedDate && props.proposedStartTime && props.proposedEndTime ? (
+        <div className="rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50/70 dark:bg-orange-900/20 px-3 py-2 text-sm">
+          Proposed time: {props.proposedDate} {normalizeTimeInput(props.proposedStartTime)}-{normalizeTimeInput(props.proposedEndTime)}
+          {props.proposedByName ? ` (by ${props.proposedByName})` : ''}
+        </div>
+      ) : null}
+
+      {props.priceCad != null ? (
+        <p className="text-sm text-charcoal/80 dark:text-navy-200">Price: CAD ${Number(props.priceCad).toFixed(2)}</p>
+      ) : null}
+
+      {props.paymentMethod ? (
+        <p className="text-sm text-charcoal/80 dark:text-navy-200">Payment method: {props.paymentMethod}</p>
+      ) : null}
+
+      {props.zoomLink && (props.status === 'confirmed' || props.status === 'completed') ? (
+        <p className="text-sm">
+          Zoom:{' '}
+          <a href={props.zoomLink} target="_blank" rel="noreferrer" className="text-blue-700 underline">
+            {props.zoomLink}
+          </a>
+        </p>
+      ) : null}
+
+      <div className="flex flex-wrap gap-2">
+        {props.canAccept && props.onAccept ? (
+          <button
+            type="button"
+            onClick={() => void runAction('accept', props.onAccept)}
+            disabled={!canRunActions}
+            className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold disabled:opacity-70"
+          >
+            {loading === 'accept' ? 'Accepting...' : 'Accept'}
+          </button>
+        ) : null}
+
+        {props.canAcceptReschedule && props.onAcceptReschedule ? (
+          <button
+            type="button"
+            onClick={() => void runAction('accept-reschedule', props.onAcceptReschedule)}
+            disabled={!canRunActions}
+            className="px-3 py-1.5 rounded-md bg-blue-700 text-white text-sm font-semibold disabled:opacity-70"
+          >
+            {loading === 'accept-reschedule' ? 'Accepting...' : 'Accept Reschedule'}
+          </button>
+        ) : null}
+
+        {props.canComplete && props.onComplete ? (
+          <button
+            type="button"
+            onClick={() => void runAction('complete', props.onComplete)}
+            disabled={!canRunActions}
+            className="px-3 py-1.5 rounded-md bg-navy-800 text-white text-sm disabled:opacity-70"
+          >
+            {loading === 'complete' ? 'Completing...' : 'Mark Complete'}
+          </button>
+        ) : null}
+
+        {props.canPay && props.onPayCard ? (
+          <button
+            type="button"
+            onClick={() => void runAction('pay-card', props.onPayCard)}
+            disabled={!canRunActions}
+            className="px-3 py-1.5 rounded-md bg-green-700 text-white text-sm font-semibold disabled:opacity-70"
+          >
+            {loading === 'pay-card' ? 'Redirecting...' : 'Pay with Card'}
+          </button>
+        ) : null}
+
+        {props.canPay && props.onPayEtransfer ? (
+          <button
+            type="button"
+            onClick={() => void runAction('pay-etransfer', props.onPayEtransfer)}
+            disabled={!canRunActions}
+            className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm disabled:opacity-70"
+          >
+            {loading === 'pay-etransfer' ? 'Submitting...' : 'Pay by E-Transfer'}
+          </button>
+        ) : null}
+      </div>
+
+      {(props.canReject && props.onReject) || (props.canCancel && props.onCancel) ? (
+        <div className="grid gap-2 md:grid-cols-2">
+          {props.canReject && props.onReject ? (
+            <div className="space-y-2">
+              <textarea
+                value={rejectNotes}
+                onChange={(event) => setRejectNotes(event.target.value)}
+                rows={2}
+                placeholder="Optional rejection reason"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => void runAction('reject', () => props.onReject?.(rejectNotes.trim() || undefined) || Promise.resolve({ ok: false, error: 'Reject unavailable.' }))}
+                disabled={!canRunActions}
+                className="px-3 py-1.5 rounded-md bg-red-700 text-white text-sm disabled:opacity-70"
+              >
+                {loading === 'reject' ? 'Rejecting...' : 'Reject'}
+              </button>
+            </div>
+          ) : null}
+
+          {props.canCancel && props.onCancel ? (
+            <div className="space-y-2">
+              <textarea
+                value={cancelReason}
+                onChange={(event) => setCancelReason(event.target.value)}
+                rows={2}
+                placeholder="Optional cancel reason"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => void runAction('cancel', () => props.onCancel?.(cancelReason.trim() || undefined) || Promise.resolve({ ok: false, error: 'Cancel unavailable.' }))}
+                disabled={!canRunActions}
+                className="px-3 py-1.5 rounded-md border border-red-500 text-red-700 dark:text-red-300 text-sm disabled:opacity-70"
+              >
+                {loading === 'cancel' ? 'Cancelling...' : 'Cancel'}
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {props.canReschedule && props.onReschedule ? (
+        <form
+          className="grid gap-2 md:grid-cols-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void runAction('reschedule', () =>
+              props.onReschedule?.({
+                date: rescheduleDate,
+                start: rescheduleStart,
+                end: rescheduleEnd,
+                notes: rescheduleNotes.trim() || undefined,
+              }) || Promise.resolve({ ok: false, error: 'Reschedule unavailable.' })
+            );
+          }}
+        >
+          <input
+            type="date"
+            required
+            value={rescheduleDate}
+            onChange={(event) => setRescheduleDate(event.target.value)}
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+          />
+          <input
+            type="time"
+            required
+            value={rescheduleStart}
+            onChange={(event) => setRescheduleStart(event.target.value)}
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+          />
+          <input
+            type="time"
+            required
+            value={rescheduleEnd}
+            onChange={(event) => setRescheduleEnd(event.target.value)}
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={!canRunActions}
+            className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm disabled:opacity-70"
+          >
+            {loading === 'reschedule' ? 'Submitting...' : 'Propose Reschedule'}
+          </button>
+          <textarea
+            value={rescheduleNotes}
+            onChange={(event) => setRescheduleNotes(event.target.value)}
+            rows={2}
+            placeholder="Optional notes"
+            className="md:col-span-4 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+          />
+        </form>
+      ) : null}
+
+      {props.canApprove && props.onApprove ? (
+        <form
+          className="grid gap-2 md:grid-cols-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const parsedPrice = Number(priceCad);
+            if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+              setError('Price must be a positive number.');
+              return;
+            }
+            void runAction('approve', () =>
+              props.onApprove?.({ priceCad: parsedPrice, zoomLink: zoomLink.trim() || undefined }) ||
+              Promise.resolve({ ok: false, error: 'Approve unavailable.' })
+            );
+          }}
+        >
+          <input
+            type="number"
+            min="1"
+            step="0.01"
+            placeholder="Price (CAD)"
+            value={priceCad}
+            onChange={(event) => setPriceCad(event.target.value)}
+            required
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+          />
+          <input
+            type="url"
+            placeholder="Zoom link (optional)"
+            value={zoomLink}
+            onChange={(event) => setZoomLink(event.target.value)}
+            className="md:col-span-2 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={!canRunActions}
+            className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold disabled:opacity-70"
+          >
+            {loading === 'approve' ? 'Approving...' : 'Approve & Notify Student'}
+          </button>
+        </form>
+      ) : null}
+
+      {error ? <p className="text-sm text-red-700 dark:text-red-300">{error}</p> : null}
     </article>
   );
 }

@@ -1,16 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
-import { sendPortalEmails } from '@/lib/email/send';
 import { privateCancelledTemplate } from '@/lib/email/templates';
 import {
-  portalPathUrl,
-  profilePreferenceUrl,
-  sessionRangeForRecipient,
-  uniqueEmails,
-} from '@/lib/portal/phase-c';
-import { shouldSendNotification } from '@/lib/portal/notifications';
+  loadPrivateSessionParticipants,
+  sendToCoach,
+  sendToStudentAndParents,
+  type PrivateSessionWorkflowRow,
+} from '@/lib/portal/private-sessions';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
+
+const bodySchema = z.object({
+  reason: z.string().max(2000).optional(),
+});
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -22,90 +25,119 @@ export async function POST(
 ) {
   const session = await requireApiRole(request, ['admin', 'coach', 'ta', 'student']);
   if (!session) return jsonError('Unauthorized', 401);
+
   const { id } = await params;
+  let bodyRaw: unknown = {};
+  try {
+    bodyRaw = await request.json();
+  } catch {
+    bodyRaw = {};
+  }
+  const parsed = bodySchema.safeParse(bodyRaw);
+  if (!parsed.success) return jsonError('Invalid payload.');
 
   const supabaseResponse = NextResponse.next();
   const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const admin = getSupabaseAdminClient();
 
-  const { data: requestRow, error: rowError } = await supabase
+  const { data: rowData, error: rowError } = await supabase
     .from('private_sessions')
     .select('*')
     .eq('id', id)
     .maybeSingle();
   if (rowError) return mergeCookies(supabaseResponse, jsonError(rowError.message, 400));
-  if (!requestRow) return mergeCookies(supabaseResponse, jsonError('Private session not found.', 404));
+  if (!rowData) return mergeCookies(supabaseResponse, jsonError('Private session not found.', 404));
+
+  const row = rowData as PrivateSessionWorkflowRow;
+  if (row.status === 'cancelled') {
+    return mergeCookies(supabaseResponse, NextResponse.json({ session: row }));
+  }
+  if (row.status === 'completed') {
+    return mergeCookies(supabaseResponse, jsonError('Completed sessions cannot be cancelled.', 400));
+  }
 
   const isAdmin = session.profile.role === 'admin';
-  const isCoachOwner = requestRow.coach_id === session.userId;
-  const isStudentOwner = requestRow.student_id === session.userId;
+  const isCoachOwner = row.coach_id === session.userId;
+  const isStudentOwner = row.student_id === session.userId;
+
   if (!isAdmin && !isCoachOwner && !isStudentOwner) {
     return mergeCookies(supabaseResponse, jsonError('Not allowed to cancel this session.', 403));
   }
-  if (isStudentOwner && requestRow.status !== 'pending') {
-    return mergeCookies(supabaseResponse, jsonError('Students can only cancel pending sessions.', 403));
-  }
-  if (requestRow.status === 'cancelled') return mergeCookies(supabaseResponse, NextResponse.json({ session: requestRow }));
 
-  const { data: updatedRow, error: updateError } = await supabase
+  const studentAllowed = ['pending', 'rescheduled_by_coach', 'rescheduled_by_student', 'awaiting_payment'];
+  const coachAllowed = ['pending', 'coach_accepted', 'rescheduled_by_coach', 'rescheduled_by_student'];
+
+  if (isStudentOwner && !studentAllowed.includes(row.status)) {
+    return mergeCookies(supabaseResponse, jsonError('Students cannot cancel sessions in this status.', 403));
+  }
+  if (isCoachOwner && !coachAllowed.includes(row.status)) {
+    return mergeCookies(supabaseResponse, jsonError('Coaches cannot cancel sessions in this status.', 403));
+  }
+  if (!isAdmin && !isCoachOwner && !isStudentOwner) {
+    return mergeCookies(supabaseResponse, jsonError('Not allowed to cancel this session.', 403));
+  }
+
+  const { data: updatedData, error: updateError } = await supabase
     .from('private_sessions')
     .update({
       status: 'cancelled',
       cancelled_at: new Date().toISOString(),
       cancelled_by: session.userId,
+      coach_notes:
+        session.profile.role === 'coach' || session.profile.role === 'ta' || session.profile.role === 'admin'
+          ? parsed.data.reason?.trim() || row.coach_notes || null
+          : row.coach_notes,
+      student_notes:
+        session.profile.role === 'student'
+          ? parsed.data.reason?.trim() || row.student_notes || null
+          : row.student_notes,
     })
     .eq('id', id)
     .select('*')
-    .single();
+    .maybeSingle();
   if (updateError) return mergeCookies(supabaseResponse, jsonError(updateError.message, 400));
+  if (!updatedData) return mergeCookies(supabaseResponse, jsonError('Unable to update session.', 409));
 
-  const { data: people } = await admin
-    .from('profiles')
-    .select('id,email,timezone,role,display_name,notification_preferences')
-    .in('id', [updatedRow.student_id, updatedRow.coach_id, session.userId]);
-  const typedPeople = (people ?? []) as Array<{
-    id: string;
-    email: string;
-    timezone: string;
-    role: string;
-    display_name: string | null;
-    notification_preferences: Record<string, unknown> | null;
-  }>;
-  const peopleMap = new Map(typedPeople.map((person) => [person.id, person]));
-  const cancelledBy = peopleMap.get(session.userId);
-  const recipients = [peopleMap.get(updatedRow.student_id), peopleMap.get(updatedRow.coach_id)]
-    .filter(
-      (person): person is NonNullable<typeof person> =>
-        Boolean(person) &&
-        shouldSendNotification(
-          (person as NonNullable<typeof person>).notification_preferences,
-          'private_session_alerts',
-          true
-        )
-    );
-  const emails = uniqueEmails(recipients.map((person) => person?.email));
+  const updatedRow = updatedData as PrivateSessionWorkflowRow;
+  const participants = await loadPrivateSessionParticipants(admin, updatedRow);
+  const cancelledBy = session.profile.display_name || session.profile.email || session.userId;
+  const reason = parsed.data.reason?.trim() || null;
 
-  const payloads = emails.map((email) => {
-    const recipient = recipients.find((person) => person?.email?.toLowerCase() === email);
-    const whenText = sessionRangeForRecipient({
-      sessionDate: updatedRow.requested_date,
-      startTime: updatedRow.requested_start_time,
-      endTime: updatedRow.requested_end_time,
-      sourceTimezone: updatedRow.timezone,
-      recipientTimezone: recipient?.timezone,
-    });
-    const template = privateCancelledTemplate({
-      whenText,
-      cancelledBy: cancelledBy?.display_name || cancelledBy?.email || session.userId,
-      portalUrl:
-        recipient?.role === 'coach' || recipient?.role === 'ta'
-          ? portalPathUrl('/portal/coach/private-sessions')
-          : portalPathUrl('/portal/student/booking'),
-      preferenceUrl: profilePreferenceUrl(recipient?.role),
-    });
-    return { to: email, ...template };
+  await sendToStudentAndParents({
+    participants,
+    row: updatedRow,
+    includePreferenceCheck: true,
+    pathByRole: {
+      student: '/portal/student/booking',
+      parent: '/portal/parent/private-sessions',
+    },
+    buildTemplate: ({ whenText, portalUrl, preferenceUrl }) =>
+      privateCancelledTemplate({
+        whenText,
+        cancelledBy,
+        reason,
+        portalUrl,
+        preferenceUrl,
+      }),
   });
-  await sendPortalEmails(payloads);
+
+  await sendToCoach({
+    participants,
+    row: updatedRow,
+    includePreferenceCheck: true,
+    pathByRole: {
+      coach: '/portal/coach/private-sessions',
+      ta: '/portal/coach/private-sessions',
+    },
+    buildTemplate: ({ whenText, portalUrl, preferenceUrl }) =>
+      privateCancelledTemplate({
+        whenText,
+        cancelledBy,
+        reason,
+        portalUrl,
+        preferenceUrl,
+      }),
+  });
 
   return mergeCookies(supabaseResponse, NextResponse.json({ session: updatedRow }));
 }

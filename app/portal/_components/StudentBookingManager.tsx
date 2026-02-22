@@ -17,7 +17,20 @@ type SessionItem = {
   status: string;
   student_notes?: string | null;
   coach_notes?: string | null;
-  canConfirm?: boolean;
+  price_cad?: number | null;
+  zoom_link?: string | null;
+  payment_method?: string | null;
+  proposed_date?: string | null;
+  proposed_start_time?: string | null;
+  proposed_end_time?: string | null;
+  proposedByName?: string | null;
+  step?: number;
+  canAccept?: boolean;
+  canReject?: boolean;
+  canReschedule?: boolean;
+  canAcceptReschedule?: boolean;
+  canApprove?: boolean;
+  canPay?: boolean;
   canCancel?: boolean;
   canComplete?: boolean;
 };
@@ -111,7 +124,7 @@ export default function StudentBookingManager({
 
       <div className="space-y-3">
         <h3 className="font-semibold text-navy-800 dark:text-white">My Bookings</h3>
-        <PrivateSessionsManager sessions={sessions} />
+        <PrivateSessionsManager sessions={sessions} viewerRole="student" />
       </div>
     </div>
   );

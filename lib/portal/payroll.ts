@@ -26,7 +26,7 @@ export type PayrollSessionRow = {
   coachId: string;
   coachName: string;
   coachEmail: string;
-  coachTier: Database['public']['Enums']['coach_tier'];
+  coachTier: Database['public']['Enums']['coach_tier'] | null;
   isTa: boolean;
   classId: string;
   className: string;
@@ -37,13 +37,33 @@ export type PayrollSessionRow = {
   classTimezone: string;
   durationHours: number;
   late: boolean;
+  isPrivateSession: boolean;
+  studentName: string | null;
+  priceCad: number | null;
+};
+
+export type PayrollPrivateSessionRow = {
+  id: string;
+  coachId: string;
+  coachName: string;
+  coachEmail: string;
+  coachTier: Database['public']['Enums']['coach_tier'] | null;
+  isTa: boolean;
+  studentName: string;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  timezone: string;
+  durationHours: number;
+  priceCad: number | null;
+  isPrivateSession: true;
 };
 
 export type PayrollSummaryRow = {
   coachId: string;
   coachName: string;
   coachEmail: string;
-  coachTier: Database['public']['Enums']['coach_tier'];
+  coachTier: Database['public']['Enums']['coach_tier'] | null;
   isTa: boolean;
   sessions: number;
   totalHours: number;
@@ -150,15 +170,42 @@ export async function fetchPayrollDataset(
     .order('checked_in_at', { ascending: true });
   if (input.coachId) checkinsQuery = checkinsQuery.eq('coach_id', input.coachId);
 
-  const [checkinsResult, profilesResult] = await Promise.all([
+  let privateSessionsQuery = supabase
+    .from('private_sessions')
+    .select(
+      'id,coach_id,student_id,requested_date,requested_start_time,requested_end_time,timezone,price_cad,completed_at,created_at'
+    )
+    .eq('status', 'completed')
+    .in('coach_id', coachIds)
+    .gte('requested_date', input.start)
+    .lte('requested_date', input.end)
+    .order('requested_date', { ascending: true })
+    .order('requested_start_time', { ascending: true });
+  if (input.coachId) privateSessionsQuery = privateSessionsQuery.eq('coach_id', input.coachId);
+
+  const [checkinsResult, privateSessionsResult, profilesResult] = await Promise.all([
     checkinsQuery,
+    privateSessionsQuery,
     supabase.from('profiles').select('id,display_name,email,timezone').in('id', coachIds),
   ]);
 
   if (checkinsResult.error) throw new Error(checkinsResult.error.message);
+  if (privateSessionsResult.error) throw new Error(privateSessionsResult.error.message);
   if (profilesResult.error) throw new Error(profilesResult.error.message);
 
   const checkins = (checkinsResult.data ?? []) as CheckinRow[];
+  const privateSessions = (privateSessionsResult.data ?? []) as Array<{
+    id: string;
+    coach_id: string;
+    student_id: string;
+    requested_date: string;
+    requested_start_time: string;
+    requested_end_time: string;
+    timezone: string;
+    price_cad: number | null;
+    completed_at: string | null;
+    created_at: string;
+  }>;
   const profiles = (profilesResult.data ?? []) as ProfileRow[];
 
   const classIds = [...new Set(checkins.map((row) => row.class_id))];
@@ -171,11 +218,23 @@ export async function fetchPayrollDataset(
   if (classesError) throw new Error(classesError.message);
   const classes = (classesData ?? []) as ClassRow[];
 
+  const studentIds = [...new Set(privateSessions.map((row) => row.student_id))];
+  const { data: studentProfilesData, error: studentProfilesError } = studentIds.length
+    ? await supabase.from('profiles').select('id,display_name,email').in('id', studentIds)
+    : { data: [] as Array<{ id: string; display_name: string | null; email: string }>, error: null };
+  if (studentProfilesError) throw new Error(studentProfilesError.message);
+
   const profileMap = Object.fromEntries(profiles.map((row) => [row.id, row])) as Record<string, ProfileRow>;
   const classMap = Object.fromEntries(classes.map((row) => [row.id, row])) as Record<string, ClassRow>;
   const coachProfileMap = Object.fromEntries(
     coachProfiles.map((row) => [row.coach_id, row])
   ) as Record<string, CoachProfileRow>;
+  const studentProfileMap = Object.fromEntries(
+    ((studentProfilesData ?? []) as Array<{ id: string; display_name: string | null; email: string }>).map((row) => [
+      row.id,
+      row,
+    ])
+  ) as Record<string, { id: string; display_name: string | null; email: string }>;
 
   const sessions: PayrollSessionRow[] = [];
   for (const checkin of checkins) {
@@ -211,6 +270,50 @@ export async function fetchPayrollDataset(
       classTimezone: classRow.timezone,
       durationHours,
       late,
+      isPrivateSession: false,
+      studentName: null,
+      priceCad: null,
+    });
+  }
+
+  for (const privateSession of privateSessions) {
+    const coachProfile = coachProfileMap[privateSession.coach_id];
+    const profile = profileMap[privateSession.coach_id];
+    if (!coachProfile || !profile) continue;
+
+    const studentProfile = studentProfileMap[privateSession.student_id];
+    const studentName = studentProfile?.display_name || studentProfile?.email || privateSession.student_id;
+    const durationHours = scheduledDurationHours(
+      privateSession.requested_start_time,
+      privateSession.requested_end_time
+    );
+
+    const checkedInAt =
+      privateSession.completed_at ||
+      fromZonedTime(
+        `${privateSession.requested_date}T${privateSession.requested_start_time}`,
+        privateSession.timezone
+      ).toISOString();
+
+    sessions.push({
+      id: privateSession.id,
+      coachId: privateSession.coach_id,
+      coachName: profile.display_name || profile.email,
+      coachEmail: profile.email,
+      coachTier: coachProfile.tier,
+      isTa: coachProfile.is_ta,
+      classId: `private:${privateSession.id}`,
+      className: `Private Session - ${studentName}`,
+      sessionDate: privateSession.requested_date,
+      checkedInAt,
+      classStartTime: privateSession.requested_start_time,
+      classEndTime: privateSession.requested_end_time,
+      classTimezone: privateSession.timezone,
+      durationHours,
+      late: false,
+      isPrivateSession: true,
+      studentName,
+      priceCad: privateSession.price_cad ?? null,
     });
   }
 
@@ -289,32 +392,46 @@ export async function fetchPayrollTotalHours(
   const coachIds = ((coachProfilesData ?? []) as Array<{ coach_id: string }>).map((row) => row.coach_id);
   if (coachIds.length === 0) return 0;
 
-  const { data: checkinsData, error: checkinsError } = await supabase
-    .from('coach_checkins')
-    .select('class_id')
-    .in('coach_id', coachIds)
-    .gte('session_date', input.start)
-    .lte('session_date', input.end);
+  const [checkinsResult, privateSessionsResult] = await Promise.all([
+    supabase
+      .from('coach_checkins')
+      .select('class_id')
+      .in('coach_id', coachIds)
+      .gte('session_date', input.start)
+      .lte('session_date', input.end),
+    supabase
+      .from('private_sessions')
+      .select('requested_start_time,requested_end_time')
+      .in('coach_id', coachIds)
+      .eq('status', 'completed')
+      .gte('requested_date', input.start)
+      .lte('requested_date', input.end),
+  ]);
+  const { data: checkinsData, error: checkinsError } = checkinsResult;
   if (checkinsError) throw new Error(checkinsError.message);
+  const { data: privateSessionsData, error: privateSessionsError } = privateSessionsResult;
+  if (privateSessionsError) throw new Error(privateSessionsError.message);
 
   const checkins = (checkinsData ?? []) as Array<{ class_id: string }>;
-  if (checkins.length === 0) return 0;
-
   const classIds = [...new Set(checkins.map((row) => row.class_id))];
-  const { data: classesData, error: classesError } = await supabase
-    .from('classes')
-    .select('id,schedule_start_time,schedule_end_time')
-    .in('id', classIds);
-  if (classesError) throw new Error(classesError.message);
-
   const classDurationMap = new Map<string, number>();
-  for (const row of (classesData ?? []) as Array<{ id: string; schedule_start_time: string; schedule_end_time: string }>) {
-    classDurationMap.set(row.id, scheduledDurationHours(row.schedule_start_time, row.schedule_end_time));
+  if (classIds.length > 0) {
+    const { data: classesData, error: classesError } = await supabase
+      .from('classes')
+      .select('id,schedule_start_time,schedule_end_time')
+      .in('id', classIds);
+    if (classesError) throw new Error(classesError.message);
+    for (const row of (classesData ?? []) as Array<{ id: string; schedule_start_time: string; schedule_end_time: string }>) {
+      classDurationMap.set(row.id, scheduledDurationHours(row.schedule_start_time, row.schedule_end_time));
+    }
   }
 
   let total = 0;
   for (const checkin of checkins) {
     total += classDurationMap.get(checkin.class_id) ?? 0;
+  }
+  for (const privateSession of (privateSessionsData ?? []) as Array<{ requested_start_time: string; requested_end_time: string }>) {
+    total += scheduledDurationHours(privateSession.requested_start_time, privateSession.requested_end_time);
   }
   return round2(total);
 }
