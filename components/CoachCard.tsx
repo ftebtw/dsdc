@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Trophy } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { Award } from "@/lib/coachAwards";
+import { translateAwardLabel } from "@/lib/awardLabels";
 
 interface CoachCardProps {
   name: string;
@@ -28,7 +29,7 @@ export default function CoachCard({
   keyAchievements,
 }: CoachCardProps) {
   const [showAwards, setShowAwards] = useState(false);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const initials = name
     .split(" ")
@@ -121,7 +122,9 @@ export default function CoachCard({
                           >
                             <span className="w-1.5 h-1.5 bg-gold-400 rounded-full mt-1.5 mr-2.5 shrink-0" />
                             <span>
-                              <span className="font-medium text-charcoal/80 dark:text-navy-200">{award.award}</span>
+                              <span className="font-medium text-charcoal/80 dark:text-navy-200">
+                                {translateAwardLabel(award.award, locale)}
+                              </span>
                               {" — "}
                               {award.tournament} ({award.year})
                             </span>
@@ -207,7 +210,9 @@ export default function CoachCard({
                       >
                         <span className="w-1.5 h-1.5 bg-gold-400 rounded-full mt-1 mr-2 shrink-0" />
                         <span>
-                          <span className="font-medium text-charcoal/70 dark:text-navy-200">{award.award}</span>
+                          <span className="font-medium text-charcoal/70 dark:text-navy-200">
+                            {translateAwardLabel(award.award, locale)}
+                          </span>
                           {" — "}
                           {award.tournament} ({award.year})
                         </span>

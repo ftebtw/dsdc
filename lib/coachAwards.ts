@@ -10,6 +10,8 @@ export interface CoachAwards {
 
 export const coachAwards: CoachAwards = {
   "Rebecca Amisano": [
+    { tournament: "Page Turner Awards", year: "2025", award: "Writing Award Finalist" },
+    { tournament: "New2theScene Summer Novel Competition", year: "2025", award: "Finalist" },
     { tournament: "Canadian National Debate Championships", year: "2019", award: "Grand Finalist" },
     { tournament: "US National Debate Championships", year: "2019", award: "Quarterfinalist" },
     { tournament: "BP BC Provincial Debate Tournament", year: "2019", award: "Grand Champion" },

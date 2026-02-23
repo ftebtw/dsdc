@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Medal, ChevronDown, ChevronUp } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { translateAwardLabel } from "@/lib/awardLabels";
 import AnimatedSection from "@/components/AnimatedSection";
 
 interface StudentAward {
@@ -33,6 +34,26 @@ const debateStudents: StudentData[] = [
     ],
   },
   {
+    name: "Angela M.",
+    awards: [
+      { result: "Junior Champion", tournament: "Team Canada Fall World Schools Debate Championships", year: "2026" },
+      { result: "2nd Place Junior Speaker", tournament: "Team Canada Fall World Schools Debate Championships", year: "2026" },
+      { result: "Junior Champion", tournament: "Hart House Winter Open", year: "2026" },
+      { result: "Junior Grand Finalist", tournament: "University of British Columbia Fall High School Tournament", year: "2026" },
+      { result: "Champion Junior Speaker", tournament: "University of British Columbia Fall High School Tournament", year: "2026" },
+      { result: "Junior Champion", tournament: "Lower Mainland East Regionals", year: "2026" },
+      { result: "5th Place Junior Speaker", tournament: "Lower Mainland East Regionals", year: "2026" },
+      { result: "Grand Finalist", tournament: "Tri City Fall Tournament", year: "2026" },
+      { result: "3rd Place Speaker", tournament: "Tri City Fall Tournament", year: "2026" },
+      { result: "Champion", tournament: "Pacific Cup (Open)", year: "2025" },
+      { result: "Champion", tournament: "Dragons Bowl Tournament (Junior)", year: "2024" },
+      { result: "Top Speaker", tournament: "Dragons Bowl Tournament (Junior)", year: "2024" },
+      { result: "Champion", tournament: "Meadowridge Spring Tournament (Junior)", year: "2024" },
+      { result: "Semifinalist", tournament: "Meadowridge Fall Tournament (Junior)", year: "2024" },
+      { result: "Quarterfinalist", tournament: "Tri-City Tournament (Open)", year: "2024" },
+    ],
+  },
+  {
     name: "Catherine W.",
     awards: [
       { result: "Top Speaker", tournament: "US Nationals Debate Qualifier", year: "2024" },
@@ -48,6 +69,9 @@ const debateStudents: StudentData[] = [
   {
     name: "Akash K.",
     awards: [
+      { result: "Champion Senior Speaker", tournament: "Lower Mainland East Regionals", year: "2026" },
+      { result: "3rd Place Senior Team", tournament: "Lower Mainland East Regionals", year: "2026" },
+      { result: "Senior Provincial Qualifier", tournament: "Lower Mainland East Regionals", year: "2026" },
       { result: "Champion", tournament: "Meadowridge Tournament", year: "2024" },
       { result: "Champion", tournament: "Dragons Bowl Tournament (Senior)", year: "2024" },
       { result: "Champion", tournament: "Lower Mainland East Regionals", year: "2023" },
@@ -56,19 +80,11 @@ const debateStudents: StudentData[] = [
     ],
   },
   {
-    name: "Angela M.",
-    awards: [
-      { result: "Champion", tournament: "Pacific Cup (Open)", year: "2025" },
-      { result: "Champion", tournament: "Dragons Bowl Tournament (Junior)", year: "2024" },
-      { result: "Top Speaker", tournament: "Dragons Bowl Tournament (Junior)", year: "2024" },
-      { result: "Champion", tournament: "Meadowridge Spring Tournament (Junior)", year: "2024" },
-      { result: "Semifinalist", tournament: "Meadowridge Fall Tournament (Junior)", year: "2024" },
-      { result: "Quarterfinalist", tournament: "Tri-City Tournament (Open)", year: "2024" },
-    ],
-  },
-  {
     name: "Ryland C.",
     awards: [
+      { result: "Senior Grand Finalist", tournament: "Lower Mainland East Regionals", year: "2026" },
+      { result: "9th Place Speaker", tournament: "Lower Mainland East Regionals", year: "2026" },
+      { result: "Senior Provincial Qualifier", tournament: "Lower Mainland East Regionals", year: "2026" },
       { result: "Champion", tournament: "Pacific Cup (Open)", year: "2025" },
       { result: "Champion", tournament: "Dragons Bowl Tournament (Junior)", year: "2024" },
       { result: "Top Speaker", tournament: "Dragons Bowl Tournament (Junior)", year: "2024" },
@@ -85,6 +101,22 @@ const debateStudents: StudentData[] = [
     ],
   },
   {
+    name: "Jessie Z.",
+    awards: [
+      { result: "Junior Champion", tournament: "Lower Mainland East Regionals", year: "2026" },
+      { result: "2nd Place Junior Speaker", tournament: "Lower Mainland East Regionals", year: "2026" },
+      { result: "Junior Champion", tournament: "Hart House Winter Open", year: "2026" },
+    ],
+  },
+  {
+    name: "Lucas X.",
+    awards: [
+      { result: "Senior Grand Finalist", tournament: "Lower Mainland East Regionals", year: "2026" },
+      { result: "2nd Place Senior Speaker", tournament: "Lower Mainland East Regionals", year: "2026" },
+      { result: "Provincial Qualifier", tournament: "Lower Mainland East Regionals", year: "2026" },
+    ],
+  },
+  {
     name: "Finn L.",
     awards: [
       { result: "Quarterfinalist", tournament: "Canadian National Cup (Junior)", year: "2021" },
@@ -93,10 +125,27 @@ const debateStudents: StudentData[] = [
     ],
   },
   {
+    name: "Colin Y.",
+    awards: [
+      { result: "4th Place Junior Team", tournament: "Lower Mainland South Regionals", year: "2026" },
+      { result: "Provincial Qualifier", tournament: "Lower Mainland South Regionals", year: "2026" },
+    ],
+  },
+  {
     name: "Myreen R.",
     awards: [
       { result: "Champion", tournament: "Meadowridge Spring Tournament (Junior)", year: "2024" },
       { result: "Semifinalist", tournament: "Meadowridge Fall Tournament (Junior)", year: "2024" },
+    ],
+  },
+  {
+    name: "Sumreen K.",
+    awards: [{ result: "8th Place Senior Speaker", tournament: "Lower Mainland East Regionals", year: "2026" }],
+  },
+  {
+    name: "James H.",
+    awards: [
+      { result: "Champion Junior Novice Speaker", tournament: "Lower Mainland East Regionals", year: "2026" },
     ],
   },
 ];
@@ -165,7 +214,7 @@ const wscRounds: WscRound[] = [
 ];
 
 function StudentCard({ student }: { student: StudentData }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const shown = expanded ? student.awards : student.awards.slice(0, 3);
 
@@ -187,7 +236,7 @@ function StudentCard({ student }: { student: StudentData }) {
                   : "bg-navy-50 dark:bg-navy-700 text-navy-600 dark:text-navy-200"
               }`}
             >
-              {award.result}
+              {translateAwardLabel(award.result, locale)}
             </span>
             <span className="text-charcoal/60 dark:text-navy-300">
               {award.tournament} <span className="text-charcoal/40 dark:text-navy-400">({award.year})</span>
@@ -209,7 +258,7 @@ function StudentCard({ student }: { student: StudentData }) {
 }
 
 export default function AwardsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   return (
     <>
@@ -289,7 +338,9 @@ export default function AwardsPage() {
                     {round.awards.map((award, j) => (
                       <div key={j} className="flex items-start gap-2 text-sm font-sans">
                         <span className="w-2 h-2 bg-gold-400 rounded-full mt-1.5 shrink-0" />
-                        <span className="text-charcoal/70 dark:text-navy-200">{award}</span>
+                        <span className="text-charcoal/70 dark:text-navy-200">
+                          {translateAwardLabel(award, locale)}
+                        </span>
                       </div>
                     ))}
                   </div>
