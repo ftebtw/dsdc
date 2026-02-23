@@ -35,7 +35,7 @@ export default async function ParentAbsentPage({
 
   if (!linkedStudents.length) {
     return (
-      <SectionCard title={parentT(locale, 'portal.parent.absent.title', 'Mark Absent')}>
+      <SectionCard title={parentT(locale, 'portal.parent.absent.title', 'Report Absence')}>
         <p className="text-sm text-charcoal/70 dark:text-navy-300">
           {parentT(locale, 'portal.parent.common.noLinkedStudents', 'No students linked to your account yet.')}
         </p>
@@ -50,7 +50,7 @@ export default async function ParentAbsentPage({
   const activeTerm = await getActiveTerm(supabase);
   if (!activeTerm) {
     return (
-      <SectionCard title={parentT(locale, 'portal.parent.absent.title', 'Mark Absent')}>
+      <SectionCard title={parentT(locale, 'portal.parent.absent.title', 'Report Absence')}>
         <p className="text-sm text-charcoal/70 dark:text-navy-300">
           {parentT(locale, 'portal.parent.common.noActiveTerm', 'No active term is configured.')}
         </p>
@@ -86,7 +86,7 @@ export default async function ParentAbsentPage({
 
   return (
     <SectionCard
-      title={parentT(locale, 'portal.parent.absent.title', 'Mark Absent')}
+      title={parentT(locale, 'portal.parent.absent.title', 'Report Absence')}
       description={`${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
         selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
       }`}

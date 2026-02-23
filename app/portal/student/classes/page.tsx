@@ -40,18 +40,6 @@ export default async function StudentClassesPage() {
   const coachIds = [...new Set(classes.map((classRow: any) => classRow.coach_id))];
   const coachMap = await getProfileMap(supabase, coachIds);
 
-  const creditsRows = ((await supabase
-    .from('class_credits')
-    .select('class_type,amount_sessions,redeemed')
-    .eq('student_id', session.userId)
-    .eq('redeemed', false)).data ?? []) as Array<Record<string, any>>;
-
-  const creditsByType = new Map<string, number>();
-  for (const credit of creditsRows) {
-    const existing = creditsByType.get(credit.class_type) ?? 0;
-    creditsByType.set(credit.class_type, existing + Number(credit.amount_sessions || 0));
-  }
-
   const today = new Date().toISOString().slice(0, 10);
   const subRequests = classIds.length
     ? (((await supabase
@@ -99,7 +87,6 @@ export default async function StudentClassesPage() {
               const coach = coachMap[classRow.coach_id];
               const nextSub = nextSubByClass.get(classRow.id);
               const nextTa = nextTaByClass.get(classRow.id);
-              const creditBalance = creditsByType.get(classRow.type) ?? 0;
               return (
                 <article
                   key={classRow.id}
@@ -114,19 +101,23 @@ export default async function StudentClassesPage() {
                   <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
                     Coach: {coach?.display_name || coach?.email || classRow.coach_id}
                   </p>
-                  {classRow.zoom_link ? (
-                    <p className="text-sm mt-1">
-                      Zoom:{' '}
-                      <a
-                        href={classRow.zoom_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline text-navy-700 dark:text-navy-200"
-                      >
-                        Open Link
-                      </a>
-                    </p>
-                  ) : null}
+                  <p className="text-sm mt-1">
+                    {classRow.zoom_link ? (
+                      <>
+                        Zoom:{' '}
+                        <a
+                          href={classRow.zoom_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline text-navy-700 dark:text-navy-200"
+                        >
+                          Join Class
+                        </a>
+                      </>
+                    ) : (
+                      <span className="text-charcoal/50 dark:text-navy-400 italic">Zoom link not yet available</span>
+                    )}
+                  </p>
                   {nextSub ? (
                     <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
                       Substitute coach on {nextSub.session_date}:{' '}
@@ -143,9 +134,6 @@ export default async function StudentClassesPage() {
                         nextTa.accepting_ta_id}
                     </p>
                   ) : null}
-                  <p className="mt-2 text-sm text-charcoal/80 dark:text-navy-200">
-                    Class credits available: <span className="font-semibold">{creditBalance}</span>
-                  </p>
                 </article>
               );
             })}
@@ -162,7 +150,10 @@ export default async function StudentClassesPage() {
             Resources
           </Link>
           <Link href="/portal/student/absent" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-            Mark Absent
+            Report Absence
+          </Link>
+          <Link href="/portal/student/credits" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+            Class Credits
           </Link>
         </div>
       </SectionCard>

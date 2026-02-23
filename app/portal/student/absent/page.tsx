@@ -21,7 +21,7 @@ export default async function StudentAbsentPage() {
 
   if (!activeTerm) {
     return (
-      <SectionCard title="Mark Absent" description="No active term available.">
+      <SectionCard title="Report Absence" description="No active term available.">
         <p className="text-sm text-charcoal/70 dark:text-navy-300">Please contact DSDC admin.</p>
       </SectionCard>
     );
@@ -56,7 +56,7 @@ export default async function StudentAbsentPage() {
 
   return (
     <SectionCard
-      title="Mark Absent"
+      title="Report Absence"
       description="Report upcoming absences. Notifications and reminder automation will be added in a later phase."
     >
       {classes.length === 0 ? (

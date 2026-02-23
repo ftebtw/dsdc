@@ -136,14 +136,20 @@ export default async function ParentClassesPage({
                   TA: {subPeople[nextTaByClass.get(classRow.id).accepting_ta_id]?.display_name || subPeople[nextTaByClass.get(classRow.id).accepting_ta_id]?.email || nextTaByClass.get(classRow.id).accepting_ta_id} on {nextTaByClass.get(classRow.id).session_date}
                 </p>
               ) : null}
-              {classRow.zoom_link ? (
-                <p className="text-sm mt-1">
-                  {parentT(locale, 'portal.parent.common.zoomLabel', 'Zoom')}:{' '}
-                  <a href={classRow.zoom_link} target="_blank" rel="noopener noreferrer" className="underline text-navy-700 dark:text-navy-200">
-                    {parentT(locale, 'portal.parent.common.openLink', 'Open Link')}
-                  </a>
-                </p>
-              ) : null}
+              <p className="text-sm mt-1">
+                {classRow.zoom_link ? (
+                  <>
+                    {parentT(locale, 'portal.parent.common.zoomLabel', 'Zoom')}:{' '}
+                    <a href={classRow.zoom_link} target="_blank" rel="noopener noreferrer" className="underline text-navy-700 dark:text-navy-200">
+                      {parentT(locale, 'portal.parent.common.joinClass', 'Join Class')}
+                    </a>
+                  </>
+                ) : (
+                  <span className="text-charcoal/50 dark:text-navy-400 italic">
+                    {parentT(locale, 'portal.parent.common.zoomUnavailable', 'Zoom link not yet available')}
+                  </span>
+                )}
+              </p>
             </article>
           ))}
         </div>
