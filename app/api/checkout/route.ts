@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 import { getStripeClient } from "@/lib/stripe";
-import { getPriceIdForClassType, isAllowedPriceId } from "@/lib/stripe-prices";
+import { isAllowedPriceId } from "@/lib/stripe-prices";
+import { getProratedCadPrice } from "@/lib/portal/class-pricing";
+import { SESSIONS_PER_TERM } from "@/lib/pricing";
 import { getSupabaseRouteClient } from "@/lib/supabase/route";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -153,7 +155,7 @@ async function handleRegistrationCheckout(
 
   const { data: activeTerm } = await supabase
     .from("terms")
-    .select("id")
+    .select("id,name,end_date,weeks")
     .eq("is_active", true)
     .maybeSingle();
   if (!activeTerm) {
@@ -214,10 +216,28 @@ async function handleRegistrationCheckout(
 
   const locale = parsed.locale ?? (studentProfile.locale === "zh" ? "zh" : "en");
   const origin = request.nextUrl.origin;
-  const lineItems = classRows.map((classRow) => ({
-    price: getPriceIdForClassType(classRow.type as ClassType),
-    quantity: 1,
-  }));
+  const totalWeeks =
+    typeof activeTerm.weeks === "number" && activeTerm.weeks > 0
+      ? activeTerm.weeks
+      : SESSIONS_PER_TERM;
+  const lineItems = classRows.map((classRow) => {
+    const priceCad = getProratedCadPrice(
+      classRow.type as ClassType,
+      activeTerm.end_date,
+      totalWeeks
+    );
+    return {
+      price_data: {
+        currency: "cad",
+        product_data: {
+          name: classRow.name,
+          description: `${activeTerm.name} enrollment`,
+        },
+        unit_amount: priceCad * 100,
+      },
+      quantity: 1,
+    };
+  });
 
   const params: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",

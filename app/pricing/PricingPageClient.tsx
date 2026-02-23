@@ -149,6 +149,11 @@ export default function PricingPageClient() {
                 </select>
               </div>
             </div>
+            <p className="text-sm text-center text-navy-600 dark:text-navy-300 mt-2 mb-4">
+              {locale === "zh"
+                ? "当前招生学期：Term 3（4月6日 - 6月28日，12周）"
+                : "Now enrolling for Term 3 (April 6 - June 28, 12 weeks)"}
+            </p>
             <p className="mb-8 text-sm font-semibold text-navy-700 dark:text-navy-200">
               {t("pricingPage.paymentCadOnly")}
             </p>
@@ -185,6 +190,11 @@ export default function PricingPageClient() {
                     </div>
                     <p className="mt-2 text-xs text-charcoal/50 dark:text-navy-300 font-sans">
                       {termLengthLabel}
+                    </p>
+                    <p className="text-xs text-charcoal/60 dark:text-navy-400 mt-1">
+                      {locale === "zh"
+                        ? "中途报名按剩余周数自动调整价格。"
+                        : "Mid-term registration is prorated by weeks remaining."}
                     </p>
 
                     <button

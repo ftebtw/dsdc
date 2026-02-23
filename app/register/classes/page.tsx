@@ -3,6 +3,7 @@ import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import RegisterClassesClient from "./RegisterClassesClient";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { classTypeLabel } from "@/lib/portal/labels";
+import { SESSIONS_PER_TERM, weeksRemainingInTerm } from "@/lib/pricing";
 
 type ClassOption = {
   id: string;
@@ -134,7 +135,7 @@ export default async function RegisterClassesPage({
 
   const { data: activeTerm } = await supabase
     .from("terms")
-    .select("id,name,start_date,end_date")
+    .select("id,name,start_date,end_date,weeks")
     .eq("is_active", true)
     .maybeSingle();
 
@@ -218,6 +219,11 @@ export default async function RegisterClassesPage({
       };
     })
     .filter((row) => row.spotsRemaining > 0 || studentEnrollments.has(row.id));
+  const totalWeeks =
+    typeof activeTerm.weeks === "number" && activeTerm.weeks > 0
+      ? activeTerm.weeks
+      : SESSIONS_PER_TERM;
+  const weeksRemaining = weeksRemainingInTerm(activeTerm.end_date);
 
   return (
     <section className="min-h-screen bg-gradient-to-br from-warm-100 via-white to-gold-50 dark:from-navy-900 dark:via-navy-800 dark:to-navy-900 pt-28 pb-16">
@@ -228,6 +234,8 @@ export default async function RegisterClassesPage({
           studentNeedsPasswordSetup={params.setup === "1"}
           termName={activeTerm.name}
           termDates={`${activeTerm.start_date} - ${activeTerm.end_date}`}
+          weeksRemaining={weeksRemaining}
+          totalWeeks={totalWeeks}
           classes={classOptions}
           localeHint={params.lang === "zh" ? "zh" : profile.locale === "zh" ? "zh" : "en"}
         />

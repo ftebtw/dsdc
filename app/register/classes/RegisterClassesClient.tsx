@@ -25,6 +25,8 @@ type Props = {
   studentNeedsPasswordSetup: boolean;
   termName: string;
   termDates: string;
+  weeksRemaining: number;
+  totalWeeks: number;
   localeHint: "en" | "zh";
   classes: ClassOption[];
 };
@@ -35,6 +37,8 @@ export default function RegisterClassesClient({
   studentNeedsPasswordSetup,
   termName,
   termDates,
+  weeksRemaining,
+  totalWeeks,
   localeHint,
   classes,
 }: Props) {
@@ -138,6 +142,26 @@ export default function RegisterClassesClient({
       <p className="mt-2 text-sm text-charcoal/70 dark:text-navy-300">
         {termName} - {termDates}
       </p>
+      <div className="rounded-xl bg-gold-100 dark:bg-gold-900/30 border border-gold-300 dark:border-gold-700 p-4 mt-4 mb-4">
+        <p className="font-bold text-navy-900 dark:text-white text-lg">
+          {resolvedLocale === "zh" ? "Term 3 报名现已开放！" : "Term 3 Registration Is Now Open!"}
+        </p>
+        <p className="text-sm text-navy-700 dark:text-navy-200 mt-1">
+          {termName} - {termDates}
+        </p>
+        <p className="text-sm text-navy-700 dark:text-navy-200">
+          {resolvedLocale === "zh"
+            ? `第三学期将于4月6日（周一）至6月28日（周日）进行。本学期剩余 ${weeksRemaining} 周（共 ${totalWeeks} 周）。`
+            : `Term 3 runs Monday, April 6 to Sunday, June 28. ${weeksRemaining} of ${totalWeeks} weeks remaining.`}
+        </p>
+        {weeksRemaining < totalWeeks ? (
+          <p className="text-sm text-navy-700 dark:text-navy-200 mt-1 font-medium">
+            {resolvedLocale === "zh"
+              ? "中途报名按剩余周数自动调整价格。"
+              : "Pricing is prorated for the remaining weeks in the term."}
+          </p>
+        ) : null}
+      </div>
 
       <div className="mt-6 space-y-3">
         {classes.map((classRow) => {

@@ -1,7 +1,8 @@
 import AdminEtransferManager from "@/app/portal/_components/AdminEtransferManager";
 import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";
-import { getCadPriceForClassType } from "@/lib/portal/class-pricing";
+import { getCadPriceForClassType, getProratedCadPrice } from "@/lib/portal/class-pricing";
+import { SESSIONS_PER_TERM } from "@/lib/pricing";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -35,8 +36,8 @@ export default async function AdminEtransfersPage() {
       ? supabase.from("profiles").select("id,email,display_name").in("id", studentIds)
       : Promise.resolve({ data: [] as Array<{ id: string; email: string; display_name: string | null }> }),
     classIds.length
-      ? supabase.from("classes").select("id,name,type").in("id", classIds)
-      : Promise.resolve({ data: [] as Array<{ id: string; name: string; type: ClassType }> }),
+      ? supabase.from("classes").select("id,name,type,term_id").in("id", classIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; name: string; type: ClassType; term_id: string }> }),
   ]);
 
   const studentRows = (studentRowsData ?? []) as Array<{
@@ -44,7 +45,23 @@ export default async function AdminEtransfersPage() {
     email: string;
     display_name: string | null;
   }>;
-  const classRowsTyped = (classRowsData ?? []) as Array<{ id: string; name: string; type: ClassType }>;
+  const classRowsTyped = (classRowsData ?? []) as Array<{
+    id: string;
+    name: string;
+    type: ClassType;
+    term_id: string;
+  }>;
+  const termIds = [...new Set(classRowsTyped.map((row) => row.term_id))];
+  const { data: termRowsData } =
+    termIds.length > 0
+      ? await supabase.from("terms").select("id,end_date,weeks").in("id", termIds)
+      : { data: [] as Array<{ id: string; end_date: string; weeks: number | null }> };
+  const termsById = new Map(
+    ((termRowsData ?? []) as Array<{ id: string; end_date: string; weeks: number | null }>).map((row) => [
+      row.id,
+      row,
+    ])
+  );
 
   const studentMap = Object.fromEntries(studentRows.map((row) => [row.id, row])) as Record<
     string,
@@ -52,7 +69,7 @@ export default async function AdminEtransfersPage() {
   >;
   const classMap = Object.fromEntries(classRowsTyped.map((row) => [row.id, row])) as Record<
     string,
-    { id: string; name: string; type: ClassType }
+    { id: string; name: string; type: ClassType; term_id: string }
   >;
 
   const groups = new Map<
@@ -104,7 +121,13 @@ export default async function AdminEtransfersPage() {
       const totalAmountCad = group.classIds
         .map((id) => classMap[id])
         .filter(Boolean)
-        .reduce((sum, classRow) => sum + getCadPriceForClassType(classRow.type), 0);
+        .reduce((sum, classRow) => {
+          const term = termsById.get(classRow.term_id);
+          if (!term?.end_date) return sum + getCadPriceForClassType(classRow.type);
+          const totalWeeks =
+            typeof term.weeks === "number" && term.weeks > 0 ? term.weeks : SESSIONS_PER_TERM;
+          return sum + getProratedCadPrice(classRow.type, term.end_date, totalWeeks);
+        }, 0);
       const status: "pending_etransfer" | "etransfer_sent" = group.statuses.includes("etransfer_sent")
         ? "etransfer_sent"
         : "pending_etransfer";

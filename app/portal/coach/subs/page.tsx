@@ -15,8 +15,9 @@ export default async function CoachSubsPage() {
   const supabase = await getSupabaseServerClient();
   const today = new Date().toISOString().slice(0, 10);
 
-  const [coachProfileRaw, classesRaw, subRequestsRaw, taRequestsRaw] = await Promise.all([
-    supabase.from('coach_profiles').select('tier,is_ta').eq('coach_id', session.userId).maybeSingle(),
+  const [coachProfileRaw, coachTiersRaw, classesRaw, subRequestsRaw, taRequestsRaw] = await Promise.all([
+    supabase.from('coach_profiles').select('is_ta,tier').eq('coach_id', session.userId).maybeSingle(),
+    supabase.from('coach_tier_assignments').select('tier').eq('coach_id', session.userId),
     supabase
       .from('classes')
       .select('*')
@@ -58,7 +59,14 @@ export default async function CoachSubsPage() {
   ];
   const people = await getProfileMap(supabase, personIds);
 
-  const coachTier = coachProfileRaw.data?.tier || null;
+  const coachTiers = new Set<string>();
+  if (coachTiersRaw.error && coachTiersRaw.error.code === '42P01') {
+    if (coachProfileRaw.data?.tier) coachTiers.add(coachProfileRaw.data.tier);
+  } else {
+    for (const row of (coachTiersRaw.data ?? []) as Array<{ tier: string }>) {
+      if (row.tier) coachTiers.add(row.tier);
+    }
+  }
   const isTa = Boolean(coachProfileRaw.data?.is_ta);
 
   const subItems = subRequests.map((row) => {
@@ -73,7 +81,10 @@ export default async function CoachSubsPage() {
         )
       : row.session_date;
     const isMine = row.requesting_coach_id === session.userId;
-    const canAccept = row.status === 'open' && !isMine && classRow?.eligible_sub_tier === coachTier;
+    const canAccept =
+      row.status === 'open' &&
+      !isMine &&
+      Boolean(classRow?.eligible_sub_tier && coachTiers.has(classRow.eligible_sub_tier));
     return {
       ...row,
       className: classRow?.name || row.class_id,

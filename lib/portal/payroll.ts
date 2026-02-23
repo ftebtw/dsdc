@@ -16,6 +16,12 @@ type CheckinRow = Pick<
   'id' | 'coach_id' | 'class_id' | 'session_date' | 'checked_in_at'
 >;
 
+function isMissingTierAssignmentsTableError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const code = (error as { code?: string }).code;
+  return code === '42P01';
+}
+
 export type PayrollDateRange = {
   start: string;
   end: string;
@@ -26,7 +32,7 @@ export type PayrollSessionRow = {
   coachId: string;
   coachName: string;
   coachEmail: string;
-  coachTier: Database['public']['Enums']['coach_tier'] | null;
+  coachTiers: Database['public']['Enums']['coach_tier'][];
   isTa: boolean;
   classId: string;
   className: string;
@@ -47,7 +53,7 @@ export type PayrollPrivateSessionRow = {
   coachId: string;
   coachName: string;
   coachEmail: string;
-  coachTier: Database['public']['Enums']['coach_tier'] | null;
+  coachTiers: Database['public']['Enums']['coach_tier'][];
   isTa: boolean;
   studentName: string;
   sessionDate: string;
@@ -63,7 +69,7 @@ export type PayrollSummaryRow = {
   coachId: string;
   coachName: string;
   coachEmail: string;
-  coachTier: Database['public']['Enums']['coach_tier'] | null;
+  coachTiers: Database['public']['Enums']['coach_tier'][];
   isTa: boolean;
   sessions: number;
   totalHours: number;
@@ -183,15 +189,19 @@ export async function fetchPayrollDataset(
     .order('requested_start_time', { ascending: true });
   if (input.coachId) privateSessionsQuery = privateSessionsQuery.eq('coach_id', input.coachId);
 
-  const [checkinsResult, privateSessionsResult, profilesResult] = await Promise.all([
+  const [checkinsResult, privateSessionsResult, profilesResult, tierAssignmentsResult] = await Promise.all([
     checkinsQuery,
     privateSessionsQuery,
     supabase.from('profiles').select('id,display_name,email,timezone').in('id', coachIds),
+    supabase.from('coach_tier_assignments').select('coach_id,tier').in('coach_id', coachIds),
   ]);
 
   if (checkinsResult.error) throw new Error(checkinsResult.error.message);
   if (privateSessionsResult.error) throw new Error(privateSessionsResult.error.message);
   if (profilesResult.error) throw new Error(profilesResult.error.message);
+  if (tierAssignmentsResult.error && !isMissingTierAssignmentsTableError(tierAssignmentsResult.error)) {
+    throw new Error(tierAssignmentsResult.error.message);
+  }
 
   const checkins = (checkinsResult.data ?? []) as CheckinRow[];
   const privateSessions = (privateSessionsResult.data ?? []) as Array<{
@@ -207,6 +217,10 @@ export async function fetchPayrollDataset(
     created_at: string;
   }>;
   const profiles = (profilesResult.data ?? []) as ProfileRow[];
+  const tierAssignments = (tierAssignmentsResult.data ?? []) as Array<{
+    coach_id: string;
+    tier: Database['public']['Enums']['coach_tier'];
+  }>;
 
   const classIds = [...new Set(checkins.map((row) => row.class_id))];
   const { data: classesData, error: classesError } = classIds.length
@@ -229,6 +243,23 @@ export async function fetchPayrollDataset(
   const coachProfileMap = Object.fromEntries(
     coachProfiles.map((row) => [row.coach_id, row])
   ) as Record<string, CoachProfileRow>;
+  const tiersByCoach = new Map<string, Database['public']['Enums']['coach_tier'][]>();
+  for (const assignment of tierAssignments) {
+    const list = tiersByCoach.get(assignment.coach_id) ?? [];
+    list.push(assignment.tier);
+    tiersByCoach.set(assignment.coach_id, list);
+  }
+
+  function resolveCoachTiers(coachId: string, profile: CoachProfileRow) {
+    const assigned = tiersByCoach.get(coachId) ?? [];
+    if (assigned.length > 0) {
+      return assigned;
+    }
+    if (profile.tier) {
+      return [profile.tier];
+    }
+    return [];
+  }
   const studentProfileMap = Object.fromEntries(
     ((studentProfilesData ?? []) as Array<{ id: string; display_name: string | null; email: string }>).map((row) => [
       row.id,
@@ -259,7 +290,7 @@ export async function fetchPayrollDataset(
       coachId: checkin.coach_id,
       coachName: profile.display_name || profile.email,
       coachEmail: profile.email,
-      coachTier: coachProfile.tier,
+      coachTiers: resolveCoachTiers(checkin.coach_id, coachProfile),
       isTa: coachProfile.is_ta,
       classId: classRow.id,
       className: classRow.name,
@@ -300,7 +331,7 @@ export async function fetchPayrollDataset(
       coachId: privateSession.coach_id,
       coachName: profile.display_name || profile.email,
       coachEmail: profile.email,
-      coachTier: coachProfile.tier,
+      coachTiers: resolveCoachTiers(privateSession.coach_id, coachProfile),
       isTa: coachProfile.is_ta,
       classId: `private:${privateSession.id}`,
       className: `Private Session - ${studentName}`,
@@ -325,7 +356,7 @@ export async function fetchPayrollDataset(
       coachId: coachProfile.coach_id,
       coachName: profile.display_name || profile.email,
       coachEmail: profile.email,
-      coachTier: coachProfile.tier,
+      coachTiers: resolveCoachTiers(coachProfile.coach_id, coachProfile),
       isTa: coachProfile.is_ta,
       sessions: 0,
       totalHours: 0,

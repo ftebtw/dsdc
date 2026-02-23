@@ -23,6 +23,11 @@ function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
+function isMissingTierAssignmentsTableError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  return (error as { code?: string }).code === '42P01';
+}
+
 export async function POST(request: NextRequest) {
   const session = await requireApiRole(request, ['coach', 'ta']);
   if (!session) return jsonError('Unauthorized', 401);
@@ -64,14 +69,26 @@ export async function POST(request: NextRequest) {
     .eq('id', session.userId)
     .maybeSingle();
 
-  const { data: eligibleCoachProfiles } = await admin
-    .from('coach_profiles')
-    .select('coach_id,tier')
-    .eq('tier', classRow.eligible_sub_tier)
-    .neq('coach_id', session.userId);
+  const { data: eligibleTierAssignments, error: tierAssignmentsError } = await admin
+    .from('coach_tier_assignments')
+    .select('coach_id')
+    .eq('tier', classRow.eligible_sub_tier);
 
-  const eligibleRows = (eligibleCoachProfiles ?? []) as Array<{ coach_id: string }>;
-  const recipientIds = eligibleRows.map((row) => row.coach_id);
+  let eligibleRows = (eligibleTierAssignments ?? []) as Array<{ coach_id: string }>;
+  if (tierAssignmentsError && isMissingTierAssignmentsTableError(tierAssignmentsError)) {
+    const { data: fallbackProfiles } = await admin
+      .from('coach_profiles')
+      .select('coach_id')
+      .eq('tier', classRow.eligible_sub_tier);
+    eligibleRows = (fallbackProfiles ?? []) as Array<{ coach_id: string }>;
+  }
+  const recipientIds = [
+    ...new Set(
+      eligibleRows
+        .map((row) => row.coach_id)
+        .filter((coachId) => coachId && coachId !== session.userId)
+    ),
+  ];
   const recipients = recipientIds.length
     ? (
         await admin

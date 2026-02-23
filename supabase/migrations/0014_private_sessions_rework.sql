@@ -30,7 +30,7 @@ create policy private_sessions_student_cancel_expanded on public.private_session
 for update
 using (
   student_id = auth.uid()
-  and status in ('pending', 'rescheduled_by_coach', 'rescheduled_by_student', 'awaiting_payment')
+  and status::text in ('pending', 'rescheduled_by_coach', 'rescheduled_by_student', 'awaiting_payment')
 )
 with check (
   student_id = auth.uid()

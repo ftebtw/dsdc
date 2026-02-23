@@ -12,8 +12,18 @@ type Props = {
 };
 
 function formatMoney(value: number | null | undefined): string {
-  if (value == null) return '—';
+  if (value == null) return '-';
   return `$${value.toFixed(2)}`;
+}
+
+function formatTierLabel(tier: string): string {
+  if (tier === 'wsc') return 'WSC';
+  return tier.charAt(0).toUpperCase() + tier.slice(1);
+}
+
+function formatTiers(tiers: string[]): string {
+  if (tiers.length === 0) return '-';
+  return tiers.map((tier) => formatTierLabel(tier)).join(', ');
 }
 
 export default function PayrollTable({ rows, showPayColumns = true, totals }: Props) {
@@ -24,7 +34,7 @@ export default function PayrollTable({ rows, showPayColumns = true, totals }: Pr
           <tr>
             <th className="px-3 py-2 text-left">Coach</th>
             <th className="px-3 py-2 text-left">Email</th>
-            <th className="px-3 py-2 text-left">Tier</th>
+            <th className="px-3 py-2 text-left">Tiers</th>
             <th className="px-3 py-2 text-right">Sessions</th>
             <th className="px-3 py-2 text-right">Hours</th>
             <th className="px-3 py-2 text-right">Late</th>
@@ -37,7 +47,7 @@ export default function PayrollTable({ rows, showPayColumns = true, totals }: Pr
             <tr key={row.coachId} className="border-t border-warm-200 dark:border-navy-700">
               <td className="px-3 py-2">{row.coachName}</td>
               <td className="px-3 py-2">{row.coachEmail}</td>
-              <td className="px-3 py-2">{row.coachTier ?? '—'}{row.isTa ? ' (TA)' : ''}</td>
+              <td className="px-3 py-2">{row.isTa ? 'TA' : formatTiers(row.coachTiers)}</td>
               <td className="px-3 py-2 text-right">{row.sessions}</td>
               <td className="px-3 py-2 text-right">{row.totalHours.toFixed(2)}</td>
               <td className="px-3 py-2 text-right">{row.lateCount}</td>

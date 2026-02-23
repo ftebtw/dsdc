@@ -10,6 +10,11 @@ function csvEscape(value: string): string {
   return value;
 }
 
+function formatTierLabel(tier: string): string {
+  if (tier === 'wsc') return 'WSC';
+  return tier.charAt(0).toUpperCase() + tier.slice(1);
+}
+
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
@@ -63,12 +68,15 @@ export async function GET(request: NextRequest) {
       const coachSummary = summaryByCoach.get(row.coachId);
       const hourlyRate = coachSummary?.hourlyRate ?? null;
       const calculatedPay = hourlyRate == null ? null : row.durationHours * hourlyRate;
+      const tierLabel = row.coachTiers
+        .map((tier) => formatTierLabel(tier))
+        .join(', ');
 
       return [
         row.coachName,
         row.coachEmail,
         row.isPrivateSession ? 'Private' : 'Group',
-        row.coachTier ?? '',
+        tierLabel,
         row.isTa ? 'true' : 'false',
         row.sessionDate,
         row.className,

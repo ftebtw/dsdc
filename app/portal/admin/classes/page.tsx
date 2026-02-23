@@ -27,9 +27,25 @@ const scheduleDays: Database['public']['Enums']['schedule_day'][] = [
 
 const tiers: Database['public']['Enums']['coach_tier'][] = ['junior', 'senior', 'wsc'];
 
-function formatCoachTier(coach: { tier: Database['public']['Enums']['coach_tier'] | null; is_ta: boolean }) {
+function formatTierLabel(tier: string): string {
+  if (tier === 'wsc') return 'WSC';
+  return tier.charAt(0).toUpperCase() + tier.slice(1);
+}
+
+function formatCoachTier(
+  coach: { coach_id: string; tier: Database['public']['Enums']['coach_tier'] | null; is_ta: boolean },
+  tiersByCoach: Map<string, string[]>
+) {
+  const assignedTiers = tiersByCoach.get(coach.coach_id) ?? [];
+  const formattedAssignments = assignedTiers
+    .map((tier) => formatTierLabel(tier))
+    .join(', ');
+
   if (coach.is_ta) {
-    return coach.tier ? `${coach.tier}, TA` : 'TA';
+    return 'TA';
+  }
+  if (formattedAssignments) {
+    return formattedAssignments;
   }
   return coach.tier ? coach.tier : 'Coach';
 }
@@ -104,12 +120,19 @@ export default async function AdminClassesPage({
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
 
-  const [{ data: termsData }, { data: coachProfilesData }] = await Promise.all([
+  const [{ data: termsData }, { data: coachProfilesData }, { data: tierAssignmentsData }] = await Promise.all([
     supabase.from('terms').select('*').order('start_date', { ascending: false }),
     supabase.from('coach_profiles').select('coach_id,tier,is_ta'),
+    supabase.from('coach_tier_assignments').select('coach_id,tier'),
   ]);
   const terms = (termsData ?? []) as Array<Record<string, any>>;
   const coachProfiles = (coachProfilesData ?? []) as Array<Record<string, any>>;
+  const tiersByCoach = new Map<string, string[]>();
+  for (const row of (tierAssignmentsData ?? []) as Array<{ coach_id: string; tier: string }>) {
+    const list = tiersByCoach.get(row.coach_id) ?? [];
+    list.push(row.tier);
+    tiersByCoach.set(row.coach_id, list);
+  }
 
   const selectedTermId =
     params.term || terms.find((term: any) => term.is_active)?.id || terms[0]?.id || '';
@@ -190,7 +213,7 @@ export default async function AdminClassesPage({
               {coachProfiles.map((coach: any) => (
                 <option key={coach.coach_id} value={coach.coach_id}>
                   {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id} (
-                  {formatCoachTier(coach)})
+                  {formatCoachTier(coach, tiersByCoach)})
                 </option>
               ))}
             </select>
@@ -298,7 +321,7 @@ export default async function AdminClassesPage({
                   {coachProfiles.map((coach: any) => (
                     <option key={coach.coach_id} value={coach.coach_id}>
                       {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id} (
-                      {formatCoachTier(coach)})
+                      {formatCoachTier(coach, tiersByCoach)})
                     </option>
                   ))}
                 </select>

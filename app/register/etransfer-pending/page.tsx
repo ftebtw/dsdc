@@ -1,7 +1,8 @@
 import EtransferPendingClient from "./EtransferPendingClient";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { classTypeLabel } from "@/lib/portal/labels";
-import { getCadPriceForClassType } from "@/lib/portal/class-pricing";
+import { getCadPriceForClassType, getProratedCadPrice } from "@/lib/portal/class-pricing";
+import { SESSIONS_PER_TERM } from "@/lib/pricing";
 import type { Database } from "@/lib/supabase/database.types";
 
 type ClassType = Database["public"]["Enums"]["class_type"];
@@ -113,8 +114,13 @@ export default async function EtransferPendingPage({
   const classIds = [...new Set(enrollmentRowsTyped.map((row) => row.class_id))];
   const { data: classRowsData } = await admin
     .from("classes")
-    .select("id,name,type,schedule_day,schedule_start_time,schedule_end_time,timezone")
+    .select("id,name,type,schedule_day,schedule_start_time,schedule_end_time,timezone,term_id")
     .in("id", classIds);
+  const { data: activeTerm } = await admin
+    .from("terms")
+    .select("id,end_date,weeks")
+    .eq("is_active", true)
+    .maybeSingle();
 
   const classRows = (classRowsData ?? []) as Array<{
     id: string;
@@ -124,6 +130,7 @@ export default async function EtransferPendingPage({
     schedule_start_time: string;
     schedule_end_time: string;
     timezone: string;
+    term_id: string;
   }>;
 
   const classes: PendingClass[] = classRows.map((classRow) => ({
@@ -132,7 +139,16 @@ export default async function EtransferPendingPage({
     typeLabel: classTypeLabel[classRow.type] || classRow.type,
     scheduleText: formatSchedule(classRow),
   }));
-  const totalAmountCad = classRows.reduce((sum, classRow) => sum + getCadPriceForClassType(classRow.type), 0);
+  const totalWeeks =
+    activeTerm && typeof activeTerm.weeks === "number" && activeTerm.weeks > 0
+      ? activeTerm.weeks
+      : SESSIONS_PER_TERM;
+  const totalAmountCad = classRows.reduce((sum, classRow) => {
+    if (!activeTerm?.end_date) {
+      return sum + getCadPriceForClassType(classRow.type);
+    }
+    return sum + getProratedCadPrice(classRow.type, activeTerm.end_date, totalWeeks);
+  }, 0);
 
   const statusSet = new Set<EnrollmentStatus>(enrollmentRowsTyped.map((row) => row.status));
   let state: "pending" | "sent" | "expired" = "expired";

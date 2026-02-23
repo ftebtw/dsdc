@@ -38,14 +38,20 @@ function isLate(
   return new Date(checkedInAtIso).getTime() > threshold;
 }
 
+function formatTierLabel(tier: string): string {
+  if (tier === 'wsc') return 'WSC';
+  return tier.charAt(0).toUpperCase() + tier.slice(1);
+}
+
 export default async function AdminCoachesPage() {
   const session = await requireRole(['admin']);
   const supabase = await getSupabaseServerClient();
 
-  const [{ data: coachProfilesData }, { data: classesData }, { data: checkinsData }] = await Promise.all([
+  const [{ data: coachProfilesData }, { data: classesData }, { data: checkinsData }, { data: allTierAssignments }] = await Promise.all([
     supabase.from('coach_profiles').select('*').order('created_at', { ascending: true }),
     supabase.from('classes').select('*').order('name', { ascending: true }),
     supabase.from('coach_checkins').select('*').order('checked_in_at', { ascending: false }).limit(200),
+    supabase.from('coach_tier_assignments').select('coach_id,tier'),
   ]);
 
   const coachProfiles = (coachProfilesData ?? []) as Array<Record<string, any>>;
@@ -54,6 +60,12 @@ export default async function AdminCoachesPage() {
 
   const coachIds = coachProfiles.map((row: any) => row.coach_id);
   const profileMap = await getProfileMap(supabase, coachIds);
+  const tiersByCoach = new Map<string, string[]>();
+  for (const assignment of (allTierAssignments ?? []) as Array<{ coach_id: string; tier: string }>) {
+    const list = tiersByCoach.get(assignment.coach_id) ?? [];
+    list.push(assignment.tier);
+    tiersByCoach.set(assignment.coach_id, list);
+  }
   const classMap = Object.fromEntries(classes.map((classRow: any) => [classRow.id, classRow]));
 
   const classesByCoach = new Map<string, any[]>();
@@ -93,7 +105,9 @@ export default async function AdminCoachesPage() {
                       {profile?.email} -{' '}
                       {coachProfile.is_ta
                         ? 'TA'
-                        : `${coachProfile.tier ? `${coachProfile.tier} ` : ''}Coach`}
+                        : `Coach (${(tiersByCoach.get(coachProfile.coach_id) ?? [])
+                            .map((tier) => formatTierLabel(tier))
+                            .join(', ') || 'No tiers'})`}
                     </p>
                     <p className="text-sm mt-2">
                       Assigned classes:{' '}

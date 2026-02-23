@@ -1,5 +1,5 @@
 import "server-only";
-import { GROUP_TIERS } from "@/lib/pricing";
+import { GROUP_TIERS, proratedPrice, weeksRemainingInTerm } from "@/lib/pricing";
 import type { Database } from "@/lib/supabase/database.types";
 
 type ClassType = Database["public"]["Enums"]["class_type"];
@@ -19,4 +19,18 @@ export function getCadPriceForClassType(classType: ClassType): number {
     return getTierPrice("wsc");
   }
   return getTierPrice("advanced");
+}
+
+/**
+ * Get the prorated CAD price for a class type based on term timing.
+ */
+export function getProratedCadPrice(
+  classType: ClassType,
+  termEndDate: string,
+  totalWeeks: number
+): number {
+  const fullPrice = getCadPriceForClassType(classType);
+  const remaining = weeksRemainingInTerm(termEndDate);
+  if (remaining >= totalWeeks) return fullPrice;
+  return proratedPrice(fullPrice, totalWeeks, remaining);
 }

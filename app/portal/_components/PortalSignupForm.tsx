@@ -14,8 +14,7 @@ type FormState = {
   locale: Database['public']['Enums']['locale_code'];
   phone: string;
   timezone: string;
-  tier: CoachTier | null;
-  is_ta: boolean;
+  tiers: CoachTier[];
   send_invite: boolean;
 };
 
@@ -26,9 +25,14 @@ const initialState: FormState = {
   locale: 'en',
   phone: '',
   timezone: 'America/Vancouver',
-  tier: 'junior',
-  is_ta: false,
+  tiers: [],
   send_invite: true,
+};
+
+const tierLabels: Record<CoachTier, string> = {
+  junior: 'Junior',
+  senior: 'Senior',
+  wsc: 'WSC',
 };
 
 export default function PortalSignupForm() {
@@ -42,6 +46,12 @@ export default function PortalSignupForm() {
     setLoading(true);
     setError(null);
     setMessage(null);
+
+    if (state.role === 'coach' && state.tiers.length === 0) {
+      setLoading(false);
+      setError('At least one tier is required for coaches.');
+      return;
+    }
 
     const response = await fetch('/api/portal/admin/create-user', {
       method: 'POST',
@@ -74,8 +84,7 @@ export default function PortalSignupForm() {
             setState((previous) => ({
               ...previous,
               role: newRole,
-              tier: newRole === 'coach' ? previous.tier || 'junior' : null,
-              is_ta: newRole === 'ta',
+              tiers: newRole === 'coach' ? previous.tiers : [],
             }));
           }}
           className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
@@ -99,18 +108,31 @@ export default function PortalSignupForm() {
       </div>
 
       {state.role === 'coach' ? (
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">Tier</label>
-            <select
-              value={state.tier || 'junior'}
-              onChange={(event) => setState({ ...state, tier: event.target.value as CoachTier })}
-              className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            >
-              <option value="junior">Junior</option>
-              <option value="senior">Senior</option>
-              <option value="wsc">WSC</option>
-            </select>
+        <div>
+          <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+            Tiers (select all that apply)
+          </label>
+          <div className="flex flex-wrap gap-3">
+            {(['junior', 'senior', 'wsc'] as const).map((tier) => (
+              <label
+                key={tier}
+                className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200"
+              >
+                <input
+                  type="checkbox"
+                  checked={state.tiers.includes(tier)}
+                  onChange={() => {
+                    setState((previous) => ({
+                      ...previous,
+                      tiers: previous.tiers.includes(tier)
+                        ? previous.tiers.filter((existingTier) => existingTier !== tier)
+                        : [...previous.tiers, tier],
+                    }));
+                  }}
+                />
+                {tierLabels[tier]}
+              </label>
+            ))}
           </div>
         </div>
       ) : null}

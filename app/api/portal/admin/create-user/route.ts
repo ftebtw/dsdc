@@ -12,13 +12,17 @@ const bodySchema = z.object({
   locale: z.enum(['en', 'zh']).default('en'),
   phone: z.string().max(40).optional().or(z.literal('')),
   timezone: z.string().min(1).max(80).default('America/Vancouver'),
-  tier: z.enum(['junior', 'senior', 'wsc']).nullable().optional(),
-  is_ta: z.boolean().default(false),
+  tiers: z.array(z.enum(['junior', 'senior', 'wsc'])).optional(),
   send_invite: z.boolean().default(true),
 });
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
+}
+
+function isMissingTierAssignmentsTableError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  return (error as { code?: string }).code === '42P01';
 }
 
 export async function POST(request: NextRequest) {
@@ -36,8 +40,13 @@ export async function POST(request: NextRequest) {
     return jsonError('Invalid timezone.');
   }
 
-  if (body.role === 'coach' && !body.tier) {
-    return jsonError('Coach tier is required for coaches.');
+  const normalizedTiers =
+    body.role === 'coach'
+      ? [...new Set((body.tiers ?? []).filter((tier): tier is NonNullable<typeof body.tiers>[number] => Boolean(tier)))]
+      : [];
+
+  if (body.role === 'coach' && normalizedTiers.length === 0) {
+    return jsonError('At least one tier is required for coaches.');
   }
 
   const supabaseAdmin = getSupabaseAdminClient();
@@ -90,12 +99,40 @@ export async function POST(request: NextRequest) {
     const { error: coachError } = await supabaseAdmin.from('coach_profiles').upsert(
       {
         coach_id: userId,
-        tier: body.role === 'ta' ? null : body.tier!,
+        tier: body.role === 'coach' ? normalizedTiers[0] : null,
         is_ta: body.role === 'ta',
       },
       { onConflict: 'coach_id' }
     );
     if (coachError) return jsonError(coachError.message, 500);
+
+    if (body.role === 'coach') {
+      const { error: clearError } = await supabaseAdmin
+        .from('coach_tier_assignments')
+        .delete()
+      .eq('coach_id', userId);
+      if (clearError && !isMissingTierAssignmentsTableError(clearError)) {
+        return jsonError(clearError.message, 500);
+      }
+
+      const tierRows = normalizedTiers.map((tier) => ({ coach_id: userId, tier }));
+      const { error: tierError } = await supabaseAdmin
+        .from('coach_tier_assignments')
+        .insert(tierRows);
+      if (tierError && !isMissingTierAssignmentsTableError(tierError)) {
+        return jsonError(tierError.message, 500);
+      }
+    }
+
+    if (body.role === 'ta') {
+      const { error: clearTierError } = await supabaseAdmin
+        .from('coach_tier_assignments')
+        .delete()
+        .eq('coach_id', userId);
+      if (clearTierError && !isMissingTierAssignmentsTableError(clearTierError)) {
+        return jsonError(clearTierError.message, 500);
+      }
+    }
   }
 
   return NextResponse.json({

@@ -5,8 +5,9 @@ import { z } from "zod";
 import { sendPortalEmails } from "@/lib/email/send";
 import { etransferInstructions } from "@/lib/email/templates";
 import { classTypeLabel } from "@/lib/portal/labels";
-import { getCadPriceForClassType } from "@/lib/portal/class-pricing";
+import { getProratedCadPrice } from "@/lib/portal/class-pricing";
 import { getPortalAppUrl } from "@/lib/email/resend";
+import { SESSIONS_PER_TERM } from "@/lib/pricing";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseRouteClient, mergeCookies } from "@/lib/supabase/route";
 import type { Database } from "@/lib/supabase/database.types";
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
 
   const { data: activeTerm } = await admin
     .from("terms")
-    .select("id,name")
+    .select("id,name,end_date,weeks")
     .eq("is_active", true)
     .maybeSingle();
   if (!activeTerm) {
@@ -191,7 +192,15 @@ export async function POST(request: NextRequest) {
     return mergeCookies(supabaseResponse, jsonError(upsertError.message, 400));
   }
 
-  const totalAmountCad = classRows.reduce((sum, classRow) => sum + getCadPriceForClassType(classRow.type), 0);
+  const totalWeeks =
+    typeof activeTerm.weeks === "number" && activeTerm.weeks > 0
+      ? activeTerm.weeks
+      : SESSIONS_PER_TERM;
+  const totalAmountCad = classRows.reduce(
+    (sum, classRow) =>
+      sum + getProratedCadPrice(classRow.type, activeTerm.end_date, totalWeeks),
+    0
+  );
   const locale = payload.locale ?? (studentProfile.locale === "zh" ? "zh" : "en");
   const portalBase = getPortalAppUrl().replace(/\/$/, "");
   const pendingPageUrl = `${portalBase}/register/etransfer-pending?student=${encodeURIComponent(payload.studentId)}&token=${encodeURIComponent(token)}&lang=${locale}`;

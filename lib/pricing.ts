@@ -11,13 +11,13 @@ export interface GroupTier {
   baseCadPrice: number;
 }
 
-export const SESSIONS_PER_TERM = 13;
+export const SESSIONS_PER_TERM = 12;
 
 export const GROUP_TIERS: GroupTier[] = [
-  { key: "noviceIntermediate", baseCadPrice: 390 },
-  { key: "publicSpeaking", baseCadPrice: 390 },
-  { key: "wsc", baseCadPrice: 520 },
-  { key: "advanced", baseCadPrice: 650 },
+  { key: "noviceIntermediate", baseCadPrice: 780 },
+  { key: "publicSpeaking", baseCadPrice: 780 },
+  { key: "wsc", baseCadPrice: 1040 },
+  { key: "advanced", baseCadPrice: 1300 },
 ];
 
 export const SUPPORTED_CURRENCIES: SupportedCurrency[] = ["CAD", "USD", "RMB"];
@@ -51,4 +51,30 @@ export function formatDisplayPrice(
     minimumFractionDigits,
     maximumFractionDigits,
   }).format(amount);
+}
+
+/**
+ * Calculate prorated price based on weeks remaining in the term.
+ * Minimum billable amount is 1 week.
+ */
+export function proratedPrice(
+  fullTermPrice: number,
+  totalWeeks: number,
+  weeksRemaining: number
+): number {
+  const effectiveWeeks = Math.max(1, Math.min(weeksRemaining, totalWeeks));
+  return Math.round((fullTermPrice / totalWeeks) * effectiveWeeks);
+}
+
+/**
+ * Calculate weeks remaining in a term from now.
+ * Counts the current week as remaining if the term has not ended yet.
+ */
+export function weeksRemainingInTerm(termEndDate: string): number {
+  const now = new Date();
+  const end = new Date(`${termEndDate}T23:59:59Z`);
+  if (now > end) return 0;
+  const msRemaining = end.getTime() - now.getTime();
+  const daysRemaining = msRemaining / (1000 * 60 * 60 * 24);
+  return Math.ceil(daysRemaining / 7);
 }

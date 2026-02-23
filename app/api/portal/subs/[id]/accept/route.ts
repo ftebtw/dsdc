@@ -16,6 +16,11 @@ function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
+function isMissingTierAssignmentsTableError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  return (error as { code?: string }).code === '42P01';
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -39,12 +44,30 @@ export async function POST(
     return mergeCookies(supabaseResponse, jsonError('You cannot accept your own request.', 403));
   }
 
-  const [{ data: classRow }, { data: coachProfile }] = await Promise.all([
+  const [{ data: classRow }, coachTiersResult] = await Promise.all([
     admin.from('classes').select('*').eq('id', requestRow.class_id).maybeSingle(),
-    admin.from('coach_profiles').select('tier').eq('coach_id', session.userId).maybeSingle(),
+    admin.from('coach_tier_assignments').select('tier').eq('coach_id', session.userId),
   ]);
   if (!classRow) return mergeCookies(supabaseResponse, jsonError('Class not found.', 404));
-  if (!coachProfile || coachProfile.tier !== classRow.eligible_sub_tier) {
+
+  let coachTiers = (coachTiersResult.data ?? []) as Array<{ tier: string }>;
+  if (coachTiersResult.error && isMissingTierAssignmentsTableError(coachTiersResult.error)) {
+    const { data: fallbackCoachProfile, error: fallbackCoachProfileError } = await admin
+      .from('coach_profiles')
+      .select('tier')
+      .eq('coach_id', session.userId)
+      .maybeSingle();
+    if (fallbackCoachProfileError) {
+      return mergeCookies(supabaseResponse, jsonError(fallbackCoachProfileError.message, 400));
+    }
+    coachTiers = fallbackCoachProfile?.tier ? [{ tier: fallbackCoachProfile.tier }] : [];
+  }
+  const tierSet = new Set(
+    coachTiers
+      .map((row) => row.tier)
+      .filter((tier): tier is string => Boolean(tier))
+  );
+  if (!tierSet.has(classRow.eligible_sub_tier)) {
     return mergeCookies(supabaseResponse, jsonError('You are not eligible to accept this sub request.', 403));
   }
 

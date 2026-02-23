@@ -4,6 +4,8 @@ import { draftMode } from "next/headers";
 export const dynamic = "force-dynamic";
 import { getCmsMessageOverrides } from "@/lib/sanity/content";
 import { Inter, Playfair_Display } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import ClientProviders from "./providers";
 import VisualEditingWrapper from "@/components/VisualEditingWrapper";
@@ -85,7 +87,7 @@ const faqSchema = {
       name: "How much do classes cost?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "We publish our rates openly: Novice & Intermediate Debate and Public Speaking are $390 CAD per 13-week term plus applicable taxes, World Scholar's Cup is $520 CAD per term plus applicable taxes, and Advanced Debate is $650 CAD per term plus applicable taxes. Private coaching (1-on-1, 2-on-1, or 3-on-1) is priced separately based on coach and group size. See our Pricing page for full details.",
+        text: "We publish our rates openly: Novice & Intermediate Debate and Public Speaking are $780 CAD per 12-week term plus applicable taxes, World Scholar's Cup is $1,040 CAD per term plus applicable taxes, and Advanced Debate is $1,300 CAD per term plus applicable taxes. Mid-term registrations are prorated based on weeks remaining. Private coaching (1-on-1, 2-on-1, or 3-on-1) is priced separately based on coach and group size. See our Pricing page for full details.",
       },
     },
     {
@@ -254,6 +256,8 @@ export default async function RootLayout({
         />
         <ClientProviders initialCmsOverrides={initialCmsOverrides}>{children}</ClientProviders>
         <VisualEditingWrapper enabled={isEnabled} />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
