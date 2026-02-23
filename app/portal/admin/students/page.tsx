@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import AdminDeleteUserButton from '@/app/portal/_components/AdminDeleteUserButton';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -83,12 +84,15 @@ export default async function AdminStudentsPage({
                   </td>
                   <td className="px-4 py-3">{rows.length ? rows.map((row) => row.status).join(', ') : '—'}</td>
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/portal/admin/students/${student.id}`}
-                      className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
-                    >
-                      View
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/portal/admin/students/${student.id}`}
+                        className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                      >
+                        View
+                      </Link>
+                      <AdminDeleteUserButton userId={student.id} displayName={student.display_name} />
+                    </div>
                   </td>
                 </tr>
               );

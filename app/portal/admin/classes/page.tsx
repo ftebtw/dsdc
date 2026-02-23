@@ -111,6 +111,52 @@ async function deleteClass(formData: FormData) {
   revalidatePath('/portal/admin/classes');
 }
 
+async function cloneClassesToTerm(formData: FormData) {
+  'use server';
+  await requireRole(['admin']);
+  const supabase = await getSupabaseServerClient();
+
+  const sourceTermId = String(formData.get('source_term_id') || '');
+  const targetTermId = String(formData.get('target_term_id') || '');
+  if (!sourceTermId || !targetTermId || sourceTermId === targetTermId) return;
+
+  const { data: existingClasses } = await supabase
+    .from('classes')
+    .select('id')
+    .eq('term_id', targetTermId)
+    .limit(1);
+  if ((existingClasses ?? []).length > 0) {
+    revalidatePath('/portal/admin/classes');
+    return;
+  }
+
+  const { data: sourceClasses, error } = await supabase
+    .from('classes')
+    .select(
+      'name,description,type,coach_id,schedule_day,schedule_start_time,schedule_end_time,timezone,zoom_link,max_students,eligible_sub_tier'
+    )
+    .eq('term_id', sourceTermId);
+  if (error || !sourceClasses?.length) return;
+
+  const clones = sourceClasses.map((cls: any) => ({
+    term_id: targetTermId,
+    name: cls.name,
+    description: cls.description,
+    type: cls.type,
+    coach_id: cls.coach_id,
+    schedule_day: cls.schedule_day,
+    schedule_start_time: cls.schedule_start_time,
+    schedule_end_time: cls.schedule_end_time,
+    timezone: cls.timezone,
+    zoom_link: cls.zoom_link,
+    max_students: cls.max_students,
+    eligible_sub_tier: cls.eligible_sub_tier,
+  }));
+
+  await supabase.from('classes').insert(clones);
+  revalidatePath('/portal/admin/classes');
+}
+
 export default async function AdminClassesPage({
   searchParams,
 }: {
@@ -120,18 +166,24 @@ export default async function AdminClassesPage({
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
 
-  const [{ data: termsData }, { data: coachProfilesData }, { data: tierAssignmentsData }] = await Promise.all([
+  const [{ data: termsData }, { data: coachProfilesData }, { data: tierAssignmentsData }, { data: allClassesData }] = await Promise.all([
     supabase.from('terms').select('*').order('start_date', { ascending: false }),
     supabase.from('coach_profiles').select('coach_id,tier,is_ta'),
     supabase.from('coach_tier_assignments').select('coach_id,tier'),
+    supabase.from('classes').select('id,term_id'),
   ]);
   const terms = (termsData ?? []) as Array<Record<string, any>>;
   const coachProfiles = (coachProfilesData ?? []) as Array<Record<string, any>>;
+  const allClasses = (allClassesData ?? []) as Array<{ id: string; term_id: string }>;
   const tiersByCoach = new Map<string, string[]>();
   for (const row of (tierAssignmentsData ?? []) as Array<{ coach_id: string; tier: string }>) {
     const list = tiersByCoach.get(row.coach_id) ?? [];
     list.push(row.tier);
     tiersByCoach.set(row.coach_id, list);
+  }
+  const classCountByTerm = new Map<string, number>();
+  for (const cls of allClasses) {
+    classCountByTerm.set(cls.term_id, (classCountByTerm.get(cls.term_id) ?? 0) + 1);
   }
 
   const selectedTermId =
@@ -285,6 +337,57 @@ export default async function AdminClassesPage({
         )}
       </SectionCard>
 
+      {terms.length >= 2 ? (
+        <SectionCard title="Clone Classes" description="Copy all classes from one term to another.">
+          <form action={cloneClassesToTerm} className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+                Copy from
+              </label>
+              <select
+                name="source_term_id"
+                required
+                className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2 text-sm"
+              >
+                {terms.map((term: any) => (
+                  <option key={term.id} value={term.id}>
+                    {term.name} ({term.start_date} - {term.end_date}) ({classCountByTerm.get(term.id) ?? 0}{' '}
+                    classes)
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="text-lg text-charcoal/40">{"->"}</div>
+            <div>
+              <label className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+                Copy to
+              </label>
+              <select
+                name="target_term_id"
+                required
+                className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2 text-sm"
+              >
+                {terms.map((term: any) => (
+                  <option key={term.id} value={term.id}>
+                    {term.name} ({term.start_date} - {term.end_date}) ({classCountByTerm.get(term.id) ?? 0}{' '}
+                    classes)
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="submit"
+              className="rounded-lg bg-navy-800 text-white px-4 py-2 text-sm font-semibold hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200"
+            >
+              Clone Classes
+            </button>
+          </form>
+          <p className="mt-2 text-xs text-charcoal/50 dark:text-navy-400">
+            Copies name, type, coach, schedule, and settings. Only works if the target term has no classes yet.
+          </p>
+        </SectionCard>
+      ) : null}
+
       <SectionCard title="Class List" description="Edit, delete, and review class enrollment.">
         <div className="space-y-4">
           {classes.map((classRow) => {
@@ -420,3 +523,4 @@ export default async function AdminClassesPage({
     </div>
   );
 }
+

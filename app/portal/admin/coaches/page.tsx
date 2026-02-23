@@ -1,5 +1,6 @@
 import { revalidatePath } from 'next/cache';
 import { fromZonedTime } from 'date-fns-tz';
+import AdminDeleteUserButton from '@/app/portal/_components/AdminDeleteUserButton';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
@@ -135,6 +136,10 @@ export default async function AdminCoachesPage() {
                     >
                       Save
                     </button>
+                    <AdminDeleteUserButton
+                      userId={coachProfile.coach_id}
+                      displayName={profile?.display_name || profile?.email}
+                    />
                   </form>
                 </div>
 

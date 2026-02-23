@@ -248,6 +248,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
           title: "People",
           items: [
             { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
+            { href: "/portal/admin/parents", label: "Parents", icon: Users },
             { href: "/portal/admin/coaches", label: "Coaches", icon: UserSquare2 },
             { href: "/portal/admin/enroll", label: "Enroll", icon: FileCheck2 },
             { href: "/portal/signup", label: "Create User", icon: Shield },
