@@ -41,16 +41,24 @@ export function formatDisplayPrice(
   currency: SupportedCurrency,
   locale: "en" | "zh"
 ): string {
-  const currencyCode = currency === "RMB" ? "CNY" : currency;
-  const minimumFractionDigits = currency === "USD" ? 2 : 0;
-  const maximumFractionDigits = currency === "USD" ? 2 : 0;
+  const isUsd = currency === "USD";
+  const rounded = isUsd ? Math.round(amount * 100) / 100 : Math.round(amount);
 
-  return new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en-CA", {
-    style: "currency",
-    currency: currencyCode,
-    minimumFractionDigits,
-    maximumFractionDigits,
-  }).format(amount);
+  const numberStr = new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en-CA", {
+    minimumFractionDigits: isUsd ? 2 : 0,
+    maximumFractionDigits: isUsd ? 2 : 0,
+  }).format(rounded);
+
+  switch (currency) {
+    case "CAD":
+      return `$${numberStr}`;
+    case "USD":
+      return `US$${numberStr}`;
+    case "RMB":
+      return `¥${numberStr}`;
+    default:
+      return `$${numberStr}`;
+  }
 }
 
 /**

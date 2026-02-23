@@ -8,6 +8,7 @@ import {
   BookOpen,
   Banknote,
   Calendar,
+  CalendarDays,
   ClipboardCheck,
   ClipboardList,
   FileCheck2,
@@ -232,6 +233,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
           title: "Overview",
           items: [
             { href: "/portal/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+            { href: "/portal/calendar", label: "Calendar", icon: CalendarDays },
             { href: "/portal/admin/terms", label: "Terms", icon: Calendar },
             { href: "/portal/admin/classes", label: "Classes", icon: BookOpen },
             { href: "/portal/admin/report-cards", label: "Report Cards", icon: GraduationCap },
@@ -267,6 +269,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
           title: "Teaching",
           items: [
             { href: "/portal/coach/dashboard", label: "Dashboard", icon: LayoutDashboard },
+            { href: "/portal/calendar", label: "Calendar", icon: CalendarDays },
             { href: "/portal/coach/checkin", label: "Check-in", icon: ClipboardCheck },
             { href: "/portal/coach/classes", label: "My Classes", icon: BookOpen },
             { href: "/portal/coach/report-cards", label: "Report Cards", icon: GraduationCap },
@@ -290,6 +293,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
         {
           title: "Learning",
           items: [
+            { href: "/portal/calendar", label: "Calendar", icon: CalendarDays },
             { href: "/portal/student/classes", label: "My Classes", icon: BookOpen },
             { href: "/portal/student/attendance", label: "Attendance", icon: ClipboardCheck },
             { href: "/portal/student/resources", label: "Resources", icon: FileText },
@@ -317,6 +321,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
         {
           title: parentCopy.dashboard,
           items: [
+            { href: "/portal/calendar", label: "Calendar", icon: CalendarDays },
             { href: "/portal/parent/dashboard", label: parentCopy.dashboard, icon: Home },
             { href: "/portal/parent/classes", label: parentCopy.classes, icon: BookOpen },
             { href: "/portal/parent/attendance", label: parentCopy.attendance, icon: ClipboardCheck },
