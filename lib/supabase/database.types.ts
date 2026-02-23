@@ -640,6 +640,47 @@ export type Database = {
           },
         ]
       }
+      portal_login_log: {
+        Row: {
+          display_name: string | null
+          email: string
+          id: string
+          ip_address: string | null
+          logged_in_at: string
+          role: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          display_name?: string | null
+          email: string
+          id?: string
+          ip_address?: string | null
+          logged_in_at?: string
+          role: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          display_name?: string | null
+          email?: string
+          id?: string
+          ip_address?: string | null
+          logged_in_at?: string
+          role?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_login_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       private_sessions: {
         Row: {
           admin_approved_at: string | null
@@ -1180,6 +1221,7 @@ export type Database = {
         | "pending_etransfer"
         | "etransfer_sent"
         | "etransfer_lapsed"
+        | "pending_approval"
       feedback_role_hint: "student" | "parent"
       legal_required_for: "all_students" | "all_coaches" | "trip" | "event"
       locale_code: "en" | "zh"
@@ -1788,6 +1830,7 @@ export const Constants = {
         "pending_etransfer",
         "etransfer_sent",
         "etransfer_lapsed",
+        "pending_approval",
       ],
       feedback_role_hint: ["student", "parent"],
       legal_required_for: ["all_students", "all_coaches", "trip", "event"],

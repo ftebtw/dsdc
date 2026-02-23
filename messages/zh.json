@@ -492,9 +492,13 @@
     "successSubtitle": "支付已完成，课程详情已发送到邮箱。",
     "payByCard": "银行卡支付",
     "payByEtransfer": "电子转账支付",
+    "alreadyPaid": "已付款",
     "etransferNote": "您的名额将保留24小时，请在此期间完成电子转账。",
+    "alreadyPaidNote": "请选择课程并提交。管理员将核实您的付款并确认报名。",
     "reserveSpot": "预留我的名额",
+    "submitForApproval": "提交审核",
     "etransferError": "无法完成预留，请稍后重试。",
+    "approvalError": "无法提交审核申请。",
     "etransferPending": {
       "title": "名额已预留！",
       "instructions": "请将Interac电子转账发送至：",

@@ -168,7 +168,7 @@ export default async function RegisterClassesPage({
           .from("enrollments")
           .select("class_id,status")
           .in("class_id", classIds)
-          .in("status", ["active", "pending_etransfer", "etransfer_sent"])
+          .in("status", ["active", "pending_etransfer", "etransfer_sent", "pending_approval"])
       : Promise.resolve({ data: [] as any[] }),
     classIds.length
       ? supabase
@@ -176,7 +176,7 @@ export default async function RegisterClassesPage({
           .select("class_id,status")
           .in("class_id", classIds)
           .eq("student_id", studentId)
-          .in("status", ["active", "pending_etransfer", "etransfer_sent"])
+          .in("status", ["active", "pending_etransfer", "etransfer_sent", "pending_approval"])
       : Promise.resolve({ data: [] as any[] }),
   ]);
 

@@ -1085,3 +1085,105 @@ export function etransferCancelled(input: {
   });
   return { subject, html, text };
 }
+
+export function pendingApprovalStudentTemplate(input: {
+  studentName: string;
+  classList: string;
+  portalUrl: string;
+  locale?: 'en' | 'zh';
+  isParentVersion?: boolean;
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh
+    ? '\u62a5\u540d\u7533\u8bf7\u5df2\u63d0\u4ea4\uff0c\u7b49\u5f85\u5ba1\u6838'
+    : 'Enrollment submitted - awaiting admin approval';
+
+  const intro = isZh
+    ? input.isParentVersion
+      ? `\u60a8\u597d\uff0c${input.studentName} \u7684\u62a5\u540d\u7533\u8bf7\u5df2\u63d0\u4ea4\uff1a${input.classList}`
+      : `\u60a8\u597d ${input.studentName}\uff0c\u60a8\u7684\u62a5\u540d\u7533\u8bf7\u5df2\u63d0\u4ea4\uff1a${input.classList}`
+    : input.isParentVersion
+      ? `Enrollment request submitted for ${input.studentName}: ${input.classList}`
+      : `Your enrollment request for ${input.classList} has been submitted.`;
+
+  const { html, text } = renderTemplate({
+    title: isZh ? '\u62a5\u540d\u7533\u8bf7\u5df2\u63d0\u4ea4' : 'Enrollment Request Submitted',
+    bodyLines: isZh
+      ? [
+          intro,
+          '\u7ba1\u7406\u5458\u5c06\u6838\u5b9e\u4ed8\u6b3e\u540e\u786e\u8ba4\u60a8\u7684\u62a5\u540d\u3002',
+          '\u5ba1\u6838\u5b8c\u6210\u540e\u60a8\u5c06\u6536\u5230\u786e\u8ba4\u90ae\u4ef6\u3002',
+        ]
+      : [
+          intro,
+          'An admin will verify your payment and confirm enrollment shortly.',
+          "You'll receive a confirmation email once approved.",
+        ],
+    buttonLabel: isZh ? '\u6253\u5f00\u95e8\u6237' : 'Open Portal',
+    buttonUrl: input.portalUrl,
+  });
+
+  return { subject, html, text };
+}
+
+export function pendingApprovalAdminTemplate(input: {
+  studentName: string;
+  studentEmail: string;
+  classList: string;
+  queueUrl: string;
+}) {
+  const subject = `New enrollment pending approval: ${input.studentName}`;
+  const { html, text } = renderTemplate({
+    title: 'Enrollment Pending Approval',
+    bodyLines: [
+      `New enrollment pending approval: ${input.studentName} (${input.studentEmail}).`,
+      `Classes: ${input.classList}`,
+      'Please verify payment and approve or reject this request.',
+    ],
+    buttonLabel: 'Review Pending Approvals',
+    buttonUrl: input.queueUrl,
+  });
+  return { subject, html, text };
+}
+
+export function pendingApprovalRejectedTemplate(input: {
+  studentName: string;
+  classList: string;
+  reason?: string;
+  contactEmail: string;
+  registerUrl: string;
+  locale?: 'en' | 'zh';
+  isParentVersion?: boolean;
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh
+    ? '\u62a5\u540d\u7533\u8bf7\u672a\u901a\u8fc7\u5ba1\u6279'
+    : 'Enrollment request was not approved';
+
+  const intro = isZh
+    ? input.isParentVersion
+      ? `${input.studentName} \u7684\u62a5\u540d\u7533\u8bf7\u672a\u901a\u8fc7\u5ba1\u6279\uff1a${input.classList}`
+      : `\u60a8\u7684\u62a5\u540d\u7533\u8bf7\u672a\u901a\u8fc7\u5ba1\u6279\uff1a${input.classList}`
+    : input.isParentVersion
+      ? `${input.studentName}'s enrollment request for ${input.classList} was not approved.`
+      : `Your enrollment request for ${input.classList} was not approved.`;
+
+  const bodyLines = [
+    intro,
+    ...(input.reason?.trim()
+      ? [isZh ? `\u539f\u56e0\uff1a${input.reason.trim()}` : `Reason: ${input.reason.trim()}`]
+      : []),
+    isZh
+      ? `\u5982\u6709\u7591\u95ee\uff0c\u8bf7\u8054\u7cfb ${input.contactEmail}\u3002`
+      : `Please contact ${input.contactEmail} if you have questions.`,
+  ];
+
+  const { html, text } = renderTemplate({
+    title: isZh ? '\u7533\u8bf7\u672a\u901a\u8fc7' : 'Request Not Approved',
+    bodyLines,
+    buttonLabel: isZh ? '\u91cd\u65b0\u6ce8\u518c' : 'Register Again',
+    buttonUrl: input.registerUrl,
+  });
+
+  return { subject, html, text };
+}

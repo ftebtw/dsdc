@@ -47,7 +47,7 @@ export default function RegisterClassesClient({
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "etransfer">("card");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "etransfer" | "already_paid">("card");
 
   const resolvedLocale = locale === "zh" ? "zh" : localeHint;
   const selectedCount = selected.length;
@@ -104,7 +104,28 @@ export default function RegisterClassesClient({
         return;
       }
 
-      const response = await fetch("/api/register/etransfer", {
+      if (paymentMethod === "etransfer") {
+        const response = await fetch("/api/register/etransfer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            classIds: selected,
+            studentId,
+            parentId: parentId || undefined,
+            locale: resolvedLocale,
+          }),
+        });
+        const payload = (await response.json()) as CheckoutResponse;
+        if (!response.ok || !payload.redirectUrl) {
+          setError(payload.error || tx("registerPage.etransferError", "Could not reserve your spot."));
+          setLoading(false);
+          return;
+        }
+        window.location.assign(payload.redirectUrl);
+        return;
+      }
+
+      const response = await fetch("/api/register/already-paid", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -116,7 +137,9 @@ export default function RegisterClassesClient({
       });
       const payload = (await response.json()) as CheckoutResponse;
       if (!response.ok || !payload.redirectUrl) {
-        setError(payload.error || tx("registerPage.etransferError", "Could not reserve your spot."));
+        setError(
+          payload.error || tx("registerPage.approvalError", "Could not submit for approval.")
+        );
         setLoading(false);
         return;
       }
@@ -125,7 +148,9 @@ export default function RegisterClassesClient({
       setError(
         paymentMethod === "card"
           ? tx("registerPage.checkoutError", "Checkout could not start.")
-          : tx("registerPage.etransferError", "Could not reserve your spot.")
+          : paymentMethod === "etransfer"
+            ? tx("registerPage.etransferError", "Could not reserve your spot.")
+            : tx("registerPage.approvalError", "Could not submit for approval.")
       );
       setLoading(false);
     }
@@ -206,7 +231,7 @@ export default function RegisterClassesClient({
 
       {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
 
-      <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl bg-warm-100 dark:bg-navy-800 p-1">
+      <div className="mt-6 grid grid-cols-3 gap-2 rounded-xl bg-warm-100 dark:bg-navy-800 p-1">
         <button
           type="button"
           onClick={() => setPaymentMethod("card")}
@@ -229,12 +254,31 @@ export default function RegisterClassesClient({
         >
           {tx("registerPage.payByEtransfer", "Pay by E-Transfer")}
         </button>
+        <button
+          type="button"
+          onClick={() => setPaymentMethod("already_paid")}
+          className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+            paymentMethod === "already_paid"
+              ? "bg-white dark:bg-navy-700 text-navy-900 dark:text-white shadow-sm"
+              : "text-charcoal/70 dark:text-navy-300"
+          }`}
+        >
+          {tx("registerPage.alreadyPaid", "Already Paid")}
+        </button>
       </div>
       {paymentMethod === "etransfer" ? (
         <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-400">
           {tx(
             "registerPage.etransferNote",
             "Your spot will be reserved for 24 hours while you send the e-transfer."
+          )}
+        </p>
+      ) : null}
+      {paymentMethod === "already_paid" ? (
+        <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-400">
+          {tx(
+            "registerPage.alreadyPaidNote",
+            "Select your classes and submit. An admin will verify your payment and confirm your enrollment."
           )}
         </p>
       ) : null}
@@ -249,9 +293,11 @@ export default function RegisterClassesClient({
       >
         {loading
           ? tx("registerPage.redirectingCheckout", "Redirecting to checkout...")
-          : paymentMethod === "etransfer"
-            ? tx("registerPage.reserveSpot", "Reserve My Spot")
-            : tx("registerPage.continuePayment", "Continue to Payment")}
+          : paymentMethod === "card"
+            ? tx("registerPage.continuePayment", "Continue to Payment")
+            : paymentMethod === "etransfer"
+              ? tx("registerPage.reserveSpot", "Reserve My Spot")
+              : tx("registerPage.submitForApproval", "Submit for Approval")}
       </button>
       <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-400">
         {tx("registerPage.paymentCadOnly", "All payments are processed in CAD.")}
