@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import SectionCard from '@/app/portal/_components/SectionCard';
 import StudentLinkParentForm from '@/app/portal/_components/StudentLinkParentForm';
 import { requireRole } from '@/lib/portal/auth';

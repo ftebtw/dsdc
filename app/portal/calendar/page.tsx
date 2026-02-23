@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import PortalCalendar from "@/app/portal/_components/PortalCalendar";
 import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";

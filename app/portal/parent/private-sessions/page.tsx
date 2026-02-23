@@ -1,4 +1,6 @@
-﻿import { redirect } from 'next/navigation';
+export const dynamic = 'force-dynamic';
+
+import { redirect } from 'next/navigation';
 import PrivateSessionsManager from '@/app/portal/_components/PrivateSessionsManager';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';

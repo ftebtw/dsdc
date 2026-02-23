@@ -1,4 +1,6 @@
-﻿import { redirect } from "next/navigation";
+export const dynamic = 'force-dynamic';
+
+import { redirect } from "next/navigation";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import RegisterClassesClient from "./RegisterClassesClient";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -14,6 +16,7 @@ type ClassOption = {
   coachName: string;
   scheduleText: string;
   spotsRemaining: number;
+  alreadyEnrolled: boolean;
 };
 
 const weekdayIndex: Record<string, number> = {
@@ -201,6 +204,7 @@ export default async function RegisterClassesPage({
     .map((classRow) => {
       const enrolledCount = enrollmentCountByClass.get(classRow.id) ?? 0;
       const spotsRemaining = Number(classRow.max_students) - enrolledCount;
+      const alreadyEnrolled = studentEnrollments.has(classRow.id);
       const coach = coachMap[classRow.coach_id];
       const coachName = coach?.display_name || coach?.email || "DSDC Coach";
       const type = classRow.type as keyof typeof classTypeLabel;
@@ -217,9 +221,10 @@ export default async function RegisterClassesPage({
           profile.timezone || "America/Vancouver"
         ),
         spotsRemaining,
+        alreadyEnrolled,
       };
     })
-    .filter((row) => row.spotsRemaining > 0 || studentEnrollments.has(row.id));
+    .filter((row) => row.spotsRemaining > 0 || row.alreadyEnrolled);
   const totalWeeks =
     typeof activeTerm.weeks === "number" && activeTerm.weeks > 0
       ? activeTerm.weeks

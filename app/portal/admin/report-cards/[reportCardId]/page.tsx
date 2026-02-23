@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';

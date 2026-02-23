@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import EtransferPendingClient from "./EtransferPendingClient";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { classTypeLabel } from "@/lib/portal/labels";

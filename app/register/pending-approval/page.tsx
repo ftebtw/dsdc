@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import Link from "next/link";
 
 function resolveLocale(value: string | undefined): "en" | "zh" {

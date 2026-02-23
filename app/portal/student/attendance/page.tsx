@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import SectionCard from '@/app/portal/_components/SectionCard';
 import AttendanceSummary, { attendanceStatusClass } from '@/app/portal/_components/AttendanceSummary';
 import { requireRole } from '@/lib/portal/auth';

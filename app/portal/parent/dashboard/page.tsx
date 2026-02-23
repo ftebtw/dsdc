@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { redirect } from 'next/navigation';
 import ParentInviteCodePanel from '@/app/portal/_components/ParentInviteCodePanel';
 import SectionCard from '@/app/portal/_components/SectionCard';

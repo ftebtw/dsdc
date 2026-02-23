@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import SectionCard from '@/app/portal/_components/SectionCard';
 import PortalAbsenceManager from '@/app/portal/_components/PortalAbsenceManager';
 import { requireRole } from '@/lib/portal/auth';

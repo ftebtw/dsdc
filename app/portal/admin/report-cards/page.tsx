@@ -1,4 +1,6 @@
-﻿import Link from 'next/link';
+export const dynamic = 'force-dynamic';
+
+import Link from 'next/link';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import ReportCardStatusBadge from '@/app/portal/_components/ReportCardStatusBadge';
 import { requireRole } from '@/lib/portal/auth';

@@ -22,11 +22,20 @@ const parentSchema = baseSchema.extend({
   parentDisplayName: z.string().min(1).max(120),
   parentEmail: z.string().email(),
   parentPassword: z.string().min(8).max(128),
-  studentName: z.string().min(1).max(120),
+  studentName: z.string().max(120).optional(),
   studentEmail: z.string().email(),
+  studentMode: z.enum(["new", "existing"]).default("new"),
 });
 
-const bodySchema = z.discriminatedUnion("role", [studentSchema, parentSchema]);
+const bodySchema = z.discriminatedUnion("role", [studentSchema, parentSchema]).superRefine((value, ctx) => {
+  if (value.role === "parent" && (value.studentMode ?? "new") === "new" && !value.studentName?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["studentName"],
+      message: "Student name is required.",
+    });
+  }
+});
 
 type ParsedBody = z.infer<typeof bodySchema>;
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -117,8 +126,14 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
 
 async function createParentRegistration(admin: any, body: ParsedBody) {
   if (body.role !== "parent") return null;
+  const studentMode = body.studentMode ?? "new";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://dsdc.ca";
 
   const existingStudentUser = await findAuthUserByEmail(admin, body.studentEmail);
+  if (studentMode === "existing" && !existingStudentUser) {
+    throw new Error("No student account found with this email. Please use 'Register New Student' instead.");
+  }
+
   if (existingStudentUser) {
     const { data: existingProfile, error: existingProfileError } = await admin
       .from("profiles")
@@ -179,19 +194,24 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
         id: studentId,
         email: body.studentEmail,
         role: "student",
-        displayName: existingProfile?.display_name || body.studentName,
+        displayName: existingProfile?.display_name || body.studentName?.trim() || body.studentEmail,
         locale: existingProfile?.locale === "zh" ? "zh" : body.locale,
         timezone: existingProfile?.timezone || body.timezone,
       })
     );
   } else {
+    if (!body.studentName?.trim()) {
+      throw new Error("Student name is required.");
+    }
+
     const invite = await admin.auth.admin.inviteUserByEmail(body.studentEmail, {
       data: {
         role: "student",
-        display_name: body.studentName,
+        display_name: body.studentName.trim(),
         locale: body.locale,
         timezone: body.timezone,
       },
+      redirectTo: `${siteUrl}/auth/callback?type=invite`,
     });
     if (invite.error) throw new Error(invite.error.message);
     studentId = invite.data.user?.id ?? "";
@@ -204,7 +224,7 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
         id: studentId,
         email: body.studentEmail,
         role: "student",
-        displayName: body.studentName,
+        displayName: body.studentName.trim(),
         locale: body.locale,
         timezone: body.timezone,
       })

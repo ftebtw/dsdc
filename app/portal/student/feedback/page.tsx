@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import SectionCard from '@/app/portal/_components/SectionCard';
 import AnonymousFeedbackForm from '@/app/portal/_components/AnonymousFeedbackForm';
 import { requireRole } from '@/lib/portal/auth';

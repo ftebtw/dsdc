@@ -11,6 +11,7 @@ type ClassOption = {
   coachName: string;
   scheduleText: string;
   spotsRemaining: number;
+  alreadyEnrolled: boolean;
 };
 
 type CheckoutResponse = {
@@ -52,6 +53,11 @@ export default function RegisterClassesClient({
   const [paymentMethod, setPaymentMethod] = useState<"card" | "etransfer" | "already_paid">("card");
 
   const resolvedLocale = locale === "zh" ? "zh" : localeHint;
+  const selectableClasses = useMemo(() => classes.filter((classRow) => !classRow.alreadyEnrolled), [classes]);
+  const selectableClassIds = useMemo(
+    () => new Set(selectableClasses.map((classRow) => classRow.id)),
+    [selectableClasses]
+  );
   const selectedCount = selected.length;
 
   const selectedSet = useMemo(() => new Set(selected), [selected]);
@@ -64,12 +70,17 @@ export default function RegisterClassesClient({
     localeSyncedRef.current = true;
   }, [locale, localeHint, toggleLocale]);
 
+  useEffect(() => {
+    setSelected((current) => current.filter((classId) => selectableClassIds.has(classId)));
+  }, [selectableClassIds]);
+
   function tx(key: string, fallback: string): string {
     const value = t(key);
     return value === key ? fallback : value;
   }
 
   function toggleClass(classId: string) {
+    if (!selectableClassIds.has(classId)) return;
     setSelected((current) => {
       if (current.includes(classId)) {
         return current.filter((id) => id !== classId);
@@ -193,22 +204,33 @@ export default function RegisterClassesClient({
       <div className="mt-6 space-y-3">
         {classes.map((classRow) => {
           const isSelected = selectedSet.has(classRow.id);
+          const isLocked = classRow.alreadyEnrolled;
           return (
-            <label
+            <div
               key={classRow.id}
-              className={`block rounded-xl border p-4 transition-colors cursor-pointer ${
+              className={`block rounded-xl border p-4 transition-colors ${
+                isLocked
+                  ? "border-green-200 dark:border-green-900/60 bg-green-50/70 dark:bg-green-950/20 opacity-80"
+                  : "cursor-pointer"
+              } ${
                 isSelected
                   ? "border-gold-400 bg-gold-50/70 dark:border-gold-400/80 dark:bg-gold-900/25"
                   : "border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-800/80"
               }`}
             >
               <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => toggleClass(classRow.id)}
-                  className="mt-1 h-4 w-4 accent-gold-400 dark:accent-gold-300 rounded border-warm-300 dark:border-navy-400"
-                />
+                {isLocked ? (
+                  <span className="mt-0.5 inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                    ✓ {tx("registerPage.alreadyEnrolled", "Already Enrolled")}
+                  </span>
+                ) : (
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleClass(classRow.id)}
+                    className="mt-1 h-4 w-4 accent-gold-400 dark:accent-gold-300 rounded border-warm-300 dark:border-navy-400"
+                  />
+                )}
                 <div>
                   <p className="font-semibold text-navy-900 dark:text-navy-50">{classRow.name}</p>
                   <p className="text-sm text-charcoal/70 dark:text-navy-100">
@@ -223,7 +245,7 @@ export default function RegisterClassesClient({
                   </span>
                 </div>
               </div>
-            </label>
+            </div>
           );
         })}
       </div>
@@ -252,79 +274,103 @@ export default function RegisterClassesClient({
         </div>
       ) : null}
 
+      {classes.length > 0 && selectableClasses.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-lg font-medium text-navy-800 dark:text-white mb-2">
+            {tx(
+              "registerPage.allEnrolled",
+              "All set! Your student is already enrolled in all available classes."
+            )}
+          </p>
+          <p className="text-sm text-charcoal/60 dark:text-navy-400 mb-4">
+            {tx("registerPage.allEnrolledHint", "You can manage enrollments in the portal.")}
+          </p>
+          <a
+            href="/portal/login"
+            className="inline-flex rounded-lg bg-navy-800 text-white px-6 py-2.5 font-semibold"
+          >
+            {tx("registerPage.goToPortal", "Go to Portal")}
+          </a>
+        </div>
+      ) : null}
+
       {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
 
-      <div className="mt-6 grid grid-cols-3 gap-2 rounded-xl bg-warm-100 dark:bg-navy-800 p-1">
-        <button
-          type="button"
-          onClick={() => setPaymentMethod("card")}
-          className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-            paymentMethod === "card"
-              ? "bg-white dark:bg-navy-700 text-navy-900 dark:text-white shadow-sm"
-              : "text-charcoal/70 dark:text-navy-300"
-          }`}
-        >
-          {tx("registerPage.payByCard", "Pay with Card")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setPaymentMethod("etransfer")}
-          className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-            paymentMethod === "etransfer"
-              ? "bg-white dark:bg-navy-700 text-navy-900 dark:text-white shadow-sm"
-              : "text-charcoal/70 dark:text-navy-300"
-          }`}
-        >
-          {tx("registerPage.payByEtransfer", "Pay by E-Transfer")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setPaymentMethod("already_paid")}
-          className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-            paymentMethod === "already_paid"
-              ? "bg-white dark:bg-navy-700 text-navy-900 dark:text-white shadow-sm"
-              : "text-charcoal/70 dark:text-navy-300"
-          }`}
-        >
-          {tx("registerPage.alreadyPaid", "Already Paid")}
-        </button>
-      </div>
-      {paymentMethod === "etransfer" ? (
-        <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-400">
-          {tx(
-            "registerPage.etransferNote",
-            "Your spot will be reserved for 24 hours while you send the e-transfer."
-          )}
-        </p>
-      ) : null}
-      {paymentMethod === "already_paid" ? (
-        <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-400">
-          {tx(
-            "registerPage.alreadyPaidNote",
-            "Select your classes and submit. An admin will verify your payment and confirm your enrollment."
-          )}
-        </p>
-      ) : null}
+      {selectableClasses.length > 0 ? (
+        <>
+          <div className="mt-6 grid grid-cols-3 gap-2 rounded-xl bg-warm-100 dark:bg-navy-800 p-1">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("card")}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                paymentMethod === "card"
+                  ? "bg-white dark:bg-navy-700 text-navy-900 dark:text-white shadow-sm"
+                  : "text-charcoal/70 dark:text-navy-300"
+              }`}
+            >
+              {tx("registerPage.payByCard", "Pay with Card")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("etransfer")}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                paymentMethod === "etransfer"
+                  ? "bg-white dark:bg-navy-700 text-navy-900 dark:text-white shadow-sm"
+                  : "text-charcoal/70 dark:text-navy-300"
+              }`}
+            >
+              {tx("registerPage.payByEtransfer", "Pay by E-Transfer")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod("already_paid")}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                paymentMethod === "already_paid"
+                  ? "bg-white dark:bg-navy-700 text-navy-900 dark:text-white shadow-sm"
+                  : "text-charcoal/70 dark:text-navy-300"
+              }`}
+            >
+              {tx("registerPage.alreadyPaid", "Already Paid")}
+            </button>
+          </div>
+          {paymentMethod === "etransfer" ? (
+            <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-400">
+              {tx(
+                "registerPage.etransferNote",
+                "Your spot will be reserved for 24 hours while you send the e-transfer."
+              )}
+            </p>
+          ) : null}
+          {paymentMethod === "already_paid" ? (
+            <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-400">
+              {tx(
+                "registerPage.alreadyPaidNote",
+                "Select your classes and submit. An admin will verify your payment and confirm your enrollment."
+              )}
+            </p>
+          ) : null}
 
-      <button
-        type="button"
-        disabled={loading || selectedCount === 0}
-        onClick={() => {
-          void continueToPayment();
-        }}
-        className="mt-6 w-full rounded-lg bg-navy-800 text-white py-2.5 font-semibold disabled:opacity-60"
-      >
-        {loading
-          ? tx("registerPage.redirectingCheckout", "Redirecting to checkout...")
-          : paymentMethod === "card"
-            ? tx("registerPage.continuePayment", "Continue to Payment")
-            : paymentMethod === "etransfer"
-              ? tx("registerPage.reserveSpot", "Reserve My Spot")
-              : tx("registerPage.submitForApproval", "Submit for Approval")}
-      </button>
-      <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-400">
-        {tx("registerPage.paymentCadOnly", "All payments are processed in CAD.")}
-      </p>
+          <button
+            type="button"
+            disabled={loading || selectedCount === 0}
+            onClick={() => {
+              void continueToPayment();
+            }}
+            className="mt-6 w-full rounded-lg bg-navy-800 text-white py-2.5 font-semibold disabled:opacity-60"
+          >
+            {loading
+              ? tx("registerPage.redirectingCheckout", "Redirecting to checkout...")
+              : paymentMethod === "card"
+                ? tx("registerPage.continuePayment", "Continue to Payment")
+                : paymentMethod === "etransfer"
+                  ? tx("registerPage.reserveSpot", "Reserve My Spot")
+                  : tx("registerPage.submitForApproval", "Submit for Approval")}
+          </button>
+          <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-400">
+            {tx("registerPage.paymentCadOnly", "All payments are processed in CAD.")}
+          </p>
+        </>
+      ) : null}
     </div>
   );
 }

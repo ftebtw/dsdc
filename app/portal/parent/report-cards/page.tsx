@@ -1,4 +1,6 @@
-﻿import { redirect } from 'next/navigation';
+export const dynamic = 'force-dynamic';
+
+import { redirect } from 'next/navigation';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';
 import { requireRole } from '@/lib/portal/auth';

@@ -38,13 +38,22 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const authFlowPages = ['/portal/login', '/portal/setup-password'];
+  const isAuthFlow = authFlowPages.some((path) => pathname === path);
   const isLogin = pathname === '/portal/login';
+  const isSetupPassword = pathname === '/portal/setup-password';
 
   if (!user) {
     if (isLogin) return response;
     const loginUrl = new URL('/portal/login', request.url);
-    loginUrl.searchParams.set('redirectTo', pathname);
+    if (!isAuthFlow) {
+      loginUrl.searchParams.set('redirectTo', pathname);
+    }
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (isSetupPassword) {
+    return response;
   }
 
   const { data: profile } = await supabase

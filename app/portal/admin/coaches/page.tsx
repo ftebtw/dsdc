@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { revalidatePath } from 'next/cache';
 import { fromZonedTime } from 'date-fns-tz';
 import AdminDeleteUserButton from '@/app/portal/_components/AdminDeleteUserButton';

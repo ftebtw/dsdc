@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import type { AuthChangeEvent } from '@supabase/supabase-js';
-import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { AuthChangeEvent } from "@supabase/supabase-js";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Props = {
-  locale: 'en' | 'zh';
+  locale: "en" | "zh";
 };
 
 export default function PortalLoginForm({ locale }: Props) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,56 +23,68 @@ export default function PortalLoginForm({ locale }: Props) {
   const router = useRouter();
   const params = useSearchParams();
   const t =
-    locale === 'zh'
+    locale === "zh"
       ? {
-          resetLinkDetected: '已检测到重置链接，请在下方输入新密码。',
-          recoveryModeEnabled: '已进入密码找回模式，请输入新密码。',
-          enterEmailFirst: '请先输入电子邮箱，然后点击“忘记密码”。',
+          resetLinkDetected: "已检测到重置链接，请在下方输入新密码。",
+          recoveryModeEnabled: "已进入密码找回模式，请输入新密码。",
+          resetLinkExpired: "此重置链接已过期，请重新申请。",
+          enterEmailFirst: "请先输入电子邮箱，然后点击“忘记密码”。",
           resetSent:
-            '密码重置邮件已发送，请检查您的收件箱（也包括垃圾邮件/垃圾箱文件夹）并点击链接。',
-          newPasswordMin: '新密码至少需要 8 个字符。',
-          passwordsNoMatch: '两次输入的密码不一致。',
-          passwordUpdated: '密码已更新，现在可以登录。',
-          email: '电子邮箱',
-          password: '密码',
-          newPassword: '新密码',
-          confirmNewPassword: '确认新密码',
-          updatingPassword: '更新密码中...',
-          signingIn: '登录中...',
-          updatePassword: '更新密码',
-          signIn: '登录',
-          sendingResetEmail: '发送重置邮件中...',
-          forgotPassword: '忘记密码',
+            "密码重置邮件已发送，请检查您的收件箱（也包括垃圾邮件/垃圾箱文件夹）并点击链接。",
+          newPasswordMin: "新密码至少需要 8 个字符。",
+          passwordsNoMatch: "两次输入的密码不一致。",
+          passwordUpdated: "密码已更新，现在可以登录。",
+          email: "电子邮箱",
+          password: "密码",
+          newPassword: "新密码",
+          confirmNewPassword: "确认新密码",
+          updatingPassword: "更新密码中...",
+          signingIn: "登录中...",
+          updatePassword: "更新密码",
+          signIn: "登录",
+          sendingResetEmail: "发送重置邮件中...",
+          forgotPassword: "忘记密码",
         }
       : {
-          resetLinkDetected: 'Reset link detected. Enter a new password below.',
-          recoveryModeEnabled: 'Password recovery mode enabled. Enter a new password.',
-          enterEmailFirst: 'Enter your email first, then click Forgot password.',
+          resetLinkDetected: "Reset link detected. Enter a new password below.",
+          recoveryModeEnabled: "Password recovery mode enabled. Enter a new password.",
+          resetLinkExpired: "This reset link has expired. Please request a new one.",
+          enterEmailFirst: "Enter your email first, then click Forgot password.",
           resetSent:
-            'Password reset email sent. Check your inbox (and spam/junk folder) and follow the link.',
-          newPasswordMin: 'New password must be at least 8 characters.',
-          passwordsNoMatch: 'Passwords do not match.',
-          passwordUpdated: 'Password updated. You can now sign in.',
-          email: 'Email',
-          password: 'Password',
-          newPassword: 'New Password',
-          confirmNewPassword: 'Confirm New Password',
-          updatingPassword: 'Updating password...',
-          signingIn: 'Signing in...',
-          updatePassword: 'Update Password',
-          signIn: 'Sign In',
-          sendingResetEmail: 'Sending reset email...',
-          forgotPassword: 'Forgot Password',
+            "Password reset email sent. Check your inbox (and spam/junk folder) and follow the link.",
+          newPasswordMin: "New password must be at least 8 characters.",
+          passwordsNoMatch: "Passwords do not match.",
+          passwordUpdated: "Password updated. You can now sign in.",
+          email: "Email",
+          password: "Password",
+          newPassword: "New Password",
+          confirmNewPassword: "Confirm New Password",
+          updatingPassword: "Updating password...",
+          signingIn: "Signing in...",
+          updatePassword: "Update Password",
+          signIn: "Sign In",
+          sendingResetEmail: "Sending reset email...",
+          forgotPassword: "Forgot Password",
         };
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
-      setRecoveryMode(true);
-      setInfo(t.resetLinkDetected);
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash;
+      const queryParams = new URLSearchParams(window.location.search);
+
+      if (hash.includes("type=recovery") || queryParams.get("mode") === "recovery") {
+        setRecoveryMode(true);
+        setInfo(t.resetLinkDetected);
+      }
+
+      if (queryParams.get("error") === "auth_callback_failed") {
+        setError(t.resetLinkExpired);
+        setInfo(null);
+      }
     }
 
     const { data } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === "PASSWORD_RECOVERY") {
         setRecoveryMode(true);
         setInfo(t.recoveryModeEnabled);
         setError(null);
@@ -82,7 +94,7 @@ export default function PortalLoginForm({ locale }: Props) {
     return () => {
       data.subscription.unsubscribe();
     };
-  }, [supabase, t.recoveryModeEnabled, t.resetLinkDetected]);
+  }, [supabase, t.recoveryModeEnabled, t.resetLinkDetected, t.resetLinkExpired]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -103,9 +115,9 @@ export default function PortalLoginForm({ locale }: Props) {
       return;
     }
 
-    void fetch('/api/portal/track-login', { method: 'POST' }).catch(() => {});
+    void fetch("/api/portal/track-login", { method: "POST" }).catch(() => {});
 
-    const redirectTo = params.get('redirectTo') || '/portal';
+    const redirectTo = params.get("redirectTo") || "/portal";
     router.push(redirectTo);
     router.refresh();
   }
@@ -121,7 +133,9 @@ export default function PortalLoginForm({ locale }: Props) {
     setInfo(null);
 
     const redirectTo =
-      typeof window !== 'undefined' ? `${window.location.origin}/portal/login` : undefined;
+      typeof window !== "undefined"
+        ? `${window.location.origin}/auth/callback?type=recovery`
+        : undefined;
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo,
     });
@@ -160,10 +174,10 @@ export default function PortalLoginForm({ locale }: Props) {
 
     setInfo(t.passwordUpdated);
     setRecoveryMode(false);
-    setNewPassword('');
-    setConfirmPassword('');
-    if (typeof window !== 'undefined' && window.location.hash) {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
+    setNewPassword("");
+    setConfirmPassword("");
+    if (typeof window !== "undefined" && window.location.hash) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
     }
   }
 
@@ -175,7 +189,7 @@ export default function PortalLoginForm({ locale }: Props) {
           type="email"
           required
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(event) => setEmail(event.target.value)}
           className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
         />
       </div>
@@ -183,36 +197,42 @@ export default function PortalLoginForm({ locale }: Props) {
       {recoveryMode ? (
         <>
           <div>
-            <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">{t.newPassword}</label>
+            <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+              {t.newPassword}
+            </label>
             <input
               type="password"
               required
               minLength={8}
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={(event) => setNewPassword(event.target.value)}
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
             />
           </div>
           <div>
-            <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">{t.confirmNewPassword}</label>
+            <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+              {t.confirmNewPassword}
+            </label>
             <input
               type="password"
               required
               minLength={8}
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(event) => setConfirmPassword(event.target.value)}
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
             />
           </div>
         </>
       ) : (
         <div>
-          <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">{t.password}</label>
+          <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+            {t.password}
+          </label>
           <input
             type="password"
             required
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
             className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
           />
         </div>
@@ -226,7 +246,13 @@ export default function PortalLoginForm({ locale }: Props) {
         type="submit"
         className="w-full rounded-lg bg-navy-800 text-white py-2.5 font-semibold hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 disabled:opacity-60"
       >
-        {loading ? (recoveryMode ? t.updatingPassword : t.signingIn) : recoveryMode ? t.updatePassword : t.signIn}
+        {loading
+          ? recoveryMode
+            ? t.updatingPassword
+            : t.signingIn
+          : recoveryMode
+            ? t.updatePassword
+            : t.signIn}
       </button>
 
       {!recoveryMode ? (

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import AdminEtransferManager from "@/app/portal/_components/AdminEtransferManager";
 import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { formatInTimeZone } from 'date-fns-tz';
 import SectionCard from '@/app/portal/_components/SectionCard';

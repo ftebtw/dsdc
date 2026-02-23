@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import AdminPendingApprovalsManager from "@/app/portal/_components/AdminPendingApprovalsManager";
 import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";

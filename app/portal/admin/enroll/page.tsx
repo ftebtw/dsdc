@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import SectionCard from '@/app/portal/_components/SectionCard';
 import AdminManualEnrollForm from '@/app/portal/_components/AdminManualEnrollForm';
 import { requireRole } from '@/lib/portal/auth';

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { redirect } from "next/navigation";
 import RegisterForm from "./RegisterForm";
 import { getSupabaseServerClient } from "@/lib/supabase/server";

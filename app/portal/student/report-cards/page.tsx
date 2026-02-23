@@ -1,4 +1,6 @@
-﻿import SectionCard from '@/app/portal/_components/SectionCard';
+export const dynamic = 'force-dynamic';
+
+import SectionCard from '@/app/portal/_components/SectionCard';
 import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';

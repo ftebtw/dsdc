@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import CoachSubsManager from '@/app/portal/_components/CoachSubsManager';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';

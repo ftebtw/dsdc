@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { randomUUID } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import SectionCard from '@/app/portal/_components/SectionCard';

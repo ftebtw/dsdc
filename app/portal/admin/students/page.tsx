@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import AdminDeleteUserButton from '@/app/portal/_components/AdminDeleteUserButton';
 import SectionCard from '@/app/portal/_components/SectionCard';

@@ -7,6 +7,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
 type RegistrationRole = "student" | "parent";
+type StudentMode = "new" | "existing";
 
 type RegisterResponse = {
   loginEmail: string;
@@ -35,6 +36,7 @@ export default function RegisterForm() {
   const [parentDisplayName, setParentDisplayName] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const [parentPassword, setParentPassword] = useState("");
+  const [studentMode, setStudentMode] = useState<StudentMode>("new");
   const [studentName, setStudentName] = useState("");
   const [studentEmail, setStudentEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -81,8 +83,9 @@ export default function RegisterForm() {
             parentDisplayName,
             parentEmail,
             parentPassword,
-            studentName,
+            studentName: studentMode === "existing" ? "" : studentName,
             studentEmail,
+            studentMode,
             locale: resolvedLocale,
             timezone,
           };
@@ -95,7 +98,16 @@ export default function RegisterForm() {
       });
       const data = (await response.json()) as RegisterResponse;
       if (!response.ok || data.error) {
-        setError(data.error || tx("registerPage.error", "Registration failed. Please try again."));
+        if (
+          data.error ===
+          "No student account found with this email. Please use 'Register New Student' instead."
+        ) {
+          setError(
+            tx("registerPage.existingStudentNotFound", "No student account found with this email.")
+          );
+        } else {
+          setError(data.error || tx("registerPage.error", "Registration failed. Please try again."));
+        }
         setLoading(false);
         return;
       }
@@ -244,18 +256,53 @@ export default function RegisterForm() {
                 className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
               />
             </label>
-            <label className="block">
-              <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
-                {tx("registerPage.studentName", "Student name")}
-              </span>
-              <input
-                type="text"
-                required
-                value={studentName}
-                onChange={(event) => setStudentName(event.target.value)}
-                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
-              />
-            </label>
+
+            <div className="flex gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => setStudentMode("new")}
+                className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${
+                  studentMode === "new"
+                    ? "bg-navy-800 text-white border-navy-800"
+                    : "border-warm-300 dark:border-navy-600 text-navy-700 dark:text-navy-200"
+                }`}
+              >
+                {tx("registerPage.newStudent", "Register New Student")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setStudentMode("existing")}
+                className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${
+                  studentMode === "existing"
+                    ? "bg-navy-800 text-white border-navy-800"
+                    : "border-warm-300 dark:border-navy-600 text-navy-700 dark:text-navy-200"
+                }`}
+              >
+                {tx("registerPage.existingStudent", "Link Existing Student")}
+              </button>
+            </div>
+            {studentMode === "existing" ? (
+              <p className="text-xs text-charcoal/60 dark:text-navy-400">
+                {tx(
+                  "registerPage.existingStudentHint",
+                  "Enter your child's email address. If they already have a DSDC account, your accounts will be linked automatically."
+                )}
+              </p>
+            ) : null}
+            {studentMode === "new" ? (
+              <label className="block">
+                <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+                  {tx("registerPage.studentName", "Student name")}
+                </span>
+                <input
+                  type="text"
+                  required={studentMode === "new"}
+                  value={studentName}
+                  onChange={(event) => setStudentName(event.target.value)}
+                  className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
+                />
+              </label>
+            ) : null}
             <label className="block">
               <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
                 {tx("registerPage.studentEmail", "Student email")}

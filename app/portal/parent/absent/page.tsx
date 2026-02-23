@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { redirect } from 'next/navigation';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import PortalAbsenceManager from '@/app/portal/_components/PortalAbsenceManager';
