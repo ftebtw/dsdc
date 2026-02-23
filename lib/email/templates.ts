@@ -29,8 +29,11 @@ function renderTemplate(args: TemplateArgs): { html: string; text: string } {
     ? `<p style="margin:18px 0 0 0;font-size:12px;color:#555;">Preferences: <a href="${escapeHtml(args.preferenceUrl)}">${escapeHtml(args.preferenceUrl)}</a></p>`
     : '';
 
+  const spamNoticeHtml =
+    '<p style="font-size:12px;color:#888;margin:16px 0 0 0;">If this email landed in your spam folder, please mark it as "not spam" so future messages arrive in your inbox.</p>';
+
   return {
-    html: `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#111;line-height:1.45;"><div style="max-width:640px;margin:0 auto;border:1px solid #eee;border-radius:10px;padding:18px;"><h2 style="margin:0 0 14px 0;color:#11294a;">${escapeHtml(args.title)}</h2>${lineHtml}${buttonHtml}${preferenceHtml}</div></body></html>`,
+    html: `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#111;line-height:1.45;"><div style="max-width:640px;margin:0 auto;border:1px solid #eee;border-radius:10px;padding:18px;"><h2 style="margin:0 0 14px 0;color:#11294a;">${escapeHtml(args.title)}</h2>${lineHtml}${buttonHtml}${preferenceHtml}${spamNoticeHtml}</div></body></html>`,
     text: [args.title, '', ...args.bodyLines, args.buttonUrl ? `Portal: ${args.buttonUrl}` : '', args.preferenceUrl ? `Preferences: ${args.preferenceUrl}` : '']
       .filter(Boolean)
       .join('\n'),

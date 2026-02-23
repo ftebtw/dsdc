@@ -82,6 +82,10 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
     ? cmsResult.overrides[locale]
     : {}) as Record<string, unknown>;
   const copy = deepMerge(baseCopy, cmsOverride) as typeof en;
+  const spamReminderText =
+    locale === "zh"
+      ? "\u6ca1\u6536\u5230\u786e\u8ba4\u90ae\u4ef6\uff1f\u8bf7\u68c0\u67e5\u60a8\u7684\u5783\u573e\u90ae\u4ef6/\u5783\u573e\u7bb1\u6587\u4ef6\u5939\u3002"
+      : "Don't see the confirmation email? Please check your spam or junk folder.";
   const sessionId = params.session_id;
 
   if (!sessionId) {
@@ -90,6 +94,7 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
         <div className="max-w-xl w-full rounded-2xl border border-warm-200 bg-white dark:bg-navy-800 p-8 text-center shadow-sm">
           <h1 className="text-3xl font-bold text-navy-800 dark:text-white mb-3">{copy.paymentSuccess.title}</h1>
           <p className="text-charcoal/70 dark:text-navy-200">{copy.paymentSuccess.subtitle}</p>
+          <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">{spamReminderText}</p>
           <Link
             href="/"
             className="inline-block mt-8 px-6 py-3 rounded-lg bg-gold-300 text-navy-900 font-semibold hover:bg-gold-200 transition-colors"
@@ -111,6 +116,7 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
         <div className="max-w-xl w-full rounded-2xl border border-warm-200 bg-white dark:bg-navy-800 p-8 text-center shadow-sm">
           <h1 className="text-3xl font-bold text-navy-800 dark:text-white mb-3">{copy.paymentSuccess.title}</h1>
           <p className="text-charcoal/70 dark:text-navy-200">{copy.paymentSuccess.subtitle}</p>
+          <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">{spamReminderText}</p>
           <Link
             href="/"
             className="inline-block mt-8 px-6 py-3 rounded-lg bg-gold-300 text-navy-900 font-semibold hover:bg-gold-200 transition-colors"
@@ -137,6 +143,7 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
         <div className="max-w-xl w-full rounded-2xl border border-warm-200 bg-white dark:bg-navy-800 p-8 text-center shadow-sm">
           <h1 className="text-3xl font-bold text-navy-800 dark:text-white mb-3">{copy.paymentSuccess.title}</h1>
           <p className="text-charcoal/70 dark:text-navy-200">{copy.paymentSuccess.subtitle}</p>
+          <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">{spamReminderText}</p>
           <Link
             href="/"
             className="inline-block mt-8 px-6 py-3 rounded-lg bg-gold-300 text-navy-900 font-semibold hover:bg-gold-200 transition-colors"
@@ -180,6 +187,7 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
       <div className="max-w-xl w-full rounded-2xl border border-warm-200 bg-white dark:bg-navy-800 p-8 shadow-sm">
         <h1 className="text-3xl font-bold text-navy-800 dark:text-white">{copy.paymentSuccess.title}</h1>
         <p className="mt-2 text-charcoal/70 dark:text-navy-200">{copy.paymentSuccess.subtitle}</p>
+        <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">{spamReminderText}</p>
 
         <div className="mt-8 space-y-4">
           <div className="flex items-center justify-between rounded-lg bg-warm-100 dark:bg-navy-900/40 px-4 py-3">

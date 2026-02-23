@@ -57,6 +57,8 @@ export default function PortalLoginForm() {
       return;
     }
 
+    void fetch('/api/portal/track-login', { method: 'POST' }).catch(() => {});
+
     const redirectTo = params.get('redirectTo') || '/portal';
     router.push(redirectTo);
     router.refresh();
@@ -85,7 +87,7 @@ export default function PortalLoginForm() {
       return;
     }
 
-    setInfo('Password reset email sent. Check your inbox and follow the link.');
+    setInfo('Password reset email sent. Check your inbox (and spam/junk folder) and follow the link.');
   }
 
   async function onUpdatePassword() {

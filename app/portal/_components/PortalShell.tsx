@@ -9,6 +9,7 @@ import {
   Banknote,
   Calendar,
   ClipboardCheck,
+  ClipboardList,
   FileCheck2,
   FileText,
   GraduationCap,
@@ -238,6 +239,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
             { href: "/portal/admin/subs", label: "Sub Requests", icon: Users },
             { href: "/portal/admin/private-sessions", label: "Private Sessions", icon: ClipboardCheck },
             { href: "/portal/admin/etransfers", label: "E-Transfers", icon: Banknote },
+            { href: "/portal/admin/login-log", label: "Login Log", icon: ClipboardList },
           ],
         },
         {

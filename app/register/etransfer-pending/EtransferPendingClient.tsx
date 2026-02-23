@@ -136,6 +136,16 @@ export default function EtransferPendingClient({
               )}
             </p>
           </div>
+          <p className="mt-3 text-sm text-charcoal/75 dark:text-navy-200">
+            {locale === 'zh'
+              ? '\u7535\u5b50\u8f6c\u8d26\u8bf4\u660e\u5df2\u53d1\u9001\u81f3\u60a8\u7684\u90ae\u7bb1\u3002'
+              : 'E-transfer instructions have been sent to your email.'}
+          </p>
+          <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+            {locale === 'zh'
+              ? '\u6ca1\u6536\u5230\u90ae\u4ef6\uff1f\u8bf7\u68c0\u67e5\u60a8\u7684\u5783\u573e\u90ae\u4ef6/\u5783\u573e\u7bb1\u6587\u4ef6\u5939\u3002'
+              : "Don't see the email? Please check your spam or junk folder."}
+          </p>
 
           <div className="mt-5 space-y-2">
             {classes.map((classRow) => (

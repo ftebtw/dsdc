@@ -89,6 +89,11 @@ export default async function RegisterSuccessPage({
         <div className="rounded-2xl border border-warm-200 dark:border-navy-700 bg-white/95 dark:bg-navy-900/95 shadow-xl p-6">
           <h1 className="text-3xl font-bold text-navy-900 dark:text-white">{copy.title}</h1>
           <p className="mt-3 text-sm text-charcoal/70 dark:text-navy-300">{copy.subtitle}</p>
+          <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+            {locale === 'zh'
+              ? '\u6ca1\u6536\u5230\u90ae\u4ef6\uff1f\u8bf7\u68c0\u67e5\u60a8\u7684\u5783\u573e\u90ae\u4ef6/\u5783\u573e\u7bb1\u6587\u4ef6\u5939\u3002'
+              : "Don't see the email? Please check your spam or junk folder."}
+          </p>
 
           <h2 className="mt-6 text-lg font-semibold text-navy-900 dark:text-white">{copy.heading}</h2>
           {items.length === 0 ? (
