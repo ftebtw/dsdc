@@ -165,7 +165,7 @@ export default function PricingPageClient() {
               const isLoading = loadingTier === tier.key;
 
               return (
-                <AnimatedSection key={tier.key} delay={i * 0.08}>
+                <AnimatedSection key={tier.key} delay={i * 0.08} className="h-full">
                   <div className="relative rounded-2xl border-2 p-6 sm:p-8 h-full flex flex-col transition-all duration-300 hover:shadow-xl border-warm-200 dark:border-navy-700 bg-white dark:bg-navy-800 hover:border-gold-200 dark:hover:border-gold-600">
                     <div className="w-12 h-12 rounded-xl bg-gold-400/10 dark:bg-gold-500/20 flex items-center justify-center mb-5">
                       <Icon className="w-6 h-6 text-gold-500 dark:text-gold-400" />
