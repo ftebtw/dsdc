@@ -61,11 +61,18 @@ async function upsertProfile(
   if (error) throw new Error(error.message);
 }
 
-async function findAuthUserByEmail(admin: any, email: string): Promise<any | null> {
+async function findAuthUserByEmail(
+  admin: any,
+  email: string
+): Promise<{ id: string; email: string } | null> {
   const normalized = email.trim().toLowerCase();
-  const { data, error } = await admin.auth.admin.getUserByEmail(normalized);
-  if (error || !data?.user) return null;
-  return data.user;
+  const { data, error } = await admin
+    .from("profiles")
+    .select("id,email")
+    .eq("email", normalized)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data;
 }
 
 async function createStudentRegistration(admin: any, body: ParsedBody) {
