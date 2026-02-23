@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import AvailabilityCalendar from '@/app/portal/_components/AvailabilityCalendar';
 import RecurringAvailabilityForm from '@/app/portal/_components/RecurringAvailabilityForm';
+import TimezoneSelectNative from '@/app/portal/_components/TimezoneSelectNative';
 
 type Slot = {
   id: string;
@@ -161,11 +162,11 @@ export default function CoachAvailabilityManager({
             defaultValue={editing?.end_time}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
           />
-          <input
-            required
+          <TimezoneSelectNative
             name="timezone"
             defaultValue={editing?.timezone || defaultTimezone}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+            required
           />
         </div>
         <div className="flex items-center gap-4">

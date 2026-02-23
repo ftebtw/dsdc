@@ -48,6 +48,21 @@ export const metadata: Metadata = {
     siteName: "DSDC",
     type: "website",
     locale: "en_CA",
+    images: [
+      {
+        url: "/images/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "DSDC – Online Debate & Public Speaking Classes for Grades 4–12",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DSDC | Online Debate & Public Speaking Classes for Grades 4â€“12",
+    description:
+      "World-class online debate and public speaking coaching. Expert coaches, proven results, 1000+ students coached.",
+    images: ["/images/og-image.png"],
   },
   alternates: {
     languages: {
@@ -58,6 +73,10 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   metadataBase: new URL("https://dsdc.ca"),
 };

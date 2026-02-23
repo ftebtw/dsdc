@@ -1,6 +1,7 @@
 import { revalidatePath } from 'next/cache';
 import Link from 'next/link';
 import SectionCard from '@/app/portal/_components/SectionCard';
+import TimezoneSelectNative from '@/app/portal/_components/TimezoneSelectNative';
 import { requireRole } from '@/lib/portal/auth';
 import { classTypeLabel, formatClassSchedule } from '@/lib/portal/labels';
 import { getProfileMap } from '@/lib/portal/data';
@@ -292,7 +293,7 @@ export default async function AdminClassesPage({
               name="schedule_end_time"
               className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
             />
-            <input
+            <TimezoneSelectNative
               name="timezone"
               defaultValue="America/Vancouver"
               className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
@@ -428,7 +429,7 @@ export default async function AdminClassesPage({
                     </option>
                   ))}
                 </select>
-                <input
+                <TimezoneSelectNative
                   name="timezone"
                   defaultValue={classRow.timezone}
                   className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
