@@ -9,10 +9,24 @@ type PendingApprovalItem = {
   classesText: string;
   classCount: number;
   submittedAt: string;
+  approvalExpiresAt: string | null;
 };
 
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString();
+}
+
+function formatExpiry(value: string | null): { text: string; urgent: boolean } {
+  if (!value) return { text: "Not set", urgent: true };
+  const now = Date.now();
+  const expiresAt = new Date(value).getTime();
+  if (!Number.isFinite(expiresAt)) return { text: "Invalid", urgent: true };
+  const diffMs = expiresAt - now;
+  if (diffMs <= 0) return { text: "Expired", urgent: true };
+
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return { text: `${hours}h ${minutes}m remaining`, urgent: diffMs <= 6 * 60 * 60 * 1000 };
 }
 
 export default function AdminPendingApprovalsManager({
@@ -78,6 +92,7 @@ export default function AdminPendingApprovalsManager({
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {items.map((item) => {
         const busy = loadingKey === `approve:${item.studentId}` || loadingKey === `reject:${item.studentId}`;
+        const expiry = formatExpiry(item.approvalExpiresAt);
         return (
           <div
             key={item.studentId}
@@ -92,6 +107,16 @@ export default function AdminPendingApprovalsManager({
                 <p className="text-sm text-charcoal/75 dark:text-navy-200 mt-1">{item.classesText}</p>
                 <p className="text-xs text-charcoal/65 dark:text-navy-300 mt-2">
                   Submitted at: {formatDateTime(item.submittedAt)}
+                </p>
+                <p
+                  className={`text-xs mt-1 ${
+                    expiry.urgent
+                      ? "text-red-600 dark:text-red-300 font-semibold"
+                      : "text-charcoal/65 dark:text-navy-300"
+                  }`}
+                >
+                  Expires: {formatDateTime(item.approvalExpiresAt ?? item.submittedAt)} (
+                  {expiry.text})
                 </p>
                 <p className="text-xs text-charcoal/65 dark:text-navy-300">
                   Classes pending: {item.classCount}

@@ -25,24 +25,24 @@ export default function PortalLoginForm({ locale }: Props) {
   const t =
     locale === 'zh'
       ? {
-          resetLinkDetected: '\u5df2\u68c0\u6d4b\u5230\u91cd\u7f6e\u94fe\u63a5\uff0c\u8bf7\u5728\u4e0b\u65b9\u8f93\u5165\u65b0\u5bc6\u7801\u3002',
-          recoveryModeEnabled: '\u5df2\u8fdb\u5165\u5bc6\u7801\u627e\u56de\u6a21\u5f0f\uff0c\u8bf7\u8f93\u5165\u65b0\u5bc6\u7801\u3002',
-          enterEmailFirst: '\u8bf7\u5148\u8f93\u5165\u7535\u5b50\u90ae\u7bb1\uff0c\u7136\u540e\u70b9\u51fb\u201c\u5fd8\u8bb0\u5bc6\u7801\u201d\u3002',
+          resetLinkDetected: '已检测到重置链接，请在下方输入新密码。',
+          recoveryModeEnabled: '已进入密码找回模式，请输入新密码。',
+          enterEmailFirst: '请先输入电子邮箱，然后点击“忘记密码”。',
           resetSent:
-            '\u5bc6\u7801\u91cd\u7f6e\u90ae\u4ef6\u5df2\u53d1\u9001\uff0c\u8bf7\u68c0\u67e5\u60a8\u7684\u6536\u4ef6\u7bb1\uff08\u4e5f\u5305\u62ec\u5783\u573e\u90ae\u4ef6/\u5783\u573e\u7bb1\u6587\u4ef6\u5939\uff09\u5e76\u70b9\u51fb\u94fe\u63a5\u3002',
-          newPasswordMin: '\u65b0\u5bc6\u7801\u81f3\u5c11\u9700\u8981 8 \u4e2a\u5b57\u7b26\u3002',
-          passwordsNoMatch: '\u4e24\u6b21\u8f93\u5165\u7684\u5bc6\u7801\u4e0d\u4e00\u81f4\u3002',
-          passwordUpdated: '\u5bc6\u7801\u5df2\u66f4\u65b0\uff0c\u73b0\u5728\u53ef\u4ee5\u767b\u5f55\u3002',
-          email: '\u7535\u5b50\u90ae\u7bb1',
-          password: '\u5bc6\u7801',
-          newPassword: '\u65b0\u5bc6\u7801',
-          confirmNewPassword: '\u786e\u8ba4\u65b0\u5bc6\u7801',
-          updatingPassword: '\u66f4\u65b0\u5bc6\u7801\u4e2d...',
-          signingIn: '\u767b\u5f55\u4e2d...',
-          updatePassword: '\u66f4\u65b0\u5bc6\u7801',
-          signIn: '\u767b\u5f55',
-          sendingResetEmail: '\u53d1\u9001\u91cd\u7f6e\u90ae\u4ef6\u4e2d...',
-          forgotPassword: '\u5fd8\u8bb0\u5bc6\u7801',
+            '密码重置邮件已发送，请检查您的收件箱（也包括垃圾邮件/垃圾箱文件夹）并点击链接。',
+          newPasswordMin: '新密码至少需要 8 个字符。',
+          passwordsNoMatch: '两次输入的密码不一致。',
+          passwordUpdated: '密码已更新，现在可以登录。',
+          email: '电子邮箱',
+          password: '密码',
+          newPassword: '新密码',
+          confirmNewPassword: '确认新密码',
+          updatingPassword: '更新密码中...',
+          signingIn: '登录中...',
+          updatePassword: '更新密码',
+          signIn: '登录',
+          sendingResetEmail: '发送重置邮件中...',
+          forgotPassword: '忘记密码',
         }
       : {
           resetLinkDetected: 'Reset link detected. Enter a new password below.',
@@ -176,7 +176,7 @@ export default function PortalLoginForm({ locale }: Props) {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-lg border-2 border-warm-400 dark:border-navy-500 bg-white dark:bg-navy-900 px-3 py-2"
+          className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
         />
       </div>
 
@@ -190,7 +190,7 @@ export default function PortalLoginForm({ locale }: Props) {
               minLength={8}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full rounded-lg border-2 border-warm-400 dark:border-navy-500 bg-white dark:bg-navy-900 px-3 py-2"
+              className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
             />
           </div>
           <div>
@@ -201,7 +201,7 @@ export default function PortalLoginForm({ locale }: Props) {
               minLength={8}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-lg border-2 border-warm-400 dark:border-navy-500 bg-white dark:bg-navy-900 px-3 py-2"
+              className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
             />
           </div>
         </>
@@ -213,7 +213,7 @@ export default function PortalLoginForm({ locale }: Props) {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border-2 border-warm-400 dark:border-navy-500 bg-white dark:bg-navy-900 px-3 py-2"
+            className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
           />
         </div>
       )}
@@ -236,7 +236,7 @@ export default function PortalLoginForm({ locale }: Props) {
           onClick={() => {
             void onSendResetEmail();
           }}
-          className="w-full rounded-lg border-2 border-warm-400 dark:border-navy-500 py-2.5 font-medium text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700 disabled:opacity-60"
+          className="w-full rounded-lg border border-warm-300 dark:border-navy-600 py-2.5 font-medium text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700 disabled:opacity-60"
         >
           {resetLoading ? t.sendingResetEmail : t.forgotPassword}
         </button>

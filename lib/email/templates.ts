@@ -1187,3 +1187,62 @@ export function pendingApprovalRejectedTemplate(input: {
 
   return { subject, html, text };
 }
+
+export function pendingApprovalExpiredTemplate(input: {
+  studentName: string;
+  classList: string;
+  registerUrl: string;
+  locale?: 'en' | 'zh';
+  isParentVersion?: boolean;
+}) {
+  const isZh = input.locale === 'zh';
+  const subject = isZh
+    ? '报名申请已过期'
+    : 'Your enrollment request has expired';
+  const intro = isZh
+    ? input.isParentVersion
+      ? `${input.studentName} 的报名申请已过期：${input.classList}`
+      : `您的报名申请已过期：${input.classList}`
+    : input.isParentVersion
+      ? `${input.studentName}'s enrollment request has expired: ${input.classList}`
+      : `Your enrollment request has expired: ${input.classList}`;
+
+  const { html, text } = renderTemplate({
+    title: isZh ? '报名申请已过期' : 'Enrollment Request Expired',
+    bodyLines: isZh
+      ? [
+          intro,
+          '由于我们未能在 48 小时内核实付款，申请已自动过期。',
+          '如您仍希望报名，请重新提交注册申请。',
+        ]
+      : [
+          intro,
+          'Your request expired because payment could not be verified within 48 hours.',
+          'Please register again if you would like to enroll.',
+        ],
+    buttonLabel: isZh ? '重新注册' : 'Register Again',
+    buttonUrl: input.registerUrl,
+  });
+
+  return { subject, html, text };
+}
+
+export function pendingApprovalAdminReminderTemplate(input: {
+  pendingCount: number;
+  oldestSubmittedAtText: string;
+  queueUrl: string;
+}) {
+  const subject = `Pending approvals reminder (${input.pendingCount})`;
+  const { html, text } = renderTemplate({
+    title: 'Pending Enrollment Approvals',
+    bodyLines: [
+      `You have ${input.pendingCount} pending enrollment approvals awaiting review.`,
+      `Oldest submitted: ${input.oldestSubmittedAtText}.`,
+      'Please verify payments before requests expire.',
+    ],
+    buttonLabel: 'Review Pending Approvals',
+    buttonUrl: input.queueUrl,
+  });
+
+  return { subject, html, text };
+}

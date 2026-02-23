@@ -9,7 +9,7 @@ export default async function AdminPendingApprovalsPage() {
 
   const { data: rowsData } = await supabase
     .from("enrollments")
-    .select("student_id,class_id,enrolled_at")
+    .select("student_id,class_id,enrolled_at,approval_expires_at")
     .eq("status", "pending_approval")
     .order("enrolled_at", { ascending: false });
 
@@ -17,6 +17,7 @@ export default async function AdminPendingApprovalsPage() {
     student_id: string;
     class_id: string;
     enrolled_at: string;
+    approval_expires_at: string | null;
   }>;
 
   const studentIds = [...new Set(rows.map((row) => row.student_id))];
@@ -48,6 +49,7 @@ export default async function AdminPendingApprovalsPage() {
       studentEmail: string;
       classNames: string[];
       submittedAt: string;
+      approvalExpiresAt: string | null;
     }
   >();
 
@@ -65,6 +67,7 @@ export default async function AdminPendingApprovalsPage() {
         studentEmail,
         classNames: [className],
         submittedAt: row.enrolled_at,
+        approvalExpiresAt: row.approval_expires_at,
       });
       continue;
     }
@@ -74,6 +77,12 @@ export default async function AdminPendingApprovalsPage() {
     }
     if (row.enrolled_at < existing.submittedAt) {
       existing.submittedAt = row.enrolled_at;
+    }
+    if (
+      row.approval_expires_at &&
+      (!existing.approvalExpiresAt || row.approval_expires_at < existing.approvalExpiresAt)
+    ) {
+      existing.approvalExpiresAt = row.approval_expires_at;
     }
   }
 
@@ -85,6 +94,7 @@ export default async function AdminPendingApprovalsPage() {
       classesText: group.classNames.join(", "),
       classCount: group.classNames.length,
       submittedAt: group.submittedAt,
+      approvalExpiresAt: group.approvalExpiresAt,
     }))
     .sort((a, b) => (a.submittedAt < b.submittedAt ? 1 : -1));
 

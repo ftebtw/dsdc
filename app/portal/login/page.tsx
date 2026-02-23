@@ -9,11 +9,11 @@ export default function PortalLoginPage() {
   const copy =
     locale === 'zh'
       ? {
-          title: '\u95e8\u6237\u767b\u5f55',
-          subtitle: '\u8bf7\u4f7f\u7528\u60a8\u7684 DSDC \u95e8\u6237\u8d26\u6237\u767b\u5f55\u3002',
-          noAccount: '\u8fd8\u6ca1\u6709\u8d26\u6237\uff1f',
-          createAccount: '\u521b\u5efa\u8d26\u6237',
-          backHome: '\u8fd4\u56de\u9996\u9875',
+          title: '门户登录',
+          subtitle: '请使用您的 DSDC 门户账户登录。',
+          noAccount: '还没有账户？',
+          createAccount: '创建账户',
+          backHome: '返回首页',
         }
       : {
           title: 'Portal Login',
@@ -25,7 +25,7 @@ export default function PortalLoginPage() {
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center">
-      <div className="w-full max-w-md rounded-2xl border-2 border-warm-300 dark:border-navy-600 shadow-lg bg-white dark:bg-navy-800 p-6 sm:p-8">
+      <div className="w-full max-w-md rounded-2xl border border-warm-300 dark:border-navy-600 shadow-md bg-white dark:bg-navy-800 p-6 sm:p-8">
         <div className="flex justify-end mb-4">
           <div className="inline-flex rounded-lg border border-warm-300 dark:border-navy-600 overflow-hidden text-sm">
             <button
@@ -48,7 +48,7 @@ export default function PortalLoginPage() {
                   : 'text-navy-700 dark:text-navy-200'
               }`}
             >
-              \u4e2d\u6587
+              中文
             </button>
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function PortalLoginPage() {
         </div>
         <Link
           href="/"
-          className="mt-3 inline-flex w-full items-center justify-center rounded-lg border-2 border-warm-400 dark:border-navy-500 py-2.5 text-sm font-medium text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors"
+          className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-warm-300 dark:border-navy-600 py-2.5 text-sm font-medium text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors"
         >
           {copy.backHome}
         </Link>

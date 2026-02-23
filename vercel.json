@@ -4,6 +4,8 @@
     { "path": "/api/cron/legal-doc-reminders", "schedule": "0 15 * * 0" },
     { "path": "/api/cron/report-card-nudges", "schedule": "0 16 * * 1" },
     { "path": "/api/cron/etransfer-reminder", "schedule": "15 */2 * * *" },
-    { "path": "/api/cron/etransfer-expiry", "schedule": "30 * * * *" }
+    { "path": "/api/cron/etransfer-expiry", "schedule": "30 * * * *" },
+    { "path": "/api/cron/pending-approval-expiry", "schedule": "45 * * * *" },
+    { "path": "/api/cron/pending-approval-reminder", "schedule": "0 14,2 * * *" }
   ]
 }

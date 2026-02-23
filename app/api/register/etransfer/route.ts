@@ -8,6 +8,7 @@ import { classTypeLabel } from "@/lib/portal/labels";
 import { getProratedCadPrice } from "@/lib/portal/class-pricing";
 import { getPortalAppUrl } from "@/lib/email/resend";
 import { SESSIONS_PER_TERM } from "@/lib/pricing";
+import { rateLimit } from "@/lib/rate-limit";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseRouteClient, mergeCookies } from "@/lib/supabase/route";
 import type { Database } from "@/lib/supabase/database.types";
@@ -29,6 +30,12 @@ function jsonError(message: string, status = 400) {
 
 export async function POST(request: NextRequest) {
   const supabaseResponse = NextResponse.next();
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const { allowed } = rateLimit(`register:${ip}`, 10, 15 * 60 * 1000);
+  if (!allowed) {
+    return mergeCookies(supabaseResponse, jsonError("Too many requests. Please try again in a few minutes.", 429));
+  }
+
   const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const {
     data: { user },

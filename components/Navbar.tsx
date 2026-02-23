@@ -26,7 +26,9 @@ export default function Navbar() {
   const { t, locale } = useI18n();
 
   const registerHref = `/register?lang=${locale === "zh" ? "zh" : "en"}`;
-  const navSolid = scrolled || isOpen || !isDesktop;
+  const solidNavPages = ["/register", "/portal", "/payment", "/pricing"];
+  const needsSolidNav = solidNavPages.some((prefix) => pathname.startsWith(prefix));
+  const navSolid = scrolled || isOpen || !isDesktop || needsSolidNav;
 
   const navBackgroundClass = navSolid
     ? isDesktop

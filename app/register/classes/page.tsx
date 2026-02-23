@@ -2,6 +2,7 @@
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import RegisterClassesClient from "./RegisterClassesClient";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getProratedCadPrice } from "@/lib/portal/class-pricing";
 import { classTypeLabel } from "@/lib/portal/labels";
 import { SESSIONS_PER_TERM, weeksRemainingInTerm } from "@/lib/pricing";
 
@@ -224,6 +225,10 @@ export default async function RegisterClassesPage({
       ? activeTerm.weeks
       : SESSIONS_PER_TERM;
   const weeksRemaining = weeksRemainingInTerm(activeTerm.end_date);
+  const classPrices: Record<string, number> = {};
+  for (const classRow of classRows) {
+    classPrices[classRow.id] = getProratedCadPrice(classRow.type, activeTerm.end_date, totalWeeks);
+  }
 
   return (
     <section className="min-h-screen bg-gradient-to-br from-warm-100 via-white to-gold-50 dark:from-navy-900 dark:via-navy-800 dark:to-navy-900 pt-28 pb-16">
@@ -236,6 +241,7 @@ export default async function RegisterClassesPage({
           termDates={`${activeTerm.start_date} - ${activeTerm.end_date}`}
           weeksRemaining={weeksRemaining}
           totalWeeks={totalWeeks}
+          classPrices={classPrices}
           classes={classOptions}
           localeHint={params.lang === "zh" ? "zh" : profile.locale === "zh" ? "zh" : "en"}
         />

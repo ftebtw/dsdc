@@ -204,6 +204,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
   const [pendingPath, setPendingPath] = useState<string | null>(null);
 
   const currentParentLocale = locale === "zh" ? "zh" : "en";
+  const studentSessionsLabel = locale === "zh" ? "我的私课" : "My Sessions";
   const studentParam = searchParams.get("student");
   const parentCopy = parentLabel[currentParentLocale];
 
@@ -298,6 +299,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
           title: "Actions",
           items: [
             { href: "/portal/student/booking", label: "Book Private Session", icon: Calendar },
+            { href: "/portal/student/private-sessions", label: studentSessionsLabel, icon: Calendar },
             { href: "/portal/student/link-parent", label: "Link Parent", icon: Users },
             { href: "/portal/student/legal", label: "Legal Documents", icon: FileCheck2 },
             { href: "/portal/student/absent", label: "Mark Absent", icon: FileText },
@@ -334,7 +336,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
     }
 
     return [];
-  }, [parentCopy, role]);
+  }, [parentCopy, role, studentSessionsLabel]);
 
   useEffect(() => {
     for (const section of navSections) {

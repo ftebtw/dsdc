@@ -27,6 +27,7 @@ type Props = {
   termDates: string;
   weeksRemaining: number;
   totalWeeks: number;
+  classPrices: Record<string, number>;
   localeHint: "en" | "zh";
   classes: ClassOption[];
 };
@@ -39,6 +40,7 @@ export default function RegisterClassesClient({
   termDates,
   weeksRemaining,
   totalWeeks,
+  classPrices,
   localeHint,
   classes,
 }: Props) {
@@ -216,6 +218,9 @@ export default function RegisterClassesClient({
                   <p className="text-xs text-charcoal/60 dark:text-navy-200">
                     {tx("registerPage.spots", "Spots remaining")}: {classRow.spotsRemaining}
                   </p>
+                  <span className="text-sm font-semibold text-navy-800 dark:text-white">
+                    ${(classPrices[classRow.id] ?? 0).toLocaleString()} CAD
+                  </span>
                 </div>
               </div>
             </label>
@@ -227,6 +232,24 @@ export default function RegisterClassesClient({
         <p className="mt-5 text-sm text-charcoal/70 dark:text-navy-300">
           {tx("registerPage.noClasses", "No classes with open spots are available right now.")}
         </p>
+      ) : null}
+
+      {selected.length > 0 ? (
+        <div className="mt-4 p-3 rounded-lg bg-warm-100 dark:bg-navy-800 text-sm">
+          <span className="font-medium text-navy-800 dark:text-white">
+            {resolvedLocale === "zh" ? "合计：" : "Total: "}
+            $
+            {selected
+              .reduce((sum, classId) => sum + (classPrices[classId] ?? 0), 0)
+              .toLocaleString()}{" "}
+            CAD
+          </span>
+          {weeksRemaining < totalWeeks ? (
+            <span className="text-xs text-charcoal/60 dark:text-navy-400 ml-2">
+              {resolvedLocale === "zh" ? "（按剩余周数调整）" : "(prorated)"}
+            </span>
+          ) : null}
+        </div>
       ) : null}
 
       {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
