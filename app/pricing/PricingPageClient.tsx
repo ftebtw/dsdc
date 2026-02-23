@@ -173,40 +173,42 @@ export default function PricingPageClient() {
                     <h3 className="text-lg font-bold text-navy-800 dark:text-white mb-1 font-serif">
                       {t(`pricingPage.${tier.key}`)}
                     </h3>
-                    <p className="text-sm text-charcoal/50 dark:text-navy-300 mb-6 font-sans flex-grow">
+                    <p className="text-sm text-charcoal/50 dark:text-navy-300 mb-6 font-sans min-h-[3rem]">
                       {t(`pricingPage.${tier.key}Desc`)}
                     </p>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold text-navy-800 dark:text-white">
-                        {formatDisplayPrice(
-                          convertCadPrice(tier.baseCadPrice, currency, rates),
-                          currency,
-                          locale
-                        )}
-                      </span>
-                      <span className="text-charcoal/50 dark:text-navy-300 text-sm font-sans">
-                        {t("pricingPage.perTerm")}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs text-charcoal/50 dark:text-navy-300 font-sans">
-                      {termLengthLabel}
-                    </p>
-                    <p className="text-xs text-charcoal/60 dark:text-navy-400 mt-1">
-                      {locale === "zh"
-                        ? "中途报名按剩余周数自动调整价格。"
-                        : "Mid-term registration is prorated by weeks remaining."}
-                    </p>
+                    <div className="mt-auto">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-bold text-navy-800 dark:text-white">
+                          {formatDisplayPrice(
+                            convertCadPrice(tier.baseCadPrice, currency, rates),
+                            currency,
+                            locale
+                          )}
+                        </span>
+                        <span className="text-charcoal/50 dark:text-navy-300 text-sm font-sans">
+                          {t("pricingPage.perTerm")}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs text-charcoal/50 dark:text-navy-300 font-sans">
+                        {termLengthLabel}
+                      </p>
+                      <p className="mt-1 text-xs text-charcoal/50 dark:text-navy-400 font-sans">
+                        {locale === "zh"
+                          ? "中途报名按剩余周数自动调整价格。"
+                          : "Mid-term registration is prorated by weeks remaining."}
+                      </p>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void startCheckout(tier.key);
-                      }}
-                      className="mt-6 w-full px-4 py-3 rounded-lg bg-navy-800 text-white font-semibold hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                      disabled={Boolean(loadingTier)}
-                    >
-                      {isLoading ? t("pricingPage.checkoutLoading") : t("pricingPage.enrollNow")}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void startCheckout(tier.key);
+                        }}
+                        className="mt-6 w-full px-4 py-3 rounded-lg bg-navy-800 text-white font-semibold hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        disabled={Boolean(loadingTier)}
+                      >
+                        {isLoading ? t("pricingPage.checkoutLoading") : t("pricingPage.enrollNow")}
+                      </button>
+                    </div>
                   </div>
                 </AnimatedSection>
               );
