@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Mic, Scale, Globe } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "./AnimatedSection";
@@ -42,10 +43,14 @@ export default function ClassesOverview() {
               <AnimatedSection key={cls.key} delay={i * 0.15} className="h-full">
                 <Link href="/classes" className="group block h-full">
                   <div className="relative h-full rounded-2xl overflow-hidden aspect-[3/4] shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <img
+                    <Image
                       src={cls.image}
                       alt={t(`classesOverview.${cls.key}.title`)}
+                      width={600}
+                      height={400}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      sizes="(max-width: 768px) 100vw, 50vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-navy-900/90 via-navy-900/45 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-6 min-h-[200px] md:min-h-[220px] flex flex-col justify-end">

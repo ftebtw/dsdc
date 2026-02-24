@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { draftMode } from "next/headers";
 
-export const dynamic = "force-dynamic";
 import { getCmsMessageOverrides } from "@/lib/sanity/content";
 import { Inter, Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
@@ -273,7 +272,9 @@ export default async function RootLayout({
             __html: 'try{var t=localStorage.getItem("dsdc-theme");var e=document.documentElement;if(t==="dark")e.classList.add("dark");else if(t==="light")e.classList.remove("dark");}catch(n){}',
           }}
         />
-        <ClientProviders initialCmsOverrides={initialCmsOverrides}>{children}</ClientProviders>
+        <ClientProviders initialCmsOverrides={initialCmsOverrides}>
+          {children}
+        </ClientProviders>
         <VisualEditingWrapper enabled={isEnabled} />
         <Analytics />
         <SpeedInsights />

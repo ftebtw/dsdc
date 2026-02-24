@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Trophy } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -44,10 +45,14 @@ export default function CoachCard({
           {/* Photo — full height on desktop */}
           <div className="md:w-2/5 aspect-[3/4] md:aspect-auto md:min-h-[500px] relative bg-navy-100 dark:bg-navy-900">
             {image ? (
-              <img
+              <Image
                 src={image}
                 alt={name}
+                width={400}
+                height={500}
                 className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
+                loading="lazy"
+                sizes="(max-width: 768px) 100vw, 40vw"
               />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-navy-700 to-navy-900 flex items-center justify-center">
@@ -155,10 +160,14 @@ export default function CoachCard({
       {/* Photo */}
       <div className="aspect-[3/4] relative bg-navy-100 dark:bg-navy-900 overflow-hidden">
         {image ? (
-          <img
+          <Image
             src={image}
             alt={name}
+            width={400}
+            height={500}
             className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
+            loading="lazy"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-navy-100 to-navy-200 dark:from-navy-800 dark:to-navy-900 flex items-center justify-center">

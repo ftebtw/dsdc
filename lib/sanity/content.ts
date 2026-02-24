@@ -89,13 +89,15 @@ async function fetchSanityCmsContent(opts?: { draft?: boolean }): Promise<Sanity
   if (!hasSanityConfig()) return null;
   try {
     const client = getSanityClient({ draft: opts?.draft, stega: opts?.draft });
-    const fetchOpts = {
-      cache: "no-store" as const,
-      ...(opts?.draft && {
-        resultSourceMap: "withKeyArraySelector" as const,
-        stega: true,
-      }),
-    };
+    const fetchOpts = opts?.draft
+      ? {
+          cache: "no-store" as const,
+          resultSourceMap: "withKeyArraySelector" as const,
+          stega: true,
+        }
+      : {
+          next: { revalidate: 60 },
+        };
 
     if (opts?.draft) {
       const [siteSettings, homePage, pricingPage, additionalPage, teamPage] = await Promise.all([

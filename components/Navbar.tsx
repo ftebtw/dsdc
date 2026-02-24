@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
@@ -78,9 +79,12 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 lg:h-[74px] items-center justify-between gap-3">
           <Link href="/" className="flex shrink-0 items-center gap-2">
-            <img
+            <Image
               src="/images/logos/logo-full.png"
               alt="DSDC Logo"
+              width={120}
+              height={40}
+              priority
               className={`h-9 lg:h-11 w-auto transition-all duration-300 ${
                 navSolid ? "dark:brightness-0 dark:invert" : "brightness-0 invert"
               }`}

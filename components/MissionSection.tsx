@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "./AnimatedSection";
 
@@ -13,10 +14,13 @@ export default function MissionSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <AnimatedSection>
             <div className="relative rounded-2xl overflow-hidden aspect-[4/3]">
-              <img
+              <Image
                 src="/images/photos/wsc-group-1.jpg"
                 alt="DSDC students at the World Scholar's Cup competition"
+                width={800}
+                height={600}
                 className="w-full h-full object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-900/30 to-transparent" />
             </div>

@@ -14,7 +14,7 @@ export function getSanityClient(opts?: { draft?: boolean; stega?: boolean }) {
     projectId: sanityEnv.projectId,
     dataset: sanityEnv.dataset,
     apiVersion: sanityEnv.apiVersion,
-    useCdn: false,
+    useCdn: !opts?.draft,
     token: sanityEnv.token || undefined,
     perspective: opts?.draft ? "previewDrafts" : "published",
     stega: opts?.stega

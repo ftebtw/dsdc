@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Mail, Instagram, Linkedin } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import LanguageToggle from "./LanguageToggle";
@@ -15,9 +16,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <img
+            <Image
               src="/images/logos/logo-full.png"
               alt="DSDC Logo"
+              width={120}
+              height={40}
+              loading="lazy"
               className="h-10 w-auto brightness-0 invert mb-4"
             />
             <p className="text-navy-200 text-sm leading-relaxed">
