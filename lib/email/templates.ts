@@ -40,6 +40,34 @@ function renderTemplate(args: TemplateArgs): { html: string; text: string } {
   };
 }
 
+export function verificationEmailTemplate(args: {
+  name: string;
+  verifyUrl: string;
+  locale: "en" | "zh";
+}): { subject: string; html: string; text: string } {
+  const isZh = args.locale === "zh";
+  const subject = isZh ? "DSDC - 请验证您的邮箱" : "DSDC - Please verify your email";
+
+  const { html, text } = renderTemplate({
+    title: isZh ? "验证您的邮箱" : "Verify Your Email",
+    bodyLines: isZh
+      ? [
+          `您好 ${args.name}，`,
+          "感谢您注册 DSDC！请点击下方按钮验证您的邮箱并继续注册。",
+          "此链接将在 24 小时后过期。",
+        ]
+      : [
+          `Hi ${args.name},`,
+          "Thanks for signing up for DSDC! Please click the button below to verify your email and continue registration.",
+          "This link expires in 24 hours.",
+        ],
+    buttonLabel: isZh ? "验证邮箱" : "Verify Email",
+    buttonUrl: args.verifyUrl,
+  });
+
+  return { subject, html, text };
+}
+
 export function subRequestCreatedTemplate(input: {
   className: string;
   whenText: string;

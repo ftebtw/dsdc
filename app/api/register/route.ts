@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getPortalAppUrl } from "@/lib/email/resend";
+import { sendPortalEmail } from "@/lib/email/send";
+import { verificationEmailTemplate } from "@/lib/email/templates";
 import { isValidTimezone } from "@/lib/portal/timezone";
 import { rateLimit } from "@/lib/rate-limit";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -137,6 +140,45 @@ async function findAuthUserByEmail(
   return data;
 }
 
+async function sendVerificationEmail(admin: any, input: {
+  email: string;
+  displayName: string;
+  locale: "en" | "zh";
+}) {
+  const portalBase = getPortalAppUrl().replace(/\/$/, "");
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "signup",
+    email: input.email,
+    options: {
+      redirectTo: `${portalBase}/auth/callback?type=signup`,
+    },
+  });
+
+  if (error) {
+    throw new Error(`Failed to generate verification link: ${error.message}`);
+  }
+
+  const verifyUrl = data?.properties?.action_link;
+  if (!verifyUrl) {
+    throw new Error("Failed to generate verification link.");
+  }
+
+  const template = verificationEmailTemplate({
+    name: input.displayName,
+    verifyUrl,
+    locale: input.locale,
+  });
+
+  const emailResult = await sendPortalEmail({
+    to: input.email,
+    ...template,
+  });
+
+  if (!emailResult.ok) {
+    throw new Error(emailResult.error || "Failed to send verification email.");
+  }
+}
+
 async function createStudentRegistration(admin: any, body: ParsedBody) {
   if (body.role !== "student") return null;
   const studentDisplayName = buildDisplayName(body.firstName, body.lastName, body.displayName);
@@ -145,7 +187,7 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
   const { data, error } = await admin.auth.admin.createUser({
     email: body.email,
     password: body.password,
-    email_confirm: true,
+    email_confirm: false,
     user_metadata: {
       role: "student",
       display_name: studentDisplayName,
@@ -169,13 +211,19 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
     })
   );
 
+  await sendVerificationEmail(admin, {
+    email: body.email,
+    displayName: studentDisplayName,
+    locale: body.locale,
+  });
+
   return {
-    loginEmail: body.email,
-    loginPassword: body.password,
     studentId: userId,
     parentId: null,
     studentNeedsPasswordSetup: false,
     role: "student" as const,
+    verificationSent: true,
+    verificationEmail: body.email,
   };
 }
 
@@ -218,7 +266,7 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
   const parentResult = await admin.auth.admin.createUser({
     email: body.parentEmail,
     password: body.parentPassword,
-    email_confirm: true,
+    email_confirm: false,
     user_metadata: {
       role: "parent",
       display_name: parentDisplayName,
@@ -241,6 +289,12 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
       timezone: body.timezone,
     })
   );
+
+  await sendVerificationEmail(admin, {
+    email: body.parentEmail,
+    displayName: parentDisplayName,
+    locale: body.locale,
+  });
 
   let studentId = "";
   let studentNeedsPasswordSetup = false;
@@ -308,12 +362,12 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
   if (linkError) throw new Error(linkError.message);
 
   return {
-    loginEmail: body.parentEmail,
-    loginPassword: body.parentPassword,
     studentId,
     parentId,
     studentNeedsPasswordSetup,
     role: "parent" as const,
+    verificationSent: true,
+    verificationEmail: body.parentEmail,
   };
 }
 

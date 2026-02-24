@@ -3,19 +3,18 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
 type RegistrationRole = "student" | "parent";
 type StudentMode = "new" | "existing";
 
 type RegisterResponse = {
-  loginEmail: string;
-  loginPassword: string;
   studentId: string;
   parentId: string | null;
   studentNeedsPasswordSetup: boolean;
   role: RegistrationRole;
+  verificationSent?: boolean;
+  verificationEmail?: string;
   error?: string;
 };
 
@@ -44,6 +43,7 @@ export default function RegisterForm() {
   const [studentEmail, setStudentEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
 
   const langParam = params.get("lang");
   const resolvedLocale = useMemo<"en" | "zh">(() => {
@@ -118,23 +118,13 @@ export default function RegisterForm() {
         return;
       }
 
-      const supabase = getSupabaseBrowserClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: data.loginEmail,
-        password: data.loginPassword,
-      });
-      if (signInError) {
-        setError(signInError.message);
+      if (data.verificationSent && data.verificationEmail) {
+        setVerificationEmail(data.verificationEmail);
         setLoading(false);
         return;
       }
 
-      const nextParams = new URLSearchParams();
-      nextParams.set("student", data.studentId);
-      nextParams.set("lang", resolvedLocale);
-      if (data.parentId) nextParams.set("parent", data.parentId);
-      if (data.studentNeedsPasswordSetup) nextParams.set("setup", "1");
-      router.push(`/register/classes?${nextParams.toString()}`);
+      router.push("/portal/login");
       router.refresh();
     } catch {
       setError(tx("registerPage.error", "Registration failed. Please try again."));
@@ -143,6 +133,59 @@ export default function RegisterForm() {
     }
 
     setLoading(false);
+  }
+
+  if (verificationEmail) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="max-w-md w-full rounded-2xl border-2 border-warm-300 dark:border-navy-600 shadow-lg bg-white dark:bg-navy-800 p-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold-100 dark:bg-gold-900/30">
+            <svg className="h-8 w-8 text-gold-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            </svg>
+          </div>
+
+          <h2 className="text-2xl font-bold text-navy-900 dark:text-white mb-2">
+            {tx("registerPage.checkEmailTitle", "Check your email")}
+          </h2>
+
+          <p className="text-charcoal/70 dark:text-navy-300 mb-2">
+            {tx("registerPage.checkEmailBody", "We've sent a verification link to:")}
+          </p>
+
+          <p className="font-semibold text-navy-900 dark:text-white mb-4">
+            {verificationEmail}
+          </p>
+
+          <p className="text-sm text-charcoal/60 dark:text-navy-400 mb-6">
+            {tx(
+              "registerPage.checkEmailHint",
+              "Click the link in the email to verify your account and continue registration. Check your spam folder if you don't see it."
+            )}
+          </p>
+
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => {
+                setVerificationEmail(null);
+                setError(null);
+              }}
+              className="w-full rounded-lg border-2 border-warm-300 dark:border-navy-600 py-2.5 text-sm font-medium text-navy-700 dark:text-navy-200 hover:bg-warm-50 dark:hover:bg-navy-700 transition-colors"
+            >
+              {tx("registerPage.backToRegister", "<- Back to registration")}
+            </button>
+
+            <Link
+              href="/portal/login"
+              className="block w-full rounded-lg bg-navy-800 text-white py-2.5 text-sm font-semibold text-center hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors"
+            >
+              {tx("registerPage.alreadyVerified", "I've already verified - Sign In")}
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

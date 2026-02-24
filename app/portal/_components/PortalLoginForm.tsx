@@ -78,7 +78,11 @@ export default function PortalLoginForm({ locale }: Props) {
         setInfo(t.resetLinkDetected);
       }
 
-      if (mode !== "recovery" && params.get("error") === "auth_callback_failed") {
+      const callbackError = params.get("error");
+      if (
+        mode !== "recovery" &&
+        (callbackError === "auth_callback_failed" || callbackError === "verification_failed")
+      ) {
         setError(t.resetLinkExpired);
         setInfo(null);
       }
@@ -112,7 +116,15 @@ export default function PortalLoginForm({ locale }: Props) {
     setLoading(false);
 
     if (signInError) {
-      setError(signInError.message);
+      if (signInError.message.toLowerCase().includes("email not confirmed")) {
+        setError(
+          locale === "zh"
+            ? "请先验证您的邮箱。请检查收件箱中的验证链接。"
+            : "Please verify your email first. Check your inbox for the verification link."
+        );
+      } else {
+        setError(signInError.message);
+      }
       return;
     }
 
@@ -135,7 +147,7 @@ export default function PortalLoginForm({ locale }: Props) {
 
     const redirectTo =
       typeof window !== "undefined"
-        ? `${window.location.origin}/portal/login?mode=recovery`
+        ? `${window.location.origin}/auth/callback?type=recovery`
         : undefined;
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo,
