@@ -68,16 +68,17 @@ export default function PortalLoginForm({ locale }: Props) {
         };
 
   useEffect(() => {
+    const mode = params.get("mode");
+
     if (typeof window !== "undefined") {
       const hash = window.location.hash;
-      const queryParams = new URLSearchParams(window.location.search);
 
-      if (hash.includes("type=recovery") || queryParams.get("mode") === "recovery") {
+      if (hash.includes("type=recovery") || mode === "recovery") {
         setRecoveryMode(true);
         setInfo(t.resetLinkDetected);
       }
 
-      if (queryParams.get("error") === "auth_callback_failed") {
+      if (mode !== "recovery" && params.get("error") === "auth_callback_failed") {
         setError(t.resetLinkExpired);
         setInfo(null);
       }
@@ -94,7 +95,7 @@ export default function PortalLoginForm({ locale }: Props) {
     return () => {
       data.subscription.unsubscribe();
     };
-  }, [supabase, t.recoveryModeEnabled, t.resetLinkDetected, t.resetLinkExpired]);
+  }, [params, supabase, t.recoveryModeEnabled, t.resetLinkDetected, t.resetLinkExpired]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -134,7 +135,7 @@ export default function PortalLoginForm({ locale }: Props) {
 
     const redirectTo =
       typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback?type=recovery`
+        ? `${window.location.origin}/portal/login?mode=recovery`
         : undefined;
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo,

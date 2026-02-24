@@ -41,6 +41,7 @@ export async function middleware(request: NextRequest) {
   const authFlowPages = ['/portal/login', '/portal/setup-password'];
   const isAuthFlow = authFlowPages.some((path) => pathname === path);
   const isLogin = pathname === '/portal/login';
+  const isRecovery = request.nextUrl.searchParams.get('mode') === 'recovery';
   const isSetupPassword = pathname === '/portal/setup-password';
 
   if (!user) {
@@ -67,7 +68,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/portal/login', request.url));
   }
 
-  if (isLogin || pathname === '/portal') {
+  if ((isLogin && !isRecovery) || pathname === '/portal') {
     return NextResponse.redirect(new URL(roleHome(role), request.url));
   }
 
