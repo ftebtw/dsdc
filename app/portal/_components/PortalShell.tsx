@@ -5,8 +5,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
-  BookOpen,
   Banknote,
+  BookOpen,
   Calendar,
   CalendarDays,
   ClipboardCheck,
@@ -24,9 +24,10 @@ import {
   Users,
   X,
 } from "lucide-react";
-import type { PortalRole } from "@/lib/portal/auth";
-import ThemeToggle from "@/components/ThemeToggle";
 import StudentSelector from "@/app/portal/_components/StudentSelector";
+import ThemeToggle from "@/components/ThemeToggle";
+import { useI18n } from "@/lib/i18n";
+import type { PortalRole } from "@/lib/portal/auth";
 
 type Props = {
   role: PortalRole | null;
@@ -46,11 +47,11 @@ type NavSection = {
   items: NavItem[];
 };
 
-type ParentCopy = {
+type PortalCopy = {
   language: string;
+  dashboard: string;
   student: string;
   noStudents: string;
-  dashboard: string;
   classes: string;
   attendance: string;
   resources: string;
@@ -59,14 +60,45 @@ type ParentCopy = {
   absent: string;
   preferences: string;
   privateSessions: string;
+  adminOverview: string;
+  adminPeople: string;
+  adminDocuments: string;
+  terms: string;
+  allClasses: string;
+  payroll: string;
+  availability: string;
+  subRequests: string;
+  etransfers: string;
+  pendingApprovals: string;
+  loginLog: string;
+  students: string;
+  parents: string;
+  coaches: string;
+  enroll: string;
+  createUser: string;
+  legalDocs: string;
+  teaching: string;
+  scheduling: string;
+  checkin: string;
+  myClasses: string;
+  myHours: string;
+  learning: string;
+  actions: string;
+  makeupClasses: string;
+  bookPrivateSession: string;
+  mySessions: string;
+  linkParent: string;
+  feedback: string;
+  classCredits: string;
+  calendar: string;
 };
 
-const parentLabel = {
+const portalLabel: Record<"en" | "zh", PortalCopy> = {
   en: {
     language: "Language",
+    dashboard: "Dashboard",
     student: "Student",
     noStudents: "No linked students",
-    dashboard: "Dashboard",
     classes: "My Student's Classes",
     attendance: "Attendance",
     resources: "Resources",
@@ -75,22 +107,84 @@ const parentLabel = {
     absent: "Report Absence",
     preferences: "Notification Preferences",
     privateSessions: "Private Sessions",
+    adminOverview: "Overview",
+    adminPeople: "People",
+    adminDocuments: "Documents",
+    terms: "Terms",
+    allClasses: "Classes",
+    payroll: "Payroll",
+    availability: "Availability",
+    subRequests: "Sub Requests",
+    etransfers: "E-Transfers",
+    pendingApprovals: "Pending Approvals",
+    loginLog: "Login Log",
+    students: "Students",
+    parents: "Parents",
+    coaches: "Coaches",
+    enroll: "Enroll",
+    createUser: "Create User",
+    legalDocs: "Legal Docs",
+    teaching: "Teaching",
+    scheduling: "Scheduling",
+    checkin: "Check-in",
+    myClasses: "My Classes",
+    myHours: "My Hours",
+    learning: "Learning",
+    actions: "Actions",
+    makeupClasses: "Make-up Classes",
+    bookPrivateSession: "Book Private Session",
+    mySessions: "My Sessions",
+    linkParent: "Link Parent",
+    feedback: "Feedback",
+    classCredits: "Class Credits",
+    calendar: "Calendar",
   },
   zh: {
     language: "\u8bed\u8a00",
+    dashboard: "\u6982\u89c8",
     student: "\u5b66\u751f",
     noStudents: "\u6ca1\u6709\u5df2\u5173\u8054\u5b66\u751f",
-    dashboard: "\u6982\u89c8",
     classes: "\u5b66\u751f\u8bfe\u7a0b",
     attendance: "\u51fa\u52e4",
     resources: "\u5b66\u4e60\u8d44\u6599",
     reportCards: "\u6210\u7ee9\u62a5\u544a",
     legal: "\u6cd5\u5f8b\u6587\u4ef6",
-    absent: "报告缺席",
+    absent: "\u62a5\u544a\u7f3a\u5e2d",
     preferences: "\u901a\u77e5\u504f\u597d",
     privateSessions: "\u79c1\u8bfe",
+    adminOverview: "\u603b\u89c8",
+    adminPeople: "\u4eba\u5458",
+    adminDocuments: "\u6587\u4ef6",
+    terms: "\u5b66\u671f",
+    allClasses: "\u73ed\u7ea7",
+    payroll: "\u5de5\u8d44\u5355",
+    availability: "\u53ef\u7528\u65f6\u95f4",
+    subRequests: "\u4ee3\u8bfe\u8bf7\u6c42",
+    etransfers: "\u7535\u5b50\u8f6c\u8d26",
+    pendingApprovals: "\u5f85\u5ba1\u6279",
+    loginLog: "\u767b\u5f55\u8bb0\u5f55",
+    students: "\u5b66\u751f",
+    parents: "\u5bb6\u957f",
+    coaches: "\u6559\u7ec3",
+    enroll: "\u6ce8\u518c",
+    createUser: "\u521b\u5efa\u7528\u6237",
+    legalDocs: "\u6cd5\u5f8b\u6587\u4ef6",
+    teaching: "\u6559\u5b66",
+    scheduling: "\u6392\u8bfe",
+    checkin: "\u7b7e\u5230",
+    myClasses: "\u6211\u7684\u8bfe\u7a0b",
+    myHours: "\u6211\u7684\u8bfe\u65f6",
+    learning: "\u5b66\u4e60",
+    actions: "\u64cd\u4f5c",
+    makeupClasses: "\u8865\u8bfe",
+    bookPrivateSession: "\u9884\u7ea6\u79c1\u8bfe",
+    mySessions: "\u6211\u7684\u79c1\u8bfe",
+    linkParent: "\u5173\u8054\u5bb6\u957f",
+    feedback: "\u53cd\u9988",
+    classCredits: "\u8bfe\u65f6\u79ef\u5206",
+    calendar: "\u65e5\u5386",
   },
-} as const;
+};
 
 function roleToLabel(role: PortalRole | null): string {
   switch (role) {
@@ -116,9 +210,9 @@ function PortalNav({
   pendingPath,
   studentParam,
   isParent,
-  parentCopy,
+  copy,
   localeUpdating,
-  currentParentLocale,
+  currentLocale,
   onLocaleChange,
   onNavClick,
 }: {
@@ -128,33 +222,38 @@ function PortalNav({
   pendingPath: string | null;
   studentParam: string | null;
   isParent: boolean;
-  parentCopy: ParentCopy;
+  copy: PortalCopy;
   localeUpdating: boolean;
-  currentParentLocale: "en" | "zh";
+  currentLocale: "en" | "zh";
   onLocaleChange: (nextLocale: "en" | "zh") => Promise<void>;
   onNavClick: (href: string) => void;
 }) {
   return (
     <>
       {isParent ? (
-        <div className="mb-4 space-y-3 rounded-xl border border-warm-200 dark:border-navy-600/60 bg-warm-50 dark:bg-navy-900/55 p-3 shadow-sm dark:shadow-black/25">
-          <StudentSelector label={parentCopy.student} emptyLabel={parentCopy.noStudents} />
-          <label className="block">
-            <span className="block text-xs mb-1 uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
-              {parentCopy.language}
-            </span>
-            <select
-              disabled={localeUpdating}
-              value={currentParentLocale}
-              onChange={(event) => onLocaleChange(event.target.value as "en" | "zh")}
-              className="w-full rounded-md border border-warm-300 dark:border-navy-500 bg-white dark:bg-navy-900 px-2 py-1.5 text-sm"
-            >
-              <option value="en">English</option>
-              <option value="zh">{"\u4e2d\u6587"}</option>
-            </select>
-          </label>
+        <div className="mb-4 rounded-xl border border-warm-200 dark:border-navy-600/60 bg-warm-50 dark:bg-navy-900/55 p-3 shadow-sm dark:shadow-black/25">
+          <StudentSelector label={copy.student} emptyLabel={copy.noStudents} />
         </div>
       ) : null}
+
+      <div className="mb-4">
+        <label className="block">
+          <span className="block text-xs mb-1 uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
+            {copy.language}
+          </span>
+          <select
+            disabled={localeUpdating}
+            value={currentLocale}
+            onChange={(event) => {
+              void onLocaleChange(event.target.value as "en" | "zh");
+            }}
+            className="w-full rounded-md border border-warm-300 dark:border-navy-500 bg-white dark:bg-navy-900 px-2 py-1.5 text-sm"
+          >
+            <option value="en">English</option>
+            <option value="zh">{"\u4e2d\u6587"}</option>
+          </select>
+        </label>
+      </div>
 
       <div className="space-y-4">
         {sections.map((section) => (
@@ -200,15 +299,36 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { locale: i18nLocale, setLocale: setI18nLocale } = useI18n();
   const hideShell = pathname === "/portal/login";
+
+  const [optimisticLocale, setOptimisticLocale] = useState<"en" | "zh">(
+    locale === "zh" ? "zh" : "en"
+  );
   const [localeUpdating, setLocaleUpdating] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [pendingPath, setPendingPath] = useState<string | null>(null);
 
-  const currentParentLocale = locale === "zh" ? "zh" : "en";
-  const studentSessionsLabel = locale === "zh" ? "我的私课" : "My Sessions";
+  const currentLocale = optimisticLocale;
+  const copy = portalLabel[currentLocale];
   const studentParam = searchParams.get("student");
-  const parentCopy = parentLabel[currentParentLocale];
+
+  useEffect(() => {
+    const portalLocale = locale === "zh" ? "zh" : "en";
+    if (i18nLocale !== portalLocale) {
+      setI18nLocale(portalLocale);
+    }
+  }, [locale, i18nLocale, setI18nLocale]);
+
+  useEffect(() => {
+    setOptimisticLocale(locale === "zh" ? "zh" : "en");
+  }, [locale]);
+
+  useEffect(() => {
+    if (i18nLocale !== optimisticLocale) {
+      setOptimisticLocale(i18nLocale as "en" | "zh");
+    }
+  }, [i18nLocale, optimisticLocale]);
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -227,39 +347,96 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
     };
   }, [mobileNavOpen]);
 
+  async function onLocaleChange(nextLocale: "en" | "zh") {
+    if (nextLocale === currentLocale) return;
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("dsdc-portal-locale-set", "true");
+    }
+
+    setOptimisticLocale(nextLocale);
+    setI18nLocale(nextLocale);
+    setLocaleUpdating(true);
+
+    try {
+      const response = await fetch("/api/portal/profile/locale", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale: nextLocale }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update locale.");
+      }
+    } catch {
+      const reverted = nextLocale === "en" ? "zh" : "en";
+      setOptimisticLocale(reverted);
+      setI18nLocale(reverted);
+    }
+
+    setLocaleUpdating(false);
+    router.refresh();
+  }
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const hasSetLocale = localStorage.getItem("dsdc-portal-locale-set");
+    if (hasSetLocale) return;
+
+    const browserLang = navigator.language || "";
+    const shouldBeZh = browserLang.startsWith("zh");
+    const currentDbLocale = locale === "zh" ? "zh" : "en";
+
+    if (shouldBeZh && currentDbLocale !== "zh") {
+      void onLocaleChange("zh");
+    }
+
+    localStorage.setItem("dsdc-portal-locale-set", "true");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const navSections = useMemo<NavSection[]>(() => {
     if (role === "admin") {
       return [
         {
-          title: "Overview",
+          title: copy.adminOverview,
           items: [
-            { href: "/portal/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-            { href: "/portal/calendar", label: "Calendar", icon: CalendarDays },
-            { href: "/portal/admin/terms", label: "Terms", icon: Calendar },
-            { href: "/portal/admin/classes", label: "Classes", icon: BookOpen },
-            { href: "/portal/admin/report-cards", label: "Report Cards", icon: GraduationCap },
-            { href: "/portal/admin/payroll", label: "Payroll", icon: ClipboardCheck },
-            { href: "/portal/admin/availability", label: "Availability", icon: Calendar },
-            { href: "/portal/admin/subs", label: "Sub Requests", icon: Users },
-            { href: "/portal/admin/private-sessions", label: "Private Sessions", icon: ClipboardCheck },
-            { href: "/portal/admin/etransfers", label: "E-Transfers", icon: Banknote },
-            { href: "/portal/admin/pending-approvals", label: "Pending Approvals", icon: ClipboardCheck },
-            { href: "/portal/admin/login-log", label: "Login Log", icon: ClipboardList },
+            { href: "/portal/admin/dashboard", label: copy.dashboard, icon: LayoutDashboard },
+            { href: "/portal/calendar", label: copy.calendar, icon: CalendarDays },
+            { href: "/portal/admin/terms", label: copy.terms, icon: Calendar },
+            { href: "/portal/admin/classes", label: copy.allClasses, icon: BookOpen },
+            { href: "/portal/admin/report-cards", label: copy.reportCards, icon: GraduationCap },
+            { href: "/portal/admin/payroll", label: copy.payroll, icon: ClipboardCheck },
+            { href: "/portal/admin/availability", label: copy.availability, icon: Calendar },
+            { href: "/portal/admin/subs", label: copy.subRequests, icon: Users },
+            {
+              href: "/portal/admin/private-sessions",
+              label: copy.privateSessions,
+              icon: ClipboardCheck,
+            },
+            { href: "/portal/admin/etransfers", label: copy.etransfers, icon: Banknote },
+            {
+              href: "/portal/admin/pending-approvals",
+              label: copy.pendingApprovals,
+              icon: ClipboardCheck,
+            },
+            { href: "/portal/admin/login-log", label: copy.loginLog, icon: ClipboardList },
           ],
         },
         {
-          title: "People",
+          title: copy.adminPeople,
           items: [
-            { href: "/portal/admin/students", label: "Students", icon: GraduationCap },
-            { href: "/portal/admin/parents", label: "Parents", icon: Users },
-            { href: "/portal/admin/coaches", label: "Coaches", icon: UserSquare2 },
-            { href: "/portal/admin/enroll", label: "Enroll", icon: FileCheck2 },
-            { href: "/portal/signup", label: "Create User", icon: Shield },
+            { href: "/portal/admin/students", label: copy.students, icon: GraduationCap },
+            { href: "/portal/admin/parents", label: copy.parents, icon: Users },
+            { href: "/portal/admin/coaches", label: copy.coaches, icon: UserSquare2 },
+            { href: "/portal/admin/enroll", label: copy.enroll, icon: FileCheck2 },
+            { href: "/portal/signup", label: copy.createUser, icon: Shield },
           ],
         },
         {
-          title: "Documents",
-          items: [{ href: "/portal/admin/legal", label: "Legal Docs", icon: FileText }],
+          title: copy.adminDocuments,
+          items: [{ href: "/portal/admin/legal", label: copy.legalDocs, icon: FileText }],
         },
       ];
     }
@@ -267,23 +444,27 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
     if (role === "coach" || role === "ta") {
       return [
         {
-          title: "Teaching",
+          title: copy.teaching,
           items: [
-            { href: "/portal/coach/dashboard", label: "Dashboard", icon: LayoutDashboard },
-            { href: "/portal/calendar", label: "Calendar", icon: CalendarDays },
-            { href: "/portal/coach/checkin", label: "Check-in", icon: ClipboardCheck },
-            { href: "/portal/coach/classes", label: "My Classes", icon: BookOpen },
-            { href: "/portal/coach/report-cards", label: "Report Cards", icon: GraduationCap },
-            { href: "/portal/coach/hours", label: "My Hours", icon: Calendar },
+            { href: "/portal/coach/dashboard", label: copy.dashboard, icon: LayoutDashboard },
+            { href: "/portal/calendar", label: copy.calendar, icon: CalendarDays },
+            { href: "/portal/coach/checkin", label: copy.checkin, icon: ClipboardCheck },
+            { href: "/portal/coach/classes", label: copy.myClasses, icon: BookOpen },
+            { href: "/portal/coach/report-cards", label: copy.reportCards, icon: GraduationCap },
+            { href: "/portal/coach/hours", label: copy.myHours, icon: Calendar },
           ],
         },
         {
-          title: "Scheduling",
+          title: copy.scheduling,
           items: [
-            { href: "/portal/coach/availability", label: "Availability", icon: Calendar },
-            { href: "/portal/coach/subs", label: "Sub Requests", icon: Users },
-            { href: "/portal/coach/private-sessions", label: "Private Sessions", icon: ClipboardCheck },
-            { href: "/portal/preferences", label: "Preferences", icon: Shield },
+            { href: "/portal/coach/availability", label: copy.availability, icon: Calendar },
+            { href: "/portal/coach/subs", label: copy.subRequests, icon: Users },
+            {
+              href: "/portal/coach/private-sessions",
+              label: copy.privateSessions,
+              icon: ClipboardCheck,
+            },
+            { href: "/portal/preferences", label: copy.preferences, icon: Shield },
           ],
         },
       ];
@@ -292,27 +473,31 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
     if (role === "student") {
       return [
         {
-          title: "Learning",
+          title: copy.learning,
           items: [
-            { href: "/portal/calendar", label: "Calendar", icon: CalendarDays },
-            { href: "/portal/student/classes", label: "My Classes", icon: BookOpen },
-            { href: "/portal/student/attendance", label: "Attendance", icon: ClipboardCheck },
-            { href: "/portal/student/resources", label: "Resources", icon: FileText },
-            { href: "/portal/student/makeup", label: "Make-up Classes", icon: Calendar },
-            { href: "/portal/student/credits", label: "Class Credits", icon: Star },
+            { href: "/portal/calendar", label: copy.calendar, icon: CalendarDays },
+            { href: "/portal/student/classes", label: copy.myClasses, icon: BookOpen },
+            { href: "/portal/student/attendance", label: copy.attendance, icon: ClipboardCheck },
+            { href: "/portal/student/resources", label: copy.resources, icon: FileText },
+            { href: "/portal/student/makeup", label: copy.makeupClasses, icon: Calendar },
+            { href: "/portal/student/credits", label: copy.classCredits, icon: Star },
           ],
         },
         {
-          title: "Actions",
+          title: copy.actions,
           items: [
-            { href: "/portal/student/booking", label: "Book Private Session", icon: Calendar },
-            { href: "/portal/student/private-sessions", label: studentSessionsLabel, icon: Calendar },
-            { href: "/portal/student/link-parent", label: "Link Parent", icon: Users },
-            { href: "/portal/student/legal", label: "Legal Documents", icon: FileCheck2 },
-            { href: "/portal/student/absent", label: "Report Absence", icon: FileText },
-            { href: "/portal/student/feedback", label: "Feedback", icon: MessageSquare },
-            { href: "/portal/student/report-cards", label: "Report Cards", icon: GraduationCap },
-            { href: "/portal/preferences", label: "Preferences", icon: Shield },
+            {
+              href: "/portal/student/booking",
+              label: copy.bookPrivateSession,
+              icon: Calendar,
+            },
+            { href: "/portal/student/private-sessions", label: copy.mySessions, icon: Calendar },
+            { href: "/portal/student/link-parent", label: copy.linkParent, icon: Users },
+            { href: "/portal/student/legal", label: copy.legal, icon: FileCheck2 },
+            { href: "/portal/student/absent", label: copy.absent, icon: FileText },
+            { href: "/portal/student/feedback", label: copy.feedback, icon: MessageSquare },
+            { href: "/portal/student/report-cards", label: copy.reportCards, icon: GraduationCap },
+            { href: "/portal/preferences", label: copy.preferences, icon: Shield },
           ],
         },
       ];
@@ -321,30 +506,30 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
     if (role === "parent") {
       return [
         {
-          title: parentCopy.dashboard,
+          title: copy.dashboard,
           items: [
-            { href: "/portal/calendar", label: "Calendar", icon: CalendarDays },
-            { href: "/portal/parent/dashboard", label: parentCopy.dashboard, icon: Home },
-            { href: "/portal/parent/classes", label: parentCopy.classes, icon: BookOpen },
-            { href: "/portal/parent/attendance", label: parentCopy.attendance, icon: ClipboardCheck },
-            { href: "/portal/parent/resources", label: parentCopy.resources, icon: FileText },
-            { href: "/portal/parent/private-sessions", label: parentCopy.privateSessions, icon: Calendar },
-            { href: "/portal/parent/report-cards", label: parentCopy.reportCards, icon: GraduationCap },
+            { href: "/portal/calendar", label: copy.calendar, icon: CalendarDays },
+            { href: "/portal/parent/dashboard", label: copy.dashboard, icon: Home },
+            { href: "/portal/parent/classes", label: copy.classes, icon: BookOpen },
+            { href: "/portal/parent/attendance", label: copy.attendance, icon: ClipboardCheck },
+            { href: "/portal/parent/resources", label: copy.resources, icon: FileText },
+            { href: "/portal/parent/private-sessions", label: copy.privateSessions, icon: Calendar },
+            { href: "/portal/parent/report-cards", label: copy.reportCards, icon: GraduationCap },
           ],
         },
         {
-          title: parentCopy.preferences,
+          title: copy.preferences,
           items: [
-            { href: "/portal/parent/legal", label: parentCopy.legal, icon: FileCheck2 },
-            { href: "/portal/parent/absent", label: parentCopy.absent, icon: FileText },
-            { href: "/portal/parent/preferences", label: parentCopy.preferences, icon: Shield },
+            { href: "/portal/parent/legal", label: copy.legal, icon: FileCheck2 },
+            { href: "/portal/parent/absent", label: copy.absent, icon: FileText },
+            { href: "/portal/parent/preferences", label: copy.preferences, icon: Shield },
           ],
         },
       ];
     }
 
     return [];
-  }, [parentCopy, role, studentSessionsLabel]);
+  }, [copy, role]);
 
   useEffect(() => {
     for (const section of navSections) {
@@ -359,18 +544,6 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
     setPendingPath(href);
   }
 
-  async function onLocaleChange(nextLocale: "en" | "zh") {
-    if (nextLocale === currentParentLocale) return;
-    setLocaleUpdating(true);
-    await fetch("/api/portal/profile/locale", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ locale: nextLocale }),
-    });
-    setLocaleUpdating(false);
-    router.refresh();
-  }
-
   if (hideShell) {
     return <>{children}</>;
   }
@@ -381,9 +554,13 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
       <header className="fixed top-0 left-0 right-0 border-b border-warm-200/80 dark:border-navy-600/70 bg-white/90 dark:bg-navy-900/70 backdrop-blur-xl z-40 shadow-sm dark:shadow-black/30">
         <div className="px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.16em] text-charcoal/60 dark:text-navy-200/70">DSDC Portal</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-charcoal/60 dark:text-navy-200/70">
+              DSDC Portal
+            </p>
             <div className="flex items-center gap-2">
-              <p className="font-semibold text-navy-800 dark:text-white truncate">{name || "Portal User"}</p>
+              <p className="font-semibold text-navy-800 dark:text-white truncate">
+                {name || "Portal User"}
+              </p>
               <span className="hidden sm:inline-flex items-center rounded-full border border-gold-400/50 bg-gold-100 dark:bg-gold-900/25 px-2 py-0.5 text-[11px] font-semibold text-navy-900 dark:text-gold-100">
                 {roleToLabel(role)}
               </span>
@@ -399,11 +576,17 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
               <Menu className="w-4 h-4" />
             </button>
             <ThemeToggle />
-            <Link href="/" className="hidden sm:inline-flex px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-500 text-sm text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700/80 transition-colors">
+            <Link
+              href="/"
+              className="hidden sm:inline-flex px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-500 text-sm text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700/80 transition-colors"
+            >
               Main Site
             </Link>
             <form action="/portal/logout" method="post">
-              <button type="submit" className="px-3 py-1.5 rounded-md bg-navy-800 text-white text-sm hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors">
+              <button
+                type="submit"
+                className="px-3 py-1.5 rounded-md bg-navy-800 text-white text-sm hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors"
+              >
                 Logout
               </button>
             </form>
@@ -414,7 +597,10 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
       <div className="pt-[68px]">
         {mobileNavOpen ? (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="absolute inset-0 bg-black/55 backdrop-blur-[2px]" onClick={() => setMobileNavOpen(false)} />
+            <div
+              className="absolute inset-0 bg-black/55 backdrop-blur-[2px]"
+              onClick={() => setMobileNavOpen(false)}
+            />
             <div className="absolute inset-y-0 left-0 w-[300px] max-w-[90vw] bg-white dark:bg-gradient-to-b dark:from-navy-900 dark:to-navy-950 shadow-xl p-4 overflow-y-auto">
               <div className="mb-3 flex items-center justify-between">
                 <p className="font-semibold text-navy-900 dark:text-white">Navigation</p>
@@ -434,9 +620,9 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
                 pendingPath={pendingPath}
                 studentParam={studentParam}
                 isParent={role === "parent"}
-                parentCopy={parentCopy}
+                copy={copy}
                 localeUpdating={localeUpdating}
-                currentParentLocale={currentParentLocale}
+                currentLocale={currentLocale}
                 onLocaleChange={onLocaleChange}
                 onNavClick={onNavClick}
               />
@@ -454,9 +640,9 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
                 pendingPath={pendingPath}
                 studentParam={studentParam}
                 isParent={role === "parent"}
-                parentCopy={parentCopy}
+                copy={copy}
                 localeUpdating={localeUpdating}
-                currentParentLocale={currentParentLocale}
+                currentLocale={currentLocale}
                 onLocaleChange={onLocaleChange}
                 onNavClick={onNavClick}
               />

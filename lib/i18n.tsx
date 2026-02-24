@@ -12,6 +12,7 @@ interface I18nContextType {
   locale: Locale;
   t: (key: string) => string;
   toggleLocale: () => void;
+  setLocale: (locale: Locale) => void;
   messages: Record<string, unknown>;
   contentSource: "static" | "live" | "fallback";
 }
@@ -63,7 +64,26 @@ export function I18nProvider({
   children: ReactNode;
   initialCmsOverrides?: CmsOverridesPayload;
 }) {
-  const [locale, setLocale] = useState<Locale>("en");
+  const [locale, setLocale] = useState<Locale>(() => {
+    if (typeof window === "undefined") return "en";
+
+    // 1) URL param takes highest priority (?lang=zh)
+    const urlParams = new URLSearchParams(window.location.search);
+    const langParam = urlParams.get("lang");
+    if (langParam === "zh") return "zh";
+    if (langParam === "en") return "en";
+
+    // 2) Previously saved choice
+    const saved = localStorage.getItem("dsdc-locale");
+    if (saved === "zh" || saved === "en") return saved as Locale;
+
+    // 3) Auto-detect browser language
+    const nav = window.navigator as Navigator & { userLanguage?: string };
+    const browserLang = nav.language || nav.userLanguage || "";
+    if (browserLang.startsWith("zh")) return "zh";
+
+    return "en";
+  });
   const [cmsOverrides, setCmsOverrides] = useState<CmsOverridesPayload>(initialCmsOverrides ?? null);
   const [contentSource, setContentSource] = useState<"static" | "live" | "fallback">(
     initialCmsOverrides ? "live" : "static"
@@ -72,6 +92,12 @@ export function I18nProvider({
   const toggleLocale = useCallback(() => {
     setLocale((prev) => (prev === "en" ? "zh" : "en"));
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("dsdc-locale", locale);
+    }
+  }, [locale]);
 
   useEffect(() => {
     if (initialCmsOverrides) return;
@@ -112,7 +138,9 @@ export function I18nProvider({
   );
 
   return (
-    <I18nContext.Provider value={{ locale, t, toggleLocale, messages: currentMessages, contentSource }}>
+    <I18nContext.Provider
+      value={{ locale, t, toggleLocale, setLocale, messages: currentMessages, contentSource }}
+    >
       {children}
     </I18nContext.Provider>
   );
