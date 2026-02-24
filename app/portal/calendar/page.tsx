@@ -12,7 +12,10 @@ export default async function PortalCalendarPage() {
       title="Calendar"
       description="Class schedule and upcoming events for the current term."
     >
-      <PortalCalendar role={session.profile.role} />
+      <PortalCalendar
+        role={session.profile.role}
+        userTimezone={session.profile.timezone || "America/Vancouver"}
+      />
     </SectionCard>
   );
 }

@@ -15,6 +15,7 @@ const createEventSchema = z.object({
   end_time: timeSchema.optional(),
   location: z.string().max(255).optional(),
   event_type: eventTypeSchema.default("tournament"),
+  timezone: z.string().min(1).max(120).optional(),
   is_visible: z.boolean().optional(),
 });
 
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
       end_time: body.end_time || null,
       location: body.location?.trim() || null,
       event_type: body.event_type,
+      timezone: body.timezone || "America/Vancouver",
       is_visible: body.is_visible ?? true,
       created_by: session.userId,
     })

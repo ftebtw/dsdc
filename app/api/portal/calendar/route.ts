@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
 
   let eventQuery = admin
     .from("events")
-    .select("id,title,description,event_date,start_time,end_time,location,event_type,is_visible")
+    .select("id,title,description,event_date,start_time,end_time,location,event_type,timezone,is_visible")
     .eq("is_visible", true)
     .order("event_date", { ascending: true });
 
@@ -161,6 +161,7 @@ export async function GET(request: NextRequest) {
     end_time: eventRow.end_time,
     location: eventRow.location,
     event_type: eventRow.event_type,
+    timezone: eventRow.timezone || "America/Vancouver",
   }));
 
   return NextResponse.json({

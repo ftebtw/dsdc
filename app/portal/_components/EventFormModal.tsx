@@ -11,6 +11,7 @@ export type EventItem = {
   end_time: string | null;
   location: string | null;
   event_type: "tournament" | "workshop" | "social" | "deadline" | "other";
+  timezone: string | null;
 };
 
 type Props = {
@@ -29,6 +30,27 @@ const eventTypeOptions: Array<{ value: EventItem["event_type"]; label: string }>
   { value: "other", label: "Other" },
 ];
 
+const timezoneOptions = [
+  { value: "America/Vancouver", label: "Pacific - Vancouver (PT)" },
+  { value: "America/Edmonton", label: "Mountain - Edmonton (MT)" },
+  { value: "America/Winnipeg", label: "Central - Winnipeg (CT)" },
+  { value: "America/Toronto", label: "Eastern - Toronto (ET)" },
+  { value: "America/Halifax", label: "Atlantic - Halifax (AT)" },
+  { value: "America/St_Johns", label: "Newfoundland - St. John's (NT)" },
+  { value: "America/Los_Angeles", label: "Pacific - Los Angeles (PT)" },
+  { value: "America/Chicago", label: "Central - Chicago (CT)" },
+  { value: "America/New_York", label: "Eastern - New York (ET)" },
+  { value: "America/Denver", label: "Mountain - Denver (MT)" },
+  { value: "Europe/London", label: "London (GMT/BST)" },
+  { value: "Europe/Berlin", label: "Berlin (CET)" },
+  { value: "Asia/Shanghai", label: "Shanghai / Beijing (CST)" },
+  { value: "Asia/Tokyo", label: "Tokyo (JST)" },
+  { value: "Asia/Seoul", label: "Seoul (KST)" },
+  { value: "Asia/Kolkata", label: "India (IST)" },
+  { value: "Australia/Sydney", label: "Sydney (AEST)" },
+  { value: "Pacific/Auckland", label: "Auckland (NZST)" },
+] as const;
+
 function normalizeTime(value: string | null | undefined): string {
   if (!value) return "";
   return value.slice(0, 5);
@@ -42,6 +64,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [eventType, setEventType] = useState<EventItem["event_type"]>("tournament");
+  const [timezone, setTimezone] = useState("America/Vancouver");
   const [isVisible, setIsVisible] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +79,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
     setStartTime(normalizeTime(event?.start_time));
     setEndTime(normalizeTime(event?.end_time));
     setLocation(event?.location ?? "");
+    setTimezone(event?.timezone ?? "America/Vancouver");
     setDescription(event?.description ?? "");
     setEventType(event?.event_type ?? "tournament");
     setIsVisible(true);
@@ -80,6 +104,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
       end_time: endTime || undefined,
       location: location.trim() || undefined,
       event_type: eventType,
+      timezone,
       is_visible: isVisible,
     };
 
@@ -211,6 +236,21 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
               onChange={(eventValue) => setLocation(eventValue.target.value)}
               maxLength={255}
             />
+          </label>
+
+          <label className="sm:col-span-2">
+            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">Timezone</span>
+            <select
+              value={timezone}
+              onChange={(eventValue) => setTimezone(eventValue.target.value)}
+              className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+            >
+              {timezoneOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </label>
 
           <label className="sm:col-span-2">

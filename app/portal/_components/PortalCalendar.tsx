@@ -74,6 +74,27 @@ const eventColorMap: Record<EventItem["event_type"], string> = {
   other: "bg-warm-100 text-charcoal border border-warm-300 dark:bg-navy-800/50 dark:text-navy-100 dark:border-navy-600/60",
 };
 
+const timezoneOptions = [
+  { value: "America/Vancouver", label: "Pacific - Vancouver (PT)" },
+  { value: "America/Edmonton", label: "Mountain - Edmonton (MT)" },
+  { value: "America/Winnipeg", label: "Central - Winnipeg (CT)" },
+  { value: "America/Toronto", label: "Eastern - Toronto (ET)" },
+  { value: "America/Halifax", label: "Atlantic - Halifax (AT)" },
+  { value: "America/St_Johns", label: "Newfoundland - St. John's (NT)" },
+  { value: "America/Los_Angeles", label: "Pacific - Los Angeles (PT)" },
+  { value: "America/Chicago", label: "Central - Chicago (CT)" },
+  { value: "America/New_York", label: "Eastern - New York (ET)" },
+  { value: "America/Denver", label: "Mountain - Denver (MT)" },
+  { value: "Europe/London", label: "London (GMT/BST)" },
+  { value: "Europe/Berlin", label: "Berlin (CET)" },
+  { value: "Asia/Shanghai", label: "Shanghai / Beijing (CST)" },
+  { value: "Asia/Tokyo", label: "Tokyo (JST)" },
+  { value: "Asia/Seoul", label: "Seoul (KST)" },
+  { value: "Asia/Kolkata", label: "India (IST)" },
+  { value: "Australia/Sydney", label: "Sydney (AEST)" },
+  { value: "Pacific/Auckland", label: "Auckland (NZST)" },
+] as const;
+
 function toKey(date: Date) {
   return format(date, "yyyy-MM-dd");
 }
@@ -100,23 +121,164 @@ function inTerm(date: Date, term: CalendarPayload["term"]) {
   return day >= start && day <= end;
 }
 
-function eventTimeRange(eventItem: EventItem) {
-  if (!eventItem.start_time && !eventItem.end_time) return "All day";
-  if (eventItem.start_time && eventItem.end_time) {
-    return `${toTimeLabel(eventItem.start_time)} - ${toTimeLabel(eventItem.end_time)}`;
+function normalizeTimeZone(timezone: string | null | undefined) {
+  const fallback = "America/Vancouver";
+  const candidate = timezone || fallback;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: candidate });
+    return candidate;
+  } catch {
+    return fallback;
   }
-  return eventItem.start_time ? `${toTimeLabel(eventItem.start_time)} start` : `Until ${toTimeLabel(eventItem.end_time)}`;
 }
 
-export default function PortalCalendar({ role }: { role: PortalRole }) {
+function shortTimezoneLabel(timezone: string) {
+  const value = timezone.split("/").pop() || timezone;
+  return value.replace(/_/g, " ");
+}
+
+function parseTimeParts(value: string) {
+  const parts = value.split(":");
+  const hour = Number(parts[0] || "0");
+  const minute = Number(parts[1] || "0");
+  const second = Number(parts[2] || "0");
+  if ([hour, minute, second].some((part) => Number.isNaN(part))) return null;
+  return { hour, minute, second };
+}
+
+function getOffsetMinutesForTimeZone(date: Date, timezone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(date);
+
+  const values = new Map<string, string>();
+  for (const part of parts) {
+    if (part.type !== "literal") values.set(part.type, part.value);
+  }
+
+  const asUtc = Date.UTC(
+    Number(values.get("year") || "0"),
+    Number(values.get("month") || "1") - 1,
+    Number(values.get("day") || "1"),
+    Number(values.get("hour") || "0"),
+    Number(values.get("minute") || "0"),
+    Number(values.get("second") || "0")
+  );
+
+  return (asUtc - date.getTime()) / 60000;
+}
+
+function localTimeInTimezoneToUtc(dateStr: string, timeStr: string, timezone: string) {
+  const [yearStr, monthStr, dayStr] = dateStr.split("-");
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const day = Number(dayStr);
+  const parsedTime = parseTimeParts(timeStr);
+  if (!year || !month || !day || !parsedTime) return null;
+
+  const utcGuess = new Date(
+    Date.UTC(year, month - 1, day, parsedTime.hour, parsedTime.minute, parsedTime.second)
+  );
+  const offsetMinutes = getOffsetMinutesForTimeZone(utcGuess, timezone);
+  return new Date(utcGuess.getTime() - offsetMinutes * 60000);
+}
+
+function convertTimeForDisplay(
+  time: string | null | undefined,
+  fromTimezone: string | null | undefined,
+  toTimezone: string | null | undefined,
+  dateStr: string
+) {
+  if (!time) return "";
+  const from = normalizeTimeZone(fromTimezone);
+  const to = normalizeTimeZone(toTimezone);
+  if (from === to) return toTimeLabel(time);
+
+  try {
+    const utcDate = localTimeInTimezoneToUtc(dateStr, time, from);
+    if (!utcDate) return toTimeLabel(time);
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: to,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }).format(utcDate);
+  } catch {
+    return toTimeLabel(time);
+  }
+}
+
+function eventTimeRange(eventItem: EventItem, displayTimezone: string) {
+  if (!eventItem.start_time && !eventItem.end_time) return "All day";
+
+  const sourceTimezone = normalizeTimeZone(eventItem.timezone);
+  const targetTimezone = normalizeTimeZone(displayTimezone);
+  const start = convertTimeForDisplay(
+    eventItem.start_time,
+    sourceTimezone,
+    targetTimezone,
+    eventItem.event_date
+  );
+  const end = convertTimeForDisplay(
+    eventItem.end_time,
+    sourceTimezone,
+    targetTimezone,
+    eventItem.event_date
+  );
+
+  const suffix =
+    sourceTimezone !== targetTimezone ? ` (from ${shortTimezoneLabel(sourceTimezone)})` : "";
+
+  if (start && end) return `${start} - ${end}${suffix}`;
+  if (start) return `${start} start${suffix}`;
+  return `Until ${end}${suffix}`;
+}
+
+function classTimeRange(classItem: CalendarClass, displayTimezone: string, dateKey: string) {
+  const start = convertTimeForDisplay(
+    classItem.schedule_start_time,
+    classItem.timezone,
+    displayTimezone,
+    dateKey
+  );
+  const end = convertTimeForDisplay(
+    classItem.schedule_end_time,
+    classItem.timezone,
+    displayTimezone,
+    dateKey
+  );
+  if (start && end) return `${start} - ${end}`;
+  if (start) return `${start} start`;
+  return `Until ${end}`;
+}
+
+export default function PortalCalendar({
+  role,
+  userTimezone,
+}: {
+  role: PortalRole;
+  userTimezone?: string | null;
+}) {
   const isAdmin = role === "admin";
   const [mobileView, setMobileView] = useState<"agenda" | "grid">("agenda");
   const [monthDate, setMonthDate] = useState<Date>(() => startOfMonth(new Date()));
   const [filter, setFilter] = useState<"all" | "mine">("all");
+  const [displayTimezone, setDisplayTimezone] = useState(() => {
+    const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return normalizeTimeZone(userTimezone || browserTimezone || "America/Vancouver");
+  });
   const [payload, setPayload] = useState<CalendarPayload>({ classes: [], events: [], term: null });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedClass, setSelectedClass] = useState<CalendarClass | null>(null);
+  const [selectedClassDate, setSelectedClassDate] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [eventModalOpen, setEventModalOpen] = useState(false);
   const [eventModalDate, setEventModalDate] = useState<string | null>(null);
@@ -129,6 +291,11 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
       setFilter("mine");
     }
   }, []);
+
+  useEffect(() => {
+    const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    setDisplayTimezone(normalizeTimeZone(userTimezone || browserTimezone || "America/Vancouver"));
+  }, [userTimezone]);
 
   const monthStart = useMemo(() => startOfMonth(monthDate), [monthDate]);
   const monthEnd = useMemo(() => endOfMonth(monthDate), [monthDate]);
@@ -262,6 +429,24 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-2 rounded-md border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-2 py-1">
+            <label className="text-xs text-charcoal/60 dark:text-navy-300" htmlFor="calendar-timezone">
+              Display in:
+            </label>
+            <select
+              id="calendar-timezone"
+              value={displayTimezone}
+              onChange={(eventValue) => setDisplayTimezone(eventValue.target.value)}
+              className="text-xs rounded border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-2 py-1"
+            >
+              {timezoneOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {!isAdmin ? (
             <div className="inline-flex rounded-lg border border-warm-300 dark:border-navy-600 overflow-hidden">
               <button
@@ -352,12 +537,24 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
                       onClick={(event) => {
                         event.stopPropagation();
                         setSelectedClass(classItem);
+                        setSelectedClassDate(key);
                         setSelectedEvent(null);
                       }}
                       className={`text-[10px] leading-tight px-1 py-0.5 rounded truncate ${classPillClass(classItem.type, classItem.is_mine)}`}
-                      title={`${classItem.name} ${toTimeLabel(classItem.schedule_start_time)}`}
+                      title={`${classItem.name} ${convertTimeForDisplay(
+                        classItem.schedule_start_time,
+                        classItem.timezone,
+                        displayTimezone,
+                        key
+                      )}`}
                     >
-                      {classItem.name} {toTimeLabel(classItem.schedule_start_time)}
+                      {classItem.name}{" "}
+                      {convertTimeForDisplay(
+                        classItem.schedule_start_time,
+                        classItem.timezone,
+                        displayTimezone,
+                        key
+                      )}
                     </div>
                   ))}
 
@@ -369,11 +566,16 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
                         event.stopPropagation();
                         setSelectedEvent(eventItem);
                         setSelectedClass(null);
+                        setSelectedClassDate(null);
                       }}
                       className={`text-[10px] leading-tight px-1 py-0.5 rounded truncate ${eventPillClass(eventItem.event_type)}`}
-                      title={eventItem.title}
+                      title={`${eventItem.title}${eventItem.start_time || eventItem.end_time ? ` (${eventTimeRange(eventItem, displayTimezone)})` : ""}`}
                     >
-                      {eventItem.event_type === "tournament" ? "🏆 " : ""}{eventItem.title}
+                      {eventItem.event_type === "tournament" ? "🏆 " : ""}
+                      {eventItem.title}
+                      {eventItem.start_time || eventItem.end_time
+                        ? ` ${eventTimeRange(eventItem, displayTimezone)}`
+                        : ""}
                     </div>
                   ))}
                 </div>
@@ -426,12 +628,12 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
                       key={`m-${day.key}-${classItem.id}`}
                       onClick={() => {
                         setSelectedClass(classItem);
+                        setSelectedClassDate(day.key);
                         setSelectedEvent(null);
                       }}
                       className={`w-full text-left text-xs px-2 py-1 rounded ${classPillClass(classItem.type, classItem.is_mine)}`}
                     >
-                      {classItem.name} ({toTimeLabel(classItem.schedule_start_time)} -{" "}
-                      {toTimeLabel(classItem.schedule_end_time)})
+                      {classItem.name} ({classTimeRange(classItem, displayTimezone, day.key)})
                     </button>
                   ))}
                   {day.eventItems.map((eventItem) => (
@@ -441,10 +643,11 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
                       onClick={() => {
                         setSelectedEvent(eventItem);
                         setSelectedClass(null);
+                        setSelectedClassDate(null);
                       }}
                       className={`w-full text-left text-xs px-2 py-1 rounded ${eventPillClass(eventItem.event_type)}`}
                     >
-                      {eventItem.title} ({eventTimeRange(eventItem)})
+                      {eventItem.title} ({eventTimeRange(eventItem, displayTimezone)})
                     </button>
                   ))}
                 </div>
@@ -487,6 +690,7 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
                         onClick={(event) => {
                           event.stopPropagation();
                           setSelectedClass(classItem);
+                          setSelectedClassDate(key);
                           setSelectedEvent(null);
                         }}
                         className={`mt-0.5 text-[9px] leading-tight px-1 py-0.5 rounded truncate ${classPillClass(classItem.type, classItem.is_mine)}`}
@@ -502,6 +706,7 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
                           event.stopPropagation();
                           setSelectedEvent(eventItem);
                           setSelectedClass(null);
+                          setSelectedClassDate(null);
                         }}
                         className={`mt-0.5 text-[9px] leading-tight px-1 py-0.5 rounded truncate ${eventPillClass(eventItem.event_type)}`}
                       >
@@ -529,7 +734,10 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
           <button
             type="button"
             className="absolute inset-0 bg-black/45"
-            onClick={() => setSelectedClass(null)}
+            onClick={() => {
+              setSelectedClass(null);
+              setSelectedClassDate(null);
+            }}
             aria-label="Close class details"
           />
           <div className="relative w-full max-w-md rounded-xl border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 p-4">
@@ -537,8 +745,22 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
             <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">Type: {selectedClass.type}</p>
             <p className="text-sm text-charcoal/70 dark:text-navy-300">Coach: {selectedClass.coach_name}</p>
             <p className="text-sm text-charcoal/70 dark:text-navy-300">
-              Time: {selectedClass.schedule_day.toUpperCase()} {toTimeLabel(selectedClass.schedule_start_time)} -{" "}
-              {toTimeLabel(selectedClass.schedule_end_time)} ({selectedClass.timezone})
+              Time:{" "}
+              {selectedClass.schedule_day.toUpperCase()}{" "}
+              {classTimeRange(
+                selectedClass,
+                displayTimezone,
+                selectedClassDate || toKey(new Date())
+              )}{" "}
+              ({displayTimezone})
+            </p>
+            {normalizeTimeZone(selectedClass.timezone) !== normalizeTimeZone(displayTimezone) ? (
+              <p className="text-xs text-charcoal/60 dark:text-navy-400">
+                Source timezone: {selectedClass.timezone}
+              </p>
+            ) : null}
+            <p className="text-xs text-charcoal/60 dark:text-navy-400">
+              Class timezone: {selectedClass.timezone}
             </p>
             {selectedClass.zoom_link ? (
               <p className="mt-2 text-sm">
@@ -556,7 +778,10 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
             <div className="mt-4">
               <button
                 type="button"
-                onClick={() => setSelectedClass(null)}
+                onClick={() => {
+                  setSelectedClass(null);
+                  setSelectedClassDate(null);
+                }}
                 className="rounded-md border border-warm-300 dark:border-navy-600 px-3 py-1.5 text-sm"
               >
                 Close
@@ -577,11 +802,19 @@ export default function PortalCalendar({ role }: { role: PortalRole }) {
           <div className="relative w-full max-w-md rounded-xl border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 p-4">
             <h4 className="text-lg font-semibold text-navy-900 dark:text-white">{selectedEvent.title}</h4>
             <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
-              {selectedEvent.event_date} {eventTimeRange(selectedEvent)}
+              {selectedEvent.event_date} {eventTimeRange(selectedEvent, displayTimezone)}
             </p>
             <p className="text-sm text-charcoal/70 dark:text-navy-300">
               Type: {selectedEvent.event_type}
             </p>
+            <p className="text-xs text-charcoal/60 dark:text-navy-400">
+              Display timezone: {displayTimezone}
+            </p>
+            {normalizeTimeZone(selectedEvent.timezone) !== normalizeTimeZone(displayTimezone) ? (
+              <p className="text-xs text-charcoal/60 dark:text-navy-400">
+                Event timezone: {selectedEvent.timezone || "America/Vancouver"}
+              </p>
+            ) : null}
             {selectedEvent.location ? (
               <p className="text-sm text-charcoal/70 dark:text-navy-300">Location: {selectedEvent.location}</p>
             ) : null}

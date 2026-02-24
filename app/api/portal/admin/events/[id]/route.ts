@@ -16,6 +16,7 @@ const updateEventSchema = z
     end_time: timeSchema.nullable().optional(),
     location: z.string().max(255).nullable().optional(),
     event_type: eventTypeSchema.optional(),
+    timezone: z.string().min(1).max(120).optional(),
     is_visible: z.boolean().optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
@@ -46,6 +47,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
   if (body.end_time !== undefined) updates.end_time = body.end_time || null;
   if (body.location !== undefined) updates.location = body.location?.trim() || null;
   if (body.event_type !== undefined) updates.event_type = body.event_type;
+  if (body.timezone !== undefined) updates.timezone = body.timezone;
   if (body.is_visible !== undefined) updates.is_visible = body.is_visible;
 
   const admin = getSupabaseAdminClient();
