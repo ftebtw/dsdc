@@ -134,11 +134,13 @@ export default async function AdminDashboardPage() {
   );
 
   const allProfileIds = [
-    ...new Set([
-      ...todayExpectations.map((row) => row.coachId),
-      ...attendanceRows.map((row) => row.student_id),
-      ...attendanceRows.map((row) => row.marked_by),
-    ]),
+    ...new Set(
+      [
+        ...todayExpectations.map((row) => row.coachId),
+        ...attendanceRows.map((row) => row.student_id),
+        ...attendanceRows.map((row) => row.marked_by),
+      ].filter((id): id is string => Boolean(id))
+    ),
   ];
   const profileMap = await getProfileMap(supabase, allProfileIds);
 
@@ -271,12 +273,16 @@ export default async function AdminDashboardPage() {
         ) : (
           <div className="space-y-2">
             {checkinsToday.map((row) => (
+              (() => {
+                const coachProfile = row.coachId ? profileMap[row.coachId] : null;
+                const coachLabel = coachProfile?.display_name || coachProfile?.email || row.coachId || 'Unassigned';
+                return (
               <div
                 key={row.classId}
                 className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-3 text-sm"
               >
                 <span className="font-medium text-navy-800 dark:text-white">{row.className}</span> -{' '}
-                {profileMap[row.coachId]?.display_name || profileMap[row.coachId]?.email || row.coachId} -{' '}
+                {coachLabel} -{' '}
                 {row.checkedInAt ? (
                   <span className="text-green-700 dark:text-green-400">
                     {formatUtcForUser(row.checkedInAt, session.profile.timezone)}
@@ -285,6 +291,8 @@ export default async function AdminDashboardPage() {
                   <span className="text-red-700">Not checked in</span>
                 )}
               </div>
+                );
+              })()
             ))}
           </div>
         )}
@@ -308,11 +316,17 @@ export default async function AdminDashboardPage() {
               <p className="text-charcoal/70 dark:text-navy-300">No attendance updates yet.</p>
             ) : null}
             {attendanceRows.map((row) => (
-              <p key={row.id} className="text-charcoal/80 dark:text-navy-200">
-                {formatUtcForUser(row.marked_at, session.profile.timezone)} - {classMap[row.class_id]?.name || row.class_id} -{' '}
-                {profileMap[row.student_id]?.display_name || profileMap[row.student_id]?.email || row.student_id} - {row.status} -
-                by {profileMap[row.marked_by]?.display_name || profileMap[row.marked_by]?.email || row.marked_by}
-              </p>
+              (() => {
+                const markerProfile = row.marked_by ? profileMap[row.marked_by] : null;
+                const markerLabel = markerProfile?.display_name || markerProfile?.email || row.marked_by || 'Unknown';
+                return (
+                  <p key={row.id} className="text-charcoal/80 dark:text-navy-200">
+                    {formatUtcForUser(row.marked_at, session.profile.timezone)} - {classMap[row.class_id]?.name || row.class_id} -{' '}
+                    {profileMap[row.student_id]?.display_name || profileMap[row.student_id]?.email || row.student_id} - {row.status} -
+                    by {markerLabel}
+                  </p>
+                );
+              })()
             ))}
           </div>
         </SectionCard>

@@ -6,7 +6,10 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useUser } from "@/lib/hooks/useUser";
 import LanguageToggle from "./LanguageToggle";
+import NavDropdown from "./NavDropdown";
 import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
@@ -24,6 +27,7 @@ export default function Navbar() {
   const [isDesktop, setIsDesktop] = useState(false);
   const pathname = usePathname();
   const { t, locale } = useI18n();
+  const { user, loading } = useUser();
 
   const registerHref = `/register?lang=${locale === "zh" ? "zh" : "en"}`;
   const solidNavPages = ["/register", "/portal", "/payment", "/pricing"];
@@ -61,6 +65,13 @@ export default function Navbar() {
       document.body.style.overflow = prev;
     };
   }, [isOpen]);
+
+  async function handleMobileSignOut() {
+    const supabase = getSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    setIsOpen(false);
+    window.location.href = "/";
+  }
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navBackgroundClass}`}>
@@ -108,43 +119,19 @@ export default function Navbar() {
           </div>
 
           <div className="hidden lg:flex shrink-0 items-center gap-2">
-            <div
-              className={`mr-1 flex items-center gap-2 border-r pr-3 ${
-                navSolid ? "border-warm-300 dark:border-navy-600" : "border-white/30"
-              }`}
-            >
-              <ThemeToggle variant={navSolid ? "dark" : "light"} />
-              <LanguageToggle variant={navSolid ? "dark" : "light"} />
-            </div>
-
-            <Link
-              href="/portal/login"
-              className={`hidden xl:inline-flex rounded-full px-3 py-2 text-sm font-medium transition-colors ${
-                navSolid
-                  ? "text-navy-800 hover:text-navy-900 dark:text-navy-100 dark:hover:text-white"
-                  : "text-white/90 hover:text-white"
-              }`}
-            >
-              {t("nav.portalLogin")}
-            </Link>
-
-            <Link
-              href={registerHref}
-              className={`inline-flex rounded-full px-3.5 py-2 text-sm font-semibold transition-colors ${
-                navSolid
-                  ? "border border-warm-300 bg-warm-100 text-navy-900 hover:bg-warm-200 dark:border-navy-500 dark:bg-navy-800 dark:text-navy-100 dark:hover:bg-navy-700"
-                  : "border border-white/35 bg-white/10 text-white hover:bg-white/20"
-              }`}
-            >
-              {t("nav.register")}
-            </Link>
-
-            <Link
-              href="/book"
-              className="inline-flex rounded-full bg-gold-300 px-4 py-2 text-sm font-bold text-navy-900 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-gold-200 hover:shadow-lg"
-            >
-              {t("nav.book")}
-            </Link>
+            {loading ? (
+              <div className="h-8 w-8 animate-pulse rounded-full bg-warm-200 dark:bg-navy-700" />
+            ) : (
+              <>
+                <Link
+                  href="/book"
+                  className="inline-flex rounded-full bg-gold-300 px-4 py-2 text-sm font-bold text-navy-900 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-gold-200 hover:shadow-lg"
+                >
+                  {t("nav.book")}
+                </Link>
+                <NavDropdown user={user} variant={navSolid ? "dark" : "light"} />
+              </>
+            )}
           </div>
 
           <button
@@ -209,26 +196,78 @@ export default function Navbar() {
 
                 <div className="space-y-2 rounded-2xl border border-warm-200 p-4 dark:border-navy-700">
                   <p className="pb-1 text-xs font-semibold uppercase tracking-wide text-navy-600 dark:text-navy-200">
-                    Actions
+                    {user ? "Account" : "Actions"}
                   </p>
-                  <Link
-                    href={registerHref}
-                    className="block w-full rounded-lg border border-warm-300 px-4 py-3 text-center text-sm font-semibold text-navy-900 dark:border-navy-600 dark:text-navy-100"
-                  >
-                    {t("nav.register")}
-                  </Link>
-                  <Link
-                    href="/book"
-                    className="block w-full rounded-lg bg-gold-300 px-4 py-3 text-center text-sm font-bold text-navy-900"
-                  >
-                    {t("nav.book")}
-                  </Link>
-                  <Link
-                    href="/portal/login"
-                    className="block w-full rounded-lg border border-warm-300 px-4 py-3 text-center text-sm text-charcoal dark:border-navy-600 dark:text-navy-100"
-                  >
-                    {t("nav.portalLogin")}
-                  </Link>
+                  {loading ? (
+                    <div className="h-10 animate-pulse rounded-lg bg-warm-100 dark:bg-navy-800" />
+                  ) : user ? (
+                    <>
+                      <div className="flex items-center gap-3 px-2 py-2">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-800 font-bold text-white dark:bg-navy-600">
+                          {(user.displayName || "U").charAt(0).toUpperCase()}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-navy-900 dark:text-white">
+                            {user.displayName}
+                          </p>
+                          <p className="truncate text-xs text-charcoal/60 dark:text-navy-400">{user.email}</p>
+                        </div>
+                      </div>
+                      <Link
+                        href={
+                          user.role === "admin"
+                            ? "/portal/admin/dashboard"
+                            : user.role === "coach" || user.role === "ta"
+                              ? "/portal/coach/dashboard"
+                              : user.role === "parent"
+                                ? "/portal/parent/dashboard"
+                                : "/portal/student/classes"
+                        }
+                        onClick={() => setIsOpen(false)}
+                        className="block w-full rounded-lg border border-warm-300 px-4 py-3 text-center text-sm font-semibold text-navy-900 dark:border-navy-600 dark:text-navy-100"
+                      >
+                        Go to Portal
+                      </Link>
+                      <Link
+                        href="/book"
+                        onClick={() => setIsOpen(false)}
+                        className="block w-full rounded-lg bg-gold-300 px-4 py-3 text-center text-sm font-bold text-navy-900"
+                      >
+                        {t("nav.book")}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={handleMobileSignOut}
+                        className="block w-full rounded-lg border border-red-200 px-4 py-3 text-center text-sm text-red-600 dark:border-red-900 dark:text-red-400"
+                      >
+                        Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/portal/login"
+                        onClick={() => setIsOpen(false)}
+                        className="block w-full rounded-lg border border-warm-300 px-4 py-3 text-center text-sm font-semibold text-navy-900 dark:border-navy-600 dark:text-navy-100"
+                      >
+                        {t("nav.signIn") !== "nav.signIn" ? t("nav.signIn") : "Sign In"}
+                      </Link>
+                      <Link
+                        href={registerHref}
+                        onClick={() => setIsOpen(false)}
+                        className="block w-full rounded-lg border border-warm-300 px-4 py-3 text-center text-sm text-navy-900 dark:border-navy-600 dark:text-navy-100"
+                      >
+                        {t("nav.register")}
+                      </Link>
+                      <Link
+                        href="/book"
+                        onClick={() => setIsOpen(false)}
+                        className="block w-full rounded-lg bg-gold-300 px-4 py-3 text-center text-sm font-bold text-navy-900"
+                      >
+                        {t("nav.book")}
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>

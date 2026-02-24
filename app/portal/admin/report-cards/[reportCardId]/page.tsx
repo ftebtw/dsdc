@@ -48,6 +48,7 @@ export default async function AdminReportCardDetailPage({
       [row.student_id, row.written_by, row.reviewed_by].filter((value): value is string => Boolean(value))
     ),
   ]);
+  const writtenByProfile = row.written_by ? profileMap[row.written_by] : null;
 
   return (
     <div className="space-y-6">
@@ -65,7 +66,7 @@ export default async function AdminReportCardDetailPage({
           </p>
           <p>
             <span className="font-semibold">Written by:</span>{' '}
-            {profileMap[row.written_by]?.display_name || profileMap[row.written_by]?.email || row.written_by}
+            {writtenByProfile?.display_name || writtenByProfile?.email || row.written_by || 'Unknown'}
           </p>
           <p>
             <span className="font-semibold">Status:</span> <ReportCardStatusBadge status={row.status} />

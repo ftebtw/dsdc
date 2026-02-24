@@ -9,7 +9,8 @@
     "book": "预约咨询",
     "register": "立即报名",
     "portalLogin": "门户登录",
-    "langToggle": "EN"
+    "langToggle": "EN",
+    "signIn": "登录"
   },
   "hero": {
     "headline": "打破壁垒，建立自信",
@@ -466,9 +467,13 @@
     "subtitle": "1分钟内完成建档，选择课程并安全支付。",
     "studentRole": "我是学生",
     "parentRole": "我是家长",
+    "firstName": "名字",
+    "lastName": "姓氏",
     "displayName": "姓名",
     "email": "邮箱",
     "password": "密码",
+    "parentFirstName": "家长名字",
+    "parentLastName": "家长姓氏",
     "parentName": "家长姓名",
     "parentEmail": "家长邮箱",
     "parentPassword": "家长密码",
@@ -476,6 +481,8 @@
     "existingStudent": "关联已有学生",
     "existingStudentHint": "输入您孩子的电子邮箱。如果他们已有DSDC账户，您的账户将自动关联。",
     "existingStudentNotFound": "未找到该邮箱的学生账户。",
+    "studentFirstName": "学生名字",
+    "studentLastName": "学生姓氏",
     "studentName": "学生姓名",
     "studentEmail": "学生邮箱",
     "creating": "正在创建账户...",

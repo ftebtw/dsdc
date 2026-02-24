@@ -148,7 +148,9 @@ export default async function AdminReportCardsPage({
                 <td className="px-3 py-2">{classMap[row.class_id] || row.class_id}</td>
                 <td className="px-3 py-2">{termMap[row.term_id] || row.term_id}</td>
                 <td className="px-3 py-2">
-                  {profileMap[row.written_by]?.display_name || profileMap[row.written_by]?.email || row.written_by}
+                  {row.written_by
+                    ? profileMap[row.written_by]?.display_name || profileMap[row.written_by]?.email || row.written_by
+                    : 'Unknown'}
                 </td>
                 <td className="px-3 py-2">
                   <ReportCardStatusBadge status={row.status} />

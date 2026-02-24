@@ -69,7 +69,7 @@ export type Database = {
           class_id: string
           id: string
           marked_at: string
-          marked_by: string
+          marked_by: string | null
           session_date: string
           status: Database["public"]["Enums"]["attendance_status"]
           student_id: string
@@ -79,7 +79,7 @@ export type Database = {
           class_id: string
           id?: string
           marked_at?: string
-          marked_by: string
+          marked_by?: string | null
           session_date: string
           status?: Database["public"]["Enums"]["attendance_status"]
           student_id: string
@@ -89,7 +89,7 @@ export type Database = {
           class_id?: string
           id?: string
           marked_at?: string
-          marked_by?: string
+          marked_by?: string | null
           session_date?: string
           status?: Database["public"]["Enums"]["attendance_status"]
           student_id?: string
@@ -124,7 +124,7 @@ export type Database = {
           class_type: Database["public"]["Enums"]["class_type"]
           created_at: string
           id: string
-          issued_by: string
+          issued_by: string | null
           reason: string
           redeemed: boolean
           redeemed_at: string | null
@@ -135,7 +135,7 @@ export type Database = {
           class_type: Database["public"]["Enums"]["class_type"]
           created_at?: string
           id?: string
-          issued_by: string
+          issued_by?: string | null
           reason: string
           redeemed?: boolean
           redeemed_at?: string | null
@@ -146,7 +146,7 @@ export type Database = {
           class_type?: Database["public"]["Enums"]["class_type"]
           created_at?: string
           id?: string
-          issued_by?: string
+          issued_by?: string | null
           reason?: string
           redeemed?: boolean
           redeemed_at?: string | null
@@ -171,7 +171,7 @@ export type Database = {
       }
       classes: {
         Row: {
-          coach_id: string
+          coach_id: string | null
           created_at: string
           description: string | null
           eligible_sub_tier: Database["public"]["Enums"]["coach_tier"]
@@ -187,7 +187,7 @@ export type Database = {
           zoom_link: string | null
         }
         Insert: {
-          coach_id: string
+          coach_id?: string | null
           created_at?: string
           description?: string | null
           eligible_sub_tier: Database["public"]["Enums"]["coach_tier"]
@@ -203,7 +203,7 @@ export type Database = {
           zoom_link?: string | null
         }
         Update: {
-          coach_id?: string
+          coach_id?: string | null
           created_at?: string
           description?: string | null
           eligible_sub_tier?: Database["public"]["Enums"]["coach_tier"]
@@ -381,6 +381,7 @@ export type Database = {
       }
       enrollments: {
         Row: {
+          approval_expires_at: string | null
           class_id: string
           created_at: string
           enrolled_at: string
@@ -394,6 +395,7 @@ export type Database = {
           student_id: string
         }
         Insert: {
+          approval_expires_at?: string | null
           class_id: string
           created_at?: string
           enrolled_at?: string
@@ -407,6 +409,7 @@ export type Database = {
           student_id: string
         }
         Update: {
+          approval_expires_at?: string | null
           class_id?: string
           created_at?: string
           enrolled_at?: string
@@ -430,6 +433,59 @@ export type Database = {
           {
             foreignKeyName: "enrollments_student_id_fkey"
             columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_time: string | null
+          event_date: string
+          event_type: string
+          id: string
+          is_visible: boolean
+          location: string | null
+          start_time: string | null
+          timezone: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          event_type?: string
+          id?: string
+          is_visible?: boolean
+          location?: string | null
+          start_time?: string | null
+          timezone?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          is_visible?: boolean
+          location?: string | null
+          start_time?: string | null
+          timezone?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -859,7 +915,7 @@ export type Database = {
           status: Database["public"]["Enums"]["report_card_status"]
           student_id: string
           term_id: string
-          written_by: string
+          written_by: string | null
         }
         Insert: {
           class_id: string
@@ -872,7 +928,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["report_card_status"]
           student_id: string
           term_id: string
-          written_by: string
+          written_by?: string | null
         }
         Update: {
           class_id?: string
@@ -885,7 +941,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["report_card_status"]
           student_id?: string
           term_id?: string
-          written_by?: string
+          written_by?: string | null
         }
         Relationships: [
           {
@@ -980,7 +1036,7 @@ export type Database = {
           id: string
           reason: string | null
           reported_at: string
-          reported_by: string
+          reported_by: string | null
           session_date: string
           student_id: string
         }
@@ -990,7 +1046,7 @@ export type Database = {
           id?: string
           reason?: string | null
           reported_at?: string
-          reported_by: string
+          reported_by?: string | null
           session_date: string
           student_id: string
         }
@@ -1000,7 +1056,7 @@ export type Database = {
           id?: string
           reason?: string | null
           reported_at?: string
-          reported_by?: string
+          reported_by?: string | null
           session_date?: string
           student_id?: string
         }

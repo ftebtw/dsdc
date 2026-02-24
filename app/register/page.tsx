@@ -11,7 +11,23 @@ export default async function RegisterPage() {
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect("/register/classes");
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const role = profile?.role || "student";
+    const portalHome =
+      role === "admin"
+        ? "/portal/admin/dashboard"
+        : role === "coach" || role === "ta"
+          ? "/portal/coach/dashboard"
+          : role === "parent"
+            ? "/portal/parent/dashboard"
+            : "/portal/student/classes";
+
+    redirect(portalHome);
   }
 
   return (

@@ -46,12 +46,13 @@ export async function getTodayClassesForCoach(
   return classes.filter((classRow) => isClassToday(classRow, now));
 }
 
-export async function getProfileMap(supabase: Client, ids: string[]) {
-  if (ids.length === 0) return {} as Record<string, Database['public']['Tables']['profiles']['Row']>;
+export async function getProfileMap(supabase: Client, ids: Array<string | null | undefined>) {
+  const normalizedIds = [...new Set(ids.filter((id): id is string => Boolean(id)))];
+  if (normalizedIds.length === 0) return {} as Record<string, Database['public']['Tables']['profiles']['Row']>;
   const { data } = await supabase
     .from('profiles')
     .select('*')
-    .in('id', ids);
+    .in('id', normalizedIds);
 
   const map: Record<string, Database['public']['Tables']['profiles']['Row']> = {};
   for (const profile of data ?? []) {
