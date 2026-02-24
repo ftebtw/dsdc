@@ -185,7 +185,9 @@ export default async function RegisterClassesPage({
   ]);
 
   const enrollmentRows = (enrollmentsData ?? []) as any[];
-  const studentEnrollments = new Set((studentEnrollmentsData ?? []).map((row: any) => row.class_id as string));
+  const studentEnrollments = new Set<string>(
+    (studentEnrollmentsData ?? []).map((row: any) => row.class_id as string)
+  );
   const enrollmentCountByClass = new Map<string, number>();
   for (const row of enrollmentRows) {
     const previous = enrollmentCountByClass.get(row.class_id) ?? 0;
@@ -225,6 +227,7 @@ export default async function RegisterClassesPage({
       };
     })
     .filter((row) => row.spotsRemaining > 0 || row.alreadyEnrolled);
+  const enrolledClassIds = Array.from(studentEnrollments);
   const totalWeeks =
     typeof activeTerm.weeks === "number" && activeTerm.weeks > 0
       ? activeTerm.weeks
@@ -248,6 +251,7 @@ export default async function RegisterClassesPage({
           totalWeeks={totalWeeks}
           classPrices={classPrices}
           classes={classOptions}
+          enrolledClassIds={enrolledClassIds}
           localeHint={params.lang === "zh" ? "zh" : profile.locale === "zh" ? "zh" : "en"}
         />
       </div>

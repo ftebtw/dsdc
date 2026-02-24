@@ -529,7 +529,17 @@
       "sentAt": "已标记发送时间",
       "expired": "您的预留已过期。",
       "registerAgain": "重新注册"
-    }
+    },
+    "skipToPortal": "继续前往门户 - 一切准备就绪",
+    "privateOnly": "我只需要私人辅导 -> 预约咨询",
+    "or": "或",
+    "bookConsult": "预约免费咨询",
+    "consultNote": "我们将帮助您找到合适的课程或安排私人辅导。",
+    "existingStudentToggle": "我本学期已注册班级",
+    "existingStudentToggleHint": "我已经付过款了 - 只需要将我的账户与当前班级关联。",
+    "selectCurrentClasses": "选择您当前的班级",
+    "existingStudentInfo": "选择您当前正在参加的课程。管理员将验证您的注册并激活您的门户访问权限。无需付款。",
+    "linkMyClasses": "关联我的班级"
   },
   "portal": {
     "parent": {

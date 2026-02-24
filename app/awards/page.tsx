@@ -296,6 +296,16 @@ export default function AwardsPage() {
           >
             {t("awardsPage.subtitle")}
           </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mt-3 text-sm md:text-base text-white/60 font-sans max-w-3xl mx-auto"
+          >
+            {locale === "zh"
+              ? "注：本页面展示的是部分获奖亮点，并非所有学生奖项的完整名单。"
+              : "Note: this page shows selected award highlights, not a complete list of all student awards."}
+          </motion.p>
         </div>
       </section>
 

@@ -498,6 +498,11 @@
     "allEnrolled": "All set! Your student is already enrolled in all available classes.",
     "allEnrolledHint": "You can manage enrollments in the portal.",
     "goToPortal": "Go to Portal",
+    "skipToPortal": "Continue to Portal - I'm all set",
+    "privateOnly": "I only need private coaching -> Book a consultation",
+    "or": "or",
+    "bookConsult": "Book a Free Consultation",
+    "consultNote": "We'll help you find the right class or set up private coaching.",
     "noClasses": "No classes with open spots are available right now.",
     "payByCard": "Pay with Card",
     "payByEtransfer": "Pay by E-Transfer",
@@ -529,7 +534,12 @@
       "registerAgain": "Register again"
     },
     "successTitle": "You're enrolled!",
-    "successSubtitle": "Payment is complete. Class details were emailed to you."
+    "successSubtitle": "Payment is complete. Class details were emailed to you.",
+    "existingStudentToggle": "I'm already enrolled in classes this term",
+    "existingStudentToggleHint": "I've already paid - I just need to link my account to my current classes.",
+    "selectCurrentClasses": "Select your current classes",
+    "existingStudentInfo": "Select the classes you're currently attending. An admin will verify your enrollment and activate your portal access. No payment is required.",
+    "linkMyClasses": "Link My Classes"
   },
   "portal": {
     "parent": {
