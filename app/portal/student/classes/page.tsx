@@ -20,6 +20,25 @@ export default async function StudentClassesPage() {
     );
   }
 
+  const quickLinks = (
+    <SectionCard title="Quick Links" description="Use these pages to manage your term.">
+      <div className="flex flex-wrap gap-2">
+        <Link href="/portal/student/attendance" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+          Attendance
+        </Link>
+        <Link href="/portal/student/resources" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+          Resources
+        </Link>
+        <Link href="/portal/student/absent" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+          Report Absence
+        </Link>
+        <Link href="/portal/student/credits" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+          Class Credits
+        </Link>
+      </div>
+    </SectionCard>
+  );
+
   const { data: enrollmentRowsData } = await supabase
     .from('enrollments')
     .select('class_id,status')
@@ -28,41 +47,49 @@ export default async function StudentClassesPage() {
   const enrollmentRows = (enrollmentRowsData ?? []) as Array<Record<string, any>>;
   const classIds = enrollmentRows.map((row: any) => row.class_id);
 
-  const classes = classIds.length
-    ? (((await supabase
+  if (classIds.length === 0) {
+    return (
+      <div className="space-y-6">
+        <SectionCard title="My Classes" description={`${activeTerm.name} term schedule and Zoom access.`}>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">You are not enrolled in active classes yet.</p>
+        </SectionCard>
+        {quickLinks}
+      </div>
+    );
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const [{ data: classesData }, { data: subRequestsData }, { data: taRequestsData }] =
+    await Promise.all([
+      supabase
         .from('classes')
         .select('*')
         .in('id', classIds)
         .eq('term_id', activeTerm.id)
-        .order('schedule_day')).data ?? []) as Array<Record<string, any>>)
-    : ([] as Array<Record<string, any>>);
-
-  const coachIds = [...new Set(classes.map((classRow: any) => classRow.coach_id))];
-  const coachMap = await getProfileMap(supabase, coachIds);
-
-  const today = new Date().toISOString().slice(0, 10);
-  const subRequests = classIds.length
-    ? (((await supabase
+        .order('schedule_day'),
+      supabase
         .from('sub_requests')
         .select('class_id,accepting_coach_id,session_date,status')
         .in('class_id', classIds)
         .eq('status', 'accepted')
         .gte('session_date', today)
-        .order('session_date', { ascending: true })).data ?? []) as Array<Record<string, any>>)
-    : ([] as Array<Record<string, any>>);
-  const taRequests = classIds.length
-    ? (((await supabase
+        .order('session_date', { ascending: true }),
+      supabase
         .from('ta_requests')
         .select('class_id,accepting_ta_id,session_date,status')
         .in('class_id', classIds)
         .eq('status', 'accepted')
         .gte('session_date', today)
-        .order('session_date', { ascending: true })).data ?? []) as Array<Record<string, any>>)
-    : ([] as Array<Record<string, any>>);
+        .order('session_date', { ascending: true }),
+    ]);
 
+  const classes = (classesData ?? []) as Array<Record<string, any>>;
+  const subRequests = (subRequestsData ?? []) as Array<Record<string, any>>;
+  const taRequests = (taRequestsData ?? []) as Array<Record<string, any>>;
+  const coachIds = [...new Set(classes.map((classRow: any) => classRow.coach_id))];
   const subCoachIds = [...new Set(subRequests.map((row: any) => row.accepting_coach_id).filter(Boolean))];
   const taIds = [...new Set(taRequests.map((row: any) => row.accepting_ta_id).filter(Boolean))];
-  const subCoachMap = await getProfileMap(supabase, [...subCoachIds, ...taIds]);
+  const profileMap = await getProfileMap(supabase, [...new Set([...coachIds, ...subCoachIds, ...taIds])]);
   const nextSubByClass = new Map<string, any>();
   for (const subRequest of subRequests) {
     if (!nextSubByClass.has(subRequest.class_id)) {
@@ -84,7 +111,7 @@ export default async function StudentClassesPage() {
         ) : (
           <div className="space-y-4">
             {classes.map((classRow: any) => {
-              const coach = coachMap[classRow.coach_id];
+              const coach = profileMap[classRow.coach_id];
               const nextSub = nextSubByClass.get(classRow.id);
               const nextTa = nextTaByClass.get(classRow.id);
               return (
@@ -121,16 +148,16 @@ export default async function StudentClassesPage() {
                   {nextSub ? (
                     <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
                       Substitute coach on {nextSub.session_date}:{' '}
-                      {subCoachMap[nextSub.accepting_coach_id]?.display_name ||
-                        subCoachMap[nextSub.accepting_coach_id]?.email ||
+                      {profileMap[nextSub.accepting_coach_id]?.display_name ||
+                        profileMap[nextSub.accepting_coach_id]?.email ||
                         nextSub.accepting_coach_id}
                     </p>
                   ) : null}
                   {nextTa ? (
                     <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
                       TA on {nextTa.session_date}:{' '}
-                      {subCoachMap[nextTa.accepting_ta_id]?.display_name ||
-                        subCoachMap[nextTa.accepting_ta_id]?.email ||
+                      {profileMap[nextTa.accepting_ta_id]?.display_name ||
+                        profileMap[nextTa.accepting_ta_id]?.email ||
                         nextTa.accepting_ta_id}
                     </p>
                   ) : null}
@@ -141,22 +168,7 @@ export default async function StudentClassesPage() {
         )}
       </SectionCard>
 
-      <SectionCard title="Quick Links" description="Use these pages to manage your term.">
-        <div className="flex flex-wrap gap-2">
-          <Link href="/portal/student/attendance" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-            Attendance
-          </Link>
-          <Link href="/portal/student/resources" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-            Resources
-          </Link>
-          <Link href="/portal/student/absent" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-            Report Absence
-          </Link>
-          <Link href="/portal/student/credits" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-            Class Credits
-          </Link>
-        </div>
-      </SectionCard>
+      {quickLinks}
     </div>
   );
 }

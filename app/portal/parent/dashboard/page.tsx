@@ -19,21 +19,18 @@ export default async function ParentDashboardPage({
   const supabase = await getSupabaseServerClient();
   const locale = session.profile.locale === 'zh' ? 'zh' : 'en';
 
-  const { linkedStudents, selectedStudentId, selectedStudent } = await getParentSelection(
-    supabase,
-    session.userId,
-    params.student
-  );
-  const inviteCodes = (
-    (
-      await supabase
-        .from('invite_codes')
-        .select('id,code,expires_at,claimed_at,claimed_by,created_at')
-        .eq('parent_id', session.userId)
-        .order('created_at', { ascending: false })
-        .limit(10)
-    ).data ?? []
-  ) as Array<{
+  const [parentSelection, { data: inviteCodesData }] = await Promise.all([
+    getParentSelection(supabase, session.userId, params.student),
+    supabase
+      .from('invite_codes')
+      .select('id,code,expires_at,claimed_at,claimed_by,created_at')
+      .eq('parent_id', session.userId)
+      .order('created_at', { ascending: false })
+      .limit(10),
+  ]);
+
+  const { linkedStudents, selectedStudentId, selectedStudent } = parentSelection;
+  const inviteCodes = (inviteCodesData ?? []) as Array<{
     id: string;
     code: string;
     expires_at: string;
@@ -76,30 +73,36 @@ export default async function ParentDashboardPage({
     redirect(`/portal/parent/dashboard?student=${selectedStudentId}`);
   }
 
-  const activeTerm = await getActiveTerm(supabase);
+  const [activeTerm, { data: enrollmentRowsData }] = await Promise.all([
+    getActiveTerm(supabase),
+    supabase
+      .from('enrollments')
+      .select('class_id,status')
+      .eq('student_id', selectedStudentId)
+      .eq('status', 'active'),
+  ]);
 
-  const enrollmentRows = ((await supabase
-    .from('enrollments')
-    .select('class_id,status')
-    .eq('student_id', selectedStudentId)
-    .eq('status', 'active')).data ?? []) as Array<Record<string, any>>;
+  const enrollmentRows = (enrollmentRowsData ?? []) as Array<Record<string, any>>;
 
   const classIds = enrollmentRows.map((row: any) => row.class_id);
-  const activeClasses = activeTerm && classIds.length
-    ? (((await supabase
-        .from('classes')
-        .select('id,name,term_id')
-        .in('id', classIds)
-        .eq('term_id', activeTerm.id)).data ?? []) as Array<Record<string, any>>)
-    : ([] as Array<Record<string, any>>);
+  const [{ data: activeClassesData }, { data: attendanceRowsData }] =
+    classIds.length && activeTerm
+      ? await Promise.all([
+          supabase
+            .from('classes')
+            .select('id,name,term_id')
+            .in('id', classIds)
+            .eq('term_id', activeTerm.id),
+          supabase
+            .from('attendance_records')
+            .select('status')
+            .eq('student_id', selectedStudentId)
+            .in('class_id', classIds),
+        ])
+      : [{ data: [] }, { data: [] }];
 
-  const attendanceRows = classIds.length
-    ? (((await supabase
-        .from('attendance_records')
-        .select('status')
-        .eq('student_id', selectedStudentId)
-        .in('class_id', classIds)).data ?? []) as Array<Record<string, any>>)
-    : ([] as Array<Record<string, any>>);
+  const activeClasses = (activeClassesData ?? []) as Array<Record<string, any>>;
+  const attendanceRows = (attendanceRowsData ?? []) as Array<Record<string, any>>;
 
   const absentCount = attendanceRows.filter((row: any) => row.status === 'absent').length;
   const presentCount = attendanceRows.filter((row: any) => row.status === 'present').length;

@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 import { Calendar, Clock, Video, CheckCircle } from "lucide-react";
-import Script from "next/script";
 import { useI18n } from "@/lib/i18n";
 import ContactForm from "@/components/ContactForm";
 import AnimatedSection from "@/components/AnimatedSection";
+import CalendlyEmbed from "@/components/CalendlyEmbed";
 
 export default function BookPage() {
   const { t, messages } = useI18n();
@@ -59,16 +59,8 @@ export default function BookPage() {
                   </div>
 
                   <div className="rounded-xl overflow-hidden border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900">
-                    <div
-                      className="calendly-inline-widget"
-                      data-url="https://calendly.com/rebecca-dsdc"
-                      style={{ minWidth: "320px", height: "700px" }}
-                    />
+                    <CalendlyEmbed />
                   </div>
-                  <Script
-                    src="https://assets.calendly.com/assets/external/widget.js"
-                    strategy="afterInteractive"
-                  />
 
                   <div className="flex flex-wrap gap-4 mt-6">
                     <div className="flex items-center gap-2 text-sm text-charcoal/60 dark:text-navy-300">
