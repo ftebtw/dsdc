@@ -492,6 +492,59 @@ export type Database = {
           },
         ]
       }
+      calendar_events: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string
+          description: string | null
+          end_time: string
+          event_date: string
+          id: string
+          is_all_day: boolean
+          start_time: string
+          timezone: string
+          title: string
+          visibility: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_time: string
+          event_date: string
+          id?: string
+          is_all_day?: boolean
+          start_time: string
+          timezone?: string
+          title: string
+          visibility?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_time?: string
+          event_date?: string
+          id?: string
+          is_all_day?: boolean
+          start_time?: string
+          timezone?: string
+          title?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invite_codes: {
         Row: {
           claimed_at: string | null

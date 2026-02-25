@@ -508,7 +508,7 @@ export default function PortalShell({
           title: copy.adminOverview,
           items: [
             { href: "/portal/admin/dashboard", label: copy.dashboard, icon: LayoutDashboard },
-            { href: "/portal/calendar", label: copy.calendar, icon: CalendarDays },
+            { href: "/portal/admin/calendar", label: copy.calendar, icon: CalendarDays },
             { href: "/portal/admin/terms", label: copy.terms, icon: Calendar },
             { href: "/portal/admin/classes", label: copy.allClasses, icon: BookOpen },
             { href: "/portal/admin/report-cards", label: copy.reportCards, icon: GraduationCap },
@@ -555,7 +555,7 @@ export default function PortalShell({
           title: copy.teaching,
           items: [
             { href: "/portal/coach/dashboard", label: copy.dashboard, icon: LayoutDashboard },
-            { href: "/portal/calendar", label: copy.calendar, icon: CalendarDays },
+            { href: "/portal/coach/calendar", label: copy.calendar, icon: CalendarDays },
             { href: "/portal/coach/checkin", label: copy.checkin, icon: ClipboardCheck },
             { href: "/portal/coach/classes", label: copy.myClasses, icon: BookOpen },
             { href: "/portal/coach/report-cards", label: copy.reportCards, icon: GraduationCap },
