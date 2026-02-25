@@ -1,10 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { redirect } from 'next/navigation';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
+import { parentHasEnrolledStudent } from '@/lib/portal/enrollment-status';
 import { getParentSelection } from '@/lib/portal/parent';
 import { parentT } from '@/lib/portal/parent-i18n';
 import { formatUtcForUser } from '@/lib/portal/time';
@@ -38,6 +40,19 @@ export default async function ParentReportCardsPage({
 
   if (!selectedStudentId || params.student !== selectedStudentId) {
     redirect(`/portal/parent/report-cards?student=${selectedStudentId}`);
+  }
+  const enrollmentState = await parentHasEnrolledStudent(supabase as any, session.userId);
+  if (!enrollmentState.hasEnrolled) {
+    return (
+      <SectionCard
+        title={parentT(locale, 'portal.parent.reportCards.title', 'Report Cards')}
+        description={`${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
+          selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
+        }`}
+      >
+        <EnrollmentRequiredBanner role="parent" locale={locale} />
+      </SectionCard>
+    );
   }
 
   const { data: rowsData } = await supabase

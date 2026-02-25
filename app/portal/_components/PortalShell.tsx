@@ -82,6 +82,7 @@ type PortalCopy = {
   parents: string;
   coaches: string;
   enroll: string;
+  enrollClasses: string;
   createUser: string;
   legalDocs: string;
   teaching: string;
@@ -157,6 +158,7 @@ const portalLabel: Record<"en" | "zh", PortalCopy> = {
     parents: "Parents",
     coaches: "Coaches",
     enroll: "Enroll",
+    enrollClasses: "Enroll in Classes",
     createUser: "Create User",
     legalDocs: "Legal Docs",
     teaching: "Teaching",
@@ -205,6 +207,7 @@ const portalLabel: Record<"en" | "zh", PortalCopy> = {
     parents: "\u5bb6\u957f",
     coaches: "\u6559\u7ec3",
     enroll: "\u6ce8\u518c",
+    enrollClasses: "\u62a5\u540d\u8bfe\u7a0b",
     createUser: "\u521b\u5efa\u7528\u6237",
     legalDocs: "\u6cd5\u5f8b\u6587\u4ef6",
     teaching: "\u6559\u5b66",
@@ -584,6 +587,7 @@ export default function PortalShell({
         {
           title: copy.learning,
           items: [
+            { href: "/portal/student/enroll", label: copy.enrollClasses, icon: GraduationCap },
             { href: "/portal/calendar", label: copy.calendar, icon: CalendarDays },
             { href: "/portal/student/classes", label: copy.myClasses, icon: BookOpen },
             { href: "/portal/student/attendance", label: copy.attendance, icon: ClipboardCheck },
@@ -620,6 +624,7 @@ export default function PortalShell({
           items: [
             { href: "/portal/calendar", label: copy.calendar, icon: CalendarDays },
             { href: "/portal/parent/dashboard", label: copy.dashboard, icon: Home },
+            { href: "/portal/parent/enroll", label: copy.enrollClasses, icon: GraduationCap },
             { href: "/portal/parent/classes", label: copy.classes, icon: BookOpen },
             { href: "/portal/parent/attendance", label: copy.attendance, icon: ClipboardCheck },
             { href: "/portal/parent/resources", label: copy.resources, icon: FileText },

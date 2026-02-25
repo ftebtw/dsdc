@@ -1,8 +1,10 @@
 export const dynamic = 'force-dynamic';
 
 import SectionCard from '@/app/portal/_components/SectionCard';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import ResourceList from '@/app/portal/_components/ResourceList';
 import { requireRole } from '@/lib/portal/auth';
+import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 
@@ -31,6 +33,14 @@ export default async function StudentResourcesPage({
   const session = await requireRole(['student']);
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
+  const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
+  if (!enrolled) {
+    return (
+      <SectionCard title="Resources" description="Class materials and recordings posted by coaches.">
+        <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
+      </SectionCard>
+    );
+  }
 
   const enrollmentRows = ((await supabase
     .from('enrollments')

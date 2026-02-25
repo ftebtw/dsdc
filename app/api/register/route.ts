@@ -17,66 +17,40 @@ const studentSchema = baseSchema.extend({
   role: z.literal("student"),
   firstName: z.string().max(80).optional(),
   lastName: z.string().max(80).optional(),
-  displayName: z.string().max(120).optional(), // legacy compatibility
+  displayName: z.string().max(120).optional(),
   email: z.string().email(),
   password: z.string().min(8).max(128),
 });
 
 const parentSchema = baseSchema.extend({
   role: z.literal("parent"),
-  parentFirstName: z.string().max(80).optional(),
-  parentLastName: z.string().max(80).optional(),
-  parentDisplayName: z.string().max(120).optional(), // legacy compatibility
+  parentDisplayName: z.string().min(1).max(120),
   parentEmail: z.string().email(),
   parentPassword: z.string().min(8).max(128),
-  studentFirstName: z.string().max(80).optional(),
-  studentLastName: z.string().max(80).optional(),
-  studentName: z.string().max(120).optional(),
-  studentEmail: z.string().email(),
-  studentMode: z.enum(["new", "existing"]).default("new"),
 });
 
-const bodySchema = z.discriminatedUnion("role", [studentSchema, parentSchema]).superRefine((value, ctx) => {
-  if (value.role === "student") {
-    const displayName = buildDisplayName(value.firstName, value.lastName, value.displayName);
-    if (!displayName) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["firstName"],
-        message: "Student first and last name are required.",
-      });
-    }
-  }
-
-  if (value.role === "parent") {
-    const parentDisplayName = buildDisplayName(
-      value.parentFirstName,
-      value.parentLastName,
-      value.parentDisplayName
-    );
-    if (!parentDisplayName) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["parentFirstName"],
-        message: "Parent first and last name are required.",
-      });
-    }
-    if ((value.studentMode ?? "new") === "new") {
-      const studentDisplayName = buildDisplayName(
-        value.studentFirstName,
-        value.studentLastName,
-        value.studentName
-      );
-      if (!studentDisplayName) {
+const bodySchema = z
+  .discriminatedUnion("role", [studentSchema, parentSchema])
+  .superRefine((value, ctx) => {
+    if (value.role === "student") {
+      const displayName = buildDisplayName(value.firstName, value.lastName, value.displayName);
+      if (!displayName) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["studentFirstName"],
+          path: ["firstName"],
           message: "Student first and last name are required.",
         });
       }
     }
-  }
-});
+
+    if (value.role === "parent" && !value.parentDisplayName.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["parentDisplayName"],
+        message: "Parent name is required.",
+      });
+    }
+  });
 
 type ParsedBody = z.infer<typeof bodySchema>;
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -126,25 +100,14 @@ async function upsertProfile(
   if (error) throw new Error(error.message);
 }
 
-async function findAuthUserByEmail(
+async function sendVerificationEmail(
   admin: any,
-  email: string
-): Promise<{ id: string; email: string } | null> {
-  const normalized = email.trim().toLowerCase();
-  const { data, error } = await admin
-    .from("profiles")
-    .select("id,email")
-    .eq("email", normalized)
-    .maybeSingle();
-  if (error || !data) return null;
-  return data;
-}
-
-async function sendVerificationEmail(admin: any, input: {
-  email: string;
-  displayName: string;
-  locale: "en" | "zh";
-}) {
+  input: {
+    email: string;
+    displayName: string;
+    locale: "en" | "zh";
+  }
+) {
   const portalBase = getPortalAppUrl().replace(/\/$/, "");
   const { data, error } = await admin.auth.admin.generateLink({
     type: "signup",
@@ -181,6 +144,7 @@ async function sendVerificationEmail(admin: any, input: {
 
 async function createStudentRegistration(admin: any, body: ParsedBody) {
   if (body.role !== "student") return null;
+
   const studentDisplayName = buildDisplayName(body.firstName, body.lastName, body.displayName);
   if (!studentDisplayName) throw new Error("Student first and last name are required.");
 
@@ -196,6 +160,7 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
     },
   });
   if (error) throw new Error(error.message);
+
   const userId = data.user?.id;
   if (!userId) throw new Error("Unable to create student account.");
 
@@ -222,6 +187,8 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
     parentId: null,
     studentNeedsPasswordSetup: false,
     role: "student" as const,
+    loginEmail: body.email,
+    loginPassword: body.password,
     verificationSent: true,
     verificationEmail: body.email,
   };
@@ -229,44 +196,14 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
 
 async function createParentRegistration(admin: any, body: ParsedBody) {
   if (body.role !== "parent") return null;
-  const studentMode = body.studentMode ?? "new";
-  const parentDisplayName = buildDisplayName(
-    body.parentFirstName,
-    body.parentLastName,
-    body.parentDisplayName
-  );
-  if (!parentDisplayName) throw new Error("Parent first and last name are required.");
-  const requestedStudentDisplayName = buildDisplayName(
-    body.studentFirstName,
-    body.studentLastName,
-    body.studentName
-  );
-  if (studentMode === "new" && !requestedStudentDisplayName) {
-    throw new Error("Student first and last name are required.");
-  }
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://dsdc.ca";
 
-  const existingStudentUser = await findAuthUserByEmail(admin, body.studentEmail);
-  if (studentMode === "existing" && !existingStudentUser) {
-    throw new Error("No student account found with this email. Please use 'Register New Student' instead.");
-  }
-
-  if (existingStudentUser) {
-    const { data: existingProfile, error: existingProfileError } = await admin
-      .from("profiles")
-      .select("id,role")
-      .eq("id", existingStudentUser.id)
-      .maybeSingle();
-    if (existingProfileError) throw new Error(existingProfileError.message);
-    if (existingProfile && existingProfile.role !== "student") {
-      throw new Error("Student email is already used by a non-student account.");
-    }
-  }
+  const parentDisplayName = body.parentDisplayName.trim();
+  if (!parentDisplayName) throw new Error("Parent name is required.");
 
   const parentResult = await admin.auth.admin.createUser({
     email: body.parentEmail,
     password: body.parentPassword,
-    email_confirm: false,
+    email_confirm: true,
     user_metadata: {
       role: "parent",
       display_name: parentDisplayName,
@@ -275,6 +212,7 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
     },
   });
   if (parentResult.error) throw new Error(parentResult.error.message);
+
   const parentId = parentResult.data.user?.id;
   if (!parentId) throw new Error("Unable to create parent account.");
 
@@ -290,84 +228,13 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
     })
   );
 
-  await sendVerificationEmail(admin, {
-    email: body.parentEmail,
-    displayName: parentDisplayName,
-    locale: body.locale,
-  });
-
-  let studentId = "";
-  let studentNeedsPasswordSetup = false;
-
-  if (existingStudentUser) {
-    studentId = existingStudentUser.id;
-    const { data: existingProfile, error: existingProfileError } = await admin
-      .from("profiles")
-      .select("id,role,email,display_name,locale,timezone")
-      .eq("id", studentId)
-      .maybeSingle();
-    if (existingProfileError) throw new Error(existingProfileError.message);
-    if (existingProfile && existingProfile.role !== "student") {
-      throw new Error("Student email is already used by a non-student account.");
-    }
-
-    await upsertProfile(
-      admin,
-      profilePayload({
-        id: studentId,
-        email: body.studentEmail,
-        role: "student",
-        displayName:
-          existingProfile?.display_name || requestedStudentDisplayName || body.studentEmail,
-        locale: existingProfile?.locale === "zh" ? "zh" : body.locale,
-        timezone: existingProfile?.timezone || body.timezone,
-      })
-    );
-  } else {
-    const newStudentDisplayName = requestedStudentDisplayName ?? body.studentEmail;
-    const invite = await admin.auth.admin.inviteUserByEmail(body.studentEmail, {
-      data: {
-        role: "student",
-        display_name: newStudentDisplayName,
-        locale: body.locale,
-        timezone: body.timezone,
-      },
-      redirectTo: `${siteUrl}/auth/callback?type=invite`,
-    });
-    if (invite.error) throw new Error(invite.error.message);
-    studentId = invite.data.user?.id ?? "";
-    if (!studentId) throw new Error("Unable to create student account.");
-    studentNeedsPasswordSetup = true;
-
-    await upsertProfile(
-      admin,
-      profilePayload({
-        id: studentId,
-        email: body.studentEmail,
-        role: "student",
-        displayName: newStudentDisplayName,
-        locale: body.locale,
-        timezone: body.timezone,
-      })
-    );
-  }
-
-  const { error: linkError } = await admin.from("parent_student_links").upsert(
-    {
-      parent_id: parentId,
-      student_id: studentId,
-    },
-    { onConflict: "parent_id,student_id" }
-  );
-  if (linkError) throw new Error(linkError.message);
-
   return {
-    studentId,
+    studentId: "",
     parentId,
-    studentNeedsPasswordSetup,
+    studentNeedsPasswordSetup: false,
     role: "parent" as const,
-    verificationSent: true,
-    verificationEmail: body.parentEmail,
+    loginEmail: body.parentEmail,
+    loginPassword: body.parentPassword,
   };
 }
 

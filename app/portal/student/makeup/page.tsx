@@ -1,8 +1,10 @@
 export const dynamic = 'force-dynamic';
 
 import SectionCard from '@/app/portal/_components/SectionCard';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
+import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
 import { classTypeLabel } from '@/lib/portal/labels';
 import { formatClassScheduleForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -10,6 +12,17 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 export default async function StudentMakeupPage() {
   const session = await requireRole(['student']);
   const supabase = await getSupabaseServerClient();
+  const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
+  if (!enrolled) {
+    return (
+      <SectionCard
+        title="Make-up Classes"
+        description="If your class type has alternate weekly sessions, use this page to find make-up options."
+      >
+        <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
+      </SectionCard>
+    );
+  }
   const activeTerm = await getActiveTerm(supabase);
 
   if (!activeTerm) {

@@ -1,9 +1,11 @@
 export const dynamic = 'force-dynamic';
 
 import { redirect } from 'next/navigation';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import ResourceList from '@/app/portal/_components/ResourceList';
 import { requireRole } from '@/lib/portal/auth';
+import { parentHasEnrolledStudent } from '@/lib/portal/enrollment-status';
 import { getParentSelection } from '@/lib/portal/parent';
 import { parentT } from '@/lib/portal/parent-i18n';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -56,6 +58,19 @@ export default async function ParentResourcesPage({
     const classQuery = params.classId ? `&classId=${encodeURIComponent(params.classId)}` : '';
     const typeQuery = params.type ? `&type=${encodeURIComponent(params.type)}` : '';
     redirect(`/portal/parent/resources?student=${selectedStudentId}${classQuery}${typeQuery}`);
+  }
+  const enrollmentState = await parentHasEnrolledStudent(supabase as any, session.userId);
+  if (!enrollmentState.hasEnrolled) {
+    return (
+      <SectionCard
+        title={parentT(locale, 'portal.parent.resources.title', 'Resources')}
+        description={`${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
+          selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
+        }`}
+      >
+        <EnrollmentRequiredBanner role="parent" locale={locale} />
+      </SectionCard>
+    );
   }
 
   const enrollments = ((await supabase

@@ -2,8 +2,10 @@ export const dynamic = 'force-dynamic';
 
 import SectionCard from '@/app/portal/_components/SectionCard';
 import AttendanceSummary, { attendanceStatusClass } from '@/app/portal/_components/AttendanceSummary';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
+import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
 import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -20,6 +22,14 @@ export default async function StudentAttendancePage({
   const session = await requireRole(['student']);
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
+  const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
+  if (!enrolled) {
+    return (
+      <SectionCard title="Attendance Record" description="Track your attendance by term and class.">
+        <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
+      </SectionCard>
+    );
+  }
 
   const [{ data: termsData }, activeTerm] = await Promise.all([
     supabase.from('terms').select('*').order('start_date', { ascending: false }),

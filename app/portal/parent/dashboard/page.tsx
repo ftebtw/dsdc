@@ -1,10 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { redirect } from 'next/navigation';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import ParentInviteCodePanel from '@/app/portal/_components/ParentInviteCodePanel';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
+import { parentHasEnrolledStudent } from '@/lib/portal/enrollment-status';
 import { getParentSelection } from '@/lib/portal/parent';
 import { parentT } from '@/lib/portal/parent-i18n';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -71,6 +73,32 @@ export default async function ParentDashboardPage({
 
   if (!selectedStudentId || params.student !== selectedStudentId) {
     redirect(`/portal/parent/dashboard?student=${selectedStudentId}`);
+  }
+  const enrollmentState = await parentHasEnrolledStudent(supabase as any, session.userId);
+  if (!enrollmentState.hasEnrolled) {
+    return (
+      <div className="space-y-6">
+        <SectionCard
+          title={parentT(locale, 'portal.parent.dashboard.title', 'Parent Dashboard')}
+          description={`${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
+            selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
+          }`}
+        >
+          <EnrollmentRequiredBanner role="parent" locale={locale} />
+        </SectionCard>
+
+        <SectionCard
+          title={parentT(locale, 'portal.parent.linkStudent.title', 'Link Student')}
+          description={parentT(
+            locale,
+            'portal.parent.linkStudent.description',
+            'Generate invite codes to let students link to your parent account.'
+          )}
+        >
+          <ParentInviteCodePanel initialCodes={inviteCodes} />
+        </SectionCard>
+      </div>
+    );
   }
 
   const [activeTerm, { data: enrollmentRowsData }] = await Promise.all([

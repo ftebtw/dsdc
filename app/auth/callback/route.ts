@@ -3,10 +3,11 @@ import { createServerClient } from "@supabase/ssr";
 
 export const runtime = "nodejs";
 
+type CallbackType = "signup" | "email" | "recovery" | "invite" | "magiclink" | null;
+
 function safeRedirectPath(input: string | null, fallback: string): string {
   if (!input) return fallback;
-  if (input.startsWith("/")) return input;
-  return fallback;
+  return input.startsWith("/") ? input : fallback;
 }
 
 function withSessionCookies(source: NextResponse, target: NextResponse): NextResponse {
@@ -17,17 +18,83 @@ function withSessionCookies(source: NextResponse, target: NextResponse): NextRes
   return target;
 }
 
+function toCallbackType(value: string | null): CallbackType {
+  if (value === "signup") return "signup";
+  if (value === "email") return "email";
+  if (value === "recovery") return "recovery";
+  if (value === "invite") return "invite";
+  if (value === "magiclink") return "magiclink";
+  return null;
+}
+
+function toOtpType(type: CallbackType): "signup" | "email" | "recovery" | "invite" | "magiclink" {
+  if (type === "signup") return "signup";
+  if (type === "recovery") return "recovery";
+  if (type === "invite") return "invite";
+  if (type === "magiclink") return "magiclink";
+  return "email";
+}
+
+async function buildRedirect(
+  supabase: any,
+  request: NextRequest,
+  sessionResponse: NextResponse,
+  type: CallbackType,
+  nextPath: string
+): Promise<NextResponse> {
+  if (type === "recovery") {
+    const recoveryUrl = new URL("/portal/login", request.url);
+    recoveryUrl.searchParams.set("mode", "recovery");
+    return withSessionCookies(sessionResponse, NextResponse.redirect(recoveryUrl));
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return withSessionCookies(sessionResponse, NextResponse.redirect(new URL(nextPath, request.url)));
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const role = profile?.role || "student";
+
+  if (type === "signup" || type === "email" || type === "invite" || type === "magiclink") {
+    const verifiedUrl = new URL("/auth/verified", request.url);
+    verifiedUrl.searchParams.set("role", role);
+    return withSessionCookies(sessionResponse, NextResponse.redirect(verifiedUrl));
+  }
+
+  const hashHandlerUrl = new URL("/auth/callback/complete", request.url);
+  hashHandlerUrl.searchParams.set("next", nextPath);
+  if (type) {
+    hashHandlerUrl.searchParams.set("type", type);
+  }
+
+  return withSessionCookies(sessionResponse, NextResponse.redirect(hashHandlerUrl));
+}
+
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const type = url.searchParams.get("type");
-  const redirectToRaw = url.searchParams.get("redirect_to") || url.searchParams.get("redirectTo");
-  const redirectTo = safeRedirectPath(redirectToRaw, "");
+  const tokenHash = url.searchParams.get("token_hash");
+  const type = toCallbackType(url.searchParams.get("type"));
+  const nextPath = safeRedirectPath(
+    url.searchParams.get("next") ||
+      url.searchParams.get("redirect_to") ||
+      url.searchParams.get("redirectTo"),
+    "/portal"
+  );
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!code || !supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     return NextResponse.redirect(new URL("/portal/login", request.url));
   }
 
@@ -43,70 +110,28 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error || !data?.user) {
-    console.error("[auth/callback] code exchange failed", error?.message);
-    const loginUrl = new URL("/portal/login", request.url);
-    loginUrl.searchParams.set("error", "verification_failed");
-    return NextResponse.redirect(loginUrl);
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error("[auth/callback] code exchange failed", error.message);
+      return NextResponse.redirect(new URL("/portal/login?error=verification_failed", request.url));
+    }
+    return buildRedirect(supabase, request, sessionResponse, type, nextPath);
   }
 
-  if (redirectTo) {
-    return withSessionCookies(
-      sessionResponse,
-      NextResponse.redirect(new URL(redirectTo, request.url))
-    );
-  }
+  if (tokenHash && type) {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: toOtpType(type),
+    });
 
-  const user = data.user;
-
-  if (type === "signup" || type === "email") {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id,role")
-      .eq("id", user.id)
-      .single();
-
-    if (profile?.role === "student") {
-      const classUrl = new URL("/register/classes", request.url);
-      classUrl.searchParams.set("student", profile.id);
-      return withSessionCookies(sessionResponse, NextResponse.redirect(classUrl));
+    if (error) {
+      console.error("[auth/callback] OTP verification failed", error.message);
+      return NextResponse.redirect(new URL("/portal/login?error=verification_failed", request.url));
     }
 
-    if (profile?.role === "parent") {
-      const { data: link } = await supabase
-        .from("parent_student_links")
-        .select("student_id")
-        .eq("parent_id", profile.id)
-        .limit(1)
-        .maybeSingle();
-
-      const classUrl = new URL("/register/classes", request.url);
-      if (link?.student_id) {
-        classUrl.searchParams.set("student", link.student_id);
-        classUrl.searchParams.set("parent", profile.id);
-      }
-      return withSessionCookies(sessionResponse, NextResponse.redirect(classUrl));
-    }
-
-    return withSessionCookies(
-      sessionResponse,
-      NextResponse.redirect(new URL("/portal", request.url))
-    );
+    return buildRedirect(supabase, request, sessionResponse, type, nextPath);
   }
 
-  if (type === "recovery") {
-    const loginUrl = new URL("/portal/login", request.url);
-    loginUrl.searchParams.set("mode", "recovery");
-    return withSessionCookies(sessionResponse, NextResponse.redirect(loginUrl));
-  }
-
-  if (type === "invite") {
-    return withSessionCookies(
-      sessionResponse,
-      NextResponse.redirect(new URL("/portal/login", request.url))
-    );
-  }
-
-  return withSessionCookies(sessionResponse, NextResponse.redirect(new URL("/portal", request.url)));
+  return withSessionCookies(sessionResponse, NextResponse.redirect(new URL(nextPath, request.url)));
 }

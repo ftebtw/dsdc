@@ -1,10 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { redirect } from 'next/navigation';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import AttendanceSummary, { attendanceStatusClass } from '@/app/portal/_components/AttendanceSummary';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
+import { parentHasEnrolledStudent } from '@/lib/portal/enrollment-status';
 import { getParentSelection } from '@/lib/portal/parent';
 import { parentT } from '@/lib/portal/parent-i18n';
 import type { Database } from '@/lib/supabase/database.types';
@@ -44,6 +46,19 @@ export default async function ParentAttendancePage({
   if (!selectedStudentId || params.student !== selectedStudentId) {
     const termQuery = params.term ? `&term=${encodeURIComponent(params.term)}` : '';
     redirect(`/portal/parent/attendance?student=${selectedStudentId}${termQuery}`);
+  }
+  const enrollmentState = await parentHasEnrolledStudent(supabase as any, session.userId);
+  if (!enrollmentState.hasEnrolled) {
+    return (
+      <SectionCard
+        title={parentT(locale, 'portal.parent.attendance.title', 'Attendance')}
+        description={`${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
+          selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
+        }`}
+      >
+        <EnrollmentRequiredBanner role="parent" locale={locale} />
+      </SectionCard>
+    );
   }
 
   const [termsData, activeTerm] = await Promise.all([

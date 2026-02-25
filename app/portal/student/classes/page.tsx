@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm, getProfileMap } from '@/lib/portal/data';
@@ -24,6 +25,9 @@ export default async function StudentClassesPage() {
   const quickLinks = (
     <SectionCard title="Quick Links" description="Use these pages to manage your term.">
       <div className="flex flex-wrap gap-2">
+        <Link href="/portal/student/enroll" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+          Enroll in Classes
+        </Link>
         <Link href="/portal/student/attendance" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
           Attendance
         </Link>
@@ -52,7 +56,7 @@ export default async function StudentClassesPage() {
     return (
       <div className="space-y-6">
         <SectionCard title="My Classes" description={`${activeTerm.name} term schedule and Zoom access.`}>
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">You are not enrolled in active classes yet.</p>
+          <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
         </SectionCard>
         {quickLinks}
       </div>
@@ -108,7 +112,7 @@ export default async function StudentClassesPage() {
     <div className="space-y-6">
       <SectionCard title="My Classes" description={`${activeTerm.name} term schedule and Zoom access.`}>
         {classes.length === 0 ? (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">You are not enrolled in active classes yet.</p>
+          <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
         ) : (
           <div className="space-y-4">
             {classes.map((classRow: any) => {

@@ -1,10 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { redirect } from 'next/navigation';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import PortalAbsenceManager from '@/app/portal/_components/PortalAbsenceManager';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
+import { parentHasEnrolledStudent } from '@/lib/portal/enrollment-status';
 import { getParentSelection } from '@/lib/portal/parent';
 import { parentT } from '@/lib/portal/parent-i18n';
 import type { Database } from '@/lib/supabase/database.types';
@@ -45,6 +47,19 @@ export default async function ParentAbsentPage({
 
   if (!selectedStudentId || params.student !== selectedStudentId) {
     redirect(`/portal/parent/absent?student=${selectedStudentId}`);
+  }
+  const enrollmentState = await parentHasEnrolledStudent(supabase as any, session.userId);
+  if (!enrollmentState.hasEnrolled) {
+    return (
+      <SectionCard
+        title={parentT(locale, 'portal.parent.absent.title', 'Report Absence')}
+        description={`${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
+          selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
+        }`}
+      >
+        <EnrollmentRequiredBanner role="parent" locale={locale} />
+      </SectionCard>
+    );
   }
 
   const activeTerm = await getActiveTerm(supabase);

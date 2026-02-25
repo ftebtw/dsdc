@@ -1,9 +1,11 @@
 export const dynamic = 'force-dynamic';
 
 import SectionCard from '@/app/portal/_components/SectionCard';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import PortalAbsenceManager from '@/app/portal/_components/PortalAbsenceManager';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
+import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
 import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -17,6 +19,17 @@ type StudentAbsenceRow = Database['public']['Tables']['student_absences']['Row']
 export default async function StudentAbsentPage() {
   const session = await requireRole(['student']);
   const supabase = await getSupabaseServerClient();
+  const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
+  if (!enrolled) {
+    return (
+      <SectionCard
+        title="Report Absence"
+        description="Report upcoming absences. Notifications and reminder automation will be added in a later phase."
+      >
+        <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
+      </SectionCard>
+    );
+  }
   const activeTerm = await getActiveTerm(supabase);
 
   if (!activeTerm) {

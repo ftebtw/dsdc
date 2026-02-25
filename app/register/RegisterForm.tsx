@@ -4,15 +4,17 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type RegistrationRole = "student" | "parent";
-type StudentMode = "new" | "existing";
 
 type RegisterResponse = {
   studentId: string;
   parentId: string | null;
   studentNeedsPasswordSetup: boolean;
   role: RegistrationRole;
+  loginEmail: string;
+  loginPassword: string;
   verificationSent?: boolean;
   verificationEmail?: string;
   error?: string;
@@ -33,17 +35,13 @@ export default function RegisterForm() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [parentFirstName, setParentFirstName] = useState("");
-  const [parentLastName, setParentLastName] = useState("");
+  const [parentDisplayName, setParentDisplayName] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const [parentPassword, setParentPassword] = useState("");
-  const [studentMode, setStudentMode] = useState<StudentMode>("new");
-  const [studentFirstName, setStudentFirstName] = useState("");
-  const [studentLastName, setStudentLastName] = useState("");
-  const [studentEmail, setStudentEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
+  const [showVerifyEmail, setShowVerifyEmail] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   const langParam = params.get("lang");
   const resolvedLocale = useMemo<"en" | "zh">(() => {
@@ -84,14 +82,9 @@ export default function RegisterForm() {
           }
         : {
             role,
-            parentFirstName,
-            parentLastName,
+            parentDisplayName,
             parentEmail,
             parentPassword,
-            studentFirstName: studentMode === "existing" ? "" : studentFirstName,
-            studentLastName: studentMode === "existing" ? "" : studentLastName,
-            studentEmail,
-            studentMode,
             locale: resolvedLocale,
             timezone,
           };
@@ -104,27 +97,46 @@ export default function RegisterForm() {
       });
       const data = (await response.json()) as RegisterResponse;
       if (!response.ok || data.error) {
+        setError(data.error || tx("registerPage.error", "Registration failed. Please try again."));
+        setLoading(false);
+        return;
+      }
+
+      const supabase = getSupabaseBrowserClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: data.loginEmail,
+        password: data.loginPassword,
+      });
+
+      if (signInError) {
+        const signInMessage = signInError.message.toLowerCase();
         if (
-          data.error ===
-          "No student account found with this email. Please use 'Register New Student' instead."
+          signInMessage.includes("email not confirmed") ||
+          signInMessage.includes("email_not_confirmed")
         ) {
-          setError(
-            tx("registerPage.existingStudentNotFound", "No student account found with this email.")
-          );
-        } else {
-          setError(data.error || tx("registerPage.error", "Registration failed. Please try again."));
+          setRegisteredEmail(data.loginEmail);
+          setShowVerifyEmail(true);
+          setLoading(false);
+          return;
         }
+
+        setError(signInError.message);
         setLoading(false);
         return;
       }
 
-      if (data.verificationSent && data.verificationEmail) {
-        setVerificationEmail(data.verificationEmail);
-        setLoading(false);
+      if (data.role === "parent") {
+        router.push("/portal/parent/dashboard");
+        router.refresh();
         return;
       }
 
-      router.push("/portal/login");
+      const nextParams = new URLSearchParams();
+      nextParams.set("student", data.studentId);
+      nextParams.set("lang", resolvedLocale);
+      if (data.parentId) nextParams.set("parent", data.parentId);
+      if (data.studentNeedsPasswordSetup) nextParams.set("setup", "1");
+      router.push(`/register/classes?${nextParams.toString()}`);
       router.refresh();
     } catch {
       setError(tx("registerPage.error", "Registration failed. Please try again."));
@@ -135,7 +147,7 @@ export default function RegisterForm() {
     setLoading(false);
   }
 
-  if (verificationEmail) {
+  if (showVerifyEmail) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="max-w-md w-full rounded-2xl border-2 border-warm-300 dark:border-navy-600 shadow-lg bg-white dark:bg-navy-800 p-8 text-center">
@@ -146,21 +158,19 @@ export default function RegisterForm() {
           </div>
 
           <h2 className="text-2xl font-bold text-navy-900 dark:text-white mb-2">
-            {tx("registerPage.checkEmailTitle", "Check your email")}
+            {tx("registerPage.checkEmail", "Check Your Email")}
           </h2>
 
           <p className="text-charcoal/70 dark:text-navy-300 mb-2">
-            {tx("registerPage.checkEmailBody", "We've sent a verification link to:")}
+            {tx("registerPage.verifyMessage", "We sent a verification link to:")}
           </p>
 
-          <p className="font-semibold text-navy-900 dark:text-white mb-4">
-            {verificationEmail}
-          </p>
+          <p className="font-semibold text-navy-900 dark:text-white mb-4">{registeredEmail}</p>
 
           <p className="text-sm text-charcoal/60 dark:text-navy-400 mb-6">
             {tx(
-              "registerPage.checkEmailHint",
-              "Click the link in the email to verify your account and continue registration. Check your spam folder if you don't see it."
+              "registerPage.verifyInstructions",
+              "Click the link in the email to verify your account and continue with registration. Check your spam or junk folder if you don't see it."
             )}
           </p>
 
@@ -168,7 +178,7 @@ export default function RegisterForm() {
             <button
               type="button"
               onClick={() => {
-                setVerificationEmail(null);
+                setShowVerifyEmail(false);
                 setError(null);
               }}
               className="w-full rounded-lg border-2 border-warm-300 dark:border-navy-600 py-2.5 text-sm font-medium text-navy-700 dark:text-navy-200 hover:bg-warm-50 dark:hover:bg-navy-700 transition-colors"
@@ -180,7 +190,7 @@ export default function RegisterForm() {
               href="/portal/login"
               className="block w-full rounded-lg bg-navy-800 text-white py-2.5 text-sm font-semibold text-center hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors"
             >
-              {tx("registerPage.alreadyVerified", "I've already verified - Sign In")}
+              {tx("registerPage.alreadyVerified", "Already verified? Sign in")}
             </Link>
           </div>
         </div>
@@ -282,35 +292,21 @@ export default function RegisterForm() {
           </>
         ) : (
           <>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <label className="block">
-                <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
-                  {tx("registerPage.parentFirstName", "Parent first name")}
-                </span>
-                <input
-                  type="text"
-                  required
-                  value={parentFirstName}
-                  onChange={(event) => setParentFirstName(event.target.value)}
-                  className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
-                />
-              </label>
-              <label className="block">
-                <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
-                  {tx("registerPage.parentLastName", "Parent last name")}
-                </span>
-                <input
-                  type="text"
-                  required
-                  value={parentLastName}
-                  onChange={(event) => setParentLastName(event.target.value)}
-                  className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
-                />
-              </label>
-            </div>
             <label className="block">
               <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
-                {tx("registerPage.parentEmail", "Parent email")}
+                {tx("registerPage.parentName", "Your name")}
+              </span>
+              <input
+                type="text"
+                required
+                value={parentDisplayName}
+                onChange={(event) => setParentDisplayName(event.target.value)}
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
+              />
+            </label>
+            <label className="block">
+              <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+                {tx("registerPage.parentEmail", "Email")}
               </span>
               <input
                 type="email"
@@ -322,7 +318,7 @@ export default function RegisterForm() {
             </label>
             <label className="block">
               <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
-                {tx("registerPage.parentPassword", "Parent password")}
+                {tx("registerPage.parentPassword", "Password")}
               </span>
               <input
                 type="password"
@@ -333,79 +329,12 @@ export default function RegisterForm() {
                 className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
               />
             </label>
-
-            <div className="flex gap-2 mt-2">
-              <button
-                type="button"
-                onClick={() => setStudentMode("new")}
-                className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${
-                  studentMode === "new"
-                    ? "bg-navy-800 text-white border-navy-800"
-                    : "border-warm-300 dark:border-navy-600 text-navy-700 dark:text-navy-200"
-                }`}
-              >
-                {tx("registerPage.newStudent", "Register New Student")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setStudentMode("existing")}
-                className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${
-                  studentMode === "existing"
-                    ? "bg-navy-800 text-white border-navy-800"
-                    : "border-warm-300 dark:border-navy-600 text-navy-700 dark:text-navy-200"
-                }`}
-              >
-                {tx("registerPage.existingStudent", "Link Existing Student")}
-              </button>
-            </div>
-            {studentMode === "existing" ? (
-              <p className="text-xs text-charcoal/60 dark:text-navy-400">
-                {tx(
-                  "registerPage.existingStudentHint",
-                  "Enter your child's email address. If they already have a DSDC account, your accounts will be linked automatically."
-                )}
-              </p>
-            ) : null}
-            {studentMode === "new" ? (
-              <div className="grid sm:grid-cols-2 gap-4">
-                <label className="block">
-                  <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
-                    {tx("registerPage.studentFirstName", "Student first name")}
-                  </span>
-                  <input
-                    type="text"
-                    required={studentMode === "new"}
-                    value={studentFirstName}
-                    onChange={(event) => setStudentFirstName(event.target.value)}
-                    className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
-                  />
-                </label>
-                <label className="block">
-                  <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
-                    {tx("registerPage.studentLastName", "Student last name")}
-                  </span>
-                  <input
-                    type="text"
-                    required={studentMode === "new"}
-                    value={studentLastName}
-                    onChange={(event) => setStudentLastName(event.target.value)}
-                    className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
-                  />
-                </label>
-              </div>
-            ) : null}
-            <label className="block">
-              <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
-                {tx("registerPage.studentEmail", "Student email")}
-              </span>
-              <input
-                type="email"
-                required
-                value={studentEmail}
-                onChange={(event) => setStudentEmail(event.target.value)}
-                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
-              />
-            </label>
+            <p className="text-sm text-charcoal/60 dark:text-navy-300 bg-warm-50 dark:bg-navy-800 rounded-lg px-3 py-2">
+              {tx(
+                "registerPage.linkStudentLater",
+                "After creating your account, you can link your student using an invite code from the portal."
+              )}
+            </p>
           </>
         )}
 
@@ -418,7 +347,9 @@ export default function RegisterForm() {
         >
           {loading
             ? tx("registerPage.creating", "Creating account...")
-            : tx("registerPage.continue", "Continue to class selection")}
+            : role === "parent"
+              ? tx("registerPage.createParentAccount", "Create Parent Account")
+              : tx("registerPage.continue", "Continue to class selection")}
         </button>
       </form>
 

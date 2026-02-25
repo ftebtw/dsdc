@@ -1,9 +1,11 @@
 export const dynamic = 'force-dynamic';
 
 import SectionCard from '@/app/portal/_components/SectionCard';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import StudentBookingManager from '@/app/portal/_components/StudentBookingManager';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
+import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
 import { formatSessionRangeForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -20,6 +22,17 @@ function stepForStatus(status: string): number {
 export default async function StudentBookingPage() {
   const session = await requireRole(['student']);
   const supabase = await getSupabaseServerClient();
+  const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
+  if (!enrolled) {
+    return (
+      <SectionCard
+        title="Book Private Session"
+        description="View coach private availability and request a private session."
+      >
+        <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
+      </SectionCard>
+    );
+  }
   const today = new Date().toISOString().slice(0, 10);
 
   const [availabilityRaw, sessionRaw] = await Promise.all([

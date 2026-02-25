@@ -1,15 +1,25 @@
 export const dynamic = 'force-dynamic';
 
 import SectionCard from '@/app/portal/_components/SectionCard';
+import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
+import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
 import { formatUtcForUser } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function StudentReportCardsPage() {
   const session = await requireRole(['student']);
   const supabase = await getSupabaseServerClient();
+  const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
+  if (!enrolled) {
+    return (
+      <SectionCard title="Report Cards" description="Approved report cards for your enrolled classes.">
+        <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
+      </SectionCard>
+    );
+  }
 
   const { data: rowsData } = await supabase
     .from('report_cards')
