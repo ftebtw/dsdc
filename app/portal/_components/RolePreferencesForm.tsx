@@ -21,6 +21,12 @@ function normalizeClassReminder(value: unknown): 'both' | '1day' | '1hour' | 'no
   return 'both';
 }
 
+function normalizeCalendarEmails(value: unknown): 'all' | 'important_only' | 'none' {
+  if (value === 'important_only') return 'important_only';
+  if (value === 'none') return 'none';
+  return 'all';
+}
+
 export default function RolePreferencesForm({ role, initialPreferences }: RolePreferencesFormProps) {
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -44,6 +50,9 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
   const [privateSessionAlerts, setPrivateSessionAlerts] = useState<boolean>(
     asBoolean(initialPreferences.private_session_alerts, true)
   );
+  const [calendarEmails, setCalendarEmails] = useState<'all' | 'important_only' | 'none'>(
+    normalizeCalendarEmails(initialPreferences.calendar_emails)
+  );
 
   const description = useMemo(() => {
     if (role === 'student') {
@@ -62,11 +71,13 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
             class_reminders: classReminders,
             absence_alerts: absenceAlerts,
             general_updates: generalUpdates,
+            calendar_emails: calendarEmails,
           }
         : {
             sub_request_alerts: subRequestAlerts,
             ta_request_alerts: taRequestAlerts,
             private_session_alerts: privateSessionAlerts,
+            calendar_emails: calendarEmails,
           };
 
     try {
@@ -128,6 +139,21 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
             />
             General updates
           </label>
+
+          <label className="block">
+            <span className="text-sm text-navy-700 dark:text-navy-200">Calendar event emails</span>
+            <select
+              value={calendarEmails}
+              onChange={(event) =>
+                setCalendarEmails(event.target.value as 'all' | 'important_only' | 'none')
+              }
+              className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+            >
+              <option value="all">All events</option>
+              <option value="important_only">Important only</option>
+              <option value="none">None</option>
+            </select>
+          </label>
         </>
       ) : (
         <>
@@ -156,6 +182,21 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
               onChange={(event) => setPrivateSessionAlerts(event.target.checked)}
             />
             Private session alerts
+          </label>
+
+          <label className="block mt-2">
+            <span className="text-sm text-navy-700 dark:text-navy-200">Calendar event emails</span>
+            <select
+              value={calendarEmails}
+              onChange={(event) =>
+                setCalendarEmails(event.target.value as 'all' | 'important_only' | 'none')
+              }
+              className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+            >
+              <option value="all">All events</option>
+              <option value="important_only">Important only</option>
+              <option value="none">None</option>
+            </select>
           </label>
         </>
       )}

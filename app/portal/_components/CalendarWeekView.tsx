@@ -26,6 +26,7 @@ type EventBlock = {
   timezone: string;
   color: string;
   isAllDay: boolean;
+  isImportant: boolean;
   visibility: string;
   createdBy: string;
 };
@@ -158,6 +159,7 @@ type EventPayload = {
   color: string;
   visibility: "personal" | "all_coaches" | "everyone";
   isAllDay: boolean;
+  isImportant: boolean;
 };
 
 function EventModal({
@@ -186,7 +188,14 @@ function EventModal({
     (initial?.visibility as EventPayload["visibility"]) ?? "personal"
   );
   const [isAllDay, setIsAllDay] = useState(initial?.isAllDay ?? false);
+  const [isImportant, setIsImportant] = useState(initial?.isImportant ?? false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (visibility === "personal" && isImportant) {
+      setIsImportant(false);
+    }
+  }, [isImportant, visibility]);
 
   async function submit() {
     if (!title.trim()) return;
@@ -206,6 +215,7 @@ function EventModal({
       color,
       visibility,
       isAllDay,
+      isImportant: visibility === "personal" ? false : isImportant,
     });
   }
 
@@ -282,34 +292,20 @@ function EventModal({
             </label>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="text-sm text-charcoal/70 dark:text-navy-300">Timezone</span>
-              <select
-                value={timezone}
-                onChange={(event) => setTimezone(event.target.value)}
-                className="mt-1 w-full rounded-lg border border-warm-300 bg-white px-3 py-2 text-sm dark:border-navy-600 dark:bg-navy-800"
-              >
-                {TIMEZONES.map((tz) => (
-                  <option key={tz} value={tz}>
-                    {tz.replace(/_/g, " ")}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-sm text-charcoal/70 dark:text-navy-300">Visibility</span>
-              <select
-                value={visibility}
-                onChange={(event) => setVisibility(event.target.value as EventPayload["visibility"])}
-                className="mt-1 w-full rounded-lg border border-warm-300 bg-white px-3 py-2 text-sm dark:border-navy-600 dark:bg-navy-800"
-              >
-                <option value="personal">Only me</option>
-                <option value="all_coaches">All coaches &amp; TAs</option>
-                <option value="everyone">Everyone</option>
-              </select>
-            </label>
-          </div>
+          <label className="block">
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">Timezone</span>
+            <select
+              value={timezone}
+              onChange={(event) => setTimezone(event.target.value)}
+              className="mt-1 w-full rounded-lg border border-warm-300 bg-white px-3 py-2 text-sm dark:border-navy-600 dark:bg-navy-800"
+            >
+              {TIMEZONES.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz.replace(/_/g, " ")}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <label className="inline-flex items-center gap-2 text-sm text-charcoal/80 dark:text-navy-200">
             <input
@@ -336,6 +332,36 @@ function EventModal({
               ))}
             </div>
           </div>
+
+          {(visibility === "all_coaches" || visibility === "everyone") ? (
+            <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
+              <input
+                type="checkbox"
+                checked={isImportant}
+                onChange={(event) => setIsImportant(event.target.checked)}
+                className="rounded border-warm-300 dark:border-navy-600"
+              />
+              <span className="flex items-center gap-1.5">
+                Mark as important
+                <span className="text-xs text-charcoal/60 dark:text-navy-400">
+                  (sends email even to users with &quot;important only&quot; preference)
+                </span>
+              </span>
+            </label>
+          ) : null}
+
+          <label className="block">
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">Visibility</span>
+            <select
+              value={visibility}
+              onChange={(event) => setVisibility(event.target.value as EventPayload["visibility"])}
+              className="mt-1 w-full rounded-lg border border-warm-300 bg-white px-3 py-2 text-sm dark:border-navy-600 dark:bg-navy-800"
+            >
+              <option value="personal">Only me</option>
+              <option value="all_coaches">All coaches &amp; TAs</option>
+              <option value="everyone">Everyone</option>
+            </select>
+          </label>
         </div>
 
         {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
@@ -404,6 +430,7 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
           timezone: String(item.timezone || "America/Vancouver"),
           color: String(item.color || "#3b82f6"),
           isAllDay: Boolean(item.is_all_day),
+          isImportant: Boolean(item.is_important),
           visibility: String(item.visibility || "personal"),
           createdBy: String(item.created_by || ""),
         }))
@@ -650,7 +677,10 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
                         }}
                         title={item.item.description || item.item.title}
                       >
-                        <p className="truncate font-semibold">{item.item.title}</p>
+                        <p className="truncate font-semibold">
+                          {item.item.isImportant ? <span title="Important">⚠️ </span> : null}
+                          {item.item.title}
+                        </p>
                         {editable ? (
                           <div className="absolute right-1 top-1 hidden gap-1 group-hover:flex">
                             <button

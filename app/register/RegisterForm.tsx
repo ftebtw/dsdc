@@ -35,7 +35,8 @@ export default function RegisterForm() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [parentDisplayName, setParentDisplayName] = useState("");
+  const [parentFirstName, setParentFirstName] = useState("");
+  const [parentLastName, setParentLastName] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const [parentPassword, setParentPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +83,8 @@ export default function RegisterForm() {
           }
         : {
             role,
-            parentDisplayName,
+            parentFirstName,
+            parentLastName,
             parentEmail,
             parentPassword,
             locale: resolvedLocale,
@@ -292,18 +294,32 @@ export default function RegisterForm() {
           </>
         ) : (
           <>
-            <label className="block">
-              <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
-                {tx("registerPage.parentName", "Your name")}
-              </span>
-              <input
-                type="text"
-                required
-                value={parentDisplayName}
-                onChange={(event) => setParentDisplayName(event.target.value)}
-                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
-              />
-            </label>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <label className="block">
+                <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+                  {tx("registerPage.firstName", "First name")}
+                </span>
+                <input
+                  type="text"
+                  required
+                  value={parentFirstName}
+                  onChange={(event) => setParentFirstName(event.target.value)}
+                  className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
+                />
+              </label>
+              <label className="block">
+                <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+                  {tx("registerPage.lastName", "Last name")}
+                </span>
+                <input
+                  type="text"
+                  required
+                  value={parentLastName}
+                  onChange={(event) => setParentLastName(event.target.value)}
+                  className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
+                />
+              </label>
+            </div>
             <label className="block">
               <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
                 {tx("registerPage.parentEmail", "Email")}

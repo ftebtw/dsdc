@@ -473,8 +473,8 @@
     "subtitle": "1分钟内完成建档，选择课程并安全支付。",
     "studentRole": "我是学生",
     "parentRole": "我是家长",
-    "firstName": "名字",
-    "lastName": "姓氏",
+    "firstName": "名",
+    "lastName": "姓",
     "displayName": "姓名",
     "email": "邮箱",
     "password": "密码",
@@ -595,6 +595,10 @@
         "none": "无",
         "absenceAlerts": "当我的孩子被标记为缺席时通知我",
         "generalUpdates": "常规更新",
+        "calendarEmails": "日历活动邮件",
+        "calendarAll": "所有活动",
+        "calendarImportant": "仅重要活动",
+        "calendarNone": "不接收",
         "save": "保存偏好"
       },
       "privateSessions": {

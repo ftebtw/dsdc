@@ -502,6 +502,7 @@ export type Database = {
           event_date: string
           id: string
           is_all_day: boolean
+          is_important: boolean
           start_time: string
           timezone: string
           title: string
@@ -516,6 +517,7 @@ export type Database = {
           event_date: string
           id?: string
           is_all_day?: boolean
+          is_important?: boolean
           start_time: string
           timezone?: string
           title: string
@@ -530,6 +532,7 @@ export type Database = {
           event_date?: string
           id?: string
           is_all_day?: boolean
+          is_important?: boolean
           start_time?: string
           timezone?: string
           title?: string

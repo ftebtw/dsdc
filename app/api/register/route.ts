@@ -15,59 +15,27 @@ const baseSchema = z.object({
 
 const studentSchema = baseSchema.extend({
   role: z.literal("student"),
-  firstName: z.string().max(80).optional(),
-  lastName: z.string().max(80).optional(),
-  displayName: z.string().max(120).optional(),
+  firstName: z.string().trim().min(1).max(60),
+  lastName: z.string().trim().min(1).max(60),
   email: z.string().email(),
   password: z.string().min(8).max(128),
 });
 
 const parentSchema = baseSchema.extend({
   role: z.literal("parent"),
-  parentDisplayName: z.string().min(1).max(120),
+  parentFirstName: z.string().trim().min(1).max(60),
+  parentLastName: z.string().trim().min(1).max(60),
   parentEmail: z.string().email(),
   parentPassword: z.string().min(8).max(128),
 });
 
-const bodySchema = z
-  .discriminatedUnion("role", [studentSchema, parentSchema])
-  .superRefine((value, ctx) => {
-    if (value.role === "student") {
-      const displayName = buildDisplayName(value.firstName, value.lastName, value.displayName);
-      if (!displayName) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["firstName"],
-          message: "Student first and last name are required.",
-        });
-      }
-    }
-
-    if (value.role === "parent" && !value.parentDisplayName.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["parentDisplayName"],
-        message: "Parent name is required.",
-      });
-    }
-  });
+const bodySchema = z.discriminatedUnion("role", [studentSchema, parentSchema]);
 
 type ParsedBody = z.infer<typeof bodySchema>;
 type AppRole = Database["public"]["Enums"]["app_role"];
 
-function cleanNamePart(value: string | undefined): string {
-  return value?.trim() ?? "";
-}
-
-function buildDisplayName(
-  firstName?: string,
-  lastName?: string,
-  legacyDisplayName?: string
-): string | null {
-  const legacy = legacyDisplayName?.trim();
-  if (legacy) return legacy;
-  const fullName = `${cleanNamePart(firstName)} ${cleanNamePart(lastName)}`.trim();
-  return fullName || null;
+function buildDisplayName(firstName: string, lastName: string): string {
+  return `${firstName} ${lastName}`.trim();
 }
 
 function jsonError(message: string, status = 400) {
@@ -145,8 +113,7 @@ async function sendVerificationEmail(
 async function createStudentRegistration(admin: any, body: ParsedBody) {
   if (body.role !== "student") return null;
 
-  const studentDisplayName = buildDisplayName(body.firstName, body.lastName, body.displayName);
-  if (!studentDisplayName) throw new Error("Student first and last name are required.");
+  const studentDisplayName = buildDisplayName(body.firstName, body.lastName);
 
   const { data, error } = await admin.auth.admin.createUser({
     email: body.email,
@@ -197,8 +164,7 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
 async function createParentRegistration(admin: any, body: ParsedBody) {
   if (body.role !== "parent") return null;
 
-  const parentDisplayName = body.parentDisplayName.trim();
-  if (!parentDisplayName) throw new Error("Parent name is required.");
+  const parentDisplayName = buildDisplayName(body.parentFirstName, body.parentLastName);
 
   const parentResult = await admin.auth.admin.createUser({
     email: body.parentEmail,

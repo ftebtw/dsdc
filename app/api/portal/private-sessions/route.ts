@@ -51,17 +51,6 @@ export async function POST(request: NextRequest) {
   const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const admin = getSupabaseAdminClient();
 
-  const { data: enrollment } = await supabase
-    .from('enrollments')
-    .select('id')
-    .eq('student_id', session.userId)
-    .eq('status', 'active')
-    .limit(1)
-    .maybeSingle();
-  if (!enrollment) {
-    return mergeCookies(supabaseResponse, jsonError('You must be enrolled in an active class to request a private session.', 403));
-  }
-
   const { data: slot, error: slotError } = await supabase
     .from('coach_availability')
     .select('*')

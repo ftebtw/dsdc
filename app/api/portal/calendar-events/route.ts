@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { sendCalendarEventNotifications } from "@/lib/email/calendar-notifications";
 import { requireApiRole } from "@/lib/portal/auth";
 import { isValidTimezone } from "@/lib/portal/timezone";
 import { getSupabaseRouteClient, mergeCookies } from "@/lib/supabase/route";
@@ -18,6 +19,7 @@ const createSchema = z.object({
   color: z.string().min(1).max(32).optional(),
   isAllDay: z.boolean().optional(),
   visibility: visibilitySchema.optional(),
+  isImportant: z.boolean().optional(),
 });
 
 function jsonError(message: string, status = 400) {
@@ -88,12 +90,23 @@ export async function POST(request: NextRequest) {
       color: body.color || "#3b82f6",
       is_all_day: body.isAllDay ?? false,
       visibility: body.visibility || "personal",
+      is_important:
+        (body.visibility || "personal") === "personal" ? false : (body.isImportant ?? false),
     })
     .select("*")
     .single();
 
   if (error) {
     return mergeCookies(supabaseResponse, jsonError(error.message, 500));
+  }
+
+  if (data.visibility === "everyone" || data.visibility === "all_coaches") {
+    void sendCalendarEventNotifications(data, {
+      display_name: session.profile.display_name,
+      email: session.profile.email,
+    }).catch((sendError) => {
+      console.error("[calendar-event-notification] Failed:", sendError);
+    });
   }
 
   return mergeCookies(supabaseResponse, NextResponse.json({ event: data }));

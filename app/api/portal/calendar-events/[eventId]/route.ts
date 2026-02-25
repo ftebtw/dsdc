@@ -19,6 +19,7 @@ const updateSchema = z
     color: z.string().min(1).max(32).optional(),
     isAllDay: z.boolean().optional(),
     visibility: visibilitySchema.optional(),
+    isImportant: z.boolean().optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
     message: "Provide at least one field to update.",
@@ -59,6 +60,8 @@ export async function PUT(
   if (body.color !== undefined) updateData.color = body.color;
   if (body.isAllDay !== undefined) updateData.is_all_day = body.isAllDay;
   if (body.visibility !== undefined) updateData.visibility = body.visibility;
+  if (body.isImportant !== undefined) updateData.is_important = body.isImportant;
+  if (body.visibility === "personal") updateData.is_important = false;
 
   const supabaseResponse = NextResponse.next();
   const supabase = getSupabaseRouteClient(request, supabaseResponse);

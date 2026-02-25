@@ -595,6 +595,10 @@
         "none": "None",
         "absenceAlerts": "Notify me when my student is marked absent",
         "generalUpdates": "General updates",
+        "calendarEmails": "Calendar event emails",
+        "calendarAll": "All events",
+        "calendarImportant": "Important only",
+        "calendarNone": "None",
         "save": "Save Preferences"
       },
       "privateSessions": {

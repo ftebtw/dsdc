@@ -93,6 +93,41 @@ export function linkVerificationCodeTemplate(input: {
   return { subject, html: htmlWithCode, text: textWithCode };
 }
 
+export function calendarEventTemplate(args: {
+  eventTitle: string;
+  eventDescription?: string;
+  eventDate: string;
+  eventTime: string;
+  creatorName: string;
+  isImportant: boolean;
+  recipientName: string;
+  preferenceUrl: string;
+}): { html: string; text: string } {
+  const importantPrefix = args.isImportant ? "Important - " : "";
+  const detailsLine = args.eventDescription ? `Details: ${args.eventDescription}` : "";
+
+  const bodyLines = [
+    `Hi ${args.recipientName},`,
+    "",
+    `${importantPrefix}A new event has been added to the DSDC calendar by ${args.creatorName}:`,
+    "",
+    `Event: ${args.eventTitle}`,
+    `Date: ${args.eventDate}`,
+    `Time: ${args.eventTime}`,
+    detailsLine,
+  ].filter(Boolean) as string[];
+
+  return renderTemplate({
+    title: args.isImportant
+      ? `Important Event: ${args.eventTitle}`
+      : `New Event: ${args.eventTitle}`,
+    bodyLines,
+    buttonLabel: "View Calendar",
+    buttonUrl: "https://dsdc.ca/portal",
+    preferenceUrl: args.preferenceUrl,
+  });
+}
+
 export function subRequestCreatedTemplate(input: {
   className: string;
   whenText: string;
