@@ -28,6 +28,11 @@ function rangeLabel(slot: AvailabilitySlot, displayTimezone: string) {
   return `${formatInTimeZone(start, displayTimezone, 'yyyy-MM-dd HH:mm')} - ${formatInTimeZone(end, displayTimezone, 'HH:mm zzz')}`;
 }
 
+function convertedKey(slot: AvailabilitySlot, displayTimezone: string) {
+  const utc = fromZonedTime(`${slot.available_date}T${slot.start_time}`, slot.timezone);
+  return formatInTimeZone(utc, displayTimezone, "yyyy-MM-dd'T'HH:mm");
+}
+
 export default function AvailabilityCalendar({
   slots,
   displayTimezone,
@@ -37,7 +42,7 @@ export default function AvailabilityCalendar({
   deletingId,
 }: Props) {
   const ordered = [...slots].sort((a, b) =>
-    `${a.available_date}-${a.start_time}`.localeCompare(`${b.available_date}-${b.start_time}`)
+    convertedKey(a, displayTimezone).localeCompare(convertedKey(b, displayTimezone))
   );
 
   if (!ordered.length) {

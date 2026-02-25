@@ -5,8 +5,7 @@ import CoachCheckinList from '@/app/portal/_components/CoachCheckinList';
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getTodayClassesForCoach } from '@/lib/portal/data';
-import { getSessionDateForClassTimezone } from '@/lib/portal/time';
-import { formatClassSchedule } from '@/lib/portal/labels';
+import { getSessionDateForClassTimezone, formatClassScheduleForViewer } from '@/lib/portal/time';
 
 export default async function CoachCheckinPage() {
   const session = await requireRole(['coach', 'ta']);
@@ -30,11 +29,13 @@ export default async function CoachCheckinPage() {
   const classItems = todayClasses.map((classRow) => ({
     id: classRow.id,
     name: classRow.name,
-    schedule: `${formatClassSchedule(
+    schedule: formatClassScheduleForViewer(
       classRow.schedule_day,
       classRow.schedule_start_time,
-      classRow.schedule_end_time
-    )} (${classRow.timezone})`,
+      classRow.schedule_end_time,
+      classRow.timezone,
+      session.profile.timezone
+    ),
     timezone: classRow.timezone,
   }));
 

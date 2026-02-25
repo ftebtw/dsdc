@@ -3,7 +3,8 @@ export const dynamic = 'force-dynamic';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
-import { classTypeLabel, formatClassSchedule } from '@/lib/portal/labels';
+import { classTypeLabel } from '@/lib/portal/labels';
+import { formatClassScheduleForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function StudentMakeupPage() {
@@ -84,8 +85,14 @@ export default async function StudentMakeupPage() {
                   <p className="text-sm font-medium text-navy-700 dark:text-navy-200">Available alternatives</p>
                   {alternatives.map((classRow: any) => (
                     <p key={classRow.id} className="text-sm text-charcoal/80 dark:text-navy-200">
-                      {classRow.name} - {formatClassSchedule(classRow.schedule_day, classRow.schedule_start_time, classRow.schedule_end_time)} (
-                      {classRow.timezone})
+                      {classRow.name} -{' '}
+                      {formatClassScheduleForViewer(
+                        classRow.schedule_day,
+                        classRow.schedule_start_time,
+                        classRow.schedule_end_time,
+                        classRow.timezone,
+                        session.profile.timezone
+                      )}
                     </p>
                   ))}
                 </div>

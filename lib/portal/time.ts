@@ -72,3 +72,47 @@ export function formatSessionRangeForViewer(
   );
   return `${start}-${end}`;
 }
+
+/**
+ * Formats a recurring class schedule (day + time range) converted to the viewer's timezone.
+ * Handles weekday shifts across timezone boundaries using the next matching schedule day.
+ */
+export function formatClassScheduleForViewer(
+  scheduleDay: string,
+  startTime: string,
+  endTime: string,
+  classTimezone: string,
+  viewerTimezone: string
+): string {
+  const dayIndex: Record<string, number> = {
+    sun: 0,
+    mon: 1,
+    tue: 2,
+    wed: 3,
+    thu: 4,
+    fri: 5,
+    sat: 6,
+  };
+
+  const targetDayNum = dayIndex[scheduleDay];
+  if (targetDayNum === undefined) {
+    return `${scheduleDay} ${startTime.slice(0, 5)}-${endTime.slice(0, 5)}`;
+  }
+
+  const now = new Date();
+  const refDate = new Date(now);
+  const currentDay = refDate.getDay();
+  const daysUntil = (targetDayNum - currentDay + 7) % 7 || 7;
+  refDate.setDate(refDate.getDate() + daysUntil);
+  const refYmd = refDate.toISOString().slice(0, 10);
+
+  const startUtc = fromZonedTime(`${refYmd}T${startTime.slice(0, 5)}`, classTimezone);
+  const endUtc = fromZonedTime(`${refYmd}T${endTime.slice(0, 5)}`, classTimezone);
+
+  const startInViewer = formatInTimeZone(startUtc, viewerTimezone, 'EEEE HH:mm');
+  const endInViewer = formatInTimeZone(endUtc, viewerTimezone, 'HH:mm');
+  const tzAbbrev = formatInTimeZone(startUtc, viewerTimezone, 'zzz');
+
+  const [viewerDayName, viewerStartTime] = startInViewer.split(' ');
+  return `${viewerDayName} ${viewerStartTime}-${endInViewer} ${tzAbbrev}`;
+}

@@ -6,8 +6,8 @@ import CoachAttendanceEditor from '@/app/portal/_components/CoachAttendanceEdito
 import { requireRole } from '@/lib/portal/auth';
 import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { classTypeLabel, formatClassSchedule } from '@/lib/portal/labels';
-import { getSessionDateForClassTimezone } from '@/lib/portal/time';
+import { classTypeLabel } from '@/lib/portal/labels';
+import { getSessionDateForClassTimezone, formatClassScheduleForViewer } from '@/lib/portal/time';
 
 type EnrollmentStudentRow = Pick<Database['public']['Tables']['enrollments']['Row'], 'student_id'>;
 type AttendanceRow = Pick<
@@ -74,11 +74,13 @@ export default async function CoachAttendancePage({
   return (
     <SectionCard
       title={`Attendance • ${classRow.name}`}
-      description={`${classTypeLabel[classRow.type as keyof typeof classTypeLabel] || String(classRow.type)} • ${formatClassSchedule(
+      description={`${classTypeLabel[classRow.type as keyof typeof classTypeLabel] || String(classRow.type)} • ${formatClassScheduleForViewer(
         classRow.schedule_day,
         classRow.schedule_start_time,
-        classRow.schedule_end_time
-      )} (${classRow.timezone})`}
+        classRow.schedule_end_time,
+        classRow.timezone,
+        session.profile.timezone
+      )}`}
     >
       <CoachAttendanceEditor
         classId={classId}

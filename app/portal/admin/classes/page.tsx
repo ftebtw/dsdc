@@ -5,8 +5,9 @@ import Link from 'next/link';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import TimezoneSelectNative from '@/app/portal/_components/TimezoneSelectNative';
 import { requireRole } from '@/lib/portal/auth';
-import { classTypeLabel, formatClassSchedule } from '@/lib/portal/labels';
+import { classTypeLabel } from '@/lib/portal/labels';
 import { getProfileMap } from '@/lib/portal/data';
+import { formatClassScheduleForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 
@@ -165,7 +166,7 @@ export default async function AdminClassesPage({
 }: {
   searchParams: Promise<{ term?: string }>;
 }) {
-  await requireRole(['admin']);
+  const session = await requireRole(['admin']);
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
 
@@ -490,7 +491,14 @@ export default async function AdminClassesPage({
                   className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 lg:col-span-2"
                 />
                 <div className="lg:col-span-4 text-sm text-charcoal/75 dark:text-navy-300">
-                  Schedule: {formatClassSchedule(classRow.schedule_day, classRow.schedule_start_time, classRow.schedule_end_time)}
+                  Schedule:{' '}
+                  {formatClassScheduleForViewer(
+                    classRow.schedule_day,
+                    classRow.schedule_start_time,
+                    classRow.schedule_end_time,
+                    classRow.timezone,
+                    session.profile.timezone
+                  )}
                   {' • '}
                   {studentIds.length} enrolled •{' '}
                   {studentIds.length ? (

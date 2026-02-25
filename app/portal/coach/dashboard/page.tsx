@@ -5,8 +5,7 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getTodayClassesForCoach } from '@/lib/portal/data';
-import { getSessionDateForClassTimezone } from '@/lib/portal/time';
-import { formatClassSchedule } from '@/lib/portal/labels';
+import { getSessionDateForClassTimezone, formatClassScheduleForViewer } from '@/lib/portal/time';
 
 export default async function CoachDashboardPage() {
   const session = await requireRole(['coach', 'ta']);
@@ -46,12 +45,13 @@ export default async function CoachDashboardPage() {
               >
                 <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
                 <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-1">
-                  {formatClassSchedule(
+                  {formatClassScheduleForViewer(
                     classRow.schedule_day,
                     classRow.schedule_start_time,
-                    classRow.schedule_end_time
-                  )}{' '}
-                  ({classRow.timezone})
+                    classRow.schedule_end_time,
+                    classRow.timezone,
+                    session.profile.timezone
+                  )}
                 </p>
                 <p className="text-sm mt-2">
                   {checkinMap[classRow.id] ? (

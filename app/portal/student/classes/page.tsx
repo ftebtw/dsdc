@@ -4,7 +4,8 @@ import Link from 'next/link';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm, getProfileMap } from '@/lib/portal/data';
-import { classTypeLabel, formatClassSchedule } from '@/lib/portal/labels';
+import { classTypeLabel } from '@/lib/portal/labels';
+import { formatClassScheduleForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function StudentClassesPage() {
@@ -122,8 +123,13 @@ export default async function StudentClassesPage() {
                   <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
                   <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
                     {classTypeLabel[classRow.type as keyof typeof classTypeLabel] || classRow.type} -{' '}
-                    {formatClassSchedule(classRow.schedule_day, classRow.schedule_start_time, classRow.schedule_end_time)} (
-                    {classRow.timezone})
+                    {formatClassScheduleForViewer(
+                      classRow.schedule_day,
+                      classRow.schedule_start_time,
+                      classRow.schedule_end_time,
+                      classRow.timezone,
+                      session.profile.timezone
+                    )}
                   </p>
                   <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
                     Coach: {coach?.display_name || coach?.email || classRow.coach_id}
