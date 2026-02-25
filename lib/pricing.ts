@@ -33,7 +33,10 @@ export function convertCadPrice(
   currency: SupportedCurrency,
   rates: Record<SupportedCurrency, number>
 ): number {
-  return cadAmount * (rates[currency] ?? 1);
+  const raw = cadAmount * (rates[currency] ?? 1);
+  // Round non-CAD estimates to clean whole numbers.
+  if (currency !== "CAD") return Math.round(raw);
+  return raw;
 }
 
 export function formatDisplayPrice(
@@ -41,12 +44,11 @@ export function formatDisplayPrice(
   currency: SupportedCurrency,
   locale: "en" | "zh"
 ): string {
-  const isUsd = currency === "USD";
-  const rounded = isUsd ? Math.round(amount * 100) / 100 : Math.round(amount);
+  const rounded = Math.round(amount);
 
   const numberStr = new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en-CA", {
-    minimumFractionDigits: isUsd ? 2 : 0,
-    maximumFractionDigits: isUsd ? 2 : 0,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(rounded);
 
   switch (currency) {
