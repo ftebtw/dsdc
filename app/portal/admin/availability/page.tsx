@@ -35,6 +35,10 @@ export default async function AdminAvailabilityPage({
   const { data: slotsData } = await query;
   const slots = ((slotsData ?? []) as AvailabilityRow[]).map((slot) => ({
     ...slot,
+    available_date: slot.available_date || '',
+    start_time: slot.start_time || '',
+    end_time: slot.end_time || '',
+    timezone: slot.timezone || 'America/Vancouver',
     coachName: coachMap[slot.coach_id]?.display_name || coachMap[slot.coach_id]?.email || slot.coach_id,
   }));
 
@@ -67,7 +71,10 @@ export default async function AdminAvailabilityPage({
         </button>
       </form>
 
-      <AvailabilityCalendar slots={slots} displayTimezone={session.profile.timezone} />
+      <AvailabilityCalendar
+        slots={slots}
+        displayTimezone={session.profile.timezone || 'America/Vancouver'}
+      />
     </SectionCard>
   );
 }

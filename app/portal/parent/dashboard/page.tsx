@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import ParentInviteCodePanel from '@/app/portal/_components/ParentInviteCodePanel';
+import ParentLinkStudentForm from '@/app/portal/_components/ParentLinkStudentForm';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
@@ -52,7 +53,7 @@ export default async function ParentDashboardPage({
             {parentT(
               locale,
               'portal.parent.common.noLinkedStudents',
-              'Ask admin to link your parent account from the student detail page.'
+              'Link your student account below to get started.'
             )}
           </p>
         </SectionCard>
@@ -62,10 +63,30 @@ export default async function ParentDashboardPage({
           description={parentT(
             locale,
             'portal.parent.linkStudent.description',
-            'Generate invite codes to let students link to your parent account.'
+            'Link your student account to manage their enrollment.'
           )}
         >
-          <ParentInviteCodePanel initialCodes={inviteCodes} />
+          <div className="space-y-2 mb-6">
+            <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
+              Link by Student Email
+            </h3>
+            <p className="text-xs text-charcoal/60 dark:text-navy-400">
+              Enter your student&apos;s email. We&apos;ll send them a code to confirm.
+            </p>
+            <ParentLinkStudentForm />
+          </div>
+
+          <hr className="border-warm-200 dark:border-navy-600 my-4" />
+
+          <div className="space-y-2">
+            <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
+              Or: Generate Invite Code
+            </h3>
+            <p className="text-xs text-charcoal/60 dark:text-navy-400">
+              Generate a code and give it to your student. They enter it from their portal.
+            </p>
+            <ParentInviteCodePanel initialCodes={inviteCodes} />
+          </div>
         </SectionCard>
       </div>
     );
@@ -92,10 +113,30 @@ export default async function ParentDashboardPage({
           description={parentT(
             locale,
             'portal.parent.linkStudent.description',
-            'Generate invite codes to let students link to your parent account.'
+            'Link your student account to manage their enrollment.'
           )}
         >
-          <ParentInviteCodePanel initialCodes={inviteCodes} />
+          <div className="space-y-2 mb-6">
+            <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
+              Link by Student Email
+            </h3>
+            <p className="text-xs text-charcoal/60 dark:text-navy-400">
+              Enter your student&apos;s email. We&apos;ll send them a code to confirm.
+            </p>
+            <ParentLinkStudentForm />
+          </div>
+
+          <hr className="border-warm-200 dark:border-navy-600 my-4" />
+
+          <div className="space-y-2">
+            <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
+              Or: Generate Invite Code
+            </h3>
+            <p className="text-xs text-charcoal/60 dark:text-navy-400">
+              Generate a code and give it to your student. They enter it from their portal.
+            </p>
+            <ParentInviteCodePanel initialCodes={inviteCodes} />
+          </div>
         </SectionCard>
       </div>
     );
@@ -169,10 +210,30 @@ export default async function ParentDashboardPage({
         description={parentT(
           locale,
           'portal.parent.linkStudent.description',
-          'Generate invite codes to let students link to your parent account.'
+          'Link your student account to manage their enrollment.'
         )}
       >
-        <ParentInviteCodePanel initialCodes={inviteCodes} />
+        <div className="space-y-2 mb-6">
+          <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
+            Link by Student Email
+          </h3>
+          <p className="text-xs text-charcoal/60 dark:text-navy-400">
+            Enter your student&apos;s email. We&apos;ll send them a code to confirm.
+          </p>
+          <ParentLinkStudentForm />
+        </div>
+
+        <hr className="border-warm-200 dark:border-navy-600 my-4" />
+
+        <div className="space-y-2">
+          <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
+            Or: Generate Invite Code
+          </h3>
+          <p className="text-xs text-charcoal/60 dark:text-navy-400">
+            Generate a code and give it to your student. They enter it from their portal.
+          </p>
+          <ParentInviteCodePanel initialCodes={inviteCodes} />
+        </div>
       </SectionCard>
     </div>
   );

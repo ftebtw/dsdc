@@ -63,17 +63,27 @@ export default async function StudentBookingPage() {
   ];
   const coachMap = await getProfileMap(supabase, coachIds);
 
-  const availableSlots = availability.map((slot: any) => ({
-    id: slot.id,
-    coachName: coachMap[slot.coach_id]?.display_name || coachMap[slot.coach_id]?.email || slot.coach_id,
-    whenText: formatSessionRangeForViewer(
-      slot.available_date,
-      slot.start_time,
-      slot.end_time,
-      slot.timezone,
-      session.profile.timezone
-    ),
-  }));
+  const availableSlots = availability.map((slot: any) => {
+    let whenText = '—';
+    try {
+      whenText = formatSessionRangeForViewer(
+        slot.available_date,
+        slot.start_time,
+        slot.end_time,
+        slot.timezone,
+        session.profile.timezone
+      );
+    } catch (error) {
+      console.error('[StudentBooking] Failed to format availability slot:', slot.id, error);
+      whenText = `${slot.available_date ?? '?'} ${(slot.start_time ?? '').slice(0, 5)}-${(slot.end_time ?? '').slice(0, 5)}`;
+    }
+
+    return {
+      id: slot.id,
+      coachName: coachMap[slot.coach_id]?.display_name || coachMap[slot.coach_id]?.email || slot.coach_id,
+      whenText,
+    };
+  });
 
   const sessionItems = sessions.map((row: any) => {
     const status = String(row.status || 'pending');
@@ -84,13 +94,19 @@ export default async function StudentBookingPage() {
       proposedByName: row.proposed_by
         ? coachMap[row.proposed_by]?.display_name || coachMap[row.proposed_by]?.email || row.proposed_by
         : null,
-      whenText: formatSessionRangeForViewer(
-        row.requested_date,
-        row.requested_start_time,
-        row.requested_end_time,
-        row.timezone,
-        session.profile.timezone
-      ),
+      whenText: (() => {
+        try {
+          return formatSessionRangeForViewer(
+            row.requested_date,
+            row.requested_start_time,
+            row.requested_end_time,
+            row.timezone,
+            session.profile.timezone
+          );
+        } catch {
+          return `${row.requested_date ?? '?'} ${(row.requested_start_time ?? '').slice(0, 5)}-${(row.requested_end_time ?? '').slice(0, 5)}`;
+        }
+      })(),
       step: stepForStatus(status),
       canAccept: false,
       canReject: false,

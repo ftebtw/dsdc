@@ -45,8 +45,21 @@ export function formatSessionTimeForViewer(
   viewerTimezone: string,
   pattern = 'yyyy-MM-dd HH:mm zzz'
 ): string {
-  const utcDate = fromZonedTime(`${sessionDate}T${sessionTime}`, sourceTimezone);
-  return formatInTimeZone(utcDate, viewerTimezone, pattern);
+  if (!sessionDate || !sessionTime || !sourceTimezone || !viewerTimezone) {
+    return sessionTime ? `${sessionDate ?? '?'} ${sessionTime.slice(0, 5)}` : '—';
+  }
+
+  try {
+    const utcDate = fromZonedTime(`${sessionDate}T${sessionTime}`, sourceTimezone);
+    return formatInTimeZone(utcDate, viewerTimezone, pattern);
+  } catch (error) {
+    console.error(
+      '[formatSessionTimeForViewer] Failed:',
+      { sessionDate, sessionTime, sourceTimezone, viewerTimezone },
+      error
+    );
+    return `${sessionDate} ${sessionTime.slice(0, 5)}`;
+  }
 }
 
 export function formatSessionRangeForViewer(
@@ -56,21 +69,34 @@ export function formatSessionRangeForViewer(
   sourceTimezone: string,
   viewerTimezone: string
 ): string {
-  const start = formatSessionTimeForViewer(
-    sessionDate,
-    startTime,
-    sourceTimezone,
-    viewerTimezone,
-    'yyyy-MM-dd HH:mm'
-  );
-  const end = formatSessionTimeForViewer(
-    sessionDate,
-    endTime,
-    sourceTimezone,
-    viewerTimezone,
-    'HH:mm zzz'
-  );
-  return `${start}-${end}`;
+  if (!sessionDate || !startTime || !endTime || !sourceTimezone || !viewerTimezone) {
+    return `${sessionDate ?? '?'} ${(startTime ?? '').slice(0, 5)}-${(endTime ?? '').slice(0, 5)}`;
+  }
+
+  try {
+    const start = formatSessionTimeForViewer(
+      sessionDate,
+      startTime,
+      sourceTimezone,
+      viewerTimezone,
+      'yyyy-MM-dd HH:mm'
+    );
+    const end = formatSessionTimeForViewer(
+      sessionDate,
+      endTime,
+      sourceTimezone,
+      viewerTimezone,
+      'HH:mm zzz'
+    );
+    return `${start}-${end}`;
+  } catch (error) {
+    console.error(
+      '[formatSessionRangeForViewer] Failed:',
+      { sessionDate, startTime, endTime, sourceTimezone, viewerTimezone },
+      error
+    );
+    return `${sessionDate} ${startTime.slice(0, 5)}-${endTime.slice(0, 5)}`;
+  }
 }
 
 /**

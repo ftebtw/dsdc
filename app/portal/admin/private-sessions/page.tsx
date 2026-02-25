@@ -63,13 +63,19 @@ export default async function AdminPrivateSessionsPage({
       proposedByName: row.proposed_by
         ? people[row.proposed_by]?.display_name || people[row.proposed_by]?.email || row.proposed_by
         : null,
-      whenText: formatSessionRangeForViewer(
-        row.requested_date,
-        row.requested_start_time,
-        row.requested_end_time,
-        row.timezone,
-        session.profile.timezone
-      ),
+      whenText: (() => {
+        try {
+          return formatSessionRangeForViewer(
+            row.requested_date,
+            row.requested_start_time,
+            row.requested_end_time,
+            row.timezone,
+            session.profile.timezone
+          );
+        } catch {
+          return `${row.requested_date ?? '?'} ${(row.requested_start_time ?? '').slice(0, 5)}-${(row.requested_end_time ?? '').slice(0, 5)}`;
+        }
+      })(),
       step: stepForStatus(status),
       canAccept: status === 'pending',
       canReject: ['pending', 'coach_accepted', 'rescheduled_by_coach', 'rescheduled_by_student'].includes(status),

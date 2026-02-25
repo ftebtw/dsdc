@@ -48,13 +48,19 @@ export default async function CoachPrivateSessionsPage() {
       proposedByName: row.proposed_by
         ? profileMap[row.proposed_by]?.display_name || profileMap[row.proposed_by]?.email || row.proposed_by
         : null,
-      whenText: formatSessionRangeForViewer(
-        row.requested_date,
-        row.requested_start_time,
-        row.requested_end_time,
-        row.timezone,
-        session.profile.timezone
-      ),
+      whenText: (() => {
+        try {
+          return formatSessionRangeForViewer(
+            row.requested_date,
+            row.requested_start_time,
+            row.requested_end_time,
+            row.timezone,
+            session.profile.timezone
+          );
+        } catch {
+          return `${row.requested_date ?? '?'} ${(row.requested_start_time ?? '').slice(0, 5)}-${(row.requested_end_time ?? '').slice(0, 5)}`;
+        }
+      })(),
       step: stepForStatus(status),
       canAccept: status === 'pending',
       canReject: ['pending', 'rescheduled_by_student', 'rescheduled_by_coach'].includes(status),

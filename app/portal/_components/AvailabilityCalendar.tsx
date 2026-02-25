@@ -23,14 +23,31 @@ type Props = {
 };
 
 function rangeLabel(slot: AvailabilitySlot, displayTimezone: string) {
-  const start = fromZonedTime(`${slot.available_date}T${slot.start_time}`, slot.timezone);
-  const end = fromZonedTime(`${slot.available_date}T${slot.end_time}`, slot.timezone);
-  return `${formatInTimeZone(start, displayTimezone, 'yyyy-MM-dd HH:mm')} - ${formatInTimeZone(end, displayTimezone, 'HH:mm zzz')}`;
+  if (!slot.available_date || !slot.start_time || !slot.end_time || !slot.timezone || !displayTimezone) {
+    return `${slot.available_date ?? '?'} ${(slot.start_time ?? '').slice(0, 5)} - ${(slot.end_time ?? '').slice(0, 5)}`;
+  }
+
+  try {
+    const start = fromZonedTime(`${slot.available_date}T${slot.start_time}`, slot.timezone);
+    const end = fromZonedTime(`${slot.available_date}T${slot.end_time}`, slot.timezone);
+    return `${formatInTimeZone(start, displayTimezone, 'yyyy-MM-dd HH:mm')} - ${formatInTimeZone(end, displayTimezone, 'HH:mm zzz')}`;
+  } catch (error) {
+    console.error('[AvailabilityCalendar rangeLabel] Failed:', { slot, displayTimezone }, error);
+    return `${slot.available_date} ${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`;
+  }
 }
 
 function convertedKey(slot: AvailabilitySlot, displayTimezone: string) {
-  const utc = fromZonedTime(`${slot.available_date}T${slot.start_time}`, slot.timezone);
-  return formatInTimeZone(utc, displayTimezone, "yyyy-MM-dd'T'HH:mm");
+  if (!slot.available_date || !slot.start_time || !slot.timezone || !displayTimezone) {
+    return `${slot.available_date ?? ''}T${(slot.start_time ?? '').slice(0, 5)}`;
+  }
+
+  try {
+    const utc = fromZonedTime(`${slot.available_date}T${slot.start_time}`, slot.timezone);
+    return formatInTimeZone(utc, displayTimezone, "yyyy-MM-dd'T'HH:mm");
+  } catch {
+    return `${slot.available_date}T${slot.start_time.slice(0, 5)}`;
+  }
 }
 
 export default function AvailabilityCalendar({

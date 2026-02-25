@@ -68,6 +68,31 @@ export function verificationEmailTemplate(args: {
   return { subject, html, text };
 }
 
+export function linkVerificationCodeTemplate(input: {
+  parentName: string;
+  code: string;
+}) {
+  const subject = "DSDC - Verify Parent-Student Link";
+  const { html, text } = renderTemplate({
+    title: "Parent Account Link Verification",
+    bodyLines: [
+      `${input.parentName} has requested to link their parent account to your student account on the DSDC portal.`,
+      "If you approve this link, share this verification code with them:",
+      "",
+    ],
+  });
+
+  const codeBlock = `<div style="margin:16px 0;padding:16px;background:#f0f4f8;border-radius:8px;text-align:center;"><p style="margin:0 0 8px 0;font-size:13px;color:#555;">Verification Code</p><p style="margin:0;font-size:32px;font-weight:bold;letter-spacing:0.2em;color:#11294a;font-family:monospace;">${escapeHtml(input.code)}</p></div><p style="margin:12px 0 0 0;font-size:13px;color:#888;">This code expires in 30 minutes. If you did not expect this, you can safely ignore this email.</p>`;
+  const htmlWithCode = html.replace(
+    "</div></body></html>",
+    `${codeBlock}</div></body></html>`
+  );
+  const textWithCode =
+    text + `\n\nVerification Code: ${input.code}\n\nThis code expires in 30 minutes.`;
+
+  return { subject, html: htmlWithCode, text: textWithCode };
+}
+
 export function subRequestCreatedTemplate(input: {
   className: string;
   whenText: string;
