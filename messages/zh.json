@@ -630,7 +630,221 @@
         "late": "??",
         "sick": "??",
         "makeup": "??"
+      },
+      "linkStudent": {
+        "title": "关联学生",
+        "description": "生成邀请码，让学生关联到您的家长账户。",
+        "heading": "关联学生",
+        "instructions": "生成6位邀请码。学生在门户中输入即可关联账户。",
+        "generateButton": "生成邀请码",
+        "generatingButton": "生成中...",
+        "noCodes": "暂无邀请码。",
+        "expires": "过期时间",
+        "status": {
+          "pending": "待使用",
+          "claimed": "已使用",
+          "expired": "已过期"
+        },
+        "byEmailHeading": "通过学生邮箱关联",
+        "byEmailDescription": "输入学生的邮箱地址。我们会发送验证码供您确认。",
+        "generateSectionHeading": "或：生成邀请码",
+        "generateSectionDescription": "生成邀请码并发给学生。学生可在他们的门户中输入该代码。",
+        "generateError": "无法生成邀请码。"
       }
-    }
+    },
+    "linkStudent": {
+      "title": "关联学生",
+      "description": "生成邀请码，让学生关联到您的家长账户。",
+      "heading": "关联学生",
+      "instructions": "生成6位邀请码。学生在门户中输入即可关联账户。",
+      "generateButton": "生成邀请码",
+      "generatingButton": "生成中...",
+      "noCodes": "暂无邀请码。",
+      "expires": "过期时间",
+      "status": {
+        "pending": "待使用",
+        "claimed": "已使用",
+        "expired": "已过期"
+      },
+      "byEmailHeading": "通过学生邮箱关联",
+      "byEmailDescription": "输入学生的邮箱地址。我们会发送验证码供您确认。",
+      "generateSectionHeading": "或：生成邀请码",
+      "generateSectionDescription": "生成邀请码并发给学生。学生可在他们的门户中输入该代码。",
+      "generateError": "无法生成邀请码。"
+    },
+    "student": {
+      "classes": {
+        "title": "我的课程",
+        "noTerm": "当前没有活跃的学期。",
+        "noTermHint": "学期发布后请再来查看。",
+        "description": "学期课程表和Zoom链接。",
+        "quickLinks": "快捷链接",
+        "quickLinksDesc": "使用这些页面管理您的学期。",
+        "coach": "教练",
+        "zoom": "Zoom链接",
+        "openLink": "打开链接",
+        "schedule": "时间表",
+        "type": "类型",
+        "enrollClasses": "报名课程",
+        "reportAbsence": "报告缺席",
+        "classCredits": "课时积分",
+        "joinClass": "进入课堂",
+        "zoomUnavailable": "Zoom链接尚未提供",
+        "substituteCoachOn": "代课教练（",
+        "taOn": "TA（"
+      },
+      "attendance": {
+        "title": "出勤记录",
+        "description": "按学期和课程查看出勤情况。",
+        "sessionLog": "课程记录",
+        "date": "日期",
+        "class": "课程",
+        "status": "状态",
+        "camera": "摄像头",
+        "cameraOn": "开",
+        "cameraOff": "关",
+        "noRecords": "暂无出勤记录。",
+        "noTermRecords": "本学期暂无出勤记录。",
+        "allClasses": "所有课程",
+        "term": "学期",
+        "load": "加载",
+        "activeLabel": "当前"
+      },
+      "resources": {
+        "title": "学习资料",
+        "description": "教练发布的课程资料和录像。",
+        "noResources": "暂无可用资料。",
+        "allTypes": "所有类型",
+        "apply": "应用"
+      },
+      "makeup": {
+        "title": "补课",
+        "noTerm": "当前没有可用的学期。",
+        "noTermHint": "学期开启后请再试。",
+        "description": "如果您的课程类型有交替周课程，请使用此页面查找补课选项。",
+        "noAbsences": "本学期暂无缺课记录。",
+        "missedPrefix": "缺席了",
+        "onDate": "日期",
+        "alternatives": "可选补课班级",
+        "onceWeekly": "该课程每周仅一次。录像将发布在学习资料中。"
+      },
+      "booking": {
+        "title": "预约私人课程",
+        "description": "查看教练的私人课程时间并提交预约请求。"
+      },
+      "linkParent": {
+        "title": "关联家长",
+        "description": "输入家长提供的邀请码以关联账户。"
+      },
+      "legal": {
+        "title": "法律文件",
+        "description": "查看必需文件并提交电子签名。",
+        "noDocs": "当前没有分配法律文件。",
+        "openDocument": "打开文件",
+        "signed": "已签署",
+        "viewSignature": "查看签名",
+        "signDocument": "签署文件"
+      },
+      "absent": {
+        "title": "请假",
+        "noTerm": "当前没有可用的学期。",
+        "noTermHint": "请联系DSDC管理员。",
+        "description": "报告即将缺席的课程。通知和提醒功能将在后续版本中添加。",
+        "noActiveClasses": "您目前没有可请假的在读课程。"
+      },
+      "feedback": {
+        "title": "匿名反馈",
+        "description": "匿名发送反馈。您的账户信息不会存储在反馈记录中。"
+      },
+      "reportCards": {
+        "title": "成绩报告",
+        "description": "已批准的课程成绩报告。",
+        "coach": "教练",
+        "approved": "审批时间",
+        "openPdf": "打开PDF",
+        "noneApproved": "暂无已批准的成绩报告。"
+      }
+    },
+    "nav": {
+      "student": {
+        "myClasses": "我的课程",
+        "attendance": "出勤",
+        "resources": "学习资料",
+        "makeupClasses": "补课",
+        "bookPrivate": "预约私课",
+        "linkParent": "关联家长",
+        "legalDocs": "法律文件",
+        "markAbsent": "请假",
+        "feedback": "反馈",
+        "reportCards": "成绩报告",
+        "preferences": "偏好设置",
+        "sectionLearning": "学习",
+        "sectionAccount": "账户",
+        "enrollClasses": "报名课程",
+        "classCredits": "课时积分",
+        "mySessions": "我的私课",
+        "calendar": "日历",
+        "settings": "账户设置"
+      },
+      "parent": {
+        "dashboard": "概览",
+        "classes": "学生课程",
+        "attendance": "出勤",
+        "resources": "学习资料",
+        "privateSessions": "私课",
+        "reportCards": "成绩报告",
+        "legalDocs": "法律文件",
+        "markAbsent": "请假",
+        "preferences": "通知偏好",
+        "language": "语言",
+        "student": "学生",
+        "noStudents": "没有已关联学生",
+        "enrollClasses": "报名课程",
+        "calendar": "日历",
+        "settings": "账户设置"
+      },
+      "coach": {
+        "dashboard": "概览",
+        "checkin": "签到",
+        "myClasses": "我的课程",
+        "reportCards": "成绩报告",
+        "myHours": "我的课时",
+        "availability": "可用时间",
+        "subRequests": "代课请求",
+        "privateSessions": "私课",
+        "preferences": "偏好设置",
+        "sectionTeaching": "教学",
+        "sectionSchedule": "日程",
+        "calendar": "日历",
+        "settings": "账户设置"
+      },
+      "admin": {
+        "dashboard": "仪表盘",
+        "terms": "学期",
+        "classes": "课程",
+        "reportCards": "成绩报告",
+        "payroll": "工资",
+        "availability": "可用时间",
+        "subRequests": "代课请求",
+        "privateSessions": "私课",
+        "etransfers": "电子转账",
+        "pendingApprovals": "待审批",
+        "loginLog": "登录日志",
+        "students": "学生",
+        "parents": "家长",
+        "coaches": "教练",
+        "enroll": "注册",
+        "createUser": "创建用户",
+        "legalDocs": "法律文件",
+        "sectionOverview": "概览",
+        "sectionPeople": "用户",
+        "sectionLegal": "法律",
+        "calendar": "日历",
+        "settings": "账户设置"
+      }
+    },
+    "displayTimezone": "显示时区",
+    "reportBug": "报告错误",
+    "settings": "账户设置"
   }
 }

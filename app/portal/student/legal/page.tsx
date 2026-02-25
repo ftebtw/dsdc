@@ -4,10 +4,13 @@ import Link from 'next/link';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';
 import { requireRole } from '@/lib/portal/auth';
+import { portalT } from '@/lib/portal/parent-i18n';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function StudentLegalPage() {
   const session = await requireRole(['student']);
+  const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const supabase = await getSupabaseServerClient();
 
   const { data: documentsData } = await supabase
@@ -45,10 +48,15 @@ export default async function StudentLegalPage() {
   }
 
   return (
-    <SectionCard title="Legal Documents" description="Review required documents and submit your digital signature.">
+    <SectionCard
+      title={t('portal.student.legal.title', 'Legal Documents')}
+      description={t('portal.student.legal.description', 'Review required documents and submit your digital signature.')}
+    >
       <div className="space-y-4">
         {documents.length === 0 ? (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">No legal documents assigned right now.</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t('portal.student.legal.noDocs', 'No legal documents assigned right now.')}
+          </p>
         ) : null}
         {documents.map((document: any) => {
           const signature = signatureByDocument.get(document.id);
@@ -64,16 +72,16 @@ export default async function StudentLegalPage() {
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <OpenSignedUrlButton
                   endpoint={`/api/portal/legal-documents/${document.id}/signed-url`}
-                  label="Open Document"
+                  label={t('portal.student.legal.openDocument', 'Open Document')}
                 />
                 {signature ? (
                   <>
                     <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs">
-                      Signed {new Date(signature.signed_at).toLocaleDateString()}
+                      {t('portal.student.legal.signed', 'Signed')} {new Date(signature.signed_at).toLocaleDateString()}
                     </span>
                     <OpenSignedUrlButton
                       endpoint={`/api/portal/signatures/${signature.id}/signed-url`}
-                      label="View Signature"
+                      label={t('portal.student.legal.viewSignature', 'View Signature')}
                     />
                   </>
                 ) : (
@@ -81,7 +89,7 @@ export default async function StudentLegalPage() {
                     href={`/portal/student/legal/${document.id}`}
                     className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold"
                   >
-                    Sign Document
+                    {t('portal.student.legal.signDocument', 'Sign Document')}
                   </Link>
                 )}
               </div>

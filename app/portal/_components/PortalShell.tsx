@@ -31,6 +31,7 @@ import StudentSelector from "@/app/portal/_components/StudentSelector";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useI18n } from "@/lib/i18n";
 import type { PortalRole } from "@/lib/portal/auth";
+import { portalT } from "@/lib/portal/parent-i18n";
 
 type Props = {
   role: PortalRole | null;
@@ -50,56 +51,6 @@ type NavItem = {
 type NavSection = {
   title: string;
   items: NavItem[];
-};
-
-type PortalCopy = {
-  language: string;
-  displayTimezone: string;
-  reportBug: string;
-  dashboard: string;
-  student: string;
-  noStudents: string;
-  classes: string;
-  attendance: string;
-  resources: string;
-  reportCards: string;
-  legal: string;
-  absent: string;
-  preferences: string;
-  privateSessions: string;
-  adminOverview: string;
-  adminPeople: string;
-  adminDocuments: string;
-  terms: string;
-  allClasses: string;
-  payroll: string;
-  availability: string;
-  subRequests: string;
-  etransfers: string;
-  pendingApprovals: string;
-  loginLog: string;
-  students: string;
-  parents: string;
-  coaches: string;
-  enroll: string;
-  enrollClasses: string;
-  createUser: string;
-  legalDocs: string;
-  teaching: string;
-  scheduling: string;
-  checkin: string;
-  myClasses: string;
-  myHours: string;
-  learning: string;
-  actions: string;
-  makeupClasses: string;
-  bookPrivateSession: string;
-  mySessions: string;
-  linkParent: string;
-  feedback: string;
-  classCredits: string;
-  calendar: string;
-  settings: string;
 };
 
 const COMMON_TIMEZONES = [
@@ -127,106 +78,6 @@ const COMMON_TIMEZONES = [
   "UTC",
 ] as const;
 
-const portalLabel: Record<"en" | "zh", PortalCopy> = {
-  en: {
-    language: "Language",
-    displayTimezone: "Display Timezone",
-    reportBug: "Report a Bug",
-    dashboard: "Dashboard",
-    student: "Student",
-    noStudents: "No linked students",
-    classes: "My Student's Classes",
-    attendance: "Attendance",
-    resources: "Resources",
-    reportCards: "Report Cards",
-    legal: "Legal Documents",
-    absent: "Report Absence",
-    preferences: "Notification Preferences",
-    privateSessions: "Private Sessions",
-    adminOverview: "Overview",
-    adminPeople: "People",
-    adminDocuments: "Documents",
-    terms: "Terms",
-    allClasses: "Classes",
-    payroll: "Payroll",
-    availability: "Availability",
-    subRequests: "Sub Requests",
-    etransfers: "E-Transfers",
-    pendingApprovals: "Pending Approvals",
-    loginLog: "Login Log",
-    students: "Students",
-    parents: "Parents",
-    coaches: "Coaches",
-    enroll: "Enroll",
-    enrollClasses: "Enroll in Classes",
-    createUser: "Create User",
-    legalDocs: "Legal Docs",
-    teaching: "Teaching",
-    scheduling: "Scheduling",
-    checkin: "Check-in",
-    myClasses: "My Classes",
-    myHours: "My Hours",
-    learning: "Learning",
-    actions: "Actions",
-    makeupClasses: "Make-up Classes",
-    bookPrivateSession: "Book Private Session",
-    mySessions: "My Sessions",
-    linkParent: "Link Parent",
-    feedback: "Feedback",
-    classCredits: "Class Credits",
-    calendar: "Calendar",
-    settings: "Account Settings",
-  },
-  zh: {
-    language: "\u8bed\u8a00",
-    displayTimezone: "\u663e\u793a\u65f6\u533a",
-    reportBug: "\u62a5\u544a\u9519\u8bef",
-    dashboard: "\u6982\u89c8",
-    student: "\u5b66\u751f",
-    noStudents: "\u6ca1\u6709\u5df2\u5173\u8054\u5b66\u751f",
-    classes: "\u5b66\u751f\u8bfe\u7a0b",
-    attendance: "\u51fa\u52e4",
-    resources: "\u5b66\u4e60\u8d44\u6599",
-    reportCards: "\u6210\u7ee9\u62a5\u544a",
-    legal: "\u6cd5\u5f8b\u6587\u4ef6",
-    absent: "\u62a5\u544a\u7f3a\u5e2d",
-    preferences: "\u901a\u77e5\u504f\u597d",
-    privateSessions: "\u79c1\u8bfe",
-    adminOverview: "\u603b\u89c8",
-    adminPeople: "\u4eba\u5458",
-    adminDocuments: "\u6587\u4ef6",
-    terms: "\u5b66\u671f",
-    allClasses: "\u73ed\u7ea7",
-    payroll: "\u5de5\u8d44\u5355",
-    availability: "\u53ef\u7528\u65f6\u95f4",
-    subRequests: "\u4ee3\u8bfe\u8bf7\u6c42",
-    etransfers: "\u7535\u5b50\u8f6c\u8d26",
-    pendingApprovals: "\u5f85\u5ba1\u6279",
-    loginLog: "\u767b\u5f55\u8bb0\u5f55",
-    students: "\u5b66\u751f",
-    parents: "\u5bb6\u957f",
-    coaches: "\u6559\u7ec3",
-    enroll: "\u6ce8\u518c",
-    enrollClasses: "\u62a5\u540d\u8bfe\u7a0b",
-    createUser: "\u521b\u5efa\u7528\u6237",
-    legalDocs: "\u6cd5\u5f8b\u6587\u4ef6",
-    teaching: "\u6559\u5b66",
-    scheduling: "\u6392\u8bfe",
-    checkin: "\u7b7e\u5230",
-    myClasses: "\u6211\u7684\u8bfe\u7a0b",
-    myHours: "\u6211\u7684\u8bfe\u65f6",
-    learning: "\u5b66\u4e60",
-    actions: "\u64cd\u4f5c",
-    makeupClasses: "\u8865\u8bfe",
-    bookPrivateSession: "\u9884\u7ea6\u79c1\u8bfe",
-    mySessions: "\u6211\u7684\u79c1\u8bfe",
-    linkParent: "\u5173\u8054\u5bb6\u957f",
-    feedback: "\u53cd\u9988",
-    classCredits: "\u8bfe\u65f6\u79ef\u5206",
-    calendar: "\u65e5\u5386",
-    settings: "\u8d26\u6237\u8bbe\u7f6e",
-  },
-};
 
 function roleToLabel(role: PortalRole | null): string {
   switch (role) {
@@ -252,7 +103,7 @@ function PortalNav({
   pendingPath,
   studentParam,
   isParent,
-  copy,
+  t,
   localeUpdating,
   timezoneUpdating,
   currentLocale,
@@ -267,7 +118,7 @@ function PortalNav({
   pendingPath: string | null;
   studentParam: string | null;
   isParent: boolean;
-  copy: PortalCopy;
+  t: (key: string, fallback: string) => string;
   localeUpdating: boolean;
   timezoneUpdating: boolean;
   currentLocale: "en" | "zh";
@@ -280,14 +131,17 @@ function PortalNav({
     <>
       {isParent ? (
         <div className="mb-4 rounded-xl border border-warm-200 dark:border-navy-600/60 bg-warm-50 dark:bg-navy-900/55 p-3 shadow-sm dark:shadow-black/25">
-          <StudentSelector label={copy.student} emptyLabel={copy.noStudents} />
+          <StudentSelector
+            label={t("portal.nav.parent.student", "Student")}
+            emptyLabel={t("portal.nav.parent.noStudents", "No linked students")}
+          />
         </div>
       ) : null}
 
       <div className="mb-4">
         <label className="block">
           <span className="block text-xs mb-1 uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
-            {copy.language}
+            {t("portal.nav.parent.language", "Language")}
           </span>
           <select
             disabled={localeUpdating}
@@ -306,7 +160,7 @@ function PortalNav({
       <div className="mb-4">
         <label className="block">
           <span className="block text-xs mb-1 uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
-            {copy.displayTimezone}
+            {t("portal.displayTimezone", "Display Timezone")}
           </span>
           <select
             disabled={timezoneUpdating}
@@ -390,7 +244,7 @@ export default function PortalShell({
   const [bugModalOpen, setBugModalOpen] = useState(false);
 
   const currentLocale = optimisticLocale;
-  const copy = portalLabel[currentLocale];
+  const t = (key: string, fallback: string) => portalT(currentLocale, key, fallback);
   const studentParam = searchParams.get("student");
 
   useEffect(() => {
@@ -508,45 +362,45 @@ export default function PortalShell({
     if (role === "admin") {
       return [
         {
-          title: copy.adminOverview,
+          title: t("portal.nav.admin.sectionOverview", "Overview"),
           items: [
-            { href: "/portal/admin/dashboard", label: copy.dashboard, icon: LayoutDashboard },
-            { href: "/portal/admin/calendar", label: copy.calendar, icon: CalendarDays },
-            { href: "/portal/admin/terms", label: copy.terms, icon: Calendar },
-            { href: "/portal/admin/classes", label: copy.allClasses, icon: BookOpen },
-            { href: "/portal/admin/report-cards", label: copy.reportCards, icon: GraduationCap },
-            { href: "/portal/admin/payroll", label: copy.payroll, icon: ClipboardCheck },
-            { href: "/portal/admin/availability", label: copy.availability, icon: Calendar },
-            { href: "/portal/admin/subs", label: copy.subRequests, icon: Users },
+            { href: "/portal/admin/dashboard", label: t("portal.nav.admin.dashboard", "Dashboard"), icon: LayoutDashboard },
+            { href: "/portal/admin/calendar", label: t("portal.nav.admin.calendar", "Calendar"), icon: CalendarDays },
+            { href: "/portal/admin/terms", label: t("portal.nav.admin.terms", "Terms"), icon: Calendar },
+            { href: "/portal/admin/classes", label: t("portal.nav.admin.classes", "Classes"), icon: BookOpen },
+            { href: "/portal/admin/report-cards", label: t("portal.nav.admin.reportCards", "Report Cards"), icon: GraduationCap },
+            { href: "/portal/admin/payroll", label: t("portal.nav.admin.payroll", "Payroll"), icon: ClipboardCheck },
+            { href: "/portal/admin/availability", label: t("portal.nav.admin.availability", "Availability"), icon: Calendar },
+            { href: "/portal/admin/subs", label: t("portal.nav.admin.subRequests", "Sub Requests"), icon: Users },
             {
               href: "/portal/admin/private-sessions",
-              label: copy.privateSessions,
+              label: t("portal.nav.admin.privateSessions", "Private Sessions"),
               icon: ClipboardCheck,
             },
-            { href: "/portal/admin/etransfers", label: copy.etransfers, icon: Banknote },
+            { href: "/portal/admin/etransfers", label: t("portal.nav.admin.etransfers", "E-Transfers"), icon: Banknote },
             {
               href: "/portal/admin/pending-approvals",
-              label: copy.pendingApprovals,
+              label: t("portal.nav.admin.pendingApprovals", "Pending Approvals"),
               icon: ClipboardCheck,
             },
-            { href: "/portal/admin/login-log", label: copy.loginLog, icon: ClipboardList },
+            { href: "/portal/admin/login-log", label: t("portal.nav.admin.loginLog", "Login Log"), icon: ClipboardList },
           ],
         },
         {
-          title: copy.adminPeople,
+          title: t("portal.nav.admin.sectionPeople", "People"),
           items: [
-            { href: "/portal/admin/students", label: copy.students, icon: GraduationCap },
-            { href: "/portal/admin/parents", label: copy.parents, icon: Users },
-            { href: "/portal/admin/coaches", label: copy.coaches, icon: UserSquare2 },
-            { href: "/portal/admin/enroll", label: copy.enroll, icon: FileCheck2 },
-            { href: "/portal/signup", label: copy.createUser, icon: Shield },
+            { href: "/portal/admin/students", label: t("portal.nav.admin.students", "Students"), icon: GraduationCap },
+            { href: "/portal/admin/parents", label: t("portal.nav.admin.parents", "Parents"), icon: Users },
+            { href: "/portal/admin/coaches", label: t("portal.nav.admin.coaches", "Coaches"), icon: UserSquare2 },
+            { href: "/portal/admin/enroll", label: t("portal.nav.admin.enroll", "Enroll"), icon: FileCheck2 },
+            { href: "/portal/signup", label: t("portal.nav.admin.createUser", "Create User"), icon: Shield },
           ],
         },
         {
-          title: copy.adminDocuments,
+          title: t("portal.nav.admin.sectionLegal", "Legal"),
           items: [
-            { href: "/portal/admin/legal", label: copy.legalDocs, icon: FileText },
-            { href: "/portal/settings", label: copy.settings, icon: Settings },
+            { href: "/portal/admin/legal", label: t("portal.nav.admin.legalDocs", "Legal Docs"), icon: FileText },
+            { href: "/portal/settings", label: t("portal.settings", "Account Settings"), icon: Settings },
           ],
         },
       ];
@@ -555,28 +409,28 @@ export default function PortalShell({
     if (role === "coach" || role === "ta") {
       return [
         {
-          title: copy.teaching,
+          title: t("portal.nav.coach.sectionTeaching", "Teaching"),
           items: [
-            { href: "/portal/coach/dashboard", label: copy.dashboard, icon: LayoutDashboard },
-            { href: "/portal/coach/calendar", label: copy.calendar, icon: CalendarDays },
-            { href: "/portal/coach/checkin", label: copy.checkin, icon: ClipboardCheck },
-            { href: "/portal/coach/classes", label: copy.myClasses, icon: BookOpen },
-            { href: "/portal/coach/report-cards", label: copy.reportCards, icon: GraduationCap },
-            { href: "/portal/coach/hours", label: copy.myHours, icon: Calendar },
+            { href: "/portal/coach/dashboard", label: t("portal.nav.coach.dashboard", "Dashboard"), icon: LayoutDashboard },
+            { href: "/portal/coach/calendar", label: t("portal.nav.coach.calendar", "Calendar"), icon: CalendarDays },
+            { href: "/portal/coach/checkin", label: t("portal.nav.coach.checkin", "Check-in"), icon: ClipboardCheck },
+            { href: "/portal/coach/classes", label: t("portal.nav.coach.myClasses", "My Classes"), icon: BookOpen },
+            { href: "/portal/coach/report-cards", label: t("portal.nav.coach.reportCards", "Report Cards"), icon: GraduationCap },
+            { href: "/portal/coach/hours", label: t("portal.nav.coach.myHours", "My Hours"), icon: Calendar },
           ],
         },
         {
-          title: copy.scheduling,
+          title: t("portal.nav.coach.sectionSchedule", "Schedule"),
           items: [
-            { href: "/portal/coach/availability", label: copy.availability, icon: Calendar },
-            { href: "/portal/coach/subs", label: copy.subRequests, icon: Users },
+            { href: "/portal/coach/availability", label: t("portal.nav.coach.availability", "Availability"), icon: Calendar },
+            { href: "/portal/coach/subs", label: t("portal.nav.coach.subRequests", "Sub Requests"), icon: Users },
             {
               href: "/portal/coach/private-sessions",
-              label: copy.privateSessions,
+              label: t("portal.nav.coach.privateSessions", "Private Sessions"),
               icon: ClipboardCheck,
             },
-            { href: "/portal/preferences", label: copy.preferences, icon: Shield },
-            { href: "/portal/settings", label: copy.settings, icon: Settings },
+            { href: "/portal/preferences", label: t("portal.nav.coach.preferences", "Preferences"), icon: Shield },
+            { href: "/portal/settings", label: t("portal.settings", "Account Settings"), icon: Settings },
           ],
         },
       ];
@@ -585,33 +439,33 @@ export default function PortalShell({
     if (role === "student") {
       return [
         {
-          title: copy.learning,
+          title: t("portal.nav.student.sectionLearning", "Learning"),
           items: [
-            { href: "/portal/student/enroll", label: copy.enrollClasses, icon: GraduationCap },
-            { href: "/portal/calendar", label: copy.calendar, icon: CalendarDays },
-            { href: "/portal/student/classes", label: copy.myClasses, icon: BookOpen },
-            { href: "/portal/student/attendance", label: copy.attendance, icon: ClipboardCheck },
-            { href: "/portal/student/resources", label: copy.resources, icon: FileText },
-            { href: "/portal/student/makeup", label: copy.makeupClasses, icon: Calendar },
-            { href: "/portal/student/credits", label: copy.classCredits, icon: Star },
+            { href: "/portal/student/enroll", label: t("portal.nav.student.enrollClasses", "Enroll in Classes"), icon: GraduationCap },
+            { href: "/portal/calendar", label: t("portal.nav.student.calendar", "Calendar"), icon: CalendarDays },
+            { href: "/portal/student/classes", label: t("portal.nav.student.myClasses", "My Classes"), icon: BookOpen },
+            { href: "/portal/student/attendance", label: t("portal.nav.student.attendance", "Attendance"), icon: ClipboardCheck },
+            { href: "/portal/student/resources", label: t("portal.nav.student.resources", "Resources"), icon: FileText },
+            { href: "/portal/student/makeup", label: t("portal.nav.student.makeupClasses", "Make-up Classes"), icon: Calendar },
+            { href: "/portal/student/credits", label: t("portal.nav.student.classCredits", "Class Credits"), icon: Star },
           ],
         },
         {
-          title: copy.actions,
+          title: t("portal.nav.student.sectionAccount", "Account"),
           items: [
             {
               href: "/portal/student/booking",
-              label: copy.bookPrivateSession,
+              label: t("portal.nav.student.bookPrivate", "Book Private Session"),
               icon: Calendar,
             },
-            { href: "/portal/student/private-sessions", label: copy.mySessions, icon: Calendar },
-            { href: "/portal/student/link-parent", label: copy.linkParent, icon: Users },
-            { href: "/portal/student/legal", label: copy.legal, icon: FileCheck2 },
-            { href: "/portal/student/absent", label: copy.absent, icon: FileText },
-            { href: "/portal/student/feedback", label: copy.feedback, icon: MessageSquare },
-            { href: "/portal/student/report-cards", label: copy.reportCards, icon: GraduationCap },
-            { href: "/portal/preferences", label: copy.preferences, icon: Shield },
-            { href: "/portal/settings", label: copy.settings, icon: Settings },
+            { href: "/portal/student/private-sessions", label: t("portal.nav.student.mySessions", "My Sessions"), icon: Calendar },
+            { href: "/portal/student/link-parent", label: t("portal.nav.student.linkParent", "Link Parent"), icon: Users },
+            { href: "/portal/student/legal", label: t("portal.nav.student.legalDocs", "Legal Documents"), icon: FileCheck2 },
+            { href: "/portal/student/absent", label: t("portal.nav.student.markAbsent", "Mark Absent"), icon: FileText },
+            { href: "/portal/student/feedback", label: t("portal.nav.student.feedback", "Feedback"), icon: MessageSquare },
+            { href: "/portal/student/report-cards", label: t("portal.nav.student.reportCards", "Report Cards"), icon: GraduationCap },
+            { href: "/portal/preferences", label: t("portal.nav.student.preferences", "Preferences"), icon: Shield },
+            { href: "/portal/settings", label: t("portal.settings", "Account Settings"), icon: Settings },
           ],
         },
       ];
@@ -620,32 +474,32 @@ export default function PortalShell({
     if (role === "parent") {
       return [
         {
-          title: copy.dashboard,
+          title: t("portal.nav.parent.dashboard", "Dashboard"),
           items: [
-            { href: "/portal/calendar", label: copy.calendar, icon: CalendarDays },
-            { href: "/portal/parent/dashboard", label: copy.dashboard, icon: Home },
-            { href: "/portal/parent/enroll", label: copy.enrollClasses, icon: GraduationCap },
-            { href: "/portal/parent/classes", label: copy.classes, icon: BookOpen },
-            { href: "/portal/parent/attendance", label: copy.attendance, icon: ClipboardCheck },
-            { href: "/portal/parent/resources", label: copy.resources, icon: FileText },
-            { href: "/portal/parent/private-sessions", label: copy.privateSessions, icon: Calendar },
-            { href: "/portal/parent/report-cards", label: copy.reportCards, icon: GraduationCap },
+            { href: "/portal/calendar", label: t("portal.nav.parent.calendar", "Calendar"), icon: CalendarDays },
+            { href: "/portal/parent/dashboard", label: t("portal.nav.parent.dashboard", "Dashboard"), icon: Home },
+            { href: "/portal/parent/enroll", label: t("portal.nav.parent.enrollClasses", "Enroll in Classes"), icon: GraduationCap },
+            { href: "/portal/parent/classes", label: t("portal.nav.parent.classes", "My Student's Classes"), icon: BookOpen },
+            { href: "/portal/parent/attendance", label: t("portal.nav.parent.attendance", "Attendance"), icon: ClipboardCheck },
+            { href: "/portal/parent/resources", label: t("portal.nav.parent.resources", "Resources"), icon: FileText },
+            { href: "/portal/parent/private-sessions", label: t("portal.nav.parent.privateSessions", "Private Sessions"), icon: Calendar },
+            { href: "/portal/parent/report-cards", label: t("portal.nav.parent.reportCards", "Report Cards"), icon: GraduationCap },
           ],
         },
         {
-          title: copy.preferences,
+          title: t("portal.nav.parent.preferences", "Preferences"),
           items: [
-            { href: "/portal/parent/legal", label: copy.legal, icon: FileCheck2 },
-            { href: "/portal/parent/absent", label: copy.absent, icon: FileText },
-            { href: "/portal/parent/preferences", label: copy.preferences, icon: Shield },
-            { href: "/portal/settings", label: copy.settings, icon: Settings },
+            { href: "/portal/parent/legal", label: t("portal.nav.parent.legalDocs", "Legal Documents"), icon: FileCheck2 },
+            { href: "/portal/parent/absent", label: t("portal.nav.parent.markAbsent", "Mark Absent"), icon: FileText },
+            { href: "/portal/parent/preferences", label: t("portal.nav.parent.preferences", "Notification Preferences"), icon: Shield },
+            { href: "/portal/settings", label: t("portal.settings", "Account Settings"), icon: Settings },
           ],
         },
       ];
     }
 
     return [];
-  }, [copy, role]);
+  }, [currentLocale, role]);
 
   useEffect(() => {
     for (const section of navSections) {
@@ -736,7 +590,7 @@ export default function PortalShell({
                 pendingPath={pendingPath}
                 studentParam={studentParam}
                 isParent={role === "parent"}
-                copy={copy}
+                t={t}
                 localeUpdating={localeUpdating}
                 timezoneUpdating={timezoneUpdating}
                 currentLocale={currentLocale}
@@ -752,7 +606,7 @@ export default function PortalShell({
                   className="flex items-center gap-2 px-2 py-1.5 text-xs text-charcoal/50 dark:text-navy-400 hover:text-navy-700 dark:hover:text-navy-200 transition-colors w-full rounded-md hover:bg-warm-50 dark:hover:bg-navy-800"
                 >
                   <Bug className="w-3.5 h-3.5" />
-                  {copy.reportBug}
+                  {t("portal.reportBug", "Report a Bug")}
                 </button>
               </div>
             </div>
@@ -769,7 +623,7 @@ export default function PortalShell({
                 pendingPath={pendingPath}
                 studentParam={studentParam}
                 isParent={role === "parent"}
-                copy={copy}
+                t={t}
                 localeUpdating={localeUpdating}
                 timezoneUpdating={timezoneUpdating}
                 currentLocale={currentLocale}
@@ -785,7 +639,7 @@ export default function PortalShell({
                   className="flex items-center gap-2 px-2 py-1.5 text-xs text-charcoal/50 dark:text-navy-400 hover:text-navy-700 dark:hover:text-navy-200 transition-colors w-full rounded-md hover:bg-warm-50 dark:hover:bg-navy-800"
                 >
                   <Bug className="w-3.5 h-3.5" />
-                  {copy.reportBug}
+                  {t("portal.reportBug", "Report a Bug")}
                 </button>
               </div>
             </div>

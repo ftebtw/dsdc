@@ -6,39 +6,50 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm, getProfileMap } from '@/lib/portal/data';
 import { classTypeLabel } from '@/lib/portal/labels';
+import { portalT } from '@/lib/portal/parent-i18n';
 import { formatClassScheduleForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function StudentClassesPage() {
   const session = await requireRole(['student']);
+  const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const supabase = await getSupabaseServerClient();
   const activeTerm = await getActiveTerm(supabase);
 
   if (!activeTerm) {
     return (
-      <SectionCard title="My Classes" description="No active term is configured right now.">
-        <p className="text-sm text-charcoal/70 dark:text-navy-300">Please check back after the term is published.</p>
+      <SectionCard
+        title={t('portal.student.classes.title', 'My Classes')}
+        description={t('portal.student.classes.noTerm', 'No active term is configured right now.')}
+      >
+        <p className="text-sm text-charcoal/70 dark:text-navy-300">
+          {t('portal.student.classes.noTermHint', 'Please check back after the term is published.')}
+        </p>
       </SectionCard>
     );
   }
 
   const quickLinks = (
-    <SectionCard title="Quick Links" description="Use these pages to manage your term.">
+    <SectionCard
+      title={t('portal.student.classes.quickLinks', 'Quick Links')}
+      description={t('portal.student.classes.quickLinksDesc', 'Use these pages to manage your term.')}
+    >
       <div className="flex flex-wrap gap-2">
         <Link href="/portal/student/enroll" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-          Enroll in Classes
+          {t('portal.student.classes.enrollClasses', 'Enroll in Classes')}
         </Link>
         <Link href="/portal/student/attendance" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-          Attendance
+          {t('portal.nav.student.attendance', 'Attendance')}
         </Link>
         <Link href="/portal/student/resources" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-          Resources
+          {t('portal.nav.student.resources', 'Resources')}
         </Link>
         <Link href="/portal/student/absent" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-          Report Absence
+          {t('portal.student.classes.reportAbsence', 'Report Absence')}
         </Link>
         <Link href="/portal/student/credits" className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-          Class Credits
+          {t('portal.student.classes.classCredits', 'Class Credits')}
         </Link>
       </div>
     </SectionCard>
@@ -55,7 +66,10 @@ export default async function StudentClassesPage() {
   if (classIds.length === 0) {
     return (
       <div className="space-y-6">
-        <SectionCard title="My Classes" description={`${activeTerm.name} term schedule and Zoom access.`}>
+        <SectionCard
+          title={t('portal.student.classes.title', 'My Classes')}
+          description={`${activeTerm.name} ${t('portal.student.classes.description', 'term schedule and Zoom access.')}`}
+        >
           <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
         </SectionCard>
         {quickLinks}
@@ -110,7 +124,10 @@ export default async function StudentClassesPage() {
 
   return (
     <div className="space-y-6">
-      <SectionCard title="My Classes" description={`${activeTerm.name} term schedule and Zoom access.`}>
+      <SectionCard
+        title={t('portal.student.classes.title', 'My Classes')}
+        description={`${activeTerm.name} ${t('portal.student.classes.description', 'term schedule and Zoom access.')}`}
+      >
         {classes.length === 0 ? (
           <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
         ) : (
@@ -136,28 +153,30 @@ export default async function StudentClassesPage() {
                     )}
                   </p>
                   <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
-                    Coach: {coach?.display_name || coach?.email || classRow.coach_id}
+                    {t('portal.student.classes.coach', 'Coach')}: {coach?.display_name || coach?.email || classRow.coach_id}
                   </p>
                   <p className="text-sm mt-1">
                     {classRow.zoom_link ? (
                       <>
-                        Zoom:{' '}
+                        {t('portal.student.classes.zoom', 'Zoom Link')}:{' '}
                         <a
                           href={classRow.zoom_link}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="underline text-navy-700 dark:text-navy-200"
                         >
-                          Join Class
+                          {t('portal.student.classes.openLink', 'Open Link')}
                         </a>
                       </>
                     ) : (
-                      <span className="text-charcoal/50 dark:text-navy-400 italic">Zoom link not yet available</span>
+                      <span className="text-charcoal/50 dark:text-navy-400 italic">
+                        {t('portal.student.classes.zoomUnavailable', 'Zoom link not yet available')}
+                      </span>
                     )}
                   </p>
                   {nextSub ? (
                     <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
-                      Substitute coach on {nextSub.session_date}:{' '}
+                      {t('portal.student.classes.substituteCoachOn', 'Substitute coach on')} {nextSub.session_date}:{' '}
                       {profileMap[nextSub.accepting_coach_id]?.display_name ||
                         profileMap[nextSub.accepting_coach_id]?.email ||
                         nextSub.accepting_coach_id}
@@ -165,7 +184,7 @@ export default async function StudentClassesPage() {
                   ) : null}
                   {nextTa ? (
                     <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
-                      TA on {nextTa.session_date}:{' '}
+                      {t('portal.student.classes.taOn', 'TA on')} {nextTa.session_date}:{' '}
                       {profileMap[nextTa.accepting_ta_id]?.display_name ||
                         profileMap[nextTa.accepting_ta_id]?.email ||
                         nextTa.accepting_ta_id}

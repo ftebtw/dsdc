@@ -630,7 +630,220 @@
         "late": "Late",
         "sick": "Sick",
         "makeup": "Make-up"
+      },
+      "linkStudent": {
+        "title": "Link Student",
+        "description": "Generate invite codes to let students link to your parent account.",
+        "heading": "Link Student",
+        "instructions": "Generate a 6-character code. Your student enters it in their portal to link accounts.",
+        "generateButton": "Generate Code",
+        "generatingButton": "Generating...",
+        "noCodes": "No codes yet.",
+        "expires": "Expires",
+        "status": {
+          "pending": "Pending",
+          "claimed": "Claimed",
+          "expired": "Expired"
+        },
+        "byEmailHeading": "Link by Student Email",
+        "byEmailDescription": "Enter your student's email. We'll send them a code to confirm.",
+        "generateSectionHeading": "Or: Generate Invite Code",
+        "generateSectionDescription": "Generate a code and give it to your student. They enter it from their portal.",
+        "generateError": "Could not generate invite code."
       }
-    }
+    },
+    "linkStudent": {
+      "title": "Link Student",
+      "description": "Generate invite codes to let students link to your parent account.",
+      "heading": "Link Student",
+      "instructions": "Generate a 6-character code. Your student enters it in their portal to link accounts.",
+      "generateButton": "Generate Code",
+      "generatingButton": "Generating...",
+      "noCodes": "No codes yet.",
+      "expires": "Expires",
+      "status": {
+        "pending": "Pending",
+        "claimed": "Claimed",
+        "expired": "Expired"
+      },
+      "byEmailHeading": "Link by Student Email",
+      "byEmailDescription": "Enter your student's email. We'll send them a code to confirm.",
+      "generateSectionHeading": "Or: Generate Invite Code",
+      "generateSectionDescription": "Generate a code and give it to your student. They enter it from their portal.",
+      "generateError": "Could not generate invite code."
+    },
+    "student": {
+      "classes": {
+        "title": "My Classes",
+        "noTerm": "No active term is configured right now.",
+        "noTermHint": "Please check back after the term is published.",
+        "description": "term schedule and Zoom access.",
+        "quickLinks": "Quick Links",
+        "quickLinksDesc": "Use these pages to manage your term.",
+        "coach": "Coach",
+        "zoom": "Zoom Link",
+        "openLink": "Open Link",
+        "schedule": "Schedule",
+        "type": "Type",
+        "enrollClasses": "Enroll in Classes",
+        "reportAbsence": "Report Absence",
+        "classCredits": "Class Credits",
+        "zoomUnavailable": "Zoom link not yet available",
+        "substituteCoachOn": "Substitute coach on",
+        "taOn": "TA on"
+      },
+      "attendance": {
+        "title": "Attendance Record",
+        "description": "Track your attendance by term and class.",
+        "sessionLog": "Session Log",
+        "date": "Date",
+        "class": "Class",
+        "status": "Status",
+        "camera": "Camera",
+        "cameraOn": "On",
+        "cameraOff": "Off",
+        "noRecords": "No attendance records yet.",
+        "noTermRecords": "No attendance records for this term.",
+        "allClasses": "All classes",
+        "term": "Term",
+        "load": "Load",
+        "activeLabel": "Active"
+      },
+      "resources": {
+        "title": "Resources",
+        "description": "Class materials and recordings posted by coaches.",
+        "noResources": "No resources available.",
+        "allTypes": "All types",
+        "apply": "Apply"
+      },
+      "makeup": {
+        "title": "Make-up Classes",
+        "noTerm": "No active term is available.",
+        "noTermHint": "Please check again when a term is active.",
+        "description": "If your class type has alternate weekly sessions, use this page to find make-up options.",
+        "noAbsences": "No absence records found for this term.",
+        "missedPrefix": "Missed",
+        "onDate": "on",
+        "alternatives": "Available alternatives",
+        "onceWeekly": "This class runs once per week. Recording will be posted in Resources."
+      },
+      "booking": {
+        "title": "Book Private Session",
+        "description": "View coach private availability and request a private session."
+      },
+      "linkParent": {
+        "title": "Link to Parent",
+        "description": "Enter an invite code from your parent to link accounts."
+      },
+      "legal": {
+        "title": "Legal Documents",
+        "description": "Review required documents and submit your digital signature.",
+        "noDocs": "No legal documents assigned right now.",
+        "openDocument": "Open Document",
+        "signed": "Signed",
+        "viewSignature": "View Signature",
+        "signDocument": "Sign Document"
+      },
+      "absent": {
+        "title": "Mark Absent",
+        "noTerm": "No active term available.",
+        "noTermHint": "Please contact DSDC admin.",
+        "description": "Report upcoming absences. Notifications and reminder automation will be added in a later phase.",
+        "noActiveClasses": "You have no active classes to report against."
+      },
+      "feedback": {
+        "title": "Anonymous Feedback",
+        "description": "Send feedback anonymously. Your account identity is not stored in the feedback record."
+      },
+      "reportCards": {
+        "title": "Report Cards",
+        "description": "Approved report cards for your enrolled classes.",
+        "coach": "Coach",
+        "approved": "Approved",
+        "openPdf": "Open PDF",
+        "noneApproved": "No approved report cards yet."
+      }
+    },
+    "nav": {
+      "student": {
+        "myClasses": "My Classes",
+        "attendance": "Attendance",
+        "resources": "Resources",
+        "makeupClasses": "Make-up Classes",
+        "bookPrivate": "Book Private Session",
+        "linkParent": "Link Parent",
+        "legalDocs": "Legal Documents",
+        "markAbsent": "Mark Absent",
+        "feedback": "Feedback",
+        "reportCards": "Report Cards",
+        "preferences": "Preferences",
+        "sectionLearning": "Learning",
+        "sectionAccount": "Account",
+        "enrollClasses": "Enroll in Classes",
+        "classCredits": "Class Credits",
+        "mySessions": "My Sessions",
+        "calendar": "Calendar",
+        "settings": "Account Settings"
+      },
+      "parent": {
+        "dashboard": "Dashboard",
+        "classes": "My Student's Classes",
+        "attendance": "Attendance",
+        "resources": "Resources",
+        "privateSessions": "Private Sessions",
+        "reportCards": "Report Cards",
+        "legalDocs": "Legal Documents",
+        "markAbsent": "Mark Absent",
+        "preferences": "Notification Preferences",
+        "language": "Language",
+        "student": "Student",
+        "noStudents": "No linked students",
+        "enrollClasses": "Enroll in Classes",
+        "calendar": "Calendar",
+        "settings": "Account Settings"
+      },
+      "coach": {
+        "dashboard": "Dashboard",
+        "checkin": "Check-in",
+        "myClasses": "My Classes",
+        "reportCards": "Report Cards",
+        "myHours": "My Hours",
+        "availability": "Availability",
+        "subRequests": "Sub Requests",
+        "privateSessions": "Private Sessions",
+        "preferences": "Preferences",
+        "sectionTeaching": "Teaching",
+        "sectionSchedule": "Schedule",
+        "calendar": "Calendar",
+        "settings": "Account Settings"
+      },
+      "admin": {
+        "dashboard": "Dashboard",
+        "terms": "Terms",
+        "classes": "Classes",
+        "reportCards": "Report Cards",
+        "payroll": "Payroll",
+        "availability": "Availability",
+        "subRequests": "Sub Requests",
+        "privateSessions": "Private Sessions",
+        "etransfers": "E-Transfers",
+        "pendingApprovals": "Pending Approvals",
+        "loginLog": "Login Log",
+        "students": "Students",
+        "parents": "Parents",
+        "coaches": "Coaches",
+        "enroll": "Enroll",
+        "createUser": "Create User",
+        "legalDocs": "Legal Docs",
+        "sectionOverview": "Overview",
+        "sectionPeople": "People",
+        "sectionLegal": "Legal",
+        "calendar": "Calendar",
+        "settings": "Account Settings"
+      }
+    },
+    "displayTimezone": "Display Timezone",
+    "reportBug": "Report a Bug",
+    "settings": "Account Settings"
   }
 }

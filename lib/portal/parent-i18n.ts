@@ -24,3 +24,5 @@ function getNestedValue(obj: Record<string, unknown>, path: string): string | nu
 export function parentT(locale: Locale, key: string, fallback: string): string {
   return getNestedValue(bundles[locale], key) ?? fallback;
 }
+
+export const portalT = parentT;

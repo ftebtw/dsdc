@@ -6,6 +6,7 @@ import StudentBookingManager from '@/app/portal/_components/StudentBookingManage
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
 import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
+import { portalT } from '@/lib/portal/parent-i18n';
 import { formatSessionRangeForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -21,13 +22,18 @@ function stepForStatus(status: string): number {
 
 export default async function StudentBookingPage() {
   const session = await requireRole(['student']);
+  const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const supabase = await getSupabaseServerClient();
   const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
   if (!enrolled) {
     return (
       <SectionCard
-        title="Book Private Session"
-        description="View coach private availability and request a private session."
+        title={t('portal.student.booking.title', 'Book Private Session')}
+        description={t(
+          'portal.student.booking.description',
+          'View coach private availability and request a private session.'
+        )}
       >
         <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
       </SectionCard>
@@ -121,8 +127,11 @@ export default async function StudentBookingPage() {
 
   return (
     <SectionCard
-      title="Book Private Session"
-      description="View coach private availability and request a private session."
+      title={t('portal.student.booking.title', 'Book Private Session')}
+      description={t(
+        'portal.student.booking.description',
+        'View coach private availability and request a private session.'
+      )}
     >
       <StudentBookingManager availableSlots={availableSlots} sessions={sessionItems} />
     </SectionCard>

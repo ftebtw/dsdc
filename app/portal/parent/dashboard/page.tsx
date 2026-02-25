@@ -21,6 +21,7 @@ export default async function ParentDashboardPage({
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
   const locale = session.profile.locale === 'zh' ? 'zh' : 'en';
+  const t = (key: string, fallback: string) => parentT(locale, key, fallback);
 
   const [parentSelection, { data: inviteCodesData }] = await Promise.all([
     getParentSelection(supabase, session.userId, params.student),
@@ -46,32 +47,27 @@ export default async function ParentDashboardPage({
     return (
       <div className="space-y-6">
         <SectionCard
-          title={parentT(locale, 'portal.parent.dashboard.title', 'Parent Dashboard')}
-          description={parentT(locale, 'portal.parent.common.noLinkedStudentsShort', 'No linked students yet.')}
+          title={t('portal.parent.dashboard.title', 'Parent Dashboard')}
+          description={t('portal.parent.common.noLinkedStudentsShort', 'No linked students yet.')}
         >
           <p className="text-sm text-charcoal/70 dark:text-navy-300">
-            {parentT(
-              locale,
-              'portal.parent.common.noLinkedStudents',
-              'Link your student account below to get started.'
-            )}
+            {t('portal.parent.common.noLinkedStudents', 'Link your student account below to get started.')}
           </p>
         </SectionCard>
 
         <SectionCard
-          title={parentT(locale, 'portal.parent.linkStudent.title', 'Link Student')}
-          description={parentT(
-            locale,
-            'portal.parent.linkStudent.description',
-            'Link your student account to manage their enrollment.'
-          )}
+          title={t('portal.linkStudent.title', 'Link Student')}
+          description={t('portal.linkStudent.description', 'Generate invite codes to let students link to your parent account.')}
         >
           <div className="space-y-2 mb-6">
             <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
-              Link by Student Email
+              {t('portal.linkStudent.byEmailHeading', 'Link by Student Email')}
             </h3>
             <p className="text-xs text-charcoal/60 dark:text-navy-400">
-              Enter your student&apos;s email. We&apos;ll send them a code to confirm.
+              {t(
+                'portal.linkStudent.byEmailDescription',
+                "Enter your student's email. We'll send them a code to confirm."
+              )}
             </p>
             <ParentLinkStudentForm />
           </div>
@@ -80,12 +76,15 @@ export default async function ParentDashboardPage({
 
           <div className="space-y-2">
             <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
-              Or: Generate Invite Code
+              {t('portal.linkStudent.generateSectionHeading', 'Or: Generate Invite Code')}
             </h3>
             <p className="text-xs text-charcoal/60 dark:text-navy-400">
-              Generate a code and give it to your student. They enter it from their portal.
+              {t(
+                'portal.linkStudent.generateSectionDescription',
+                'Generate a code and give it to your student. They enter it from their portal.'
+              )}
             </p>
-            <ParentInviteCodePanel initialCodes={inviteCodes} />
+            <ParentInviteCodePanel initialCodes={inviteCodes} locale={locale} />
           </div>
         </SectionCard>
       </div>
@@ -100,8 +99,8 @@ export default async function ParentDashboardPage({
     return (
       <div className="space-y-6">
         <SectionCard
-          title={parentT(locale, 'portal.parent.dashboard.title', 'Parent Dashboard')}
-          description={`${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
+          title={t('portal.parent.dashboard.title', 'Parent Dashboard')}
+          description={`${t('portal.parent.selectedStudent', 'Selected student')}: ${
             selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
           }`}
         >
@@ -109,19 +108,18 @@ export default async function ParentDashboardPage({
         </SectionCard>
 
         <SectionCard
-          title={parentT(locale, 'portal.parent.linkStudent.title', 'Link Student')}
-          description={parentT(
-            locale,
-            'portal.parent.linkStudent.description',
-            'Link your student account to manage their enrollment.'
-          )}
+          title={t('portal.linkStudent.title', 'Link Student')}
+          description={t('portal.linkStudent.description', 'Generate invite codes to let students link to your parent account.')}
         >
           <div className="space-y-2 mb-6">
             <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
-              Link by Student Email
+              {t('portal.linkStudent.byEmailHeading', 'Link by Student Email')}
             </h3>
             <p className="text-xs text-charcoal/60 dark:text-navy-400">
-              Enter your student&apos;s email. We&apos;ll send them a code to confirm.
+              {t(
+                'portal.linkStudent.byEmailDescription',
+                "Enter your student's email. We'll send them a code to confirm."
+              )}
             </p>
             <ParentLinkStudentForm />
           </div>
@@ -130,12 +128,15 @@ export default async function ParentDashboardPage({
 
           <div className="space-y-2">
             <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
-              Or: Generate Invite Code
+              {t('portal.linkStudent.generateSectionHeading', 'Or: Generate Invite Code')}
             </h3>
             <p className="text-xs text-charcoal/60 dark:text-navy-400">
-              Generate a code and give it to your student. They enter it from their portal.
+              {t(
+                'portal.linkStudent.generateSectionDescription',
+                'Generate a code and give it to your student. They enter it from their portal.'
+              )}
             </p>
-            <ParentInviteCodePanel initialCodes={inviteCodes} />
+            <ParentInviteCodePanel initialCodes={inviteCodes} locale={locale} />
           </div>
         </SectionCard>
       </div>
@@ -178,27 +179,27 @@ export default async function ParentDashboardPage({
   return (
     <div className="space-y-6">
       <SectionCard
-        title={parentT(locale, 'portal.parent.dashboard.title', 'Parent Dashboard')}
-        description={`${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
+        title={t('portal.parent.dashboard.title', 'Parent Dashboard')}
+        description={`${t('portal.parent.selectedStudent', 'Selected student')}: ${
           selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
         }`}
       >
         <div className="grid sm:grid-cols-3 gap-3">
           <div className="rounded-lg border border-warm-200 dark:border-navy-600/70 bg-warm-50 dark:bg-navy-900/65 p-3 shadow-sm dark:shadow-black/20">
             <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
-              {parentT(locale, 'portal.parent.dashboard.activeClasses', 'Active classes')}
+              {t('portal.parent.dashboard.activeClasses', 'Active classes')}
             </p>
             <p className="text-2xl font-bold text-navy-800 dark:text-white">{activeClasses.length}</p>
           </div>
           <div className="rounded-lg border border-warm-200 dark:border-navy-600/70 bg-warm-50 dark:bg-navy-900/65 p-3 shadow-sm dark:shadow-black/20">
             <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
-              {parentT(locale, 'portal.parent.dashboard.presentCount', 'Present sessions')}
+              {t('portal.parent.dashboard.presentCount', 'Present sessions')}
             </p>
             <p className="text-2xl font-bold text-green-700 dark:text-green-400">{presentCount}</p>
           </div>
           <div className="rounded-lg border border-warm-200 dark:border-navy-600/70 bg-warm-50 dark:bg-navy-900/65 p-3 shadow-sm dark:shadow-black/20">
             <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
-              {parentT(locale, 'portal.parent.dashboard.absentCount', 'Absent sessions')}
+              {t('portal.parent.dashboard.absentCount', 'Absent sessions')}
             </p>
             <p className="text-2xl font-bold text-red-700 dark:text-red-400">{absentCount}</p>
           </div>
@@ -206,19 +207,18 @@ export default async function ParentDashboardPage({
       </SectionCard>
 
       <SectionCard
-        title={parentT(locale, 'portal.parent.linkStudent.title', 'Link Student')}
-        description={parentT(
-          locale,
-          'portal.parent.linkStudent.description',
-          'Link your student account to manage their enrollment.'
-        )}
+        title={t('portal.linkStudent.title', 'Link Student')}
+        description={t('portal.linkStudent.description', 'Generate invite codes to let students link to your parent account.')}
       >
         <div className="space-y-2 mb-6">
           <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
-            Link by Student Email
+            {t('portal.linkStudent.byEmailHeading', 'Link by Student Email')}
           </h3>
           <p className="text-xs text-charcoal/60 dark:text-navy-400">
-            Enter your student&apos;s email. We&apos;ll send them a code to confirm.
+            {t(
+              'portal.linkStudent.byEmailDescription',
+              "Enter your student's email. We'll send them a code to confirm."
+            )}
           </p>
           <ParentLinkStudentForm />
         </div>
@@ -227,12 +227,15 @@ export default async function ParentDashboardPage({
 
         <div className="space-y-2">
           <h3 className="font-semibold text-navy-800 dark:text-white text-sm">
-            Or: Generate Invite Code
+            {t('portal.linkStudent.generateSectionHeading', 'Or: Generate Invite Code')}
           </h3>
           <p className="text-xs text-charcoal/60 dark:text-navy-400">
-            Generate a code and give it to your student. They enter it from their portal.
+            {t(
+              'portal.linkStudent.generateSectionDescription',
+              'Generate a code and give it to your student. They enter it from their portal.'
+            )}
           </p>
-          <ParentInviteCodePanel initialCodes={inviteCodes} />
+          <ParentInviteCodePanel initialCodes={inviteCodes} locale={locale} />
         </div>
       </SectionCard>
     </div>

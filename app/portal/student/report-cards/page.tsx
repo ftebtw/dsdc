@@ -6,16 +6,22 @@ import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
 import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
+import { portalT } from '@/lib/portal/parent-i18n';
 import { formatUtcForUser } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function StudentReportCardsPage() {
   const session = await requireRole(['student']);
+  const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const supabase = await getSupabaseServerClient();
   const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
   if (!enrolled) {
     return (
-      <SectionCard title="Report Cards" description="Approved report cards for your enrolled classes.">
+      <SectionCard
+        title={t('portal.student.reportCards.title', 'Report Cards')}
+        description={t('portal.student.reportCards.description', 'Approved report cards for your enrolled classes.')}
+      >
         <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
       </SectionCard>
     );
@@ -46,7 +52,10 @@ export default async function StudentReportCardsPage() {
   }
 
   return (
-    <SectionCard title="Report Cards" description="Approved report cards for your enrolled classes.">
+    <SectionCard
+      title={t('portal.student.reportCards.title', 'Report Cards')}
+      description={t('portal.student.reportCards.description', 'Approved report cards for your enrolled classes.')}
+    >
       <div className="space-y-4">
         {[...groups.entries()].map(([termId, termRows]) => (
           <article
@@ -63,20 +72,25 @@ export default async function StudentReportCardsPage() {
                   <div>
                     <p className="font-medium text-navy-800 dark:text-white">{classMap[row.class_id] || row.class_id}</p>
                     <p className="text-xs text-charcoal/65 dark:text-navy-300">
-                      Coach: {coachMap[row.written_by]?.display_name || coachMap[row.written_by]?.email || row.written_by}
+                      {t('portal.student.reportCards.coach', 'Coach')}: {coachMap[row.written_by]?.display_name || coachMap[row.written_by]?.email || row.written_by}
                       {' - '}
-                      Approved:{' '}
+                      {t('portal.student.reportCards.approved', 'Approved')}:{' '}
                       {formatUtcForUser(row.reviewed_at || row.created_at, session.profile.timezone)}
                     </p>
                   </div>
-                  <OpenSignedUrlButton endpoint={`/api/portal/report-cards/${row.id}/signed-url`} label="Open PDF" />
+                  <OpenSignedUrlButton
+                    endpoint={`/api/portal/report-cards/${row.id}/signed-url`}
+                    label={t('portal.student.reportCards.openPdf', 'Open PDF')}
+                  />
                 </div>
               ))}
             </div>
           </article>
         ))}
         {rows.length === 0 ? (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">No approved report cards yet.</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t('portal.student.reportCards.noneApproved', 'No approved report cards yet.')}
+          </p>
         ) : null}
       </div>
     </SectionCard>

@@ -5,6 +5,7 @@ import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequire
 import ResourceList from '@/app/portal/_components/ResourceList';
 import { requireRole } from '@/lib/portal/auth';
 import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
+import { portalT } from '@/lib/portal/parent-i18n';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 
@@ -31,12 +32,17 @@ export default async function StudentResourcesPage({
   searchParams: Promise<{ classId?: string; type?: string }>;
 }) {
   const session = await requireRole(['student']);
+  const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
   const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
   if (!enrolled) {
     return (
-      <SectionCard title="Resources" description="Class materials and recordings posted by coaches.">
+      <SectionCard
+        title={t('portal.student.resources.title', 'Resources')}
+        description={t('portal.student.resources.description', 'Class materials and recordings posted by coaches.')}
+      >
         <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
       </SectionCard>
     );
@@ -73,14 +79,17 @@ export default async function StudentResourcesPage({
 
   return (
     <div className="space-y-6">
-      <SectionCard title="Resources" description="Class materials and recordings posted by coaches.">
+      <SectionCard
+        title={t('portal.student.resources.title', 'Resources')}
+        description={t('portal.student.resources.description', 'Class materials and recordings posted by coaches.')}
+      >
         <form method="get" className="grid sm:grid-cols-3 gap-3 mb-4">
           <select
             name="classId"
             defaultValue={params.classId || ''}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
           >
-            <option value="">All classes</option>
+            <option value="">{t('portal.student.attendance.allClasses', 'All classes')}</option>
             {classes.map((classRow) => (
               <option key={classRow.id} value={classRow.id}>
                 {classRow.name}
@@ -92,7 +101,7 @@ export default async function StudentResourcesPage({
             defaultValue={params.type || ''}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
           >
-            <option value="">All types</option>
+            <option value="">{t('portal.student.resources.allTypes', 'All types')}</option>
             {resourceTypes.map((type) => (
               <option key={type} value={type}>
                 {type.replace('_', ' ')}
@@ -100,7 +109,7 @@ export default async function StudentResourcesPage({
             ))}
           </select>
           <button className="justify-self-start px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-            Apply
+            {t('portal.student.resources.apply', 'Apply')}
           </button>
         </form>
         <ResourceList resources={resources} />

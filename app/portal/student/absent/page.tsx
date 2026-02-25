@@ -6,6 +6,7 @@ import PortalAbsenceManager from '@/app/portal/_components/PortalAbsenceManager'
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
 import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
+import { portalT } from '@/lib/portal/parent-i18n';
 import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -18,13 +19,18 @@ type StudentAbsenceRow = Database['public']['Tables']['student_absences']['Row']
 
 export default async function StudentAbsentPage() {
   const session = await requireRole(['student']);
+  const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const supabase = await getSupabaseServerClient();
   const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
   if (!enrolled) {
     return (
       <SectionCard
-        title="Report Absence"
-        description="Report upcoming absences. Notifications and reminder automation will be added in a later phase."
+        title={t('portal.student.absent.title', 'Mark Absent')}
+        description={t(
+          'portal.student.absent.description',
+          'Report upcoming absences. Notifications and reminder automation will be added in a later phase.'
+        )}
       >
         <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
       </SectionCard>
@@ -34,8 +40,13 @@ export default async function StudentAbsentPage() {
 
   if (!activeTerm) {
     return (
-      <SectionCard title="Report Absence" description="No active term available.">
-        <p className="text-sm text-charcoal/70 dark:text-navy-300">Please contact DSDC admin.</p>
+      <SectionCard
+        title={t('portal.student.absent.title', 'Mark Absent')}
+        description={t('portal.student.absent.noTerm', 'No active term available.')}
+      >
+        <p className="text-sm text-charcoal/70 dark:text-navy-300">
+          {t('portal.student.absent.noTermHint', 'Please contact DSDC admin.')}
+        </p>
       </SectionCard>
     );
   }
@@ -69,11 +80,16 @@ export default async function StudentAbsentPage() {
 
   return (
     <SectionCard
-      title="Report Absence"
-      description="Report upcoming absences. Notifications and reminder automation will be added in a later phase."
+      title={t('portal.student.absent.title', 'Mark Absent')}
+      description={t(
+        'portal.student.absent.description',
+        'Report upcoming absences. Notifications and reminder automation will be added in a later phase.'
+      )}
     >
       {classes.length === 0 ? (
-        <p className="text-sm text-charcoal/70 dark:text-navy-300">You have no active classes to report against.</p>
+        <p className="text-sm text-charcoal/70 dark:text-navy-300">
+          {t('portal.student.absent.noActiveClasses', 'You have no active classes to report against.')}
+        </p>
       ) : (
         <PortalAbsenceManager
           classes={classes}

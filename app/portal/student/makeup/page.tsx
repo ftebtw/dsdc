@@ -6,18 +6,24 @@ import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
 import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
 import { classTypeLabel } from '@/lib/portal/labels';
+import { portalT } from '@/lib/portal/parent-i18n';
 import { formatClassScheduleForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function StudentMakeupPage() {
   const session = await requireRole(['student']);
+  const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const supabase = await getSupabaseServerClient();
   const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
   if (!enrolled) {
     return (
       <SectionCard
-        title="Make-up Classes"
-        description="If your class type has alternate weekly sessions, use this page to find make-up options."
+        title={t('portal.student.makeup.title', 'Make-up Classes')}
+        description={t(
+          'portal.student.makeup.description',
+          'If your class type has alternate weekly sessions, use this page to find make-up options.'
+        )}
       >
         <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
       </SectionCard>
@@ -27,8 +33,13 @@ export default async function StudentMakeupPage() {
 
   if (!activeTerm) {
     return (
-      <SectionCard title="Make-up Classes" description="No active term is available.">
-        <p className="text-sm text-charcoal/70 dark:text-navy-300">Please check again when a term is active.</p>
+      <SectionCard
+        title={t('portal.student.makeup.title', 'Make-up Classes')}
+        description={t('portal.student.makeup.noTerm', 'No active term is available.')}
+      >
+        <p className="text-sm text-charcoal/70 dark:text-navy-300">
+          {t('portal.student.makeup.noTermHint', 'Please check again when a term is active.')}
+        </p>
       </SectionCard>
     );
   }
@@ -67,12 +78,17 @@ export default async function StudentMakeupPage() {
 
   return (
     <SectionCard
-      title="Make-up Classes"
-      description="If your class type has alternate weekly sessions, use this page to find make-up options."
+      title={t('portal.student.makeup.title', 'Make-up Classes')}
+      description={t(
+        'portal.student.makeup.description',
+        'If your class type has alternate weekly sessions, use this page to find make-up options.'
+      )}
     >
       <div className="space-y-4">
         {absences.length === 0 ? (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">No absence records found for this term.</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t('portal.student.makeup.noAbsences', 'No absence records found for this term.')}
+          </p>
         ) : null}
         {absences.map((absence: any) => {
           const missedClass = classMap[absence.class_id];
@@ -88,14 +104,17 @@ export default async function StudentMakeupPage() {
               className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4"
             >
               <p className="font-medium text-navy-800 dark:text-white">
-                Missed {missedClass.name} on {absence.session_date}
+                {t('portal.student.makeup.missedPrefix', 'Missed')} {missedClass.name}{' '}
+                {t('portal.student.makeup.onDate', 'on')} {absence.session_date}
               </p>
               <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
                 {classTypeLabel[missedClass.type as keyof typeof classTypeLabel] || missedClass.type}
               </p>
               {alternatives.length > 0 ? (
                 <div className="mt-3 space-y-2">
-                  <p className="text-sm font-medium text-navy-700 dark:text-navy-200">Available alternatives</p>
+                  <p className="text-sm font-medium text-navy-700 dark:text-navy-200">
+                    {t('portal.student.makeup.alternatives', 'Available alternatives')}
+                  </p>
                   {alternatives.map((classRow: any) => (
                     <p key={classRow.id} className="text-sm text-charcoal/80 dark:text-navy-200">
                       {classRow.name} -{' '}
@@ -111,7 +130,10 @@ export default async function StudentMakeupPage() {
                 </div>
               ) : (
                 <p className="mt-3 text-sm text-charcoal/80 dark:text-navy-200">
-                  This class runs once per week. Recording will be posted in Resources.
+                  {t(
+                    'portal.student.makeup.onceWeekly',
+                    'This class runs once per week. Recording will be posted in Resources.'
+                  )}
                 </p>
               )}
             </article>

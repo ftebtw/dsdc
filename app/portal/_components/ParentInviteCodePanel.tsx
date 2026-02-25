@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from 'react';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type InviteCode = {
   id: string;
@@ -13,6 +14,7 @@ type InviteCode = {
 
 type ParentInviteCodePanelProps = {
   initialCodes: InviteCode[];
+  locale?: 'en' | 'zh';
 };
 
 function getStatus(code: InviteCode, now: Date): 'pending' | 'claimed' | 'expired' {
@@ -21,17 +23,17 @@ function getStatus(code: InviteCode, now: Date): 'pending' | 'claimed' | 'expire
   return 'pending';
 }
 
-function getTimeRemainingText(expiresAt: string, now: Date): string {
+function getTimeRemainingText(expiresAt: string, now: Date, locale: 'en' | 'zh'): string {
   const remainingMs = new Date(expiresAt).getTime() - now.getTime();
-  if (remainingMs <= 0) return 'Expired';
+  if (remainingMs <= 0) return portalT(locale, 'portal.linkStudent.status.expired', 'Expired');
 
   const totalMinutes = Math.floor(remainingMs / 60000);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  return `${hours}h ${minutes}m left`;
+  return `${hours}h ${minutes}m`;
 }
 
-export default function ParentInviteCodePanel({ initialCodes }: ParentInviteCodePanelProps) {
+export default function ParentInviteCodePanel({ initialCodes, locale = 'en' }: ParentInviteCodePanelProps) {
   const [codes, setCodes] = useState<InviteCode[]>(initialCodes);
   const [pending, setPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -52,12 +54,16 @@ export default function ParentInviteCodePanel({ initialCodes }: ParentInviteCode
       };
 
       if (!response.ok || !payload.invite) {
-        throw new Error(payload.error || 'Could not generate invite code.');
+        throw new Error(payload.error || portalT(locale, 'portal.linkStudent.generateError', 'Could not generate invite code.'));
       }
 
       setCodes((previous) => [payload.invite!, ...previous]);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Could not generate invite code.');
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : portalT(locale, 'portal.linkStudent.generateError', 'Could not generate invite code.')
+      );
     } finally {
       setPending(false);
     }
@@ -67,9 +73,15 @@ export default function ParentInviteCodePanel({ initialCodes }: ParentInviteCode
     <div className="rounded-xl border border-warm-200 dark:border-navy-600/70 bg-white/80 dark:bg-navy-900/50 p-4 space-y-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="font-semibold text-navy-800 dark:text-white">Link Student</h3>
+          <h3 className="font-semibold text-navy-800 dark:text-white">
+            {portalT(locale, 'portal.linkStudent.heading', 'Link Student')}
+          </h3>
           <p className="text-sm text-charcoal/70 dark:text-navy-300">
-            Generate a 6-character code. Your student enters it in their portal to link accounts.
+            {portalT(
+              locale,
+              'portal.linkStudent.instructions',
+              'Generate a 6-character code. Your student enters it in their portal to link accounts.'
+            )}
           </p>
         </div>
         <button
@@ -78,7 +90,9 @@ export default function ParentInviteCodePanel({ initialCodes }: ParentInviteCode
           disabled={pending}
           className="px-3 py-2 rounded-md bg-navy-800 text-white text-sm font-semibold disabled:opacity-60"
         >
-          {pending ? 'Generating...' : 'Generate Code'}
+          {pending
+            ? portalT(locale, 'portal.linkStudent.generatingButton', 'Generating...')
+            : portalT(locale, 'portal.linkStudent.generateButton', 'Generate Code')}
         </button>
       </div>
 
@@ -86,7 +100,9 @@ export default function ParentInviteCodePanel({ initialCodes }: ParentInviteCode
 
       <div className="space-y-2">
         {codes.length === 0 ? (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">No codes yet.</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {portalT(locale, 'portal.linkStudent.noCodes', 'No codes yet.')}
+          </p>
         ) : (
           codes.map((code) => {
             const status = getStatus(code, now);
@@ -105,11 +121,11 @@ export default function ParentInviteCodePanel({ initialCodes }: ParentInviteCode
                 <div>
                   <p className="font-mono text-lg tracking-[0.15em] text-navy-800 dark:text-white">{code.code}</p>
                   <p className="text-xs text-charcoal/70 dark:text-navy-300">
-                    Expires: {new Date(code.expires_at).toLocaleString()} ({getTimeRemainingText(code.expires_at, now)})
+                    {portalT(locale, 'portal.linkStudent.expires', 'Expires')}: {new Date(code.expires_at).toLocaleString()} ({getTimeRemainingText(code.expires_at, now, locale)})
                   </p>
                 </div>
                 <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold uppercase ${statusColor}`}>
-                  {status}
+                  {portalT(locale, `portal.linkStudent.status.${status}`, status)}
                 </span>
               </div>
             );

@@ -6,6 +6,7 @@ import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequire
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
 import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
+import { portalT } from '@/lib/portal/parent-i18n';
 import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -20,12 +21,17 @@ export default async function StudentAttendancePage({
   searchParams: Promise<{ term?: string }>;
 }) {
   const session = await requireRole(['student']);
+  const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
   const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
   if (!enrolled) {
     return (
-      <SectionCard title="Attendance Record" description="Track your attendance by term and class.">
+      <SectionCard
+        title={t('portal.student.attendance.title', 'Attendance Record')}
+        description={t('portal.student.attendance.description', 'Track your attendance by term and class.')}
+      >
         <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
       </SectionCard>
     );
@@ -67,9 +73,14 @@ export default async function StudentAttendancePage({
 
   return (
     <div className="space-y-6">
-      <SectionCard title="Attendance Record" description="Track your attendance by term and class.">
+      <SectionCard
+        title={t('portal.student.attendance.title', 'Attendance Record')}
+        description={t('portal.student.attendance.description', 'Track your attendance by term and class.')}
+      >
         <form method="get" className="flex flex-wrap items-center gap-3 mb-4">
-          <label className="text-sm text-navy-700 dark:text-navy-200">Term</label>
+          <label className="text-sm text-navy-700 dark:text-navy-200">
+            {t('portal.student.attendance.term', 'Term')}
+          </label>
           <select
             name="term"
             defaultValue={selectedTermId}
@@ -77,25 +88,27 @@ export default async function StudentAttendancePage({
           >
             {terms.map((term) => (
               <option key={term.id} value={term.id}>
-                {term.name} {term.is_active ? '(Active)' : ''}
+                {term.name} {term.is_active ? `(${t('portal.student.attendance.activeLabel', 'Active')})` : ''}
               </option>
             ))}
           </select>
-          <button className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">Load</button>
+          <button className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+            {t('portal.student.attendance.load', 'Load')}
+          </button>
         </form>
 
         <AttendanceSummary records={attendanceRows} />
       </SectionCard>
 
-      <SectionCard title="Session Log">
+      <SectionCard title={t('portal.student.attendance.sessionLog', 'Session Log')}>
         <div className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-x-auto">
           <table className="w-full min-w-[760px] text-sm">
             <thead className="bg-warm-100 dark:bg-navy-900/60">
               <tr>
-                <th className="text-left px-4 py-3">Date</th>
-                <th className="text-left px-4 py-3">Class</th>
-                <th className="text-left px-4 py-3">Status</th>
-                <th className="text-left px-4 py-3">Camera</th>
+                <th className="text-left px-4 py-3">{t('portal.student.attendance.date', 'Date')}</th>
+                <th className="text-left px-4 py-3">{t('portal.student.attendance.class', 'Class')}</th>
+                <th className="text-left px-4 py-3">{t('portal.student.attendance.status', 'Status')}</th>
+                <th className="text-left px-4 py-3">{t('portal.student.attendance.camera', 'Camera')}</th>
               </tr>
             </thead>
             <tbody>
@@ -108,14 +121,20 @@ export default async function StudentAttendancePage({
                       {row.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3">{row.camera_on ? 'On' : 'Off'}</td>
+                  <td className="px-4 py-3">
+                    {row.camera_on
+                      ? t('portal.student.attendance.cameraOn', 'On')
+                      : t('portal.student.attendance.cameraOff', 'Off')}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         {attendanceRows.length === 0 ? (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-4">No attendance records for this term.</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-4">
+            {t('portal.student.attendance.noTermRecords', 'No attendance records for this term.')}
+          </p>
         ) : null}
       </SectionCard>
     </div>
