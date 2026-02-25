@@ -437,7 +437,7 @@ export default function PortalCalendar({
               id="calendar-timezone"
               value={displayTimezone}
               onChange={(eventValue) => setDisplayTimezone(eventValue.target.value)}
-              className="text-xs rounded border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-2 py-1"
+              className="text-xs rounded border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white px-2 py-1"
             >
               {timezoneOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -852,3 +852,4 @@ export default function PortalCalendar({
     </div>
   );
 }
+

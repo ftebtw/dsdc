@@ -47,7 +47,7 @@ export default function AuthCallbackCompletePage() {
 
   if (status === "error") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-warm-50 dark:bg-navy-950 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-warm-50 dark:bg-navy-800 dark:text-white px-4">
         <div className="rounded-xl border border-warm-200 dark:border-navy-700 bg-white dark:bg-navy-900 p-6 max-w-md text-center">
           <h1 className="text-xl font-bold text-navy-900 dark:text-white">Verification Failed</h1>
           <p className="mt-2 text-sm text-charcoal/70 dark:text-navy-300">
@@ -65,7 +65,7 @@ export default function AuthCallbackCompletePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-warm-50 dark:bg-navy-950">
+    <div className="min-h-screen flex items-center justify-center bg-warm-50 dark:bg-navy-800 dark:text-white">
       <div className="text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-navy-800 dark:border-white mx-auto" />
         <p className="mt-4 text-sm text-charcoal/70 dark:text-navy-300">Verifying your account...</p>
@@ -73,3 +73,4 @@ export default function AuthCallbackCompletePage() {
     </div>
   );
 }
+

@@ -199,7 +199,7 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="rounded-2xl border border-warm-200 dark:border-navy-700 bg-white/95 dark:bg-navy-900/95 shadow-xl p-6 sm:p-8">
+    <div className="rounded-2xl border border-warm-200 dark:border-navy-600 bg-white/95 dark:bg-navy-800/95 shadow-xl dark:shadow-black/30 p-6 sm:p-8">
       <p className="text-xs uppercase tracking-[0.16em] text-charcoal/60 dark:text-navy-300">
         {tx("registerPage.badge", "Quick Enrollment")}
       </p>
@@ -248,7 +248,7 @@ export default function RegisterForm() {
                   required
                   value={firstName}
                   onChange={(event) => setFirstName(event.target.value)}
-                  className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
+                  className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
                 />
               </label>
               <label className="block">
@@ -260,7 +260,7 @@ export default function RegisterForm() {
                   required
                   value={lastName}
                   onChange={(event) => setLastName(event.target.value)}
-                  className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
+                  className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
                 />
               </label>
             </div>
@@ -273,7 +273,7 @@ export default function RegisterForm() {
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
               />
             </label>
             <label className="block">
@@ -286,7 +286,7 @@ export default function RegisterForm() {
                 minLength={8}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
               />
             </label>
           </>
@@ -301,7 +301,7 @@ export default function RegisterForm() {
                 required
                 value={parentDisplayName}
                 onChange={(event) => setParentDisplayName(event.target.value)}
-                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
               />
             </label>
             <label className="block">
@@ -313,7 +313,7 @@ export default function RegisterForm() {
                 required
                 value={parentEmail}
                 onChange={(event) => setParentEmail(event.target.value)}
-                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
               />
             </label>
             <label className="block">
@@ -326,7 +326,7 @@ export default function RegisterForm() {
                 minLength={8}
                 value={parentPassword}
                 onChange={(event) => setParentPassword(event.target.value)}
-                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
               />
             </label>
             <p className="text-sm text-charcoal/60 dark:text-navy-300 bg-warm-50 dark:bg-navy-800 rounded-lg px-3 py-2">
@@ -362,3 +362,4 @@ export default function RegisterForm() {
     </div>
   );
 }
+

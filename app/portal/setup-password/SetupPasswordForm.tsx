@@ -58,7 +58,7 @@ export default function SetupPasswordForm({ email }: { email: string }) {
           placeholder="At least 8 characters"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
+          className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white px-3 py-2"
         />
       </div>
       <div>
@@ -69,7 +69,7 @@ export default function SetupPasswordForm({ email }: { email: string }) {
           minLength={8}
           value={confirmPassword}
           onChange={(event) => setConfirmPassword(event.target.value)}
-          className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2"
+          className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white px-3 py-2"
         />
       </div>
 
@@ -85,3 +85,4 @@ export default function SetupPasswordForm({ email }: { email: string }) {
     </form>
   );
 }
+

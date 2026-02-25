@@ -91,7 +91,7 @@ export default function AdminNotificationTestTools({
           onChange={(event) => setRecipient(event.target.value)}
           type="email"
           placeholder="admin@yourdomain.com"
-          className="w-full rounded-md border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-950 px-3 py-2 text-sm"
+          className="w-full rounded-md border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white px-3 py-2 text-sm"
         />
         <p className="mt-2 text-xs text-charcoal/70 dark:text-navy-300">
           If blank, this uses your admin account email.
@@ -120,3 +120,4 @@ export default function AdminNotificationTestTools({
     </div>
   );
 }
+
