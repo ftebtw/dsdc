@@ -7,6 +7,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Banknote,
   BookOpen,
+  Bug,
   Calendar,
   CalendarDays,
   ClipboardCheck,
@@ -18,12 +19,14 @@ import {
   LayoutDashboard,
   Menu,
   MessageSquare,
+  Settings,
   Shield,
   Star,
   UserSquare2,
   Users,
   X,
 } from "lucide-react";
+import BugReportModal from "@/app/portal/_components/BugReportModal";
 import StudentSelector from "@/app/portal/_components/StudentSelector";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useI18n } from "@/lib/i18n";
@@ -32,7 +35,9 @@ import type { PortalRole } from "@/lib/portal/auth";
 type Props = {
   role: PortalRole | null;
   name?: string | null;
+  email?: string | null;
   locale?: "en" | "zh";
+  timezone?: string;
   children: ReactNode;
 };
 
@@ -49,6 +54,8 @@ type NavSection = {
 
 type PortalCopy = {
   language: string;
+  displayTimezone: string;
+  reportBug: string;
   dashboard: string;
   student: string;
   noStudents: string;
@@ -91,11 +98,39 @@ type PortalCopy = {
   feedback: string;
   classCredits: string;
   calendar: string;
+  settings: string;
 };
+
+const COMMON_TIMEZONES = [
+  "America/Vancouver",
+  "America/Los_Angeles",
+  "America/Denver",
+  "America/Chicago",
+  "America/New_York",
+  "America/Toronto",
+  "America/Edmonton",
+  "America/Halifax",
+  "Pacific/Honolulu",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "Asia/Tokyo",
+  "Asia/Shanghai",
+  "Asia/Hong_Kong",
+  "Asia/Seoul",
+  "Asia/Kolkata",
+  "Asia/Dubai",
+  "Australia/Sydney",
+  "Australia/Melbourne",
+  "Pacific/Auckland",
+  "UTC",
+] as const;
 
 const portalLabel: Record<"en" | "zh", PortalCopy> = {
   en: {
     language: "Language",
+    displayTimezone: "Display Timezone",
+    reportBug: "Report a Bug",
     dashboard: "Dashboard",
     student: "Student",
     noStudents: "No linked students",
@@ -138,9 +173,12 @@ const portalLabel: Record<"en" | "zh", PortalCopy> = {
     feedback: "Feedback",
     classCredits: "Class Credits",
     calendar: "Calendar",
+    settings: "Account Settings",
   },
   zh: {
     language: "\u8bed\u8a00",
+    displayTimezone: "\u663e\u793a\u65f6\u533a",
+    reportBug: "\u62a5\u544a\u9519\u8bef",
     dashboard: "\u6982\u89c8",
     student: "\u5b66\u751f",
     noStudents: "\u6ca1\u6709\u5df2\u5173\u8054\u5b66\u751f",
@@ -183,6 +221,7 @@ const portalLabel: Record<"en" | "zh", PortalCopy> = {
     feedback: "\u53cd\u9988",
     classCredits: "\u8bfe\u65f6\u79ef\u5206",
     calendar: "\u65e5\u5386",
+    settings: "\u8d26\u6237\u8bbe\u7f6e",
   },
 };
 
@@ -212,8 +251,11 @@ function PortalNav({
   isParent,
   copy,
   localeUpdating,
+  timezoneUpdating,
   currentLocale,
+  displayTimezone,
   onLocaleChange,
+  onTimezoneChange,
   onNavClick,
 }: {
   role: PortalRole | null;
@@ -224,8 +266,11 @@ function PortalNav({
   isParent: boolean;
   copy: PortalCopy;
   localeUpdating: boolean;
+  timezoneUpdating: boolean;
   currentLocale: "en" | "zh";
+  displayTimezone: string;
   onLocaleChange: (nextLocale: "en" | "zh") => Promise<void>;
+  onTimezoneChange: (nextTimezone: string) => Promise<void>;
   onNavClick: (href: string) => void;
 }) {
   return (
@@ -251,6 +296,28 @@ function PortalNav({
           >
             <option value="en">English</option>
             <option value="zh">{"\u4e2d\u6587"}</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="mb-4">
+        <label className="block">
+          <span className="block text-xs mb-1 uppercase tracking-wide text-charcoal/60 dark:text-navy-200/80">
+            {copy.displayTimezone}
+          </span>
+          <select
+            disabled={timezoneUpdating}
+            value={displayTimezone}
+            onChange={(event) => {
+              void onTimezoneChange(event.target.value);
+            }}
+            className="w-full rounded-md border border-warm-300 dark:border-navy-500 bg-white dark:bg-navy-900 px-2 py-1.5 text-xs"
+          >
+            {COMMON_TIMEZONES.map((tz) => (
+              <option key={tz} value={tz}>
+                {tz.replace(/_/g, " ")}
+              </option>
+            ))}
           </select>
         </label>
       </div>
@@ -295,7 +362,14 @@ function PortalNav({
   );
 }
 
-export default function PortalShell({ role, name, locale = "en", children }: Props) {
+export default function PortalShell({
+  role,
+  name,
+  email,
+  locale = "en",
+  timezone = "America/Vancouver",
+  children,
+}: Props) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -305,9 +379,12 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
   const [optimisticLocale, setOptimisticLocale] = useState<"en" | "zh">(
     locale === "zh" ? "zh" : "en"
   );
+  const [displayTimezone, setDisplayTimezone] = useState(timezone);
   const [localeUpdating, setLocaleUpdating] = useState(false);
+  const [timezoneUpdating, setTimezoneUpdating] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [pendingPath, setPendingPath] = useState<string | null>(null);
+  const [bugModalOpen, setBugModalOpen] = useState(false);
 
   const currentLocale = optimisticLocale;
   const copy = portalLabel[currentLocale];
@@ -323,6 +400,10 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
   useEffect(() => {
     setOptimisticLocale(locale === "zh" ? "zh" : "en");
   }, [locale]);
+
+  useEffect(() => {
+    setDisplayTimezone(timezone);
+  }, [timezone]);
 
   useEffect(() => {
     if (i18nLocale !== optimisticLocale) {
@@ -375,6 +456,30 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
     }
 
     setLocaleUpdating(false);
+    router.refresh();
+  }
+
+  async function onTimezoneChange(nextTimezone: string) {
+    if (nextTimezone === displayTimezone) return;
+
+    const previous = displayTimezone;
+    setDisplayTimezone(nextTimezone);
+    setTimezoneUpdating(true);
+
+    try {
+      const response = await fetch("/api/portal/profile/timezone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ timezone: nextTimezone }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update timezone.");
+      }
+    } catch {
+      setDisplayTimezone(previous);
+    }
+
+    setTimezoneUpdating(false);
     router.refresh();
   }
 
@@ -436,7 +541,10 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
         },
         {
           title: copy.adminDocuments,
-          items: [{ href: "/portal/admin/legal", label: copy.legalDocs, icon: FileText }],
+          items: [
+            { href: "/portal/admin/legal", label: copy.legalDocs, icon: FileText },
+            { href: "/portal/settings", label: copy.settings, icon: Settings },
+          ],
         },
       ];
     }
@@ -465,6 +573,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
               icon: ClipboardCheck,
             },
             { href: "/portal/preferences", label: copy.preferences, icon: Shield },
+            { href: "/portal/settings", label: copy.settings, icon: Settings },
           ],
         },
       ];
@@ -498,6 +607,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
             { href: "/portal/student/feedback", label: copy.feedback, icon: MessageSquare },
             { href: "/portal/student/report-cards", label: copy.reportCards, icon: GraduationCap },
             { href: "/portal/preferences", label: copy.preferences, icon: Shield },
+            { href: "/portal/settings", label: copy.settings, icon: Settings },
           ],
         },
       ];
@@ -523,6 +633,7 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
             { href: "/portal/parent/legal", label: copy.legal, icon: FileCheck2 },
             { href: "/portal/parent/absent", label: copy.absent, icon: FileText },
             { href: "/portal/parent/preferences", label: copy.preferences, icon: Shield },
+            { href: "/portal/settings", label: copy.settings, icon: Settings },
           ],
         },
       ];
@@ -622,10 +733,23 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
                 isParent={role === "parent"}
                 copy={copy}
                 localeUpdating={localeUpdating}
+                timezoneUpdating={timezoneUpdating}
                 currentLocale={currentLocale}
+                displayTimezone={displayTimezone}
                 onLocaleChange={onLocaleChange}
+                onTimezoneChange={onTimezoneChange}
                 onNavClick={onNavClick}
               />
+              <div className="mt-4 pt-3 border-t border-warm-200 dark:border-navy-700">
+                <button
+                  type="button"
+                  onClick={() => setBugModalOpen(true)}
+                  className="flex items-center gap-2 px-2 py-1.5 text-xs text-charcoal/50 dark:text-navy-400 hover:text-navy-700 dark:hover:text-navy-200 transition-colors w-full rounded-md hover:bg-warm-50 dark:hover:bg-navy-800"
+                >
+                  <Bug className="w-3.5 h-3.5" />
+                  {copy.reportBug}
+                </button>
+              </div>
             </div>
           </div>
         ) : null}
@@ -642,10 +766,23 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
                 isParent={role === "parent"}
                 copy={copy}
                 localeUpdating={localeUpdating}
+                timezoneUpdating={timezoneUpdating}
                 currentLocale={currentLocale}
+                displayTimezone={displayTimezone}
                 onLocaleChange={onLocaleChange}
+                onTimezoneChange={onTimezoneChange}
                 onNavClick={onNavClick}
               />
+              <div className="mt-4 pt-3 border-t border-warm-200 dark:border-navy-700">
+                <button
+                  type="button"
+                  onClick={() => setBugModalOpen(true)}
+                  className="flex items-center gap-2 px-2 py-1.5 text-xs text-charcoal/50 dark:text-navy-400 hover:text-navy-700 dark:hover:text-navy-200 transition-colors w-full rounded-md hover:bg-warm-50 dark:hover:bg-navy-800"
+                >
+                  <Bug className="w-3.5 h-3.5" />
+                  {copy.reportBug}
+                </button>
+              </div>
             </div>
           </div>
         </aside>
@@ -654,6 +791,12 @@ export default function PortalShell({ role, name, locale = "en", children }: Pro
           <div className="max-w-6xl">{children}</div>
         </main>
       </div>
+      <BugReportModal
+        open={bugModalOpen}
+        onClose={() => setBugModalOpen(false)}
+        userEmail={email || "unknown"}
+        userRole={role || "unknown"}
+      />
     </div>
   );
 }

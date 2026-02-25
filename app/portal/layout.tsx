@@ -8,7 +8,9 @@ export default async function PortalLayout({ children }: { children: ReactNode }
     <PortalShell
       role={session?.profile.role ?? null}
       name={session?.profile.display_name}
+      email={session?.profile.email}
       locale={session?.profile.locale ?? 'en'}
+      timezone={session?.profile.timezone ?? 'America/Vancouver'}
     >
       {children}
     </PortalShell>
