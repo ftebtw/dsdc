@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import CoachSubsManager from '@/app/portal/_components/CoachSubsManager';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
-import { getProfileMap } from '@/lib/portal/data';
+import { getActiveTerm, getProfileMap } from '@/lib/portal/data';
 import { formatSessionRangeForViewer } from '@/lib/portal/time';
 import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -17,7 +17,7 @@ export default async function CoachSubsPage() {
   const supabase = await getSupabaseServerClient();
   const today = new Date().toISOString().slice(0, 10);
 
-  const [coachProfileRaw, coachTiersRaw, classesRaw, subRequestsRaw, taRequestsRaw] = await Promise.all([
+  const [coachProfileRaw, coachTiersRaw, classesRaw, subRequestsRaw, taRequestsRaw, activeTerm] = await Promise.all([
     supabase.from('coach_profiles').select('is_ta,tier').eq('coach_id', session.userId).maybeSingle(),
     supabase.from('coach_tier_assignments').select('tier').eq('coach_id', session.userId),
     supabase
@@ -35,6 +35,7 @@ export default async function CoachSubsPage() {
       .select('*')
       .gte('session_date', today)
       .order('session_date', { ascending: true }),
+    getActiveTerm(supabase),
   ]);
 
   const classes = (classesRaw.data ?? []) as ClassRow[];
@@ -130,7 +131,13 @@ export default async function CoachSubsPage() {
 
   return (
     <SectionCard title="Sub & TA Requests" description="Create requests and accept eligible open requests.">
-      <CoachSubsManager classes={classes} subRequests={subItems} taRequests={taItems} />
+      <CoachSubsManager
+        classes={classes}
+        subRequests={subItems}
+        taRequests={taItems}
+        termStartDate={activeTerm?.start_date ?? null}
+        termEndDate={activeTerm?.end_date ?? null}
+      />
     </SectionCard>
   );
 }

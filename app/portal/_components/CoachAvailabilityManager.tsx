@@ -141,33 +141,45 @@ export default function CoachAvailabilityManager({
           {editing ? 'Edit Availability Slot' : 'Add Availability Slot'}
         </h3>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <input
-            required
-            type="date"
-            name="availableDate"
-            defaultValue={editing?.available_date}
-            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
-          />
-          <input
-            required
-            type="time"
-            name="startTime"
-            defaultValue={editing?.start_time}
-            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
-          />
-          <input
-            required
-            type="time"
-            name="endTime"
-            defaultValue={editing?.end_time}
-            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
-          />
-          <TimezoneSelectNative
-            name="timezone"
-            defaultValue={editing?.timezone || defaultTimezone}
-            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
-            required
-          />
+          <label className="block">
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">Date</span>
+            <input
+              required
+              type="date"
+              name="availableDate"
+              defaultValue={editing?.available_date}
+              className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">Start Time</span>
+            <input
+              required
+              type="time"
+              name="startTime"
+              defaultValue={editing?.start_time}
+              className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">End Time</span>
+            <input
+              required
+              type="time"
+              name="endTime"
+              defaultValue={editing?.end_time}
+              className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">Timezone</span>
+            <TimezoneSelectNative
+              name="timezone"
+              defaultValue={editing?.timezone || defaultTimezone}
+              className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+              required
+            />
+          </label>
         </div>
         <div className="flex items-center gap-4">
           <label className="inline-flex items-center gap-2 text-sm">

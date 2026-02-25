@@ -25,6 +25,31 @@ const weekdayOptions = [
   { value: 6, label: 'Saturday' },
 ];
 
+const COMMON_TIMEZONES = [
+  'America/Vancouver',
+  'America/Los_Angeles',
+  'America/Denver',
+  'America/Chicago',
+  'America/New_York',
+  'America/Toronto',
+  'America/Edmonton',
+  'America/Halifax',
+  'Pacific/Honolulu',
+  'Europe/London',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'Asia/Tokyo',
+  'Asia/Shanghai',
+  'Asia/Hong_Kong',
+  'Asia/Seoul',
+  'Asia/Kolkata',
+  'Asia/Dubai',
+  'Australia/Sydney',
+  'Australia/Melbourne',
+  'Pacific/Auckland',
+  'UTC',
+];
+
 function toYmd(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
@@ -171,12 +196,18 @@ export default function RecurringAvailabilityForm({
         </label>
         <label className="block">
           <span className="text-sm">Timezone</span>
-          <input
+          <select
             required
             value={timezone}
             onChange={(event) => setTimezone(event.target.value)}
             className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
-          />
+          >
+            {COMMON_TIMEZONES.map((tz) => (
+              <option key={tz} value={tz}>
+                {tz.replace(/_/g, ' ')}
+              </option>
+            ))}
+          </select>
         </label>
       </div>
       <div className="flex items-center gap-4">
