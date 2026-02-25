@@ -641,6 +641,105 @@ export type Database = {
           },
         ]
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          converted_at: string | null
+          created_at: string
+          credit_amount_cad: number
+          credited_at: string | null
+          id: string
+          referred_email: string
+          referred_student_id: string | null
+          referral_code_id: string
+          referrer_id: string
+          registered_at: string | null
+          status: string
+          stripe_promo_code: string | null
+          stripe_promo_code_id: string | null
+        }
+        Insert: {
+          converted_at?: string | null
+          created_at?: string
+          credit_amount_cad?: number
+          credited_at?: string | null
+          id?: string
+          referred_email: string
+          referred_student_id?: string | null
+          referral_code_id: string
+          referrer_id: string
+          registered_at?: string | null
+          status?: string
+          stripe_promo_code?: string | null
+          stripe_promo_code_id?: string | null
+        }
+        Update: {
+          converted_at?: string | null
+          created_at?: string
+          credit_amount_cad?: number
+          credited_at?: string | null
+          id?: string
+          referred_email?: string
+          referred_student_id?: string | null
+          referral_code_id?: string
+          referrer_id?: string
+          registered_at?: string | null
+          status?: string
+          stripe_promo_code?: string | null
+          stripe_promo_code_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referral_code_id_fkey"
+            columns: ["referral_code_id"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referred_student_id_fkey"
+            columns: ["referred_student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       legal_documents: {
         Row: {
           changes_per_event: boolean

@@ -14,6 +14,7 @@ import {
 import { getPortalAppUrl } from "@/lib/email/resend";
 import { sendPortalEmails } from "@/lib/email/send";
 import { enrollmentConfirmationFull, privatePaymentConfirmedTemplate } from "@/lib/email/templates";
+import { convertFirstRegisteredReferral } from "@/lib/portal/referral-conversion";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -238,6 +239,16 @@ async function handleCheckoutSessionCompleted(
         .upsert(rowsToInsert, { onConflict: "student_id,class_id" });
       if (enrollmentInsertError) {
         console.error("[stripe-webhook] enrollment insert failed", enrollmentInsertError);
+      }
+
+      const convertedReferralId = await convertFirstRegisteredReferral(supabaseAdmin, [
+        studentId,
+        metadata.parentId || null,
+      ]);
+      if (convertedReferralId) {
+        console.log(
+          `[stripe-webhook] Referral converted: referral=${convertedReferralId}, student=${studentId}, parent=${metadata.parentId || "none"}`
+        );
       }
     }
 

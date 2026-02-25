@@ -792,6 +792,7 @@
         "enrollClasses": "Enroll in Classes",
         "classCredits": "Class Credits",
         "mySessions": "My Sessions",
+        "referFriend": "Refer a Friend",
         "calendar": "Calendar",
         "settings": "Account Settings"
       },
@@ -809,6 +810,7 @@
         "student": "Student",
         "noStudents": "No linked students",
         "enrollClasses": "Enroll in Classes",
+        "referFriend": "Refer a Friend",
         "calendar": "Calendar",
         "settings": "Account Settings"
       },
@@ -849,6 +851,7 @@
         "sectionPeople": "People",
         "sectionLegal": "Legal",
         "calendar": "Calendar",
+        "referrals": "Referrals",
         "settings": "Account Settings"
       }
     },

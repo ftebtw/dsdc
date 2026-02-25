@@ -43,6 +43,7 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [showVerifyEmail, setShowVerifyEmail] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const [referralCode, setReferralCode] = useState<string | null>(null);
 
   const langParam = params.get("lang");
   const resolvedLocale = useMemo<"en" | "zh">(() => {
@@ -58,6 +59,17 @@ export default function RegisterForm() {
     }
     localeSyncedRef.current = true;
   }, [langParam, locale, toggleLocale]);
+
+  useEffect(() => {
+    try {
+      const savedCode = localStorage.getItem("dsdc-referral-code");
+      if (savedCode) {
+        setReferralCode(savedCode);
+      }
+    } catch {
+      // ignore localStorage access errors
+    }
+  }, []);
 
   function tx(key: string, fallback: string): string {
     const value = t(key);
@@ -80,6 +92,7 @@ export default function RegisterForm() {
             password,
             locale: resolvedLocale,
             timezone,
+            referralCode: referralCode || undefined,
           }
         : {
             role,
@@ -89,6 +102,7 @@ export default function RegisterForm() {
             parentPassword,
             locale: resolvedLocale,
             timezone,
+            referralCode: referralCode || undefined,
           };
 
     try {

@@ -128,6 +128,29 @@ export function calendarEventTemplate(args: {
   });
 }
 
+export function referralCreditTemplate(args: {
+  referrerName: string;
+  creditAmount: number;
+  promoCode: string;
+}): { html: string; text: string } {
+  return renderTemplate({
+    title: `You earned CAD $${args.creditAmount.toFixed(2)}!`,
+    bodyLines: [
+      `Hi ${args.referrerName},`,
+      "",
+      `Great news. Someone you referred has enrolled in DSDC classes, and you've earned CAD $${args.creditAmount.toFixed(2)} in referral credit.`,
+      "",
+      `Your promo code: ${args.promoCode}`,
+      "",
+      "Apply this code at checkout to get a discount on your next term tuition or private coaching session purchase. This code is one-time use.",
+      "",
+      "Keep sharing your referral link to earn more credits.",
+    ],
+    buttonLabel: "Open Referral Dashboard",
+    buttonUrl: "https://dsdc.ca/portal",
+  });
+}
+
 export function subRequestCreatedTemplate(input: {
   className: string;
   whenText: string;

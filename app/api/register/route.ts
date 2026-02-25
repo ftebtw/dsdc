@@ -19,6 +19,7 @@ const studentSchema = baseSchema.extend({
   lastName: z.string().trim().min(1).max(60),
   email: z.string().email(),
   password: z.string().min(8).max(128),
+  referralCode: z.string().trim().min(3).max(32).optional(),
 });
 
 const parentSchema = baseSchema.extend({
@@ -27,6 +28,7 @@ const parentSchema = baseSchema.extend({
   parentLastName: z.string().trim().min(1).max(60),
   parentEmail: z.string().email(),
   parentPassword: z.string().min(8).max(128),
+  referralCode: z.string().trim().min(3).max(32).optional(),
 });
 
 const bodySchema = z.discriminatedUnion("role", [studentSchema, parentSchema]);
@@ -204,6 +206,48 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
   };
 }
 
+async function trackReferralRegistration(
+  admin: any,
+  input: {
+    referralCode?: string;
+    referredEmail: string;
+    referredProfileId: string;
+  }
+) {
+  const referralCode = input.referralCode?.trim().toUpperCase();
+  if (!referralCode) return;
+
+  const { data: referralCodeRow } = await admin
+    .from("referral_codes")
+    .select("id,user_id")
+    .eq("code", referralCode)
+    .maybeSingle();
+
+  if (!referralCodeRow) return;
+  if (referralCodeRow.user_id === input.referredProfileId) return;
+
+  const normalizedEmail = input.referredEmail.trim().toLowerCase();
+  if (!normalizedEmail) return;
+
+  const { data: existing } = await admin
+    .from("referrals")
+    .select("id")
+    .eq("referrer_id", referralCodeRow.user_id)
+    .eq("referred_email", normalizedEmail)
+    .maybeSingle();
+
+  if (existing) return;
+
+  await admin.from("referrals").insert({
+    referrer_id: referralCodeRow.user_id,
+    referral_code_id: referralCodeRow.id,
+    referred_email: normalizedEmail,
+    referred_student_id: input.referredProfileId,
+    status: "registered",
+    registered_at: new Date().toISOString(),
+  });
+}
+
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const { allowed } = rateLimit(`register:${ip}`, 10, 15 * 60 * 1000);
@@ -229,12 +273,30 @@ export async function POST(request: NextRequest) {
 
   try {
     const studentResult = await createStudentRegistration(admin, body);
-    if (studentResult) {
+    if (studentResult && body.role === "student") {
+      try {
+        await trackReferralRegistration(admin, {
+          referralCode: body.referralCode,
+          referredEmail: body.email,
+          referredProfileId: studentResult.studentId,
+        });
+      } catch (error) {
+        console.error("[register] referral tracking failed for student", error);
+      }
       return NextResponse.json(studentResult);
     }
 
     const parentResult = await createParentRegistration(admin, body);
-    if (parentResult) {
+    if (parentResult && body.role === "parent") {
+      try {
+        await trackReferralRegistration(admin, {
+          referralCode: body.referralCode,
+          referredEmail: body.parentEmail,
+          referredProfileId: parentResult.parentId,
+        });
+      } catch (error) {
+        console.error("[register] referral tracking failed for parent", error);
+      }
       return NextResponse.json(parentResult);
     }
 

@@ -793,6 +793,7 @@
         "enrollClasses": "报名课程",
         "classCredits": "课时积分",
         "mySessions": "我的私课",
+        "referFriend": "邀请朋友",
         "calendar": "日历",
         "settings": "账户设置"
       },
@@ -810,6 +811,7 @@
         "student": "学生",
         "noStudents": "没有已关联学生",
         "enrollClasses": "报名课程",
+        "referFriend": "邀请朋友",
         "calendar": "日历",
         "settings": "账户设置"
       },
@@ -850,6 +852,7 @@
         "sectionPeople": "用户",
         "sectionLegal": "法律",
         "calendar": "日历",
+        "referrals": "推荐",
         "settings": "账户设置"
       }
     },

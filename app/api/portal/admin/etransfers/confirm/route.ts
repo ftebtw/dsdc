@@ -6,6 +6,7 @@ import { classTypeLabel } from "@/lib/portal/labels";
 import { getPortalAppUrl } from "@/lib/email/resend";
 import { sendPortalEmails } from "@/lib/email/send";
 import { enrollmentConfirmationFull } from "@/lib/email/templates";
+import { convertFirstRegisteredReferral } from "@/lib/portal/referral-conversion";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -97,6 +98,11 @@ export async function POST(request: NextRequest) {
 
   const matchedRows = (updatedRows ?? matchRows) as Array<{ id: string; class_id: string; student_id: string }>;
   const classIds = [...new Set(matchedRows.map((row) => row.class_id))];
+  const convertedReferralId = await convertFirstRegisteredReferral(admin, [studentId]);
+  if (convertedReferralId) {
+    console.log(`[etransfers-confirm] Referral converted: referral=${convertedReferralId}, student=${studentId}`);
+  }
+
   const [{ data: studentProfile }, { data: classRowsData }, { data: parentLinks }] = await Promise.all([
     admin
       .from("profiles")
