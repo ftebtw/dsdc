@@ -26,7 +26,7 @@ export default function ClientProviders({
         {!hideShell && <Navbar />}
         <main>{children}</main>
         {!hideShell && <Footer />}
-        <FloatingLanguagePill />
+        {!hideShell && <FloatingLanguagePill />}
       </I18nProvider>
     </ThemeProvider>
   );

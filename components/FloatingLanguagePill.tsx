@@ -12,6 +12,7 @@ export default function FloatingLanguagePill() {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
+  // Never render this on portal/studio/auth routes.
   const hidden =
     pathname?.startsWith("/portal") ||
     pathname?.startsWith("/studio") ||
@@ -28,9 +29,13 @@ export default function FloatingLanguagePill() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (hidden || dismissed) return null;
+  if (hidden) return null;
+  if (dismissed) return null;
 
   const handleClick = () => {
+    // Safety net: do not use public locale toggle on portal routes.
+    if (window.location.pathname.startsWith("/portal")) return;
+
     toggleLocale();
     localStorage.setItem("dsdc-lang-pill-seen", "1");
     setTimeout(() => setDismissed(true), 2000);
@@ -73,7 +78,7 @@ export default function FloatingLanguagePill() {
             className="flex h-6 w-6 items-center justify-center rounded-full bg-charcoal/20 text-charcoal/60 hover:bg-charcoal/30 hover:text-charcoal/80 dark:bg-white/15 dark:text-white/50 dark:hover:bg-white/25 dark:hover:text-white/80 text-xs transition-colors"
             aria-label="Dismiss"
           >
-            ✕
+            x
           </motion.button>
 
           <button
@@ -82,7 +87,7 @@ export default function FloatingLanguagePill() {
           >
             <Globe className="h-4 w-4" />
             <span className="text-sm font-semibold">
-              {locale === "en" ? "切换中文" : "Switch to English"}
+              {locale === "en" ? "\u5207\u6362\u4e2d\u6587" : "Switch to English"}
             </span>
           </button>
         </motion.div>
