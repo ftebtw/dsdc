@@ -79,7 +79,7 @@ export default function NavDropdown({ user, variant = "dark" }: NavDropdownProps
           onClick={() => setOpen((prev) => !prev)}
           className={`flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium transition-colors ${textColor}`}
         >
-          {t("nav.signIn") !== "nav.signIn" ? t("nav.signIn") : "Sign In"}
+          {t("nav.signIn")}
           <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
         </button>
       )}
@@ -106,14 +106,14 @@ export default function NavDropdown({ user, variant = "dark" }: NavDropdownProps
 
               <div className="border-t border-warm-200 px-4 py-3 dark:border-navy-700">
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-charcoal/40 dark:text-navy-500">
-                  Settings
+                  {t("nav.settings")}
                 </p>
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-sm text-navy-700 dark:text-navy-200">Theme</span>
+                  <span className="text-sm text-navy-700 dark:text-navy-200">{t("nav.theme")}</span>
                   <ThemeToggle variant="dark" />
                 </div>
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-sm text-navy-700 dark:text-navy-200">Language</span>
+                  <span className="text-sm text-navy-700 dark:text-navy-200">{t("nav.language")}</span>
                   <LanguageToggle variant="dark" />
                 </div>
               </div>
@@ -138,7 +138,7 @@ export default function NavDropdown({ user, variant = "dark" }: NavDropdownProps
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-navy-800 transition-colors hover:bg-warm-50 dark:text-navy-100 dark:hover:bg-navy-800"
                 >
                   <User className="h-4 w-4 text-charcoal/50 dark:text-navy-400" />
-                  Sign In
+                  {t("nav.signIn")}
                 </Link>
                 <Link
                   href={`/register?lang=${locale === "zh" ? "zh" : "en"}`}
@@ -146,20 +146,20 @@ export default function NavDropdown({ user, variant = "dark" }: NavDropdownProps
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-navy-800 transition-colors hover:bg-warm-50 dark:text-navy-100 dark:hover:bg-navy-800"
                 >
                   <Settings className="h-4 w-4 text-charcoal/50 dark:text-navy-400" />
-                  Register
+                  {t("nav.register")}
                 </Link>
               </div>
 
               <div className="border-t border-warm-200 px-4 py-3 dark:border-navy-700">
                 <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-charcoal/40 dark:text-navy-500">
-                  Settings
+                  {t("nav.settings")}
                 </p>
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-sm text-navy-700 dark:text-navy-200">Theme</span>
+                  <span className="text-sm text-navy-700 dark:text-navy-200">{t("nav.theme")}</span>
                   <ThemeToggle variant="dark" />
                 </div>
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-sm text-navy-700 dark:text-navy-200">Language</span>
+                  <span className="text-sm text-navy-700 dark:text-navy-200">{t("nav.language")}</span>
                   <LanguageToggle variant="dark" />
                 </div>
               </div>

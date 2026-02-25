@@ -171,7 +171,7 @@ export default function Navbar() {
               <div className="space-y-5">
                 <div className="rounded-2xl border border-warm-200 bg-warm-50 p-4 dark:border-navy-700 dark:bg-navy-800">
                   <p className="px-1 pb-2 text-xs font-semibold uppercase tracking-wide text-navy-600 dark:text-navy-200">
-                    Explore
+                    {t("nav.explore")}
                   </p>
                   {navLinks.map((link) => (
                     <Link
@@ -190,7 +190,7 @@ export default function Navbar() {
 
                 <div className="rounded-2xl border border-warm-200 p-4 dark:border-navy-700">
                   <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-navy-600 dark:text-navy-200">
-                    Display
+                    {t("nav.display")}
                   </p>
                   <div className="flex items-center gap-3">
                     <ThemeToggle variant="dark" />
@@ -200,7 +200,7 @@ export default function Navbar() {
 
                 <div className="space-y-2 rounded-2xl border border-warm-200 p-4 dark:border-navy-700">
                   <p className="pb-1 text-xs font-semibold uppercase tracking-wide text-navy-600 dark:text-navy-200">
-                    {user ? "Account" : "Actions"}
+                    {t("nav.actions")}
                   </p>
                   {loading ? (
                     <div className="h-10 animate-pulse rounded-lg bg-warm-100 dark:bg-navy-800" />
@@ -254,7 +254,7 @@ export default function Navbar() {
                         onClick={() => setIsOpen(false)}
                         className="block w-full rounded-lg border border-warm-300 px-4 py-3 text-center text-sm font-semibold text-navy-900 dark:border-navy-600 dark:text-navy-100"
                       >
-                        {t("nav.signIn") !== "nav.signIn" ? t("nav.signIn") : "Sign In"}
+                        {t("nav.signIn")}
                       </Link>
                       <Link
                         href={registerHref}

@@ -10,7 +10,13 @@
     "signIn": "Sign In",
     "register": "Register",
     "portalLogin": "Portal Login",
-    "langToggle": "中文"
+    "langToggle": "中文",
+    "settings": "Settings",
+    "theme": "Theme",
+    "language": "Language",
+    "explore": "Explore",
+    "display": "Display",
+    "actions": "Actions"
   },
   "hero": {
     "headline": "Breaking Barriers, Building Confidence",

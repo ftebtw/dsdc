@@ -10,7 +10,13 @@
     "register": "立即报名",
     "portalLogin": "门户登录",
     "langToggle": "EN",
-    "signIn": "登录"
+    "signIn": "登录",
+    "settings": "设置",
+    "theme": "主题",
+    "language": "语言",
+    "explore": "浏览",
+    "display": "显示",
+    "actions": "操作"
   },
   "hero": {
     "headline": "打破壁垒，建立自信",
