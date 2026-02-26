@@ -137,7 +137,12 @@ export default async function ParentPrivateSessionsPage({
         selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
       }`}
     >
-      <ParentBookingManager availableSlots={availableSlots} sessions={items} studentId={selectedStudentId} />
+      <ParentBookingManager
+        availableSlots={availableSlots}
+        sessions={items}
+        studentId={selectedStudentId}
+        locale={locale}
+      />
     </SectionCard>
   );
 }

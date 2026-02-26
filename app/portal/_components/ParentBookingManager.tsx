@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import PrivateSessionsManager from "@/app/portal/_components/PrivateSessionsManager";
+import { portalT } from "@/lib/portal/parent-i18n";
 
 type AvailableSlot = {
   id: string;
@@ -39,11 +40,14 @@ export default function ParentBookingManager({
   availableSlots,
   sessions,
   studentId,
+  locale = "en",
 }: {
   availableSlots: AvailableSlot[];
   sessions: BookingSessionItem[];
   studentId: string;
+  locale?: "en" | "zh";
 }) {
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [requesting, setRequesting] = useState(false);
@@ -69,7 +73,7 @@ export default function ParentBookingManager({
 
       if (!response.ok) {
         const data = (await response.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error || "Failed to request session.");
+        throw new Error(data.error || t("portal.privateSessions.error.requestFailed", "Failed to request session."));
       }
 
       setRequestSuccess(true);
@@ -77,7 +81,11 @@ export default function ParentBookingManager({
       setNotes("");
       window.location.reload();
     } catch (error) {
-      setRequestError(error instanceof Error ? error.message : "Failed to request session.");
+      setRequestError(
+        error instanceof Error
+          ? error.message
+          : t("portal.privateSessions.error.requestFailed", "Failed to request session.")
+      );
     } finally {
       setRequesting(false);
     }
@@ -86,10 +94,12 @@ export default function ParentBookingManager({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="font-semibold text-navy-800 dark:text-white mb-2">Available Coach Slots</h3>
+        <h3 className="font-semibold text-navy-800 dark:text-white mb-2">
+          {t("portal.common.availableSlots", "Available Coach Slots")}
+        </h3>
         {availableSlots.length === 0 ? (
           <p className="text-sm text-charcoal/70 dark:text-navy-300">
-            No private coaching slots are available right now.
+            {t("portal.common.noSlotsAvailable", "No private coaching slots are available right now.")}
           </p>
         ) : (
           <div className="space-y-2">
@@ -121,7 +131,7 @@ export default function ParentBookingManager({
         {selectedSlotId ? (
           <div className="mt-3 space-y-3">
             <textarea
-              placeholder="Notes for the coach (optional)"
+              placeholder={t("portal.common.notesPlaceholder", "Notes for the coach (optional)")}
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               rows={2}
@@ -135,7 +145,9 @@ export default function ParentBookingManager({
               disabled={requesting}
               className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold text-sm disabled:opacity-60"
             >
-              {requesting ? "Requesting..." : "Request Session for Student"}
+              {requesting
+                ? t("portal.common.requesting", "Requesting...")
+                : t("portal.privateSessions.requestForStudent", "Request Session for Student")}
             </button>
           </div>
         ) : null}
@@ -145,15 +157,17 @@ export default function ParentBookingManager({
         ) : null}
         {requestSuccess ? (
           <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-            Session requested! The coach will review and respond.
+            {t("portal.common.sessionRequested", "Session requested! The coach will review and respond.")}
           </p>
         ) : null}
       </div>
 
       {sessions.length > 0 ? (
         <div>
-          <h3 className="font-semibold text-navy-800 dark:text-white mb-2">Session History</h3>
-          <PrivateSessionsManager sessions={sessions} viewerRole="parent" />
+          <h3 className="font-semibold text-navy-800 dark:text-white mb-2">
+            {t("portal.common.sessionHistory", "Session History")}
+          </h3>
+          <PrivateSessionsManager sessions={sessions} viewerRole="parent" locale={locale} />
         </div>
       ) : null}
     </div>

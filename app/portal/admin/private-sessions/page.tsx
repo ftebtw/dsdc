@@ -4,6 +4,7 @@ import PrivateSessionsManager from '@/app/portal/_components/PrivateSessionsMana
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
+import { portalT } from '@/lib/portal/parent-i18n';
 import { formatSessionRangeForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -23,6 +24,8 @@ export default async function AdminPrivateSessionsPage({
   searchParams: Promise<{ status?: string; coachId?: string; studentId?: string }>;
 }) {
   const session = await requireRole(['admin']);
+  const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
 
@@ -93,7 +96,13 @@ export default async function AdminPrivateSessionsPage({
   });
 
   return (
-    <SectionCard title="Private Sessions" description="Admin workflow: coach review, approval, payment, completion.">
+    <SectionCard
+      title={t('portal.privateSessions.title', 'Private Sessions')}
+      description={t(
+        'portal.privateSessions.adminDesc',
+        'Admin workflow: coach review, approval, payment, completion.'
+      )}
+    >
       <form method="get" className="grid sm:grid-cols-4 gap-3 mb-4">
         <select
           name="status"
@@ -140,7 +149,7 @@ export default async function AdminPrivateSessionsPage({
         </button>
       </form>
 
-      <PrivateSessionsManager sessions={items} viewerRole="admin" />
+      <PrivateSessionsManager sessions={items} viewerRole="admin" locale={locale} />
     </SectionCard>
   );
 }

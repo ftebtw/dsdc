@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import PrivateSessionCard from '@/app/portal/_components/PrivateSessionCard';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type SessionItem = {
   id: string;
@@ -32,10 +33,14 @@ type SessionItem = {
 export default function PrivateSessionsManager({
   sessions,
   viewerRole,
+  locale = 'en',
 }: {
   sessions: SessionItem[];
   viewerRole: 'admin' | 'coach' | 'student' | 'parent';
+  locale?: 'en' | 'zh';
 }) {
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
+
   async function callAction(endpoint: string, body?: unknown) {
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -62,7 +67,11 @@ export default function PrivateSessionsManager({
   }
 
   if (!sessions.length) {
-    return <p className="text-sm text-charcoal/70 dark:text-navy-300">No private sessions found.</p>;
+    return (
+      <p className="text-sm text-charcoal/70 dark:text-navy-300">
+        {t('portal.common.noSessions', 'No private sessions found.')}
+      </p>
+    );
   }
 
   return (
@@ -144,6 +153,7 @@ export default function PrivateSessionsManager({
           onComplete={
             session.canComplete ? () => callAction(`/api/portal/private-sessions/${session.id}/complete`) : undefined
           }
+          locale={locale}
         />
       ))}
     </div>

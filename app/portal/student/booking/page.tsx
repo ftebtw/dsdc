@@ -118,7 +118,7 @@ export default async function StudentBookingPage() {
         'View coach private availability and request a private session.'
       )}
     >
-      <StudentBookingManager availableSlots={availableSlots} sessions={sessionItems} />
+      <StudentBookingManager availableSlots={availableSlots} sessions={sessionItems} locale={locale} />
     </SectionCard>
   );
 }

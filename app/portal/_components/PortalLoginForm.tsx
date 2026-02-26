@@ -145,21 +145,20 @@ export default function PortalLoginForm({ locale }: Props) {
     setError(null);
     setInfo(null);
 
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback?type=recovery`
-        : undefined;
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo,
-    });
-
-    setResetLoading(false);
-
-    if (resetError) {
-      setError(resetError.message);
-      return;
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (!response.ok) {
+        throw new Error("Request failed");
+      }
+    } catch {
+      // Intentionally ignore to avoid account enumeration via reset responses.
     }
 
+    setResetLoading(false);
     setInfo(t.resetSent);
   }
 

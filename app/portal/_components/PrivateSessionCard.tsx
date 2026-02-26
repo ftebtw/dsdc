@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useMemo, useState } from 'react';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type ActionResult = { ok: boolean; error?: string };
 
@@ -44,6 +45,7 @@ type Props = {
   onPayEtransfer?: () => Promise<ActionResult>;
   onCancel?: (reason?: string) => Promise<ActionResult>;
   onComplete?: () => Promise<ActionResult>;
+  locale?: 'en' | 'zh';
 };
 
 function statusClass(status: string) {
@@ -66,30 +68,43 @@ function normalizeTimeInput(value: string): string {
   return trimmed;
 }
 
-function sessionStatusText(status: string) {
+function sessionStatusText(status: string, t: (key: string, fallback: string) => string) {
   switch (status) {
     case 'pending':
-      return 'Awaiting coach response';
+      return t('portal.privateSessions.status.awaitingCoach', 'Awaiting coach response');
     case 'rescheduled_by_coach':
-      return 'Coach proposed a new time';
+      return t('portal.privateSessions.status.rescheduledByCoach', 'Coach proposed a new time');
     case 'rescheduled_by_student':
-      return 'Student proposed a new time';
+      return t('portal.privateSessions.status.rescheduledByStudent', 'Student proposed a new time');
     case 'coach_accepted':
-      return 'Coach accepted. Awaiting admin approval';
+      return t('portal.privateSessions.status.coachAccepted', 'Coach accepted. Awaiting admin approval');
     case 'awaiting_payment':
-      return 'Approved. Awaiting payment';
+      return t('portal.privateSessions.status.awaitingPayment', 'Approved. Awaiting payment');
     case 'confirmed':
-      return 'Confirmed';
+      return t('portal.common.confirmed', 'Confirmed');
     case 'completed':
-      return 'Completed';
+      return t('portal.common.completed', 'Completed');
     case 'cancelled':
-      return 'Cancelled';
+      return t('portal.common.cancelled', 'Cancelled');
     default:
       return status;
   }
 }
 
+function statusBadgeText(status: string, t: (key: string, fallback: string) => string): string {
+  if (status === 'pending') return t('portal.common.pending', 'Pending');
+  if (status === 'confirmed') return t('portal.common.confirmed', 'Confirmed');
+  if (status === 'completed') return t('portal.common.completed', 'Completed');
+  if (status === 'cancelled') return t('portal.common.cancelled', 'Cancelled');
+  if (status === 'awaiting_payment') {
+    return t('portal.privateSessions.status.awaitingPaymentShort', 'Awaiting payment');
+  }
+  return status;
+}
+
 export default function PrivateSessionCard(props: Props) {
+  const locale = props.locale ?? 'en';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -130,7 +145,7 @@ export default function PrivateSessionCard(props: Props) {
     const result = await fn();
     setLoading(null);
     if (!result.ok) {
-      setError(result.error || 'Action failed.');
+      setError(result.error || t('portal.privateSessions.error.actionFailed', 'Action failed.'));
     }
   }
 
@@ -139,12 +154,16 @@ export default function PrivateSessionCard(props: Props) {
       <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-1">
           <h3 className="font-semibold text-navy-800 dark:text-white">{props.whenText}</h3>
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">Coach: {props.coachName}</p>
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">Student: {props.studentName}</p>
-          <p className="text-xs text-charcoal/65 dark:text-navy-300">{sessionStatusText(props.status)}</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t('portal.common.coach', 'Coach')}: {props.coachName}
+          </p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t('portal.common.student', 'Student')}: {props.studentName}
+          </p>
+          <p className="text-xs text-charcoal/65 dark:text-navy-300">{sessionStatusText(props.status, t)}</p>
         </div>
         <span className={`inline-flex px-2 py-1 rounded-full text-xs uppercase ${statusClass(props.status)}`}>
-          {props.status}
+          {statusBadgeText(props.status, t)}
         </span>
       </div>
 
@@ -164,34 +183,49 @@ export default function PrivateSessionCard(props: Props) {
                     : 'border-warm-200 text-charcoal/65 dark:border-navy-700 dark:text-navy-300'
               }`}
             >
-              {done ? '✓ ' : ''}
+              {done ? '\u2713 ' : ''}
               {label}
             </div>
           );
         })}
       </div>
 
-      {props.studentNotes ? <p className="text-sm">Student notes: {props.studentNotes}</p> : null}
-      {props.coachNotes ? <p className="text-sm">Coach notes: {props.coachNotes}</p> : null}
+      {props.studentNotes ? (
+        <p className="text-sm">
+          {t('portal.privateSessions.studentNotes', 'Student notes')}: {props.studentNotes}
+        </p>
+      ) : null}
+      {props.coachNotes ? (
+        <p className="text-sm">
+          {t('portal.privateSessions.coachNotes', 'Coach notes')}: {props.coachNotes}
+        </p>
+      ) : null}
 
       {props.proposedDate && props.proposedStartTime && props.proposedEndTime ? (
         <div className="rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50/70 dark:bg-orange-900/20 px-3 py-2 text-sm">
-          Proposed time: {props.proposedDate} {normalizeTimeInput(props.proposedStartTime)}-{normalizeTimeInput(props.proposedEndTime)}
-          {props.proposedByName ? ` (by ${props.proposedByName})` : ''}
+          {t('portal.privateSessions.proposedTime', 'Proposed time')}: {props.proposedDate}{' '}
+          {normalizeTimeInput(props.proposedStartTime)}-{normalizeTimeInput(props.proposedEndTime)}
+          {props.proposedByName
+            ? ` (${t('portal.privateSessions.by', 'by')} ${props.proposedByName})`
+            : ''}
         </div>
       ) : null}
 
       {props.priceCad != null ? (
-        <p className="text-sm text-charcoal/80 dark:text-navy-200">Price: CAD ${Number(props.priceCad).toFixed(2)}</p>
+        <p className="text-sm text-charcoal/80 dark:text-navy-200">
+          {t('portal.common.price', 'Price')}: CAD ${Number(props.priceCad).toFixed(2)}
+        </p>
       ) : null}
 
       {props.paymentMethod ? (
-        <p className="text-sm text-charcoal/80 dark:text-navy-200">Payment method: {props.paymentMethod}</p>
+        <p className="text-sm text-charcoal/80 dark:text-navy-200">
+          {t('portal.privateSessions.paymentMethod', 'Payment method')}: {props.paymentMethod}
+        </p>
       ) : null}
 
       {props.zoomLink && (props.status === 'confirmed' || props.status === 'completed') ? (
         <p className="text-sm">
-          Zoom:{' '}
+          {t('portal.common.zoomLink', 'Zoom Link')}:{' '}
           <a href={props.zoomLink} target="_blank" rel="noreferrer" className="text-blue-700 underline">
             {props.zoomLink}
           </a>
@@ -206,7 +240,9 @@ export default function PrivateSessionCard(props: Props) {
             disabled={!canRunActions}
             className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold disabled:opacity-70"
           >
-            {loading === 'accept' ? 'Accepting...' : 'Accept'}
+            {loading === 'accept'
+              ? t('portal.privateSessions.accepting', 'Accepting...')
+              : t('portal.common.accept', 'Accept')}
           </button>
         ) : null}
 
@@ -217,7 +253,9 @@ export default function PrivateSessionCard(props: Props) {
             disabled={!canRunActions}
             className="px-3 py-1.5 rounded-md bg-blue-700 text-white text-sm font-semibold disabled:opacity-70"
           >
-            {loading === 'accept-reschedule' ? 'Accepting...' : 'Accept Reschedule'}
+            {loading === 'accept-reschedule'
+              ? t('portal.privateSessions.accepting', 'Accepting...')
+              : t('portal.privateSessions.acceptReschedule', 'Accept Reschedule')}
           </button>
         ) : null}
 
@@ -228,7 +266,9 @@ export default function PrivateSessionCard(props: Props) {
             disabled={!canRunActions}
             className="px-3 py-1.5 rounded-md bg-navy-800 text-white text-sm disabled:opacity-70"
           >
-            {loading === 'complete' ? 'Completing...' : 'Mark Complete'}
+            {loading === 'complete'
+              ? t('portal.privateSessions.completing', 'Completing...')
+              : t('portal.privateSessions.markComplete', 'Mark Complete')}
           </button>
         ) : null}
 
@@ -239,7 +279,9 @@ export default function PrivateSessionCard(props: Props) {
             disabled={!canRunActions}
             className="px-3 py-1.5 rounded-md bg-green-700 text-white text-sm font-semibold disabled:opacity-70"
           >
-            {loading === 'pay-card' ? 'Redirecting...' : 'Pay with Card'}
+            {loading === 'pay-card'
+              ? t('portal.privateSessions.redirecting', 'Redirecting...')
+              : t('portal.privateSessions.payWithCard', 'Pay with Card')}
           </button>
         ) : null}
 
@@ -250,7 +292,9 @@ export default function PrivateSessionCard(props: Props) {
             disabled={!canRunActions}
             className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm disabled:opacity-70"
           >
-            {loading === 'pay-etransfer' ? 'Submitting...' : 'Pay by E-Transfer'}
+            {loading === 'pay-etransfer'
+              ? t('portal.common.sending', 'Sending...')
+              : t('portal.privateSessions.payByEtransfer', 'Pay by E-Transfer')}
           </button>
         ) : null}
       </div>
@@ -263,7 +307,7 @@ export default function PrivateSessionCard(props: Props) {
                 value={rejectNotes}
                 onChange={(event) => setRejectNotes(event.target.value)}
                 rows={2}
-                placeholder="Optional rejection reason"
+                placeholder={t('portal.privateSessions.optionalRejectionReason', 'Optional rejection reason')}
                 className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
               />
               <button
@@ -272,7 +316,9 @@ export default function PrivateSessionCard(props: Props) {
                 disabled={!canRunActions}
                 className="px-3 py-1.5 rounded-md bg-red-700 text-white text-sm disabled:opacity-70"
               >
-                {loading === 'reject' ? 'Rejecting...' : 'Reject'}
+                {loading === 'reject'
+                  ? t('portal.privateSessions.rejecting', 'Rejecting...')
+                  : t('portal.common.reject', 'Reject')}
               </button>
             </div>
           ) : null}
@@ -283,7 +329,7 @@ export default function PrivateSessionCard(props: Props) {
                 value={cancelReason}
                 onChange={(event) => setCancelReason(event.target.value)}
                 rows={2}
-                placeholder="Optional cancel reason"
+                placeholder={t('portal.privateSessions.optionalCancelReason', 'Optional cancel reason')}
                 className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
               />
               <button
@@ -292,7 +338,9 @@ export default function PrivateSessionCard(props: Props) {
                 disabled={!canRunActions}
                 className="px-3 py-1.5 rounded-md border border-red-500 text-red-700 dark:text-red-300 text-sm disabled:opacity-70"
               >
-                {loading === 'cancel' ? 'Cancelling...' : 'Cancel'}
+                {loading === 'cancel'
+                  ? t('portal.privateSessions.cancelling', 'Cancelling...')
+                  : t('portal.common.cancel', 'Cancel')}
               </button>
             </div>
           ) : null}
@@ -340,13 +388,15 @@ export default function PrivateSessionCard(props: Props) {
             disabled={!canRunActions}
             className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm disabled:opacity-70"
           >
-            {loading === 'reschedule' ? 'Submitting...' : 'Propose Reschedule'}
+            {loading === 'reschedule'
+              ? t('portal.common.sending', 'Sending...')
+              : t('portal.privateSessions.proposeReschedule', 'Propose Reschedule')}
           </button>
           <textarea
             value={rescheduleNotes}
             onChange={(event) => setRescheduleNotes(event.target.value)}
             rows={2}
-            placeholder="Optional notes"
+            placeholder={t('portal.common.notesPlaceholder', 'Notes for the coach (optional)')}
             className="md:col-span-4 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
           />
         </form>
@@ -359,7 +409,7 @@ export default function PrivateSessionCard(props: Props) {
             event.preventDefault();
             const parsedPrice = Number(priceCad);
             if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
-              setError('Price must be a positive number.');
+              setError(t('portal.privateSessions.pricePositive', 'Price must be a positive number.'));
               return;
             }
             void runAction('approve', () =>
@@ -372,7 +422,7 @@ export default function PrivateSessionCard(props: Props) {
             type="number"
             min="1"
             step="0.01"
-            placeholder="Price (CAD)"
+            placeholder={t('portal.privateSessions.priceCad', 'Price (CAD)')}
             value={priceCad}
             onChange={(event) => setPriceCad(event.target.value)}
             required
@@ -380,7 +430,7 @@ export default function PrivateSessionCard(props: Props) {
           />
           <input
             type="url"
-            placeholder="Zoom link (optional)"
+            placeholder={t('portal.privateSessions.zoomOptional', 'Zoom link (optional)')}
             value={zoomLink}
             onChange={(event) => setZoomLink(event.target.value)}
             className="md:col-span-2 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
@@ -390,7 +440,9 @@ export default function PrivateSessionCard(props: Props) {
             disabled={!canRunActions}
             className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold disabled:opacity-70"
           >
-            {loading === 'approve' ? 'Approving...' : 'Approve & Notify Student'}
+            {loading === 'approve'
+              ? t('portal.privateSessions.approving', 'Approving...')
+              : t('portal.privateSessions.approveNotifyStudent', 'Approve & Notify Student')}
           </button>
         </form>
       ) : null}

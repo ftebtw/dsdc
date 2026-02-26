@@ -69,7 +69,7 @@ export default async function ParentDashboardPage({
                 "Enter your student's email. We'll send them a code to confirm."
               )}
             </p>
-            <ParentLinkStudentForm />
+            <ParentLinkStudentForm locale={locale} />
           </div>
 
           <hr className="border-warm-200 dark:border-navy-600 my-4" />
@@ -121,7 +121,7 @@ export default async function ParentDashboardPage({
                 "Enter your student's email. We'll send them a code to confirm."
               )}
             </p>
-            <ParentLinkStudentForm />
+            <ParentLinkStudentForm locale={locale} />
           </div>
 
           <hr className="border-warm-200 dark:border-navy-600 my-4" />
@@ -220,7 +220,7 @@ export default async function ParentDashboardPage({
               "Enter your student's email. We'll send them a code to confirm."
             )}
           </p>
-          <ParentLinkStudentForm />
+          <ParentLinkStudentForm locale={locale} />
         </div>
 
         <hr className="border-warm-200 dark:border-navy-600 my-4" />

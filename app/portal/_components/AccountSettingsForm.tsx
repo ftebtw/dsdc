@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { portalT } from "@/lib/portal/parent-i18n";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Message = { type: "success" | "error"; text: string };
@@ -10,11 +11,13 @@ type Props = {
   displayName: string;
   email: string;
   timezone: string;
+  locale?: "en" | "zh";
 };
 
-export default function AccountSettingsForm({ displayName, email }: Props) {
+export default function AccountSettingsForm({ displayName, email, locale = "en" }: Props) {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
 
   const [newName, setNewName] = useState(displayName);
   const [nameLoading, setNameLoading] = useState(false);
@@ -43,11 +46,17 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
 
     setNameLoading(false);
     if (res.ok) {
-      setNameMessage({ type: "success", text: "Display name updated." });
+      setNameMessage({
+        type: "success",
+        text: t("portal.settings.displayNameSaved", "Display name updated."),
+      });
       router.refresh();
     } else {
       const data = (await res.json().catch(() => ({}))) as { error?: string };
-      setNameMessage({ type: "error", text: data.error || "Failed to update." });
+      setNameMessage({
+        type: "error",
+        text: data.error || t("portal.settings.updateFailed", "Failed to update."),
+      });
     }
   }
 
@@ -64,18 +73,27 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
     } else {
       setEmailMessage({
         type: "success",
-        text: "Verification email sent to your new address. Please check your inbox to confirm.",
+        text: t(
+          "portal.settings.emailSent",
+          "Verification email sent to new address."
+        ),
       });
     }
   }
 
   async function handlePasswordUpdate() {
     if (!newPassword || newPassword.length < 8) {
-      setPasswordMessage({ type: "error", text: "Password must be at least 8 characters." });
+      setPasswordMessage({
+        type: "error",
+        text: t("portal.settings.passwordMin", "Password must be at least 8 characters."),
+      });
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordMessage({ type: "error", text: "Passwords do not match." });
+      setPasswordMessage({
+        type: "error",
+        text: t("portal.settings.passwordNoMatch", "Passwords do not match."),
+      });
       return;
     }
 
@@ -88,7 +106,10 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
     });
     if (signInError) {
       setPasswordLoading(false);
-      setPasswordMessage({ type: "error", text: "Current password is incorrect." });
+      setPasswordMessage({
+        type: "error",
+        text: t("portal.settings.currentPasswordWrong", "Current password is incorrect."),
+      });
       return;
     }
 
@@ -98,7 +119,10 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
     if (error) {
       setPasswordMessage({ type: "error", text: error.message });
     } else {
-      setPasswordMessage({ type: "success", text: "Password updated successfully." });
+      setPasswordMessage({
+        type: "success",
+        text: t("portal.settings.passwordChanged", "Password changed successfully."),
+      });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -113,7 +137,9 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
   return (
     <div className="space-y-8 max-w-lg">
       <section>
-        <h3 className="font-semibold text-navy-800 dark:text-white mb-3">Display Name</h3>
+        <h3 className="font-semibold text-navy-800 dark:text-white mb-3">
+          {t("portal.settings.displayName", "Display Name")}
+        </h3>
         <div className="flex gap-2">
           <input
             type="text"
@@ -130,7 +156,9 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
             disabled={nameLoading || newName.trim() === displayName}
             className="rounded-lg bg-navy-800 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200"
           >
-            {nameLoading ? "Saving..." : "Save"}
+            {nameLoading
+              ? t("portal.settings.saving", "Saving...")
+              : t("portal.common.save", "Save")}
           </button>
         </div>
         {nameMessage ? <p className={`mt-1 ${msgStyle(nameMessage)}`}>{nameMessage.text}</p> : null}
@@ -139,9 +167,14 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
       <hr className="border-warm-200 dark:border-navy-700" />
 
       <section>
-        <h3 className="font-semibold text-navy-800 dark:text-white mb-1">Email Address</h3>
+        <h3 className="font-semibold text-navy-800 dark:text-white mb-1">
+          {t("portal.settings.email", "Email")}
+        </h3>
         <p className="text-xs text-charcoal/60 dark:text-navy-400 mb-3">
-          Changing your email will send a verification link to the new address.
+          {t(
+            "portal.settings.changeEmailHint",
+            "Changing your email will send a verification link to the new address."
+          )}
         </p>
         <div className="flex gap-2">
           <input
@@ -158,7 +191,9 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
             disabled={emailLoading || newEmail.trim().toLowerCase() === email.toLowerCase()}
             className="rounded-lg bg-navy-800 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200"
           >
-            {emailLoading ? "Sending..." : "Update"}
+            {emailLoading
+              ? t("portal.common.sending", "Sending...")
+              : t("portal.settings.changeEmail", "Change Email")}
           </button>
         </div>
         {emailMessage ? <p className={`mt-1 ${msgStyle(emailMessage)}`}>{emailMessage.text}</p> : null}
@@ -167,11 +202,13 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
       <hr className="border-warm-200 dark:border-navy-700" />
 
       <section>
-        <h3 className="font-semibold text-navy-800 dark:text-white mb-3">Change Password</h3>
+        <h3 className="font-semibold text-navy-800 dark:text-white mb-3">
+          {t("portal.settings.changePassword", "Change Password")}
+        </h3>
         <div className="space-y-3">
           <div>
             <label className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
-              Current Password
+              {t("portal.settings.currentPassword", "Current Password")}
             </label>
             <input
               type="password"
@@ -182,7 +219,7 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
           </div>
           <div>
             <label className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
-              New Password
+              {t("portal.settings.newPassword", "New Password")}
             </label>
             <input
               type="password"
@@ -194,7 +231,7 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
           </div>
           <div>
             <label className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
-              Confirm New Password
+              {t("portal.settings.confirmPassword", "Confirm New Password")}
             </label>
             <input
               type="password"
@@ -212,7 +249,9 @@ export default function AccountSettingsForm({ displayName, email }: Props) {
             disabled={passwordLoading || !currentPassword || !newPassword}
             className="rounded-lg bg-navy-800 text-white px-4 py-2 text-sm font-medium disabled:opacity-50 hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200"
           >
-            {passwordLoading ? "Updating..." : "Change Password"}
+            {passwordLoading
+              ? t("portal.settings.saving", "Saving...")
+              : t("portal.settings.changePassword", "Change Password")}
           </button>
         </div>
         {passwordMessage ? <p className={`mt-1 ${msgStyle(passwordMessage)}`}>{passwordMessage.text}</p> : null}

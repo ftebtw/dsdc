@@ -406,7 +406,7 @@ export default function PortalShell({
           title: t("portal.nav.admin.sectionLegal", "Legal"),
           items: [
             { href: "/portal/admin/legal", label: t("portal.nav.admin.legalDocs", "Legal Docs"), icon: FileText },
-            { href: "/portal/settings", label: t("portal.settings", "Account Settings"), icon: Settings },
+            { href: "/portal/settings", label: t("portal.settings.title", "Account Settings"), icon: Settings },
           ],
         },
       ];
@@ -436,7 +436,7 @@ export default function PortalShell({
               icon: ClipboardCheck,
             },
             { href: "/portal/preferences", label: t("portal.nav.coach.preferences", "Preferences"), icon: Shield },
-            { href: "/portal/settings", label: t("portal.settings", "Account Settings"), icon: Settings },
+            { href: "/portal/settings", label: t("portal.settings.title", "Account Settings"), icon: Settings },
           ],
         },
       ];
@@ -472,7 +472,7 @@ export default function PortalShell({
             { href: "/portal/student/feedback", label: t("portal.nav.student.feedback", "Feedback"), icon: MessageSquare },
             { href: "/portal/student/report-cards", label: t("portal.nav.student.reportCards", "Report Cards"), icon: GraduationCap },
             { href: "/portal/preferences", label: t("portal.nav.student.preferences", "Preferences"), icon: Shield },
-            { href: "/portal/settings", label: t("portal.settings", "Account Settings"), icon: Settings },
+            { href: "/portal/settings", label: t("portal.settings.title", "Account Settings"), icon: Settings },
           ],
         },
       ];
@@ -500,7 +500,7 @@ export default function PortalShell({
             { href: "/portal/parent/legal", label: t("portal.nav.parent.legalDocs", "Legal Documents"), icon: FileCheck2 },
             { href: "/portal/parent/absent", label: t("portal.nav.parent.markAbsent", "Mark Absent"), icon: FileText },
             { href: "/portal/parent/preferences", label: t("portal.nav.parent.preferences", "Notification Preferences"), icon: Shield },
-            { href: "/portal/settings", label: t("portal.settings", "Account Settings"), icon: Settings },
+            { href: "/portal/settings", label: t("portal.settings.title", "Account Settings"), icon: Settings },
           ],
         },
       ];

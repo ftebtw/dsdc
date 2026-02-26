@@ -68,6 +68,34 @@ export function verificationEmailTemplate(args: {
   return { subject, html, text };
 }
 
+export function passwordResetTemplate(args: {
+  name: string;
+  resetUrl: string;
+  locale: "en" | "zh";
+}): { subject: string; html: string; text: string } {
+  const isZh = args.locale === "zh";
+  const subject = isZh ? "DSDC - 重置您的密码" : "DSDC - Reset Your Password";
+
+  const { html, text } = renderTemplate({
+    title: isZh ? "重置密码" : "Reset Your Password",
+    bodyLines: isZh
+      ? [
+          `您好 ${args.name}，`,
+          "我们收到了重置您 DSDC 账号密码的请求。点击下方按钮设置新密码。",
+          "如果您没有请求重置密码，请忽略此邮件。此链接将在 1 小时后过期。",
+        ]
+      : [
+          `Hi ${args.name},`,
+          "We received a request to reset your DSDC account password. Click the button below to set a new password.",
+          "If you didn't request this, you can safely ignore this email. This link expires in 1 hour.",
+        ],
+    buttonLabel: isZh ? "重置密码" : "Reset Password",
+    buttonUrl: args.resetUrl,
+  });
+
+  return { subject, html, text };
+}
+
 export function linkVerificationCodeTemplate(input: {
   parentName: string;
   code: string;

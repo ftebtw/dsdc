@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { portalT } from "@/lib/portal/parent-i18n";
 
 type Step = "email" | "code" | "success";
 
-export default function ParentLinkStudentForm() {
+export default function ParentLinkStudentForm({ locale = "en" }: { locale?: "en" | "zh" }) {
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [step, setStep] = useState<Step>("email");
   const [studentEmail, setStudentEmail] = useState("");
   const [code, setCode] = useState("");
@@ -34,7 +36,7 @@ export default function ParentLinkStudentForm() {
       };
 
       if (!res.ok || !data.ok) {
-        setError(data.error || "Could not send verification code.");
+        setError(data.error || t("portal.linkStudent.sendCodeError", "Could not send verification code."));
         setLoading(false);
         return;
       }
@@ -43,7 +45,7 @@ export default function ParentLinkStudentForm() {
       setMaskedEmail(data.maskedEmail || studentEmail);
       setStep("code");
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("portal.linkStudent.genericError", "Something went wrong. Please try again."));
     }
 
     setLoading(false);
@@ -69,7 +71,7 @@ export default function ParentLinkStudentForm() {
       };
 
       if (!res.ok || !data.ok) {
-        setError(data.error || "Verification failed.");
+        setError(data.error || t("portal.linkStudent.verifyFailed", "Verification failed."));
         setLoading(false);
         return;
       }
@@ -77,7 +79,7 @@ export default function ParentLinkStudentForm() {
       setStudentName(data.studentName || studentEmail);
       setStep("success");
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("portal.linkStudent.genericError", "Something went wrong. Please try again."));
     }
 
     setLoading(false);
@@ -90,13 +92,13 @@ export default function ParentLinkStudentForm() {
           ✓
         </div>
         <p className="font-semibold text-green-800 dark:text-green-200">
-          Successfully linked to {studentName}!
+          {t("portal.common.successLinked", "Successfully linked to")} {studentName}!
         </p>
         <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold text-sm"
         >
-          Refresh Page
+          {t("portal.common.refreshPage", "Refresh Page")}
         </button>
       </div>
     );
@@ -107,16 +109,21 @@ export default function ParentLinkStudentForm() {
       <form onSubmit={verifyCode} className="max-w-md space-y-3">
         <div className="rounded-lg bg-warm-50 dark:bg-navy-800 px-3 py-2 text-sm">
           <p className="text-charcoal/70 dark:text-navy-300">
-            A 6-digit verification code has been sent to{" "}
+            {t("portal.linkStudent.codeSentPrefix", "A 6-digit verification code has been sent to")}{" "}
             <span className="font-semibold text-navy-800 dark:text-white">{maskedEmail}</span>.
           </p>
           <p className="text-charcoal/60 dark:text-navy-400 mt-1">
-            Ask your student to check their email and share the code with you.
+            {t(
+              "portal.linkStudent.codeSentHelp",
+              "Ask your student to check their email and share the code with you."
+            )}
           </p>
         </div>
 
         <label className="block">
-          <span className="text-sm text-navy-700 dark:text-navy-200">Enter verification code</span>
+          <span className="text-sm text-navy-700 dark:text-navy-200">
+            {t("portal.linkStudent.enterCode", "Enter verification code")}
+          </span>
           <input
             value={code}
             onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -137,7 +144,9 @@ export default function ParentLinkStudentForm() {
             disabled={loading || code.length !== 6}
             className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-60"
           >
-            {loading ? "Verifying..." : "Verify & Link"}
+            {loading
+              ? t("portal.linkStudent.verifyingButton", "Verifying...")
+              : t("portal.linkStudent.verifyButton", "Verify & Link")}
           </button>
           <button
             type="button"
@@ -148,12 +157,12 @@ export default function ParentLinkStudentForm() {
             }}
             className="px-3 py-2 rounded-lg border border-warm-300 dark:border-navy-600 text-sm"
           >
-            Back
+            {t("portal.common.back", "Back")}
           </button>
         </div>
 
         <p className="text-xs text-charcoal/50 dark:text-navy-400">
-          Code expires in 30 minutes.
+          {t("portal.linkStudent.codeExpires", "Code expires in 30 minutes.")}
           <button
             type="button"
             onClick={(event) => {
@@ -164,7 +173,7 @@ export default function ParentLinkStudentForm() {
             }}
             className="ml-1 underline"
           >
-            Resend code
+            {t("portal.linkStudent.resendCode", "Resend code")}
           </button>
         </p>
       </form>
@@ -174,7 +183,9 @@ export default function ParentLinkStudentForm() {
   return (
     <form onSubmit={sendCode} className="max-w-md space-y-3">
       <label className="block">
-        <span className="text-sm text-navy-700 dark:text-navy-200">Student&apos;s email address</span>
+        <span className="text-sm text-navy-700 dark:text-navy-200">
+          {t("portal.linkStudent.studentEmail", "Student's email address")}
+        </span>
         <input
           type="email"
           required
@@ -186,7 +197,10 @@ export default function ParentLinkStudentForm() {
       </label>
 
       <p className="text-xs text-charcoal/60 dark:text-navy-400">
-        A verification code will be sent to this email. The student must share the code with you to confirm the link.
+        {t(
+          "portal.linkStudent.emailInstructions",
+          "A verification code will be sent to this email. The student must share the code with you to confirm the link."
+        )}
       </p>
 
       {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
@@ -196,7 +210,9 @@ export default function ParentLinkStudentForm() {
         disabled={loading}
         className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-60"
       >
-        {loading ? "Sending..." : "Send Verification Code"}
+        {loading
+          ? t("portal.common.sending", "Sending...")
+          : t("portal.linkStudent.sendCodeButton", "Send Verification Code")}
       </button>
     </form>
   );

@@ -33,13 +33,13 @@ export default async function AccountVerifiedPage({
   const copy =
     locale === "zh"
       ? {
-          title: "?????!",
-          welcome: `??,${displayName}!`,
-          studentMessage: "?????????????????????",
-          parentMessage: "????????????????????????",
-          studentCta: "???????",
-          parentCta: "????",
-          portalCta: "????",
+          title: "账号验证成功！",
+          welcome: `欢迎，${displayName}！`,
+          studentMessage: "您的账号已确认。您现在可以浏览并报名课程。",
+          parentMessage: "您的账号已确认。请前往门户关联学生并报名课程。",
+          studentCta: "浏览并报名课程",
+          parentCta: "前往门户",
+          portalCta: "前往门户",
         }
       : {
           title: "Account Verified!",

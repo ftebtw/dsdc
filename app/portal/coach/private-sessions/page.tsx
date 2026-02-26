@@ -4,6 +4,7 @@ import PrivateSessionsManager from '@/app/portal/_components/PrivateSessionsMana
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
+import { portalT } from '@/lib/portal/parent-i18n';
 import { formatSessionRangeForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -19,6 +20,8 @@ function stepForStatus(status: string): number {
 
 export default async function CoachPrivateSessionsPage() {
   const session = await requireRole(['coach', 'ta']);
+  const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const supabase = await getSupabaseServerClient();
 
   const { data: sessionsData } = await supabase
@@ -74,8 +77,14 @@ export default async function CoachPrivateSessionsPage() {
   });
 
   return (
-    <SectionCard title="Private Sessions" description="Review and manage private session requests assigned to you.">
-      <PrivateSessionsManager sessions={items} viewerRole="coach" />
+    <SectionCard
+      title={t('portal.privateSessions.title', 'Private Sessions')}
+      description={t(
+        'portal.privateSessions.coachDesc',
+        'Review and manage private session requests assigned to you.'
+      )}
+    >
+      <PrivateSessionsManager sessions={items} viewerRole="coach" locale={locale} />
     </SectionCard>
   );
 }
