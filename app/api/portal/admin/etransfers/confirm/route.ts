@@ -100,7 +100,9 @@ export async function POST(request: NextRequest) {
   const classIds = [...new Set(matchedRows.map((row) => row.class_id))];
   const convertedReferralId = await convertFirstRegisteredReferral(admin, [studentId]);
   if (convertedReferralId) {
-    console.log(`[etransfers-confirm] Referral converted: referral=${convertedReferralId}, student=${studentId}`);
+    console.info(
+      `[etransfers-confirm] Referral converted: referral=${convertedReferralId}, student=${studentId}`
+    );
   }
 
   const [{ data: studentProfile }, { data: classRowsData }, { data: parentLinks }] = await Promise.all([

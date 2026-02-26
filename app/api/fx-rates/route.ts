@@ -31,7 +31,8 @@ async function fetchLiveRates(): Promise<RatePayload | null> {
       source: "live",
       lastUpdated: new Date().toISOString(),
     };
-  } catch {
+  } catch (err) {
+    console.error("[fx-rates] live fetch failed", err);
     return null;
   }
 }

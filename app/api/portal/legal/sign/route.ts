@@ -19,7 +19,8 @@ function parseDataUrl(dataUrl: string): Buffer | null {
   if (!match) return null;
   try {
     return Buffer.from(match[1], 'base64');
-  } catch {
+  } catch (err) {
+    console.error("[portal-legal-sign] invalid base64 signature data", err);
     return null;
   }
 }

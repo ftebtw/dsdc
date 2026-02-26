@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import PortalLoginForm from '@/app/portal/_components/PortalLoginForm';
 import Link from 'next/link';
 
@@ -55,7 +55,11 @@ export default function PortalLoginPage() {
 
         <h1 className="text-2xl font-bold text-navy-800 dark:text-white mb-2">{copy.title}</h1>
         <p className="text-sm text-charcoal/60 dark:text-navy-300 mb-6">{copy.subtitle}</p>
-        <PortalLoginForm locale={locale} />
+        <Suspense
+          fallback={<div className="h-20 animate-pulse rounded-lg bg-warm-100 dark:bg-navy-700" />}
+        >
+          <PortalLoginForm locale={locale} />
+        </Suspense>
         <div className="mt-4 text-center">
           <p className="text-sm text-charcoal/60 dark:text-navy-300">{copy.noAccount}</p>
           <Link

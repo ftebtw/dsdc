@@ -261,7 +261,8 @@ export async function POST(request: NextRequest) {
   let body: ParsedBody;
   try {
     body = bodySchema.parse(await request.json());
-  } catch {
+  } catch (err) {
+    console.error("[register] invalid request body", err);
     return jsonError("Invalid request body.");
   }
 

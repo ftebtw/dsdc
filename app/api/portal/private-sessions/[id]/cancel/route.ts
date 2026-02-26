@@ -30,7 +30,8 @@ export async function POST(
   let bodyRaw: unknown = {};
   try {
     bodyRaw = await request.json();
-  } catch {
+  } catch (err) {
+    console.error("[private-session-cancel] invalid request body", err);
     bodyRaw = {};
   }
   const parsed = bodySchema.safeParse(bodyRaw);

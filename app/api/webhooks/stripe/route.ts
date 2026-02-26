@@ -19,6 +19,9 @@ import { convertFirstRegisteredReferral } from "@/lib/portal/referral-conversion
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const processedEvents = new Set<string>();
+const MAX_PROCESSED = 1000;
+
 const weekdayIndex: Record<string, number> = {
   sun: 0,
   mon: 1,
@@ -67,7 +70,8 @@ function parseMetadataClassIds(value: string | null | undefined): string[] {
     const parsed = JSON.parse(value) as unknown;
     if (!Array.isArray(parsed)) return [];
     return parsed.filter((id): id is string => typeof id === "string");
-  } catch {
+  } catch (err) {
+    console.error("[stripe-webhook] failed to parse classIds metadata", err);
     return [];
   }
 }
@@ -204,7 +208,7 @@ async function handleCheckoutSessionCompleted(
     items,
   };
 
-  console.log("[stripe-webhook]", JSON.stringify(payload));
+  console.info("[stripe-webhook]", JSON.stringify(payload));
 
   const studentId = metadata.studentId || "";
   const classIds = parseMetadataClassIds(metadata.classIds);
@@ -246,7 +250,7 @@ async function handleCheckoutSessionCompleted(
         metadata.parentId || null,
       ]);
       if (convertedReferralId) {
-        console.log(
+        console.info(
           `[stripe-webhook] Referral converted: referral=${convertedReferralId}, student=${studentId}, parent=${metadata.parentId || "none"}`
         );
       }
@@ -432,6 +436,17 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Stripe webhook signature verification failed:", error);
     return NextResponse.json({ error: "Invalid Stripe signature." }, { status: 400 });
+  }
+
+  if (processedEvents.has(event.id)) {
+    return NextResponse.json({ received: true, skipped: "duplicate" });
+  }
+  processedEvents.add(event.id);
+  if (processedEvents.size > MAX_PROCESSED) {
+    const first = processedEvents.values().next().value;
+    if (typeof first === "string") {
+      processedEvents.delete(first);
+    }
   }
 
   try {

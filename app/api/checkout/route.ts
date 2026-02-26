@@ -275,7 +275,8 @@ export async function POST(request: NextRequest) {
   let body: unknown;
   try {
     body = await request.json();
-  } catch {
+  } catch (err) {
+    console.error("[checkout] invalid JSON body", err);
     return jsonError("Invalid request body.");
   }
 

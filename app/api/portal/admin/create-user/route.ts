@@ -32,7 +32,8 @@ export async function POST(request: NextRequest) {
   let body: z.infer<typeof bodySchema>;
   try {
     body = bodySchema.parse(await request.json());
-  } catch {
+  } catch (err) {
+    console.error("[admin-create-user] invalid request body", err);
     return jsonError('Invalid request body.');
   }
 

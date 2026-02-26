@@ -215,7 +215,7 @@ export async function DELETE(request: NextRequest) {
     const { error: deleteError } = await admin.auth.admin.deleteUser(profile.id);
     if (deleteError) return jsonError(deleteError.message, 500);
 
-    console.log("[admin-delete-user]", {
+    console.info("[admin-delete-user]", {
       adminUserId: session.userId,
       deletedUserId: profile.id,
       deletedRole: profile.role,

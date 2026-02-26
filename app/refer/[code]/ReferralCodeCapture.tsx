@@ -6,8 +6,8 @@ export default function ReferralCodeCapture({ code }: { code: string }) {
   useEffect(() => {
     try {
       localStorage.setItem("dsdc-referral-code", code);
-    } catch {
-      // ignore storage errors in private mode
+    } catch (err) {
+      console.error("[referral-code-capture] localStorage write failed", err);
     }
   }, [code]);
 

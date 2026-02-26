@@ -51,8 +51,8 @@ export async function GET() {
           singletonStatus[doc._id as SingletonKey] = { exists: true, updatedAt: doc._updatedAt };
         }
       }
-    } catch {
-      // leave default false/null values if status lookup fails
+    } catch (err) {
+      console.error("[cms-debug] singleton lookup failed", err);
     }
   }
 
