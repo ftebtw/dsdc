@@ -87,7 +87,7 @@ export default function ParentLinkStudentForm() {
     return (
       <div className="rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20 p-4 text-center space-y-3">
         <div className="mx-auto w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-2xl">
-          ?
+          ✓
         </div>
         <p className="font-semibold text-green-800 dark:text-green-200">
           Successfully linked to {studentName}!

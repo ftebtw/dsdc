@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { redirect } from 'next/navigation';
-import PrivateSessionsManager from '@/app/portal/_components/PrivateSessionsManager';
+import ParentBookingManager from '@/app/portal/_components/ParentBookingManager';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
@@ -48,23 +48,53 @@ export default async function ParentPrivateSessionsPage({
     redirect(`/portal/parent/private-sessions?student=${selectedStudentId}`);
   }
 
-  const { data: sessionRows } = await supabase
-    .from('private_sessions')
-    .select('*')
-    .eq('student_id', selectedStudentId)
-    .order('requested_date', { ascending: true })
-    .order('requested_start_time', { ascending: true });
-  const sessions = (sessionRows ?? []) as Array<Record<string, any>>;
+  const today = new Date().toISOString().slice(0, 10);
 
-  const profileMap = await getProfileMap(
-    supabase,
-    [
-      ...new Set([
-        ...sessions.map((row: any) => row.coach_id),
-        ...sessions.map((row: any) => row.proposed_by).filter(Boolean),
-      ]),
-    ]
-  );
+  const [{ data: sessionRows }, { data: availabilityRaw }] = await Promise.all([
+    supabase
+      .from('private_sessions')
+      .select('*')
+      .eq('student_id', selectedStudentId)
+      .order('requested_date', { ascending: true })
+      .order('requested_start_time', { ascending: true }),
+    supabase
+      .from('coach_availability')
+      .select('*')
+      .eq('is_private', true)
+      .gte('available_date', today)
+      .order('available_date', { ascending: true })
+      .order('start_time', { ascending: true }),
+  ]);
+
+  const sessions = (sessionRows ?? []) as Array<Record<string, any>>;
+  const availability = (availabilityRaw ?? []) as Array<Record<string, any>>;
+
+  const allCoachIds = [
+    ...new Set([
+      ...sessions.map((row: any) => row.coach_id),
+      ...sessions.map((row: any) => row.proposed_by).filter(Boolean),
+      ...availability.map((slot: any) => slot.coach_id),
+    ]),
+  ];
+  const profileMap = await getProfileMap(supabase, allCoachIds);
+
+  const availableSlots = availability.map((slot: any) => ({
+    id: slot.id,
+    coachName: profileMap[slot.coach_id]?.display_name || profileMap[slot.coach_id]?.email || slot.coach_id,
+    whenText: (() => {
+      try {
+        return formatSessionRangeForViewer(
+          slot.available_date,
+          slot.start_time,
+          slot.end_time,
+          slot.timezone,
+          session.profile.timezone
+        );
+      } catch {
+        return `${slot.available_date ?? '?'} ${(slot.start_time || '').slice(0, 5)}-${(slot.end_time || '').slice(0, 5)}`;
+      }
+    })(),
+  }));
 
   const items = sessions.map((row: any) => {
     const status = String(row.status || 'pending');
@@ -107,7 +137,7 @@ export default async function ParentPrivateSessionsPage({
         selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
       }`}
     >
-      <PrivateSessionsManager sessions={items} viewerRole="parent" />
+      <ParentBookingManager availableSlots={availableSlots} sessions={items} studentId={selectedStudentId} />
     </SectionCard>
   );
 }

@@ -11,6 +11,7 @@ import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 const createSchema = z.object({
   availabilityId: z.string().uuid(),
   studentNotes: z.string().max(2000).optional(),
+  studentId: z.string().uuid().optional(),
 });
 
 function jsonError(message: string, status = 400) {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await requireApiRole(request, ['student']);
+  const session = await requireApiRole(request, ['student', 'parent']);
   if (!session) return jsonError('Unauthorized', 401);
 
   const body = createSchema.safeParse(await request.json());
@@ -62,10 +63,27 @@ export async function POST(request: NextRequest) {
   const today = new Date().toISOString().slice(0, 10);
   if (slot.available_date < today) return mergeCookies(supabaseResponse, jsonError('Cannot request past availability slots.', 400));
 
+  let bookingStudentId = session.userId;
+
+  if (body.data.studentId && session.profile.role === 'parent') {
+    const { data: link } = await admin
+      .from('parent_student_links')
+      .select('id')
+      .eq('parent_id', session.userId)
+      .eq('student_id', body.data.studentId)
+      .maybeSingle();
+
+    if (!link) {
+      return mergeCookies(supabaseResponse, jsonError('Student is not linked to your account.', 403));
+    }
+
+    bookingStudentId = body.data.studentId;
+  }
+
   const { data: createdRow, error: createError } = await supabase
     .from('private_sessions')
     .insert({
-      student_id: session.userId,
+      student_id: bookingStudentId,
       coach_id: slot.coach_id,
       availability_id: slot.id,
       requested_date: slot.available_date,
@@ -83,7 +101,7 @@ export async function POST(request: NextRequest) {
     admin
       .from('profiles')
       .select('id,email,display_name')
-      .eq('id', session.userId)
+      .eq('id', bookingStudentId)
       .maybeSingle(),
     admin
       .from('profiles')
