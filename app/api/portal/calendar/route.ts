@@ -140,19 +140,46 @@ export async function GET(request: NextRequest) {
     })
     .filter((row) => parsedFilter.data === "all" || row.is_mine);
 
-  let eventQuery = admin
+  let legacyEventQuery = admin
     .from("events")
-    .select("id,title,description,event_date,start_time,end_time,location,event_type,timezone,is_visible")
+    .select(
+      "id,title,description,event_date,start_time,end_time,location,event_type,timezone,is_visible,created_by"
+    )
     .eq("is_visible", true)
     .order("event_date", { ascending: true });
 
-  if (from) eventQuery = eventQuery.gte("event_date", from);
-  if (to) eventQuery = eventQuery.lte("event_date", to);
+  if (from) legacyEventQuery = legacyEventQuery.gte("event_date", from);
+  if (to) legacyEventQuery = legacyEventQuery.lte("event_date", to);
 
-  const { data: eventsData, error: eventError } = await eventQuery;
-  if (eventError) return jsonError(eventError.message, 500);
+  const { data: legacyEventsData, error: legacyEventError } = await legacyEventQuery;
+  if (legacyEventError) return jsonError(legacyEventError.message, 500);
 
-  const events = (eventsData ?? []).map((eventRow: any) => ({
+  let calendarEventQuery = admin
+    .from("calendar_events")
+    .select(
+      "id,title,description,event_date,start_time,end_time,timezone,color,is_all_day,visibility,is_important,created_by"
+    )
+    .order("event_date", { ascending: true })
+    .order("start_time", { ascending: true });
+
+  if (from) calendarEventQuery = calendarEventQuery.gte("event_date", from);
+  if (to) calendarEventQuery = calendarEventQuery.lte("event_date", to);
+
+  const { data: calendarEventsData, error: calendarEventError } = await calendarEventQuery;
+  if (calendarEventError) return jsonError(calendarEventError.message, 500);
+
+  const role = session.profile.role;
+  const viewerUserId = session.userId;
+
+  const filteredCalendarEvents = (calendarEventsData ?? []).filter((row: any) => {
+    if (role === "admin") return true;
+    if (row.created_by === viewerUserId) return true;
+    if (row.visibility === "everyone") return true;
+    if (row.visibility === "all_coaches" && ["coach", "ta"].includes(role)) return true;
+    return false;
+  });
+
+  const legacyEvents = (legacyEventsData ?? []).map((eventRow: any) => ({
     id: eventRow.id,
     title: eventRow.title,
     description: eventRow.description,
@@ -162,7 +189,39 @@ export async function GET(request: NextRequest) {
     location: eventRow.location,
     event_type: eventRow.event_type,
     timezone: eventRow.timezone || "America/Vancouver",
+    source: "events" as const,
+    color: null,
+    visibility: "everyone",
+    is_all_day: !eventRow.start_time && !eventRow.end_time,
+    is_important: false,
+    created_by: eventRow.created_by ?? null,
   }));
+
+  const calendarEvents = filteredCalendarEvents.map((eventRow: any) => ({
+    id: eventRow.id,
+    title: eventRow.title,
+    description: eventRow.description,
+    event_date: eventRow.event_date,
+    start_time: eventRow.start_time,
+    end_time: eventRow.end_time,
+    location: null,
+    event_type: eventRow.is_important ? "important" : "event",
+    timezone: eventRow.timezone || "America/Vancouver",
+    source: "calendar_events" as const,
+    color: eventRow.color || "#3b82f6",
+    visibility: eventRow.visibility || "personal",
+    is_all_day: Boolean(eventRow.is_all_day),
+    is_important: Boolean(eventRow.is_important),
+    created_by: eventRow.created_by,
+  }));
+
+  const events = [...legacyEvents, ...calendarEvents].sort((left, right) => {
+    const byDate = String(left.event_date).localeCompare(String(right.event_date));
+    if (byDate !== 0) return byDate;
+    const leftTime = left.start_time || "00:00:00";
+    const rightTime = right.start_time || "00:00:00";
+    return String(leftTime).localeCompare(String(rightTime));
+  });
 
   return NextResponse.json({
     classes,

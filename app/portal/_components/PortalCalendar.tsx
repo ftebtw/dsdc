@@ -71,6 +71,8 @@ const eventColorMap: Record<EventItem["event_type"], string> = {
   workshop: "bg-blue-100 text-blue-900 border border-blue-300 dark:bg-blue-900/30 dark:text-blue-100 dark:border-blue-700/60",
   social: "bg-pink-100 text-pink-900 border border-pink-300 dark:bg-pink-900/30 dark:text-pink-100 dark:border-pink-700/60",
   deadline: "bg-red-100 text-red-900 border border-red-300 dark:bg-red-900/30 dark:text-red-100 dark:border-red-700/60",
+  event: "bg-blue-100 text-blue-900 border border-blue-300 dark:bg-blue-900/30 dark:text-blue-100 dark:border-blue-700/60",
+  important: "bg-red-100 text-red-900 border border-red-300 dark:bg-red-900/30 dark:text-red-100 dark:border-red-700/60",
   other: "bg-warm-100 text-charcoal border border-warm-300 dark:bg-navy-800/50 dark:text-navy-100 dark:border-navy-600/60",
 };
 
@@ -111,6 +113,11 @@ function classPillClass(type: string, isMine: boolean) {
 
 function eventPillClass(type: EventItem["event_type"]) {
   return eventColorMap[type] ?? eventColorMap.other;
+}
+
+function eventPillStyle(eventItem: EventItem) {
+  if (eventItem.source !== "calendar_events" || !eventItem.color) return undefined;
+  return { backgroundColor: eventItem.color, borderColor: eventItem.color, color: "#ffffff" };
 }
 
 function inTerm(date: Date, term: CalendarPayload["term"]) {
@@ -216,6 +223,7 @@ function convertTimeForDisplay(
 }
 
 function eventTimeRange(eventItem: EventItem, displayTimezone: string) {
+  if (eventItem.is_all_day) return "All day";
   if (!eventItem.start_time && !eventItem.end_time) return "All day";
 
   const sourceTimezone = normalizeTimeZone(eventItem.timezone);
@@ -266,7 +274,7 @@ export default function PortalCalendar({
   role: PortalRole;
   userTimezone?: string | null;
 }) {
-  const isAdmin = role === "admin";
+  const canManageEvents = role === "admin" || role === "coach" || role === "ta";
   const [mobileView, setMobileView] = useState<"agenda" | "grid">("agenda");
   const [monthDate, setMonthDate] = useState<Date>(() => startOfMonth(new Date()));
   const [filter, setFilter] = useState<"all" | "mine">("all");
@@ -394,8 +402,11 @@ export default function PortalCalendar({
     const from = toKey(gridStart);
     const to = toKey(gridEnd);
     void fetch(`/api/portal/calendar?from=${from}&to=${to}&filter=${filter}`, { cache: "no-store" })
-      .then((response) => response.json())
-      .then((result: CalendarPayload) => {
+      .then(async (response) => {
+        const result = (await response.json()) as CalendarPayload & { error?: string };
+        if (!response.ok) {
+          throw new Error(result.error || "Could not refresh calendar.");
+        }
         setPayload(result);
       })
       .catch(() => {
@@ -447,7 +458,7 @@ export default function PortalCalendar({
             </select>
           </div>
 
-          {!isAdmin ? (
+          {role !== "admin" ? (
             <div className="inline-flex rounded-lg border border-warm-300 dark:border-navy-600 overflow-hidden">
               <button
                 type="button"
@@ -466,7 +477,7 @@ export default function PortalCalendar({
             </div>
           ) : null}
 
-          {isAdmin ? (
+          {canManageEvents ? (
             <button
               type="button"
               onClick={() => openCreateEvent(toKey(new Date()))}
@@ -512,11 +523,11 @@ export default function PortalCalendar({
                 type="button"
                 key={key}
                 onClick={() => {
-                  if (isAdmin) openCreateEvent(key);
+                  if (canManageEvents) openCreateEvent(key);
                 }}
                 className={`min-h-[132px] border-b border-r border-warm-100 dark:border-navy-700/70 p-2 text-left align-top transition-colors ${
                   dimmed ? "bg-warm-50/50 dark:bg-navy-900/40" : "bg-white dark:bg-navy-900/30"
-                } ${past ? "opacity-70" : ""} ${isAdmin ? "hover:bg-warm-50 dark:hover:bg-navy-800/35" : ""}`}
+                } ${past ? "opacity-70" : ""} ${canManageEvents ? "hover:bg-warm-50 dark:hover:bg-navy-800/35" : ""}`}
               >
                 <div className="mb-1">
                   <span
@@ -568,10 +579,12 @@ export default function PortalCalendar({
                         setSelectedClass(null);
                         setSelectedClassDate(null);
                       }}
-                      className={`text-[10px] leading-tight px-1 py-0.5 rounded truncate ${eventPillClass(eventItem.event_type)}`}
+                      className={`text-[10px] leading-tight px-1 py-0.5 rounded truncate border ${eventPillClass(eventItem.event_type)}`}
+                      style={eventPillStyle(eventItem)}
                       title={`${eventItem.title}${eventItem.start_time || eventItem.end_time ? ` (${eventTimeRange(eventItem, displayTimezone)})` : ""}`}
                     >
-                      {eventItem.event_type === "tournament" ? "🏆 " : ""}
+                      {eventItem.is_important ? "⚠️ " : null}
+                      {eventItem.event_type === "tournament" ? "🏆 " : null}
                       {eventItem.title}
                       {eventItem.start_time || eventItem.end_time
                         ? ` ${eventTimeRange(eventItem, displayTimezone)}`
@@ -611,7 +624,7 @@ export default function PortalCalendar({
               <div key={day.key} className="rounded-xl border border-warm-200 dark:border-navy-600 p-3">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-semibold text-navy-900 dark:text-white">{format(day.date, "EEE, MMM d")}</p>
-                  {isAdmin ? (
+                  {canManageEvents ? (
                     <button
                       type="button"
                       onClick={() => openCreateEvent(day.key)}
@@ -645,8 +658,10 @@ export default function PortalCalendar({
                         setSelectedClass(null);
                         setSelectedClassDate(null);
                       }}
-                      className={`w-full text-left text-xs px-2 py-1 rounded ${eventPillClass(eventItem.event_type)}`}
+                      className={`w-full text-left text-xs px-2 py-1 rounded border ${eventPillClass(eventItem.event_type)}`}
+                      style={eventPillStyle(eventItem)}
                     >
+                      {eventItem.is_important ? "⚠️ " : null}
                       {eventItem.title} ({eventTimeRange(eventItem, displayTimezone)})
                     </button>
                   ))}
@@ -674,7 +689,7 @@ export default function PortalCalendar({
                     type="button"
                     key={`m-grid-${key}`}
                     onClick={() => {
-                      if (isAdmin) openCreateEvent(key);
+                      if (canManageEvents) openCreateEvent(key);
                     }}
                     className={`min-h-[74px] border-b border-r border-warm-100 dark:border-navy-700/70 p-1 text-left ${
                       dimmed ? "bg-warm-50/50 dark:bg-navy-900/40" : "bg-white dark:bg-navy-900/30"
@@ -708,8 +723,10 @@ export default function PortalCalendar({
                           setSelectedClass(null);
                           setSelectedClassDate(null);
                         }}
-                        className={`mt-0.5 text-[9px] leading-tight px-1 py-0.5 rounded truncate ${eventPillClass(eventItem.event_type)}`}
+                        className={`mt-0.5 text-[9px] leading-tight px-1 py-0.5 rounded truncate border ${eventPillClass(eventItem.event_type)}`}
+                        style={eventPillStyle(eventItem)}
                       >
+                        {eventItem.is_important ? "⚠️ " : null}
                         {eventItem.title}
                       </div>
                     ))}
@@ -801,6 +818,9 @@ export default function PortalCalendar({
           />
           <div className="relative w-full max-w-md rounded-xl border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 p-4">
             <h4 className="text-lg font-semibold text-navy-900 dark:text-white">{selectedEvent.title}</h4>
+            {selectedEvent.is_important ? (
+              <p className="text-xs text-red-700 dark:text-red-300 mt-1">⚠️ Important event</p>
+            ) : null}
             <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
               {selectedEvent.event_date} {eventTimeRange(selectedEvent, displayTimezone)}
             </p>
@@ -818,13 +838,18 @@ export default function PortalCalendar({
             {selectedEvent.location ? (
               <p className="text-sm text-charcoal/70 dark:text-navy-300">Location: {selectedEvent.location}</p>
             ) : null}
+            {selectedEvent.source === "calendar_events" ? (
+              <p className="text-xs text-charcoal/60 dark:text-navy-400">
+                Visibility: {selectedEvent.visibility}
+              </p>
+            ) : null}
             {selectedEvent.description ? (
               <p className="text-sm text-charcoal/80 dark:text-navy-200 mt-2 whitespace-pre-wrap">
                 {selectedEvent.description}
               </p>
             ) : null}
             <div className="mt-4 flex items-center gap-2">
-              {isAdmin ? (
+              {canManageEvents && selectedEvent.source === "calendar_events" ? (
                 <button
                   type="button"
                   onClick={() => {

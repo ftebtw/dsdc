@@ -526,11 +526,19 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
     const method = editingEvent ? "PUT" : "POST";
 
     try {
-      await fetch(endpoint, {
+      const response = await fetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        const err = (await response.json().catch(() => ({}))) as { error?: string };
+        console.error("[CalendarWeekView] Save failed:", err);
+        window.alert(`Failed to save event: ${err.error || "Unknown error"}`);
+        return;
+      }
+
       setModal(null);
       await fetchEvents();
     } finally {
