@@ -4,6 +4,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { sendPortalEmail } from "@/lib/email/send";
 import { passwordResetTemplate } from "@/lib/email/templates";
 import { getPortalAppUrl } from "@/lib/email/resend";
+import { rateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   email: z.string().email(),
@@ -12,6 +13,11 @@ const schema = z.object({
 export async function POST(request: NextRequest) {
   const body = schema.safeParse(await request.json());
   if (!body.success) {
+    return NextResponse.json({ ok: true });
+  }
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const { allowed } = rateLimit(`reset:${ip}`, 5, 15 * 60 * 1000);
+  if (!allowed) {
     return NextResponse.json({ ok: true });
   }
 

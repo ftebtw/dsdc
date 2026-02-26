@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/portal/auth';
 import { privateCoachAcceptedTemplate } from '@/lib/email/templates';
 import {

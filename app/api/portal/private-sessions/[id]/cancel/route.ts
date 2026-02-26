@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
 import { privateCancelledTemplate } from '@/lib/email/templates';

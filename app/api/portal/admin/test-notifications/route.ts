@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
 import { sendPortalEmail } from '@/lib/email/send';
+import { getContactEmail } from '@/lib/email/resend';
 import {
   enrollmentConfirmationFull,
   reportCardApproved,
@@ -51,7 +52,7 @@ function resolveTemplate(input: {
         portalLoginUrl: portalUrl,
         isParentVersion: false,
         studentNeedsPasswordSetup: true,
-        contactEmail: 'education.dsdc@gmail.com',
+        contactEmail: getContactEmail(),
         locale: input.locale,
       });
     case 'enrollment_confirmation_parent':
@@ -71,7 +72,7 @@ function resolveTemplate(input: {
         ],
         portalLoginUrl: portalUrl,
         isParentVersion: true,
-        contactEmail: 'education.dsdc@gmail.com',
+        contactEmail: getContactEmail(),
         locale: input.locale,
       });
     case 'report_card_approved':

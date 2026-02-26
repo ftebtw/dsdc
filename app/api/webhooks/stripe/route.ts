@@ -11,7 +11,7 @@ import {
   sendToStudentAndParents,
   type PrivateSessionWorkflowRow,
 } from "@/lib/portal/private-sessions";
-import { getPortalAppUrl } from "@/lib/email/resend";
+import { getContactEmail, getPortalAppUrl } from "@/lib/email/resend";
 import { sendPortalEmails } from "@/lib/email/send";
 import { enrollmentConfirmationFull, privatePaymentConfirmedTemplate } from "@/lib/email/templates";
 import { convertFirstRegisteredReferral } from "@/lib/portal/referral-conversion";
@@ -367,7 +367,7 @@ async function handleCheckoutSessionCompleted(
       portalLoginUrl,
       isParentVersion: false,
       studentNeedsPasswordSetup,
-      contactEmail: "education.dsdc@gmail.com",
+      contactEmail: getContactEmail(),
       locale: studentProfile.locale === "zh" ? "zh" : "en",
     });
 
@@ -390,7 +390,7 @@ async function handleCheckoutSessionCompleted(
         portalLoginUrl,
         isParentVersion: true,
         studentNeedsPasswordSetup: false,
-        contactEmail: "education.dsdc@gmail.com",
+        contactEmail: getContactEmail(),
         locale: parent.locale === "zh" ? "zh" : "en",
       });
       seenEmails.add(parentEmail);

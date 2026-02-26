@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApiRole } from "@/lib/portal/auth";
 import { classTypeLabel } from "@/lib/portal/labels";
-import { getPortalAppUrl } from "@/lib/email/resend";
+import { getContactEmail, getPortalAppUrl } from "@/lib/email/resend";
 import { sendPortalEmails } from "@/lib/email/send";
 import { enrollmentConfirmationFull } from "@/lib/email/templates";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
           portalLoginUrl,
           isParentVersion: false,
           studentNeedsPasswordSetup: false,
-          contactEmail: "education.dsdc@gmail.com",
+          contactEmail: getContactEmail(),
           locale: studentProfile.locale === "zh" ? "zh" : "en",
         }),
       });
@@ -238,7 +238,7 @@ export async function POST(request: NextRequest) {
         portalLoginUrl,
         isParentVersion: true,
         studentNeedsPasswordSetup: false,
-        contactEmail: "education.dsdc@gmail.com",
+        contactEmail: getContactEmail(),
         locale: parent.locale === "zh" ? "zh" : "en",
       }),
     });

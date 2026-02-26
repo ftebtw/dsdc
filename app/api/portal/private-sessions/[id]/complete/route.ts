@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { requireApiRole } from '@/lib/portal/auth';
 import { type PrivateSessionWorkflowRow } from '@/lib/portal/private-sessions';
 import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';

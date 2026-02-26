@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApiRole } from "@/lib/portal/auth";
-import { getPortalAppUrl } from "@/lib/email/resend";
+import { getContactEmail, getPortalAppUrl } from "@/lib/email/resend";
 import { sendPortalEmails } from "@/lib/email/send";
 import { pendingApprovalRejectedTemplate } from "@/lib/email/templates";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
           studentName,
           classList,
           reason,
-          contactEmail: "education.dsdc@gmail.com",
+          contactEmail: getContactEmail(),
           registerUrl,
           locale: studentProfile.locale === "zh" ? "zh" : "en",
         }),
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         studentName,
         classList,
         reason,
-        contactEmail: "education.dsdc@gmail.com",
+        contactEmail: getContactEmail(),
         registerUrl,
         locale: parent.locale === "zh" ? "zh" : "en",
         isParentVersion: true,

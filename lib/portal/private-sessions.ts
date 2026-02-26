@@ -1,4 +1,4 @@
-﻿import 'server-only';
+import 'server-only';
 
 import { sendPortalEmails } from '@/lib/email/send';
 import { shouldSendNotification } from '@/lib/portal/notifications';

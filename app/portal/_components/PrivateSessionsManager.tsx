@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import PrivateSessionCard from '@/app/portal/_components/PrivateSessionCard';
 import { portalT } from '@/lib/portal/parent-i18n';

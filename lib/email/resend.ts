@@ -20,3 +20,7 @@ export function getPortalFromEmail(): string | null {
 export function getPortalAppUrl(): string {
   return process.env.PORTAL_APP_URL?.trim() || 'http://localhost:3000';
 }
+
+export function getContactEmail(): string {
+  return process.env.PORTAL_CONTACT_EMAIL?.trim() || "education.dsdc@gmail.com";
+}

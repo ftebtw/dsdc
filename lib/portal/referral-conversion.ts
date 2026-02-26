@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { CREDIT_AMOUNT_CAD } from "@/lib/portal/referral";

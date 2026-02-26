@@ -1,4 +1,4 @@
-﻿export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 
 import AdminReferralManager from "@/app/portal/_components/AdminReferralManager";
 import SectionCard from "@/app/portal/_components/SectionCard";

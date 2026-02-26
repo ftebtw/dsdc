@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from 'react';
 import { portalT } from '@/lib/portal/parent-i18n';

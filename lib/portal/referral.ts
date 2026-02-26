@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { randomInt } from "crypto";
 

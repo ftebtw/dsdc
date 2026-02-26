@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendPortalEmail } from "@/lib/email/send";
 import { referralCreditTemplate } from "@/lib/email/templates";

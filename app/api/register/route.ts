@@ -120,7 +120,7 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
   const { data, error } = await admin.auth.admin.createUser({
     email: body.email,
     password: body.password,
-    email_confirm: false,
+    email_confirm: true,
     user_metadata: {
       role: "student",
       display_name: studentDisplayName,

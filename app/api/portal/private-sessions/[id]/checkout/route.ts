@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 import { requireApiRole } from '@/lib/portal/auth';
 import { getStripeClient } from '@/lib/stripe';

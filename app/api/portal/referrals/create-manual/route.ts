@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApiRole } from "@/lib/portal/auth";
 import { CREDIT_AMOUNT_CAD, getOrCreateReferralCode } from "@/lib/portal/referral";
