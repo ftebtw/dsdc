@@ -1,4 +1,4 @@
-﻿export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 
 import EnrollmentRequiredBanner from "@/app/portal/_components/EnrollmentRequiredBanner";
 import ReferralDashboard from "@/app/portal/_components/ReferralDashboard";
@@ -33,42 +33,61 @@ export default async function StudentReferralsPage() {
     );
   }
 
-  const code = await getOrCreateReferralCode(supabase, session.userId);
-  const referralLink = `${getAppBaseUrl()}/refer/${code}`;
+  try {
+    const code = await getOrCreateReferralCode(supabase, session.userId);
+    const referralLink = `${getAppBaseUrl()}/refer/${code}`;
 
-  const { data: referralsData } = await supabase
-    .from("referrals")
-    .select(
-      "id,referred_email,status,credit_amount_cad,created_at,converted_at,credited_at,stripe_promo_code"
-    )
-    .eq("referrer_id", session.userId)
-    .order("created_at", { ascending: false });
+    const { data: referralsData, error: referralsError } = await supabase
+      .from("referrals")
+      .select(
+        "id,referred_email,status,credit_amount_cad,created_at,converted_at,credited_at,stripe_promo_code"
+      )
+      .eq("referrer_id", session.userId)
+      .order("created_at", { ascending: false });
 
-  const referrals = (referralsData ?? []).map((row: any) => ({
-    id: row.id,
-    referredEmail: row.referred_email,
-    status: row.status,
-    creditAmountCad: Number(row.credit_amount_cad ?? 0),
-    createdAt: row.created_at,
-    convertedAt: row.converted_at,
-    creditedAt: row.credited_at,
-    promoCode: row.stripe_promo_code || null,
-  }));
+    if (referralsError) {
+      throw referralsError;
+    }
 
-  const totalCredit = referrals
-    .filter((row: any) => row.status === "credited")
-    .reduce((sum: number, row: any) => sum + Number(row.creditAmountCad), 0);
+    const referrals = (referralsData ?? []).map((row: any) => ({
+      id: row.id,
+      referredEmail: row.referred_email,
+      status: row.status,
+      creditAmountCad: Number(row.credit_amount_cad ?? 0),
+      createdAt: row.created_at,
+      convertedAt: row.converted_at,
+      creditedAt: row.credited_at,
+      promoCode: row.stripe_promo_code || null,
+    }));
+
+    const totalCredit = referrals
+      .filter((row: any) => row.status === "credited")
+      .reduce((sum: number, row: any) => sum + Number(row.creditAmountCad), 0);
+
+    return (
+      <SectionCard
+        title="Refer a Friend"
+        description="Share your link and earn CAD $50 credit for each friend who enrolls in a full-term class."
+      >
+        <ReferralDashboard
+          referralLink={referralLink}
+          referrals={referrals}
+          totalCredit={totalCredit}
+        />
+      </SectionCard>
+    );
+  } catch (error) {
+    console.error("[student-referrals] failed to load referral dashboard", error);
+  }
 
   return (
     <SectionCard
       title="Refer a Friend"
-      description="Share your link and earn CAD $50 credit for each friend who enrolls in a full-term class."
+      description="Referral dashboard is temporarily unavailable."
     >
-      <ReferralDashboard
-        referralLink={referralLink}
-        referrals={referrals}
-        totalCredit={totalCredit}
-      />
+      <p className="text-sm text-charcoal/70 dark:text-navy-300">
+        We could not load your referral data right now. Please try again in a minute.
+      </p>
     </SectionCard>
   );
 }

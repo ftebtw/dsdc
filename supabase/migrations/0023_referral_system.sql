@@ -1,4 +1,4 @@
-﻿create table if not exists public.referral_codes (
+create table if not exists public.referral_codes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
   code text not null unique,
