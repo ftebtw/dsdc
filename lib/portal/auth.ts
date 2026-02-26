@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import type { NextRequest } from 'next/server';
 import type { Database } from '@/lib/supabase/database.types';
@@ -10,29 +11,31 @@ export type PortalRole = Database['public']['Enums']['app_role'];
 
 export type PortalProfile = Database['public']['Tables']['profiles']['Row'];
 
-export async function getCurrentSessionProfile(): Promise<{ userId: string; profile: PortalProfile } | null> {
-  try {
-    const supabase = await getSupabaseServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+export const getCurrentSessionProfile = cache(
+  async (): Promise<{ userId: string; profile: PortalProfile } | null> => {
+    try {
+      const supabase = await getSupabaseServerClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) return null;
+      if (!user) return null;
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-    if (!profile) return null;
+      if (!profile) return null;
 
-    return { userId: user.id, profile };
-  } catch (error) {
-    console.error('[portal-auth] getCurrentSessionProfile failed', error);
-    return null;
+      return { userId: user.id, profile };
+    } catch (error) {
+      console.error('[portal-auth] getCurrentSessionProfile failed', error);
+      return null;
+    }
   }
-}
+);
 
 export async function requireSession() {
   const session = await getCurrentSessionProfile();

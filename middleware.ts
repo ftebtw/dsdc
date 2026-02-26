@@ -57,13 +57,29 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  const metadataRole = user.user_metadata?.role as string | undefined;
+  let role: Database['public']['Enums']['app_role'] | undefined;
 
-  const role = profile?.role;
+  if (
+    metadataRole === 'admin' ||
+    metadataRole === 'coach' ||
+    metadataRole === 'ta' ||
+    metadataRole === 'student' ||
+    metadataRole === 'parent'
+  ) {
+    role = metadataRole;
+  }
+
+  if (!role) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    role = profile?.role;
+  }
+
   if (!role) {
     return NextResponse.redirect(new URL('/portal/login', request.url));
   }

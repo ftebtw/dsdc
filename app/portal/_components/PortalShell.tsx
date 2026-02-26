@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { startTransition, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Banknote,
@@ -314,7 +314,9 @@ export default function PortalShell({
     }
 
     setLocaleUpdating(false);
-    router.refresh();
+    startTransition(() => {
+      router.refresh();
+    });
   }
 
   async function onTimezoneChange(nextTimezone: string) {
@@ -338,7 +340,9 @@ export default function PortalShell({
     }
 
     setTimezoneUpdating(false);
-    router.refresh();
+    startTransition(() => {
+      router.refresh();
+    });
   }
 
   useEffect(() => {
