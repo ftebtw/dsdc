@@ -131,8 +131,7 @@ export default function PortalLoginForm({ locale }: Props) {
     void fetch("/api/portal/track-login", { method: "POST" }).catch(() => {});
 
     const redirectTo = params.get("redirectTo") || "/portal";
-    router.push(redirectTo);
-    router.refresh();
+    router.replace(redirectTo);
   }
 
   async function onSendResetEmail() {
