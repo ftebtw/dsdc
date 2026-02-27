@@ -8,6 +8,8 @@ import { useI18n } from "@/lib/i18n";
 export default function ContactForm() {
   const { t, messages } = useI18n();
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,11 +24,31 @@ export default function ContactForm() {
   const heardOptions = ((messages.bookPage as { heardOptions?: string[] } | undefined)?.heardOptions ??
     []) as string[];
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Placeholder — would normally POST to an API
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 5000);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string };
+        throw new Error(data.error || "Failed to send message.");
+      }
+
+      setSubmitted(true);
+      setFormData({ name: "", email: "", phone: "", grade: "", heardAbout: "", message: "" });
+      setTimeout(() => setSubmitted(false), 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -161,14 +183,19 @@ export default function ContactForm() {
               />
             </div>
 
+            {error ? (
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            ) : null}
+
             <button
               type="submit"
+              disabled={loading}
               className="w-full px-6 py-3.5 bg-gold-400 text-navy-900 font-semibold rounded-lg
                          hover:bg-gold-300 transition-all duration-200 shadow-md hover:shadow-lg
-                         flex items-center justify-center gap-2"
+                         flex items-center justify-center gap-2 disabled:opacity-60"
             >
               <Send className="w-4 h-4" />
-              {t("bookPage.submit")}
+              {loading ? (t("bookPage.sending") || "Sending...") : t("bookPage.submit")}
             </button>
           </motion.form>
         )}

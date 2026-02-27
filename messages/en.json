@@ -319,28 +319,28 @@
       {
         "name": "Junior",
         "grades": "Grades 7–9",
-        "schedule": "1x per week · 2 hr · Weekends",
+        "schedule": "1x per week · 2 hr · Mon, Tue, or Fri sections",
         "category": "debate",
         "description": "Build competitive debate skills while accelerating academic growth. Coaches integrate challenging topics like International Relations, Law, Philosophy, and Economics into debate classes, with unique opportunities to compete in tournaments, volunteer, and expand knowledge."
       },
       {
         "name": "Senior",
         "grades": "Grades 10–12",
-        "schedule": "1–2x per week · 2 hr",
+        "schedule": "1x per week · 2 hr · Mon, Tue, or Fri sections",
         "category": "debate",
         "description": "Rigorous practice in British Parliamentary, CNDF, and World Schools formats, with advanced lectures on complex topics. This class pushes students to question what they already know and cultivates the competitive edge needed to excel at tournaments."
       },
       {
         "name": "Advanced Competitive",
         "grades": "Grades 10–12",
-        "schedule": "2x per week · 2 hr",
+        "schedule": "1x per week · 2 hr · Fridays 6:35–8:35 PM PT",
         "category": "debate",
         "description": "An elite program led by world-renowned university debaters for students deeply committed to competitive debate. Through intensive drills, mock debates, and personalized coaching, students develop the advanced techniques needed to win at national and international tournaments."
       },
       {
         "name": "World Scholar's Cup",
         "grades": "Grades 4–12",
-        "schedule": "1x per week · 2 hr · Seasonal",
+        "schedule": "2x per week · 2 hr · Wed 7:15–9:15 PM & Thu 6–8 PM PT",
         "category": "other",
         "description": "Full preparation for WSC from regionals to the Tournament of Champions at Yale University. Students may travel to Beijing, Amsterdam, Sydney, and beyond. We're proud to have achieved a 100% qualification rate spanning regional, global, and ToC levels over the past five years."
       },

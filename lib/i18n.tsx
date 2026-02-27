@@ -114,7 +114,9 @@ export function I18nProvider({
         if (cancelled) return;
         if (payload.overrides) setCmsOverrides(payload.overrides);
         setContentSource(payload.source);
-      } catch {
+      } catch (error) {
+
+        console.error("[i18n] error:", error);
         // keep static defaults silently
       }
     }

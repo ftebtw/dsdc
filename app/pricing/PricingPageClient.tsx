@@ -54,7 +54,9 @@ export default function PricingPageClient() {
           setRates(data.rates);
           setRateSource(data.source);
         }
-      } catch {
+      } catch (error) {
+
+        console.error("[pricing] error:", error);
         // fall back to built-in rates silently
       }
     };

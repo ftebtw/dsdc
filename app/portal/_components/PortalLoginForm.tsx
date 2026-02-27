@@ -153,7 +153,8 @@ export default function PortalLoginForm({ locale }: Props) {
       if (!response.ok) {
         throw new Error("Request failed");
       }
-    } catch {
+    } catch (error) {
+      console.error("[portal-login] error:", error);
       // Intentionally ignore to avoid account enumeration via reset responses.
     }
 

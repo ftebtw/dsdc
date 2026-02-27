@@ -49,7 +49,8 @@ export default async function AdminPayrollPage({
       start: params.start || presetRange?.start,
       end: params.end || presetRange?.end,
     });
-  } catch {
+  } catch (error) {
+    console.error("[admin-payroll] error:", error);
     range = parsePayrollDateRange({});
   }
 

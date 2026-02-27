@@ -33,7 +33,9 @@ export async function POST(request: NextRequest) {
     if (!Array.isArray(body.posts)) {
       return NextResponse.json({ error: "Expected { posts: BlogPost[] }" }, { status: 400 });
     }
-  } catch {
+  } catch (error) {
+
+    console.error("[blog-api] error:", error);
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 

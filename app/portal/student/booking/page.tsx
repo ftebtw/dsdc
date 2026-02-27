@@ -94,7 +94,8 @@ export default async function StudentBookingPage() {
             row.timezone,
             session.profile.timezone
           );
-        } catch {
+        } catch (error) {
+          console.error("[student-booking] error:", error);
           return `${row.requested_date ?? '?'} ${(row.requested_start_time ?? '').slice(0, 5)}-${(row.requested_end_time ?? '').slice(0, 5)}`;
         }
       })(),

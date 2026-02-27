@@ -47,7 +47,8 @@ function convertedKey(slot: AvailabilitySlot, displayTimezone: string) {
   try {
     const utc = fromZonedTime(`${slot.available_date}T${slot.start_time}`, slot.timezone);
     return formatInTimeZone(utc, displayTimezone, "yyyy-MM-dd'T'HH:mm");
-  } catch {
+  } catch (error) {
+    console.error("[availability-cal] error:", error);
     return `${slot.available_date}T${slot.start_time.slice(0, 5)}`;
   }
 }

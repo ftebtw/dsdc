@@ -467,7 +467,8 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
           createdBy: String(item.created_by || ""),
         }))
       );
-    } catch {
+    } catch (error) {
+      console.error("[calendar-week] error:", error);
       setEvents([]);
     } finally {
       setLoading(false);

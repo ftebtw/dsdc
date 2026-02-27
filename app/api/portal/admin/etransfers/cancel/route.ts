@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireApiRole } from "@/lib/portal/auth";
 import { sendPortalEmails } from "@/lib/email/send";
 import { etransferCancelled } from "@/lib/email/templates";
+import { DSDC_CONTACT_EMAIL } from "@/lib/constants";
 import { classTypeLabel } from "@/lib/portal/labels";
 import { getPortalAppUrl } from "@/lib/email/resend";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
         studentName,
         classes: classItems,
         reason,
-        contactEmail: "education.dsdc@gmail.com",
+        contactEmail: DSDC_CONTACT_EMAIL,
         registerUrl,
         locale: studentProfile.locale === "zh" ? "zh" : "en",
       }),
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
         studentName,
         classes: classItems,
         reason,
-        contactEmail: "education.dsdc@gmail.com",
+        contactEmail: DSDC_CONTACT_EMAIL,
         registerUrl,
         locale: parent.locale === "zh" ? "zh" : "en",
         isParentVersion: true,

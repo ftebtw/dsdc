@@ -1,3 +1,5 @@
+import { DSDC_CONTACT_EMAIL } from "@/lib/constants";
+
 type TemplateArgs = {
   title: string;
   bodyLines: string[];
@@ -1044,7 +1046,7 @@ export function etransferInstructions(input: {
     isZh
       ? `名额将于 ${input.expiresAt} 过期。`
       : `Your reservation will expire in 24 hours (${input.expiresAt}).`,
-    isZh ? '如有问题请联系 education.dsdc@gmail.com。' : 'Questions? Contact education.dsdc@gmail.com.',
+    isZh ? `如有问题请联系 ${DSDC_CONTACT_EMAIL}。` : `Questions? Contact ${DSDC_CONTACT_EMAIL}.`,
   ];
 
   const { html, text } = renderTemplate({
@@ -1076,7 +1078,7 @@ export function etransferReminder(input: {
       isZh
         ? '您的课程预留即将到期。如果您已发送转账，请点击下方确认。'
         : "Your class reservation will expire soon. If you've already sent the e-transfer, please confirm below.",
-      isZh ? '如需帮助，请联系 education.dsdc@gmail.com。' : 'If you need help, contact education.dsdc@gmail.com.',
+      isZh ? `如需帮助，请联系 ${DSDC_CONTACT_EMAIL}。` : `If you need help, contact ${DSDC_CONTACT_EMAIL}.`,
     ],
     buttonLabel: isZh ? '我已发送电子转账' : 'I Have Sent the E-Transfer',
     buttonUrl: input.pendingPageUrl,
@@ -1111,7 +1113,7 @@ export function etransferSentConfirmation(input: {
     isZh
       ? '如需更多信息（如我们无法找到转账记录），我们会通过邮件或电话联系您。'
       : "If we need more information (e.g. we can't locate the e-transfer), we'll contact you by email or phone.",
-    isZh ? '如有问题请联系 education.dsdc@gmail.com。' : 'Questions? Contact education.dsdc@gmail.com.',
+    isZh ? `如有问题请联系 ${DSDC_CONTACT_EMAIL}。` : `Questions? Contact ${DSDC_CONTACT_EMAIL}.`,
   ];
 
   const { html, text } = renderTemplate({
@@ -1168,7 +1170,7 @@ export function etransferLapsed(input: {
     isZh
       ? '如仍需报名，请重新提交注册申请。'
       : 'If you still want to enroll, please submit a new registration request.',
-    isZh ? '如有问题请联系 education.dsdc@gmail.com。' : 'Questions? Contact education.dsdc@gmail.com.',
+    isZh ? `如有问题请联系 ${DSDC_CONTACT_EMAIL}。` : `Questions? Contact ${DSDC_CONTACT_EMAIL}.`,
   ];
 
   const { html, text } = renderTemplate({

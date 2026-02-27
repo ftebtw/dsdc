@@ -6,6 +6,7 @@ import { classTypeLabel } from "@/lib/portal/labels";
 import { getPortalAppUrl } from "@/lib/email/resend";
 import { sendPortalEmails } from "@/lib/email/send";
 import { enrollmentConfirmationFull } from "@/lib/email/templates";
+import { DSDC_CONTACT_EMAIL } from "@/lib/constants";
 import { convertFirstRegisteredReferral } from "@/lib/portal/referral-conversion";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
@@ -222,7 +223,7 @@ export async function POST(request: NextRequest) {
           portalLoginUrl,
           isParentVersion: false,
           studentNeedsPasswordSetup: false,
-          contactEmail: "education.dsdc@gmail.com",
+          contactEmail: DSDC_CONTACT_EMAIL,
           locale: studentProfile.locale === "zh" ? "zh" : "en",
         }),
       });
@@ -243,7 +244,7 @@ export async function POST(request: NextRequest) {
         portalLoginUrl,
         isParentVersion: true,
         studentNeedsPasswordSetup: false,
-        contactEmail: "education.dsdc@gmail.com",
+        contactEmail: DSDC_CONTACT_EMAIL,
         locale: parent.locale === "zh" ? "zh" : "en",
       }),
     });

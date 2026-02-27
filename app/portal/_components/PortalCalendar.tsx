@@ -137,7 +137,8 @@ function normalizeTimeZone(timezone: string | null | undefined) {
   try {
     new Intl.DateTimeFormat("en-US", { timeZone: candidate });
     return candidate;
-  } catch {
+  } catch (error) {
+    console.error("[portal-calendar] error:", error);
     return fallback;
   }
 }
@@ -220,7 +221,8 @@ function convertTimeForDisplay(
       minute: "2-digit",
       hour12: true,
     }).format(utcDate);
-  } catch {
+  } catch (error) {
+    console.error("[portal-calendar] error:", error);
     return toTimeLabel(time);
   }
 }

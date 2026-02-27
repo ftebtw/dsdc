@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
   let body: z.infer<typeof bodySchema>;
   try {
     body = bodySchema.parse(await request.json());
-  } catch {
+  } catch (error) {
+    console.error("[manual-enroll] error:", error);
     return jsonError('Invalid request body.');
   }
 

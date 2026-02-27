@@ -23,7 +23,8 @@ export default async function CoachHoursPage({
   let range;
   try {
     range = parsePayrollDateRange({ start: params.start, end: params.end });
-  } catch {
+  } catch (error) {
+    console.error("[coach-hours] error:", error);
     range = parsePayrollDateRange({});
   }
 

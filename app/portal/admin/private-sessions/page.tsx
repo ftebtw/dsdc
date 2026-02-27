@@ -75,7 +75,8 @@ export default async function AdminPrivateSessionsPage({
             row.timezone,
             session.profile.timezone
           );
-        } catch {
+        } catch (error) {
+          console.error("[admin-private] error:", error);
           return `${row.requested_date ?? '?'} ${(row.requested_start_time ?? '').slice(0, 5)}-${(row.requested_end_time ?? '').slice(0, 5)}`;
         }
       })(),

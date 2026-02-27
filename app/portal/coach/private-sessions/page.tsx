@@ -60,7 +60,8 @@ export default async function CoachPrivateSessionsPage() {
             row.timezone,
             session.profile.timezone
           );
-        } catch {
+        } catch (error) {
+          console.error("[coach-private] error:", error);
           return `${row.requested_date ?? '?'} ${(row.requested_start_time ?? '').slice(0, 5)}-${(row.requested_end_time ?? '').slice(0, 5)}`;
         }
       })(),

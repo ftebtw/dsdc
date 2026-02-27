@@ -112,7 +112,9 @@ async function fetchSanityCmsContent(opts?: { draft?: boolean }): Promise<Sanity
 
     const data = await client.fetch<SanityCmsResponse>(cmsContentQuery, {}, fetchOpts);
     return data ?? null;
-  } catch {
+  } catch (error) {
+
+    console.error("[sanity] error:", error);
     return null;
   }
 }
@@ -128,7 +130,9 @@ export async function getCmsMessageOverrides(opts?: { draft?: boolean }) {
         zh: buildLocaleOverrides(data, "zh"),
       },
     };
-  } catch {
+  } catch (error) {
+
+    console.error("[sanity] error:", error);
     return { source: "fallback" as const, overrides: { en: {}, zh: {} } };
   }
 }

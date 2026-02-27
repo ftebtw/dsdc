@@ -15,6 +15,9 @@ export const getCurrentSessionProfile = cache(
   async (): Promise<{ userId: string; profile: PortalProfile } | null> => {
     try {
       const supabase = await getSupabaseServerClient();
+
+      // Use getSession() instead of getUser(); this reads JWT from cookies locally.
+      // /portal/* requests are already verified by middleware before this executes.
       const {
         data: { session },
       } = await supabase.auth.getSession();

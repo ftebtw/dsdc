@@ -136,7 +136,8 @@ export default function AdminReferralManager({ referrals, enrolledUsers }: Props
       }
 
       window.location.reload();
-    } catch {
+    } catch (error) {
+      console.error("[admin-referral] error:", error);
       setError("Could not issue referral credit.");
       setLoadingId(null);
     }
@@ -172,7 +173,8 @@ export default function AdminReferralManager({ referrals, enrolledUsers }: Props
       setManualReferredEmail("");
       setManualStatus("pending");
       window.location.reload();
-    } catch {
+    } catch (error) {
+      console.error("[admin-referral] error:", error);
       setError("Could not create manual referral.");
       setManualSaving(false);
     }

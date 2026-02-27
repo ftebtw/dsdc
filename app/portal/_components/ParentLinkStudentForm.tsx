@@ -44,7 +44,8 @@ export default function ParentLinkStudentForm({ locale = "en" }: { locale?: "en"
       setStudentName(data.studentName || studentEmail);
       setMaskedEmail(data.maskedEmail || studentEmail);
       setStep("code");
-    } catch {
+    } catch (error) {
+      console.error("[parent-link] error:", error);
       setError(t("portal.linkStudent.genericError", "Something went wrong. Please try again."));
     }
 
@@ -78,7 +79,8 @@ export default function ParentLinkStudentForm({ locale = "en" }: { locale?: "en"
 
       setStudentName(data.studentName || studentEmail);
       setStep("success");
-    } catch {
+    } catch (error) {
+      console.error("[parent-link] error:", error);
       setError(t("portal.linkStudent.genericError", "Something went wrong. Please try again."));
     }
 

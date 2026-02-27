@@ -108,7 +108,8 @@ export default function EtransferPendingClient({
       }
       setState("sent");
       setLoading(false);
-    } catch {
+    } catch (error) {
+      console.error("[etransfer-pending] error:", error);
       setError(tx("registerPage.etransferError", "Could not confirm your transfer."));
       setLoading(false);
     }
@@ -211,7 +212,7 @@ export default function EtransferPendingClient({
               {new Date(sentAt).toLocaleString()}
             </p>
           ) : null}
-          <p className="mt-4 text-sm text-charcoal/75 dark:text-navy-200">education.dsdc@gmail.com</p>
+          <p className="mt-4 text-sm text-charcoal/75 dark:text-navy-200">{etransferEmail}</p>
         </>
       ) : null}
 

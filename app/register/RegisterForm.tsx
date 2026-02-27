@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -26,7 +26,6 @@ function isLocale(value: string | null): value is "en" | "zh" {
 
 export default function RegisterForm() {
   const { t, locale, toggleLocale } = useI18n();
-  const router = useRouter();
   const params = useSearchParams();
   const localeSyncedRef = useRef(false);
 
@@ -66,7 +65,8 @@ export default function RegisterForm() {
       if (savedCode) {
         setReferralCode(savedCode);
       }
-    } catch {
+    } catch (error) {
+      console.error("[register] error:", error);
       // ignore localStorage access errors
     }
   }, []);
@@ -118,6 +118,15 @@ export default function RegisterForm() {
         return;
       }
 
+      // Show verification screen - do not sign in before email confirmation.
+      if (data.verificationSent) {
+        setRegisteredEmail(data.verificationEmail || data.loginEmail);
+        setShowVerifyEmail(true);
+        setLoading(false);
+        return;
+      }
+
+      // Fallback for unexpected API response shape.
       const supabase = getSupabaseBrowserClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: data.loginEmail,
@@ -142,8 +151,7 @@ export default function RegisterForm() {
       }
 
       if (data.role === "parent") {
-        router.push("/portal/parent/dashboard");
-        router.refresh();
+        window.location.href = "/portal/parent/dashboard";
         return;
       }
 
@@ -152,9 +160,9 @@ export default function RegisterForm() {
       nextParams.set("lang", resolvedLocale);
       if (data.parentId) nextParams.set("parent", data.parentId);
       if (data.studentNeedsPasswordSetup) nextParams.set("setup", "1");
-      router.push(`/register/classes?${nextParams.toString()}`);
-      router.refresh();
-    } catch {
+      window.location.href = `/register/classes?${nextParams.toString()}`;
+    } catch (error) {
+      console.error("[register] error:", error);
       setError(tx("registerPage.error", "Registration failed. Please try again."));
       setLoading(false);
       return;

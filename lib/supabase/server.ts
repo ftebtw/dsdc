@@ -21,7 +21,8 @@ export async function getSupabaseServerClient() {
           for (const cookie of cookieList) {
             store.set(cookie.name, cookie.value, cookie.options);
           }
-        } catch {
+        } catch (error) {
+          console.error("[supabase-server] error:", error);
           // Server Components may not allow cookie mutation. Safe to ignore.
         }
       },

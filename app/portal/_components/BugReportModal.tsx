@@ -43,7 +43,8 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
         }),
       });
       setSubmitted(true);
-    } catch {
+    } catch (error) {
+      console.error("[bug-report] error:", error);
       setSubmitted(true);
     }
 

@@ -120,7 +120,7 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
   const { data, error } = await admin.auth.admin.createUser({
     email: body.email,
     password: body.password,
-    email_confirm: true,
+    email_confirm: false,
     user_metadata: {
       role: "student",
       display_name: studentDisplayName,
@@ -171,7 +171,7 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
   const parentResult = await admin.auth.admin.createUser({
     email: body.parentEmail,
     password: body.parentPassword,
-    email_confirm: true,
+    email_confirm: false,
     user_metadata: {
       role: "parent",
       display_name: parentDisplayName,
@@ -196,6 +196,12 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
     })
   );
 
+  await sendVerificationEmail(admin, {
+    email: body.parentEmail,
+    displayName: parentDisplayName,
+    locale: body.locale,
+  });
+
   return {
     studentId: "",
     parentId,
@@ -203,6 +209,8 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
     role: "parent" as const,
     loginEmail: body.parentEmail,
     loginPassword: body.parentPassword,
+    verificationSent: true,
+    verificationEmail: body.parentEmail,
   };
 }
 

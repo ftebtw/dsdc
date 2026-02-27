@@ -52,7 +52,8 @@ export default function TimezoneSelect({ value, onChange, className }: Props) {
     if (typeof intlWithSupportedValues.supportedValuesOf === 'function') {
       try {
         return intlWithSupportedValues.supportedValuesOf('timeZone');
-      } catch {
+      } catch (error) {
+        console.error("[timezone-select] error:", error);
         return fallbackTimezones;
       }
     }

@@ -81,7 +81,8 @@ export default async function RegisterSuccessPage({
           : "Class"),
       amount: item.amount_total ?? null,
     }));
-  } catch {
+  } catch (error) {
+    console.error("[register-success] error:", error);
     items = [];
   }
 

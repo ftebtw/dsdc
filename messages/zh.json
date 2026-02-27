@@ -1181,7 +1181,7 @@
       "openLink": "打开链接",
       "resources": "资源",
       "title": "我的课程",
-      "zoom": "飞涨："
+      "zoom": "Zoom："
     },
     "coachDashboard": {
       "checkIn": "报到",
@@ -1268,7 +1268,7 @@
       "saveError": "无法保存事件。",
       "startTime": "开始时间",
       "title": "标题",
-      "visibility": "能见度",
+      "visibility": "可见范围",
       "colorAria": "颜色 {value}",
       "deleteConfirm": "删除“{title}”？"
     },

@@ -90,7 +90,8 @@ export default async function ParentPrivateSessionsPage({
           slot.timezone,
           session.profile.timezone
         );
-      } catch {
+      } catch (error) {
+        console.error("[parent-private] error:", error);
         return `${slot.available_date ?? '?'} ${(slot.start_time || '').slice(0, 5)}-${(slot.end_time || '').slice(0, 5)}`;
       }
     })(),
@@ -114,7 +115,8 @@ export default async function ParentPrivateSessionsPage({
             row.timezone,
             session.profile.timezone
           );
-        } catch {
+        } catch (error) {
+          console.error("[parent-private] error:", error);
           return `${row.requested_date ?? '?'} ${(row.requested_start_time ?? '').slice(0, 5)}-${(row.requested_end_time ?? '').slice(0, 5)}`;
         }
       })(),

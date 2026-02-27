@@ -71,7 +71,8 @@ export default function ReferralDashboard({
       await navigator.clipboard.writeText(referralLink);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
+    } catch (error) {
+      console.error("[referral-dash] error:", error);
       // ignore clipboard errors
     }
   }

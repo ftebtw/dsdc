@@ -165,7 +165,8 @@ export default function RegisterClassesClient({
         return;
       }
       window.location.assign(payload.redirectUrl);
-    } catch {
+    } catch (error) {
+      console.error("[register-classes] error:", error);
       setError(
         paymentMethod === "card"
           ? tx("registerPage.checkoutError", "Checkout could not start.")
@@ -209,8 +210,8 @@ export default function RegisterClassesClient({
           </p>
           <p className="text-sm text-navy-700 dark:text-navy-200">
             {resolvedLocale === "zh"
-              ? `第三学期将于4月6日（周一）至6月28日（周日）进行。本学期剩余 ${weeksRemaining} 周（共 ${totalWeeks} 周）。`
-              : `Term 3 runs Monday, April 6 to Sunday, June 28. ${weeksRemaining} of ${totalWeeks} weeks remaining.`}
+              ? `${termName}（${termDates}）。本学期剩余 ${weeksRemaining} 周（共 ${totalWeeks} 周）。`
+              : `${termName} (${termDates}). ${weeksRemaining} of ${totalWeeks} weeks remaining.`}
           </p>
           {weeksRemaining < totalWeeks ? (
             <p className="text-sm text-navy-700 dark:text-navy-200 mt-1 font-medium">

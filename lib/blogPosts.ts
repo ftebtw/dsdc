@@ -492,7 +492,9 @@ export function getBlogPostsSync(): BlogPost[] {
       const data = JSON.parse(fs.readFileSync(p, "utf-8"));
       return Array.isArray(data) ? data : blogPosts;
     }
-  } catch {
+  } catch (error) {
+
+    console.error("[blog-posts] error:", error);
     // ignore
   }
   return blogPosts;

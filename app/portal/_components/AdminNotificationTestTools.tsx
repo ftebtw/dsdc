@@ -73,7 +73,8 @@ export default function AdminNotificationTestTools({
         return;
       }
       setResult(`Sent to ${data.sentTo}: ${data.subject}`);
-    } catch {
+    } catch (error) {
+      console.error("[admin-notif-test] error:", error);
       setError('Network error while sending test email.');
     } finally {
       setLoadingAction(null);

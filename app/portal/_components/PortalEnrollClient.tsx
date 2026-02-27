@@ -165,7 +165,8 @@ export default function PortalEnrollClient({
       }
       window.location.assign(returnTo);
       return;
-    } catch {
+    } catch (error) {
+      console.error("[portal-enroll] error:", error);
       setError(c.genericError);
     }
 
