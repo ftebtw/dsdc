@@ -1,9 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getCmsMessageOverrides } from "@/lib/sanity/content";
 import { getSanityClient } from "@/lib/sanity/client";
 import { hasSanityConfig } from "@/lib/sanity/env";
 
 export const dynamic = "force-dynamic";
+
+function checkAuth(request: NextRequest): boolean {
+  const secret = process.env.CRON_SECRET || process.env.ADMIN_PASSWORD;
+  if (!secret) return true;
+  const authHeader = request.headers.get("authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  return token === secret;
+}
 
 type SingletonKey =
   | "homePageContent"
@@ -21,7 +29,11 @@ const singletonIds: SingletonKey[] = [
 ];
 
 /** GET /api/cms/debug - quick health snapshot for non-technical troubleshooting */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!checkAuth(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const result = await getCmsMessageOverrides({ draft: false });
 
   const headline =
