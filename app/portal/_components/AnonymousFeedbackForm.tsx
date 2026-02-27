@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 export default function AnonymousFeedbackForm() {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,13 +28,13 @@ export default function AnonymousFeedbackForm() {
     setLoading(false);
 
     if (!response.ok) {
-      setError(data.error || 'Could not send feedback.');
+      setError(data.error || t('portal.feedbackForm.sendError', 'Could not send feedback.'));
       return;
     }
 
     setSubject('');
     setBody('');
-    setMessage('Thank you for your feedback.');
+    setMessage(t('portal.feedbackForm.thankYou', 'Thank you for your feedback.'));
   }
 
   return (
@@ -39,7 +43,7 @@ export default function AnonymousFeedbackForm() {
         required
         value={subject}
         onChange={(event) => setSubject(event.target.value)}
-        placeholder="Subject"
+        placeholder={t('portal.feedbackForm.subject', 'Subject')}
         className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
       />
       <textarea
@@ -47,7 +51,7 @@ export default function AnonymousFeedbackForm() {
         rows={6}
         value={body}
         onChange={(event) => setBody(event.target.value)}
-        placeholder="Share your feedback"
+        placeholder={t('portal.feedbackForm.body', 'Share your feedback')}
         className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
       />
       {message ? <p className="text-sm text-green-700">{message}</p> : null}
@@ -56,7 +60,9 @@ export default function AnonymousFeedbackForm() {
         disabled={loading}
         className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-70"
       >
-        {loading ? 'Sending...' : 'Send Feedback'}
+        {loading
+          ? t('portal.feedbackForm.sending', 'Sending...')
+          : t('portal.feedbackForm.submit', 'Send Feedback')}
       </button>
     </form>
   );

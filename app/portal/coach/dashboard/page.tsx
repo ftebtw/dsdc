@@ -6,9 +6,13 @@ import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getTodayClassesForCoach } from '@/lib/portal/data';
 import { getSessionDateForClassTimezone, formatClassScheduleForViewer } from '@/lib/portal/time';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 export default async function CoachDashboardPage() {
   const session = await requireRole(['coach', 'ta']);
+  const locale = session.profile.locale === 'zh' ? 'zh' : 'en';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
+
   const supabase = await getSupabaseServerClient();
   const todayClasses = await getTodayClassesForCoach(supabase, session.userId);
 
@@ -31,11 +35,13 @@ export default async function CoachDashboardPage() {
   return (
     <div className="space-y-6">
       <SectionCard
-        title="Coach Dashboard"
-        description="Today’s classes and fast actions for check-in and attendance."
+        title={t('portal.coachDashboard.title', 'Coach Dashboard')}
+        description={t('portal.coachDashboard.description', "Today's classes and fast actions for check-in and attendance.")}
       >
         {todayClasses.length === 0 ? (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">No classes scheduled for today.</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t('portal.coachDashboard.empty', 'No classes scheduled for today.')}
+          </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {todayClasses.map((classRow) => (
@@ -55,9 +61,13 @@ export default async function CoachDashboardPage() {
                 </p>
                 <p className="text-sm mt-2">
                   {checkinMap[classRow.id] ? (
-                    <span className="text-green-700 dark:text-green-400">Checked in</span>
+                    <span className="text-green-700 dark:text-green-400">
+                      {t('portal.coachDashboard.checkedIn', 'Checked in')}
+                    </span>
                   ) : (
-                    <span className="text-gold-700 dark:text-gold-300">Not checked in yet</span>
+                    <span className="text-gold-700 dark:text-gold-300">
+                      {t('portal.coachDashboard.notCheckedInYet', 'Not checked in yet')}
+                    </span>
                   )}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -65,13 +75,13 @@ export default async function CoachDashboardPage() {
                     href="/portal/coach/checkin"
                     className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold"
                   >
-                    Check-in
+                    {t('portal.coachDashboard.checkIn', 'Check-in')}
                   </Link>
                   <Link
                     href={`/portal/coach/attendance/${classRow.id}`}
                     className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
                   >
-                    Mark Attendance
+                    {t('portal.coachDashboard.markAttendance', 'Mark Attendance')}
                   </Link>
                 </div>
               </article>

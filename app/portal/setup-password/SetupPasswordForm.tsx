@@ -3,8 +3,12 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n";
+import { portalT } from "@/lib/portal/parent-i18n";
 
 export default function SetupPasswordForm({ email }: { email: string }) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [password, setPassword] = useState("");
@@ -17,11 +21,11 @@ export default function SetupPasswordForm({ email }: { email: string }) {
     setError(null);
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t("portal.setupPassword.minLength", "Password must be at least 8 characters."));
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("portal.setupPassword.mismatch", "Passwords do not match."));
       return;
     }
 
@@ -41,7 +45,9 @@ export default function SetupPasswordForm({ email }: { email: string }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">Email</label>
+        <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+          {t("portal.setupPassword.email", "Email")}
+        </label>
         <input
           type="email"
           value={email}
@@ -50,19 +56,23 @@ export default function SetupPasswordForm({ email }: { email: string }) {
         />
       </div>
       <div>
-        <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">Create Password</label>
+        <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+          {t("portal.setupPassword.create", "Create Password")}
+        </label>
         <input
           type="password"
           required
           minLength={8}
-          placeholder="At least 8 characters"
+          placeholder={t("portal.setupPassword.minLengthHint", "At least 8 characters")}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white px-3 py-2"
         />
       </div>
       <div>
-        <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">Confirm Password</label>
+        <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+          {t("portal.setupPassword.confirm", "Confirm Password")}
+        </label>
         <input
           type="password"
           required
@@ -80,7 +90,9 @@ export default function SetupPasswordForm({ email }: { email: string }) {
         disabled={loading}
         className="w-full rounded-lg bg-navy-800 text-white py-2.5 font-semibold disabled:opacity-60"
       >
-        {loading ? "Setting up..." : "Set Password & Enter Portal"}
+        {loading
+          ? t("portal.setupPassword.settingUp", "Setting up...")
+          : t("portal.setupPassword.submit", "Set Password & Enter Portal")}
       </button>
     </form>
   );

@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react';
 import { formatInTimeZone } from 'date-fns-tz';
 import type { Database } from '@/lib/supabase/database.types';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type ScheduleDay = Database['public']['Enums']['schedule_day'];
 
@@ -56,6 +58,8 @@ export default function AbsenceForm({
   classes: ClassOption[];
   onSubmit: (payload: SubmitPayload) => Promise<SubmitResult>;
 }) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [classId, setClassId] = useState(classes[0]?.id || '');
   const [sessionDate, setSessionDate] = useState('');
   const [reason, setReason] = useState('');
@@ -72,7 +76,7 @@ export default function AbsenceForm({
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!classId || !sessionDate) {
-      setError('Select class and date.');
+      setError(t('portal.absenceForm.selectClassDate', 'Select class and date.'));
       return;
     }
 
@@ -88,11 +92,11 @@ export default function AbsenceForm({
 
     setLoading(false);
     if (!result.ok) {
-      setError(result.error || 'Could not save absence.');
+      setError(result.error || t('portal.absenceForm.saveError', 'Could not save absence.'));
       return;
     }
 
-    setMessage(result.message || 'Absence reported.');
+    setMessage(result.message || t('portal.absenceForm.reported', 'Absence reported.'));
     setReason('');
   }
 
@@ -100,7 +104,9 @@ export default function AbsenceForm({
     <form onSubmit={submit} className="space-y-3 rounded-xl border border-warm-200 dark:border-navy-600 p-4 bg-warm-50 dark:bg-navy-900">
       <div className="grid sm:grid-cols-2 gap-3">
         <label className="block">
-          <span className="text-sm text-navy-700 dark:text-navy-200">Class</span>
+          <span className="text-sm text-navy-700 dark:text-navy-200">
+            {t('portal.absenceForm.class', 'Class')}
+          </span>
           <select
             required
             value={classId}
@@ -118,14 +124,16 @@ export default function AbsenceForm({
           </select>
         </label>
         <label className="block">
-          <span className="text-sm text-navy-700 dark:text-navy-200">Session date</span>
+          <span className="text-sm text-navy-700 dark:text-navy-200">
+            {t('portal.absenceForm.sessionDate', 'Session date')}
+          </span>
           <select
             required
             value={sessionDate}
             onChange={(event) => setSessionDate(event.target.value)}
             className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
           >
-            <option value="">Select date</option>
+            <option value="">{t('portal.absenceForm.selectDate', 'Select date')}</option>
             {dateOptions.map((date) => (
               <option key={date} value={date}>
                 {date}
@@ -135,12 +143,14 @@ export default function AbsenceForm({
         </label>
       </div>
       <label className="block">
-        <span className="text-sm text-navy-700 dark:text-navy-200">Reason</span>
+        <span className="text-sm text-navy-700 dark:text-navy-200">
+          {t('portal.absenceForm.reason', 'Reason')}
+        </span>
         <textarea
           value={reason}
           onChange={(event) => setReason(event.target.value)}
           rows={3}
-          placeholder="Optional reason"
+          placeholder={t('portal.absenceForm.optionalReason', 'Optional reason')}
           className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
         />
       </label>
@@ -151,7 +161,9 @@ export default function AbsenceForm({
         type="submit"
         className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-70"
       >
-        {loading ? 'Saving...' : 'Report Absence'}
+        {loading
+          ? t('portal.common.saving', 'Saving...')
+          : t('portal.nav.student.markAbsent', 'Report Absence')}
       </button>
     </form>
   );

@@ -3,10 +3,13 @@ export const dynamic = 'force-dynamic';
 import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";
 import { classTypeLabel } from "@/lib/portal/labels";
+import { portalT } from "@/lib/portal/parent-i18n";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function StudentCreditsPage() {
   const session = await requireRole(["student"]);
+  const locale = session.profile.locale === "zh" ? "zh" : "en";
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const supabase = await getSupabaseServerClient();
 
   const { data: creditsData } = await supabase
@@ -34,28 +37,38 @@ export default async function StudentCreditsPage() {
   return (
     <div className="space-y-6">
       <SectionCard
-        title="Class Credits"
-        description="Credits can be used towards make-up classes or future sessions. Credits are issued by your coach or admin."
+        title={t("portal.studentCredits.title", "Class Credits")}
+        description={t(
+          "portal.studentCredits.description",
+          "Credits can be used towards make-up classes or future sessions. Credits are issued by your coach or admin."
+        )}
       >
         {credits.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-charcoal/60 dark:text-navy-400">You don't have any class credits yet.</p>
+            <p className="text-charcoal/60 dark:text-navy-400">
+              {t("portal.studentCredits.noneYet", "You don't have any class credits yet.")}
+            </p>
             <p className="text-sm text-charcoal/50 dark:text-navy-500 mt-1">
-              Credits may be issued if you miss a class due to special circumstances.
+              {t(
+                "portal.studentCredits.noneHint",
+                "Credits may be issued if you miss a class due to special circumstances."
+              )}
             </p>
           </div>
         ) : (
           <>
             <div className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4 mb-4">
               <p className="text-sm text-charcoal/70 dark:text-navy-300">
-                Total available credits:{" "}
+                {t("portal.studentCredits.totalAvailable", "Total available credits:")}{" "}
                 <span className="font-bold text-navy-800 dark:text-white text-lg">{totalAvailable}</span>
               </p>
             </div>
 
             {unredeemed.length > 0 ? (
               <div className="space-y-2 mb-6">
-                <h3 className="text-sm font-semibold text-navy-700 dark:text-navy-200">Available</h3>
+                <h3 className="text-sm font-semibold text-navy-700 dark:text-navy-200">
+                  {t("portal.studentCredits.available", "Available")}
+                </h3>
                 {unredeemed.map((credit) => (
                   <div
                     key={credit.id}
@@ -72,7 +85,9 @@ export default async function StudentCreditsPage() {
                     </div>
                     <div className="text-right">
                       <span className="text-sm font-bold text-navy-800 dark:text-white">
-                        {credit.amount_sessions} session{credit.amount_sessions !== 1 ? "s" : ""}
+                        {t("portal.studentCredits.sessionCount", "{count} session(s)")
+                          .replace("{count}", String(credit.amount_sessions))
+                          .replace("(s)", credit.amount_sessions !== 1 ? "s" : "")}
                       </span>
                       <p className="text-xs text-charcoal/50 dark:text-navy-400">
                         {new Date(credit.created_at).toLocaleDateString()}
@@ -85,7 +100,9 @@ export default async function StudentCreditsPage() {
 
             {redeemed.length > 0 ? (
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-charcoal/50 dark:text-navy-400">Used</h3>
+                <h3 className="text-sm font-semibold text-charcoal/50 dark:text-navy-400">
+                  {t("portal.studentCredits.used", "Used")}
+                </h3>
                 {redeemed.map((credit) => (
                   <div
                     key={credit.id}
@@ -99,7 +116,9 @@ export default async function StudentCreditsPage() {
                     </div>
                     <div className="text-right">
                       <span className="text-sm text-charcoal/60 dark:text-navy-400 line-through">
-                        {credit.amount_sessions} session{credit.amount_sessions !== 1 ? "s" : ""}
+                        {t("portal.studentCredits.sessionCount", "{count} session(s)")
+                          .replace("{count}", String(credit.amount_sessions))
+                          .replace("(s)", credit.amount_sessions !== 1 ? "s" : "")}
                       </span>
                       <p className="text-xs text-charcoal/40 dark:text-navy-500">
                         {new Date(credit.created_at).toLocaleDateString()}

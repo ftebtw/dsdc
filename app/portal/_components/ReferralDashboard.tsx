@@ -2,6 +2,8 @@
 
 import { Check, Copy } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n";
+import { portalT } from "@/lib/portal/parent-i18n";
 
 type ReferralItem = {
   id: string;
@@ -37,13 +39,6 @@ const statusStyle: Record<ReferralItem["status"], string> = {
   credited: "bg-purple-100 text-purple-800",
 };
 
-const statusLabel: Record<ReferralItem["status"], string> = {
-  pending: "Link shared",
-  registered: "Registered",
-  converted: "Enrolled - credit pending",
-  credited: "Credit issued",
-};
-
 export default function ReferralDashboard({
   referralLink,
   referrals,
@@ -53,6 +48,8 @@ export default function ReferralDashboard({
   referrals: ReferralItem[];
   totalCredit: number;
 }) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [copied, setCopied] = useState(false);
 
   const convertedCount = useMemo(
@@ -82,7 +79,9 @@ export default function ReferralDashboard({
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900/50 p-4 space-y-3">
-        <p className="text-sm font-medium text-navy-700 dark:text-navy-200">Your referral link</p>
+        <p className="text-sm font-medium text-navy-700 dark:text-navy-200">
+          {t("portal.referralDashboard.yourLink", "Your referral link")}
+        </p>
         <div className="flex items-center gap-2">
           <input
             readOnly
@@ -95,32 +94,45 @@ export default function ReferralDashboard({
             className="flex items-center gap-1.5 rounded-lg bg-navy-800 text-white px-3 py-2 text-sm font-semibold"
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            {copied ? "Copied" : "Copy"}
+            {copied
+              ? t("portal.referralDashboard.copied", "Copied")
+              : t("portal.referralDashboard.copy", "Copy")}
           </button>
         </div>
         <p className="text-xs text-charcoal/60 dark:text-navy-400">
-          Share this link with friends. You earn CAD $50 credit for each friend who enrolls in a full-term class.
+          {t(
+            "portal.referralDashboard.shareHint",
+            "Share this link with friends. You earn CAD $50 credit for each friend who enrolls in a full-term class."
+          )}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900/50 p-3 text-center">
           <p className="text-2xl font-bold text-navy-900 dark:text-white">{referrals.length}</p>
-          <p className="text-xs text-charcoal/60 dark:text-navy-400">Total referrals</p>
+          <p className="text-xs text-charcoal/60 dark:text-navy-400">
+            {t("portal.referralDashboard.totalReferrals", "Total referrals")}
+          </p>
         </div>
         <div className="rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900/50 p-3 text-center">
           <p className="text-2xl font-bold text-green-700 dark:text-green-400">{convertedCount}</p>
-          <p className="text-xs text-charcoal/60 dark:text-navy-400">Enrolled</p>
+          <p className="text-xs text-charcoal/60 dark:text-navy-400">
+            {t("portal.referralDashboard.enrolled", "Enrolled")}
+          </p>
         </div>
         <div className="rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900/50 p-3 text-center">
           <p className="text-2xl font-bold text-gold-600 dark:text-gold-300">{formatCurrency(totalCredit)}</p>
-          <p className="text-xs text-charcoal/60 dark:text-navy-400">Credit earned</p>
+          <p className="text-xs text-charcoal/60 dark:text-navy-400">
+            {t("portal.referralDashboard.creditEarned", "Credit earned")}
+          </p>
         </div>
       </div>
 
       {activePromoCodes.length > 0 ? (
         <div className="rounded-xl border border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 p-4">
-          <p className="text-sm font-semibold text-purple-900 dark:text-purple-200">Active promo codes</p>
+          <p className="text-sm font-semibold text-purple-900 dark:text-purple-200">
+            {t("portal.referralDashboard.activePromoCodes", "Active promo codes")}
+          </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {activePromoCodes.map((code) => (
               <span
@@ -136,7 +148,9 @@ export default function ReferralDashboard({
 
       {referrals.length > 0 ? (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-navy-700 dark:text-navy-200">Referral history</p>
+          <p className="text-sm font-medium text-navy-700 dark:text-navy-200">
+            {t("portal.referralDashboard.history", "Referral history")}
+          </p>
           {referrals.map((item) => (
             <div
               key={item.id}
@@ -155,7 +169,16 @@ export default function ReferralDashboard({
                   </span>
                 ) : null}
                 <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${statusStyle[item.status]}`}>
-                  {statusLabel[item.status]}
+                  {t(
+                    `portal.referralDashboard.status.${item.status}`,
+                    item.status === "pending"
+                      ? "Link shared"
+                      : item.status === "registered"
+                        ? "Registered"
+                        : item.status === "converted"
+                          ? "Enrolled - credit pending"
+                          : "Credit issued"
+                  )}
                 </span>
               </div>
             </div>
@@ -163,7 +186,7 @@ export default function ReferralDashboard({
         </div>
       ) : (
         <p className="text-sm text-charcoal/60 dark:text-navy-400">
-          No referrals yet. Share your link to get started.
+          {t("portal.referralDashboard.empty", "No referrals yet. Share your link to get started.")}
         </p>
       )}
     </div>

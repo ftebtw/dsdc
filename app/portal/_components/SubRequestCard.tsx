@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type Props = {
   requestType: 'sub' | 'ta';
@@ -29,6 +31,8 @@ export default function SubRequestCard({
   onAccept,
   onCancel,
 }: Props) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [loading, setLoading] = useState<'accept' | 'cancel' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +42,7 @@ export default function SubRequestCard({
     setError(null);
     const result = await onAccept();
     setLoading(null);
-    if (!result.ok) setError(result.error || 'Could not accept request.');
+    if (!result.ok) setError(result.error || t('portal.subRequestCard.acceptError', 'Could not accept request.'));
   }
 
   async function handleCancel() {
@@ -47,7 +51,7 @@ export default function SubRequestCard({
     setError(null);
     const result = await onCancel();
     setLoading(null);
-    if (!result.ok) setError(result.error || 'Could not cancel request.');
+    if (!result.ok) setError(result.error || t('portal.subRequestCard.cancelError', 'Could not cancel request.'));
   }
 
   return (
@@ -55,14 +59,24 @@ export default function SubRequestCard({
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">
-            {requestType === 'sub' ? 'Sub Request' : 'TA Request'}
+            {requestType === 'sub'
+              ? t('portal.subRequestCard.subRequest', 'Sub Request')
+              : t('portal.subRequestCard.taRequest', 'TA Request')}
           </p>
           <h3 className="font-semibold text-navy-800 dark:text-white">{className}</h3>
           <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">{whenText}</p>
-          <p className="text-sm text-charcoal/75 dark:text-navy-200 mt-1">Requesting coach: {requestingName}</p>
-          {reason ? <p className="text-sm mt-1">Reason: {reason}</p> : null}
-          {acceptedByName ? <p className="text-sm mt-1">Accepted by: {acceptedByName}</p> : null}
-          <p className="text-xs mt-2 uppercase">Status: {status}</p>
+          <p className="text-sm text-charcoal/75 dark:text-navy-200 mt-1">
+            {t('portal.subRequestCard.requestingCoach', 'Requesting coach:')} {requestingName}
+          </p>
+          {reason ? <p className="text-sm mt-1">{t('portal.subRequestCard.reason', 'Reason:')} {reason}</p> : null}
+          {acceptedByName ? (
+            <p className="text-sm mt-1">
+              {t('portal.subRequestCard.acceptedBy', 'Accepted by:')} {acceptedByName}
+            </p>
+          ) : null}
+          <p className="text-xs mt-2 uppercase">
+            {t('portal.subRequestCard.status', 'Status:')} {status}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           {canAccept && onAccept ? (
@@ -72,7 +86,9 @@ export default function SubRequestCard({
               onClick={() => void handleAccept()}
               disabled={loading !== null}
             >
-              {loading === 'accept' ? 'Accepting...' : 'Accept'}
+              {loading === 'accept'
+                ? t('portal.subRequestCard.accepting', 'Accepting...')
+                : t('portal.subRequestCard.accept', 'Accept')}
             </button>
           ) : null}
           {canCancel && onCancel ? (
@@ -82,7 +98,9 @@ export default function SubRequestCard({
               onClick={() => void handleCancel()}
               disabled={loading !== null}
             >
-              {loading === 'cancel' ? 'Cancelling...' : 'Cancel'}
+              {loading === 'cancel'
+                ? t('portal.subRequestCard.cancelling', 'Cancelling...')
+                : t('portal.common.cancel', 'Cancel')}
             </button>
           ) : null}
         </div>

@@ -116,7 +116,7 @@ export default async function ParentAttendancePage({
           >
             {terms.map((term) => (
               <option key={term.id} value={term.id}>
-                {term.name} {term.is_active ? '(Active)' : ''}
+                {term.name} {term.is_active ? `(${parentT(locale, 'portal.student.attendance.activeLabel', 'Active')})` : ''}
               </option>
             ))}
           </select>
@@ -124,7 +124,7 @@ export default async function ParentAttendancePage({
             {parentT(locale, 'portal.parent.common.loadButton', 'Load')}
           </button>
         </form>
-        <AttendanceSummary records={attendanceRows} />
+        <AttendanceSummary records={attendanceRows} locale={locale} />
       </SectionCard>
 
       <SectionCard title={parentT(locale, 'portal.parent.attendance.sessionLog', 'Session Log')}>

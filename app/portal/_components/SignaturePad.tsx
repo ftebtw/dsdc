@@ -2,6 +2,8 @@
 
 import { useRef, useState } from 'react';
 import ReactSignatureCanvas from 'react-signature-canvas';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type Props = {
   onSave: (dataUrl: string) => Promise<void> | void;
@@ -10,13 +12,15 @@ type Props = {
 };
 
 export default function SignaturePad({ onSave, width = 560, height = 220 }: Props) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const padRef = useRef<ReactSignatureCanvas | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function saveSignature() {
     if (!padRef.current || padRef.current.isEmpty()) {
-      setError('Please draw your signature first.');
+      setError(t('portal.signature.drawFirst', 'Please draw your signature first.'));
       return;
     }
 
@@ -26,7 +30,11 @@ export default function SignaturePad({ onSave, width = 560, height = 220 }: Prop
     try {
       await onSave(dataUrl);
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Could not save signature.');
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : t('portal.signature.saveError', 'Could not save signature.')
+      );
     } finally {
       setLoading(false);
     }
@@ -51,7 +59,7 @@ export default function SignaturePad({ onSave, width = 560, height = 220 }: Prop
           }}
           className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
         >
-          Clear
+          {t('portal.signature.clear', 'Clear')}
         </button>
         <button
           type="button"
@@ -59,7 +67,7 @@ export default function SignaturePad({ onSave, width = 560, height = 220 }: Prop
           disabled={loading}
           className="px-3 py-1.5 rounded-md bg-navy-800 text-white text-sm disabled:opacity-70"
         >
-          {loading ? 'Saving...' : 'Sign & Submit'}
+          {loading ? t('portal.common.saving', 'Saving...') : t('portal.signature.signSubmit', 'Sign & Submit')}
         </button>
       </div>
       {error ? <p className="text-sm text-red-700">{error}</p> : null}

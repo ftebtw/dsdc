@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2, X } from "lucide-react";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import { useI18n } from "@/lib/i18n";
+import { portalT } from "@/lib/portal/parent-i18n";
 
 type ClassBlock = {
   kind: "class";
@@ -57,6 +59,7 @@ const HOUR_END = 22;
 const MINUTES_TOTAL = (HOUR_END - HOUR_START) * 60;
 const CANVAS_HEIGHT = MINUTES_TOTAL;
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DAY_LABEL_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 const DAY_MAP: Record<string, number> = {
   mon: 0,
   tue: 1,
@@ -169,6 +172,7 @@ function EventModal({
   onSave,
   onCancel,
   saving,
+  t,
 }: {
   initial?: EventBlock | null;
   weekMonday: Date;
@@ -176,6 +180,7 @@ function EventModal({
   onSave: (payload: EventPayload) => Promise<void>;
   onCancel: () => void;
   saving: boolean;
+  t: (key: string, fallback: string) => string;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -200,7 +205,7 @@ function EventModal({
   async function submit() {
     if (!title.trim()) return;
     if (!isAllDay && endTime <= startTime) {
-      setError("End time must be after start time.");
+      setError(t("portal.calendarWeek.endAfterStart", "End time must be after start time."));
       return;
     }
     setError(null);
@@ -224,7 +229,9 @@ function EventModal({
       <div className="w-full max-w-md rounded-xl border border-warm-200 bg-white p-6 dark:border-navy-600 dark:bg-navy-900">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="font-semibold text-navy-900 dark:text-white">
-            {initial ? "Edit Event" : "Add Event"}
+            {initial
+              ? t("portal.eventForm.editTitle", "Edit Event")
+              : t("portal.eventForm.addTitle", "Add Event")}
           </h3>
           <button
             type="button"
@@ -237,18 +244,22 @@ function EventModal({
 
         <div className="space-y-3">
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Title</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t("portal.eventForm.title", "Title")}
+            </span>
             <input
               required
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               className="mt-1 w-full rounded-lg border border-warm-300 bg-white px-3 py-2 dark:border-navy-600 dark:bg-navy-800"
-              placeholder="Tournament prep meeting"
+              placeholder={t("portal.calendarWeek.titlePlaceholder", "Tournament prep meeting")}
             />
           </label>
 
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Description</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t("portal.eventForm.description", "Description")}
+            </span>
             <textarea
               rows={2}
               value={description}
@@ -259,7 +270,9 @@ function EventModal({
 
           <div className="grid grid-cols-3 gap-3">
             <label className="block">
-              <span className="text-sm text-charcoal/70 dark:text-navy-300">Date</span>
+              <span className="text-sm text-charcoal/70 dark:text-navy-300">
+                {t("portal.eventForm.date", "Date")}
+              </span>
               <input
                 required
                 type="date"
@@ -269,7 +282,9 @@ function EventModal({
               />
             </label>
             <label className="block">
-              <span className="text-sm text-charcoal/70 dark:text-navy-300">Start</span>
+              <span className="text-sm text-charcoal/70 dark:text-navy-300">
+                {t("portal.calendarWeek.start", "Start")}
+              </span>
               <input
                 required
                 type="time"
@@ -280,7 +295,9 @@ function EventModal({
               />
             </label>
             <label className="block">
-              <span className="text-sm text-charcoal/70 dark:text-navy-300">End</span>
+              <span className="text-sm text-charcoal/70 dark:text-navy-300">
+                {t("portal.calendarWeek.end", "End")}
+              </span>
               <input
                 required
                 type="time"
@@ -293,7 +310,9 @@ function EventModal({
           </div>
 
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Timezone</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t("portal.displayTimezone", "Timezone")}
+            </span>
             <select
               value={timezone}
               onChange={(event) => setTimezone(event.target.value)}
@@ -313,11 +332,13 @@ function EventModal({
               checked={isAllDay}
               onChange={(event) => setIsAllDay(event.target.checked)}
             />
-            All day event
+            {t("portal.eventForm.allDay", "All day event")}
           </label>
 
           <div>
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Color</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t("portal.eventForm.color", "Color")}
+            </span>
             <div className="mt-1 flex flex-wrap gap-2">
               {COLORS.map((value) => (
                 <button
@@ -342,24 +363,29 @@ function EventModal({
                 className="rounded border-warm-300 dark:border-navy-600"
               />
               <span className="flex items-center gap-1.5">
-                Mark as important
+                {t("portal.calendarWeek.markImportant", "Mark as important")}
                 <span className="text-xs text-charcoal/60 dark:text-navy-400">
-                  (sends email even to users with &quot;important only&quot; preference)
+                  {t(
+                    "portal.calendarWeek.markImportantHint",
+                    "(sends email even to users with \"important only\" preference)"
+                  )}
                 </span>
               </span>
             </label>
           ) : null}
 
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Visibility</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t("portal.eventForm.visibility", "Visibility")}
+            </span>
             <select
               value={visibility}
               onChange={(event) => setVisibility(event.target.value as EventPayload["visibility"])}
               className="mt-1 w-full rounded-lg border border-warm-300 bg-white px-3 py-2 text-sm dark:border-navy-600 dark:bg-navy-800"
             >
-              <option value="personal">Only me</option>
-              <option value="all_coaches">All coaches &amp; TAs</option>
-              <option value="everyone">Everyone</option>
+              <option value="personal">{t("portal.eventForm.onlyMe", "Only me")}</option>
+              <option value="all_coaches">{t("portal.eventForm.allCoachesTas", "All coaches & TAs")}</option>
+              <option value="everyone">{t("portal.eventForm.everyone", "Everyone")}</option>
             </select>
           </label>
         </div>
@@ -372,7 +398,7 @@ function EventModal({
             onClick={onCancel}
             className="rounded-lg border border-warm-300 px-3 py-2 text-sm dark:border-navy-600"
           >
-            Cancel
+            {t("portal.common.cancel", "Cancel")}
           </button>
           <button
             type="button"
@@ -382,7 +408,11 @@ function EventModal({
             disabled={saving || !title.trim()}
             className="rounded-lg bg-navy-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-70"
           >
-            {saving ? "Saving..." : initial ? "Update" : "Add Event"}
+            {saving
+              ? t("portal.common.saving", "Saving...")
+              : initial
+                ? t("portal.calendarWeek.update", "Update")
+                : t("portal.eventForm.addTitle", "Add Event")}
           </button>
         </div>
       </div>
@@ -391,6 +421,8 @@ function EventModal({
 }
 
 export default function CalendarWeekView({ classes, viewerTimezone, userId, isAdmin }: Props) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [weekMonday, setWeekMonday] = useState(() => getMonday(new Date()));
   const [events, setEvents] = useState<EventBlock[]>([]);
   const [loading, setLoading] = useState(false);
@@ -535,7 +567,12 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
       if (!response.ok) {
         const err = (await response.json().catch(() => ({}))) as { error?: string };
         console.error("[CalendarWeekView] Save failed:", err);
-        window.alert(`Failed to save event: ${err.error || "Unknown error"}`);
+        window.alert(
+          t("portal.calendarWeek.saveFailed", `Failed to save event: ${err.error || "Unknown error"}`).replace(
+            "{error}",
+            err.error || "Unknown error"
+          )
+        );
         return;
       }
 
@@ -547,7 +584,7 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
   }
 
   async function deleteEvent(eventId: string) {
-    if (!window.confirm("Delete this event?")) return;
+    if (!window.confirm(t("portal.calendarWeek.deleteEventConfirm", "Delete this event?"))) return;
     await fetch(`/api/portal/calendar-events/${eventId}`, { method: "DELETE" });
     await fetchEvents();
   }
@@ -560,6 +597,7 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
             type="button"
             onClick={() => setWeekMonday((value) => addDays(value, -7))}
             className="rounded-lg border border-warm-300 p-1.5 hover:bg-warm-100 dark:border-navy-600 dark:hover:bg-navy-700"
+            aria-label={t("portal.calendarWeek.previousWeek", "Previous week")}
           >
             <ChevronLeft size={18} />
           </button>
@@ -568,12 +606,13 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
             onClick={() => setWeekMonday(getMonday(new Date()))}
             className="rounded-lg border border-warm-300 px-3 py-1.5 text-sm hover:bg-warm-100 dark:border-navy-600 dark:hover:bg-navy-700"
           >
-            Today
+            {t("portal.calendarWeek.today", "Today")}
           </button>
           <button
             type="button"
             onClick={() => setWeekMonday((value) => addDays(value, 7))}
             className="rounded-lg border border-warm-300 p-1.5 hover:bg-warm-100 dark:border-navy-600 dark:hover:bg-navy-700"
+            aria-label={t("portal.calendarWeek.nextWeek", "Next week")}
           >
             <ChevronRight size={18} />
           </button>
@@ -587,11 +626,15 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
           className="inline-flex items-center gap-1.5 rounded-lg bg-navy-800 px-3 py-2 text-sm font-semibold text-white"
         >
           <Plus size={16} />
-          Add Event
+          {t("portal.eventForm.addTitle", "Add Event")}
         </button>
       </div>
 
-      {loading ? <p className="text-sm text-charcoal/70 dark:text-navy-300">Loading events...</p> : null}
+      {loading ? (
+        <p className="text-sm text-charcoal/70 dark:text-navy-300">
+          {t("portal.calendarWeek.loadingEvents", "Loading events...")}
+        </p>
+      ) : null}
 
       <div className="overflow-x-auto rounded-xl border border-warm-200 dark:border-navy-600">
         <div className="min-w-[960px]">
@@ -602,7 +645,7 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
                 key={ymd(date)}
                 className="border-l border-warm-200 py-2 text-center text-sm font-semibold text-navy-900 dark:border-navy-600 dark:text-white"
               >
-                {DAY_LABELS[idx]}
+                {t(`portal.calendarWeek.day.${DAY_LABEL_KEYS[idx]}`, DAY_LABELS[idx])}
                 <br />
                 <span className="text-xs font-normal text-charcoal/60 dark:text-navy-400">
                   {toShortDate(date)}
@@ -686,7 +729,9 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
                         title={item.item.description || item.item.title}
                       >
                         <p className="truncate font-semibold">
-                          {item.item.isImportant ? <span title="Important">⚠️ </span> : null}
+                          {item.item.isImportant ? (
+                            <span title={t("portal.calendarWeek.important", "Important")}>[!]&nbsp;</span>
+                          ) : null}
                           {item.item.title}
                         </p>
                         {editable ? (
@@ -722,11 +767,11 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
       <div className="flex items-center gap-4 text-xs text-charcoal/70 dark:text-navy-300">
         <span className="inline-flex items-center gap-1.5">
           <span className="inline-block h-3 w-3 rounded bg-teal-600" />
-          Classes (read-only)
+          {t("portal.calendarWeek.classesReadOnly", "Classes (read-only)")}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <span className="inline-block h-3 w-3 rounded bg-blue-500" />
-          Events
+          {t("portal.calendarWeek.events", "Events")}
         </span>
       </div>
 
@@ -738,6 +783,7 @@ export default function CalendarWeekView({ classes, viewerTimezone, userId, isAd
           saving={saving}
           onCancel={() => setModal(null)}
           onSave={saveEvent}
+          t={t}
         />
       ) : null}
     </div>

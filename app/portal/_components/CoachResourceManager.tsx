@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import type { Database } from '@/lib/supabase/database.types';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type Resource = Database['public']['Tables']['resources']['Row'];
 type ResourceType = Database['public']['Enums']['resource_type'];
@@ -22,6 +24,9 @@ export default function CoachResourceManager({
   classId: string;
   initialResources: Resource[];
 }) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
+
   const [resources, setResources] = useState<Resource[]>(initialResources);
   const [title, setTitle] = useState('');
   const [type, setType] = useState<ResourceType>('homework');
@@ -55,7 +60,7 @@ export default function CoachResourceManager({
     setLoading(false);
 
     if (!response.ok || !data.resource) {
-      setError(data.error || 'Failed to create resource.');
+      setError(data.error || t('portal.coachResource.createError', 'Failed to create resource.'));
       return;
     }
 
@@ -81,7 +86,7 @@ export default function CoachResourceManager({
     const response = await fetch(`/api/portal/resources/${resource.id}/signed-url`);
     const data = (await response.json()) as { error?: string; url?: string };
     if (!response.ok || !data.url) {
-      setError(data.error || 'Could not open resource.');
+      setError(data.error || t('portal.resourceList.openError', 'Could not open resource.'));
       return;
     }
     window.open(data.url, '_blank', 'noopener,noreferrer');
@@ -90,10 +95,10 @@ export default function CoachResourceManager({
   return (
     <div className="space-y-6">
       <form onSubmit={onCreate} className="grid gap-3 rounded-xl border border-warm-200 dark:border-navy-600 p-4 bg-warm-50 dark:bg-navy-900">
-        <h3 className="font-semibold text-navy-800 dark:text-white">Add Resource</h3>
+        <h3 className="font-semibold text-navy-800 dark:text-white">{t('portal.coachResource.addResource', 'Add Resource')}</h3>
         <input
           required
-          placeholder="Resource title"
+          placeholder={t('portal.coachResource.resourceTitle', 'Resource title')}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
@@ -110,7 +115,7 @@ export default function CoachResourceManager({
           ))}
         </select>
         <input
-          placeholder="External URL (optional)"
+          placeholder={t('portal.coachResource.externalUrl', 'External URL (optional)')}
           value={url}
           onChange={(event) => setUrl(event.target.value)}
           className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
@@ -120,20 +125,20 @@ export default function CoachResourceManager({
           onChange={(event) => setFile(event.target.files?.[0] || null)}
           className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 file:mr-3 file:rounded file:border-0 file:bg-gold-300 file:px-3 file:py-1"
         />
-        <p className="text-xs text-charcoal/60 dark:text-navy-300">Provide a file, a URL, or both.</p>
+        <p className="text-xs text-charcoal/60 dark:text-navy-300">{t('portal.coachResource.fileOrUrl', 'Provide a file, a URL, or both.')}</p>
         {error ? <p className="text-sm text-red-700">{error}</p> : null}
         <button
           type="submit"
           disabled={loading}
           className="justify-self-start px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-70"
         >
-          {loading ? 'Saving...' : 'Post Resource'}
+          {loading ? t('portal.common.saving', 'Saving...') : t('portal.coachResource.postResource', 'Post Resource')}
         </button>
       </form>
 
       <div className="space-y-3">
         {sortedResources.length === 0 ? (
-          <p className="text-sm text-charcoal/65 dark:text-navy-300">No resources posted for this class yet.</p>
+          <p className="text-sm text-charcoal/65 dark:text-navy-300">{t('portal.coachResource.empty', 'No resources posted for this class yet.')}</p>
         ) : null}
         {sortedResources.map((resource) => (
           <div
@@ -143,7 +148,7 @@ export default function CoachResourceManager({
             <div>
               <p className="font-medium text-navy-800 dark:text-white">{resource.title}</p>
               <p className="text-xs text-charcoal/65 dark:text-navy-300">
-                {resource.type.replace('_', ' ')} • {new Date(resource.created_at).toLocaleString()}
+                {resource.type.replace('_', ' ')} - {new Date(resource.created_at).toLocaleString()}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -151,13 +156,13 @@ export default function CoachResourceManager({
                 onClick={() => onOpen(resource)}
                 className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
               >
-                Open
+                {t('portal.resourceList.open', 'Open')}
               </button>
               <button
                 onClick={() => onDelete(resource.id)}
                 className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm"
               >
-                Delete
+                {t('portal.resourceList.delete', 'Delete')}
               </button>
             </div>
           </div>

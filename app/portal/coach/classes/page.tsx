@@ -7,9 +7,13 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getClassesForCoachInActiveTerm, getProfileMap } from '@/lib/portal/data';
 import { classTypeLabel } from '@/lib/portal/labels';
 import { formatClassScheduleForViewer } from '@/lib/portal/time';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 export default async function CoachClassesPage() {
   const session = await requireRole(['coach', 'ta']);
+  const locale = session.profile.locale === 'zh' ? 'zh' : 'en';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
+
   const supabase = await getSupabaseServerClient();
   const classes = await getClassesForCoachInActiveTerm(supabase, session.userId);
 
@@ -66,9 +70,14 @@ export default async function CoachClassesPage() {
   }
 
   return (
-    <SectionCard title="My Classes" description="Active-term classes assigned to you.">
+    <SectionCard
+      title={t('portal.coachClasses.title', 'My Classes')}
+      description={t('portal.coachClasses.description', 'Active-term classes assigned to you.')}
+    >
       {classes.length === 0 ? (
-        <p className="text-sm text-charcoal/70 dark:text-navy-300">No active-term classes assigned.</p>
+        <p className="text-sm text-charcoal/70 dark:text-navy-300">
+          {t('portal.coachClasses.empty', 'No active-term classes assigned.')}
+        </p>
       ) : (
         <div className="space-y-4">
           {classes.map((classRow) => {
@@ -84,7 +93,7 @@ export default async function CoachClassesPage() {
                   <div>
                     <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
                     <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-1">
-                      {classTypeLabel[classRow.type as keyof typeof classTypeLabel] || String(classRow.type)} •{' '}
+                      {classTypeLabel[classRow.type as keyof typeof classTypeLabel] || String(classRow.type)} -{' '}
                       {formatClassScheduleForViewer(
                         classRow.schedule_day,
                         classRow.schedule_start_time,
@@ -95,20 +104,21 @@ export default async function CoachClassesPage() {
                     </p>
                     {classRow.zoom_link ? (
                       <p className="text-sm mt-1">
-                        Zoom:{' '}
+                        {t('portal.coachClasses.zoom', 'Zoom:')}{' '}
                         <a
                           className="underline text-navy-700 dark:text-navy-200"
                           href={classRow.zoom_link}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          Open Link
+                          {t('portal.coachClasses.openLink', 'Open Link')}
                         </a>
                       </p>
                     ) : null}
                     <p className="text-sm mt-2">
-                      {studentIdsForClass.length} enrolled student
-                      {studentIdsForClass.length === 1 ? '' : 's'}
+                      {t('portal.coachClasses.enrolledCount', '{count} enrolled student(s)')
+                        .replace('{count}', String(studentIdsForClass.length))
+                        .replace('(s)', studentIdsForClass.length === 1 ? '' : 's')}
                     </p>
                     {studentIdsForClass.length > 0 ? (
                       <p className="text-xs text-charcoal/70 dark:text-navy-300 mt-2">
@@ -119,12 +129,16 @@ export default async function CoachClassesPage() {
                     ) : null}
                     {nextSub ? (
                       <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
-                        Sub: {profileMap[nextSub.accepting_coach_id]?.display_name || profileMap[nextSub.accepting_coach_id]?.email || nextSub.accepting_coach_id} on {nextSub.session_date}
+                        {t('portal.coachClasses.nextSub', 'Sub: {name} on {date}')
+                          .replace('{name}', profileMap[nextSub.accepting_coach_id]?.display_name || profileMap[nextSub.accepting_coach_id]?.email || nextSub.accepting_coach_id)
+                          .replace('{date}', nextSub.session_date)}
                       </p>
                     ) : null}
                     {nextTa ? (
                       <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
-                        TA: {profileMap[nextTa.accepting_ta_id]?.display_name || profileMap[nextTa.accepting_ta_id]?.email || nextTa.accepting_ta_id} on {nextTa.session_date}
+                        {t('portal.coachClasses.nextTa', 'TA: {name} on {date}')
+                          .replace('{name}', profileMap[nextTa.accepting_ta_id]?.display_name || profileMap[nextTa.accepting_ta_id]?.email || nextTa.accepting_ta_id)
+                          .replace('{date}', nextTa.session_date)}
                       </p>
                     ) : null}
                   </div>
@@ -133,13 +147,13 @@ export default async function CoachClassesPage() {
                       href={`/portal/coach/attendance/${classRow.id}`}
                       className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
                     >
-                      Attendance
+                      {t('portal.coachClasses.attendance', 'Attendance')}
                     </Link>
                     <Link
                       href={`/portal/coach/resources/${classRow.id}`}
                       className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold"
                     >
-                      Resources
+                      {t('portal.coachClasses.resources', 'Resources')}
                     </Link>
                   </div>
                 </div>

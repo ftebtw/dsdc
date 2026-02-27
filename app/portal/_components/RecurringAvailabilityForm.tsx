@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type SubmitPayload = {
   slots: Array<{
@@ -16,13 +18,13 @@ type SubmitPayload = {
 type SubmitResult = { ok: boolean; error?: string };
 
 const weekdayOptions = [
-  { value: 0, label: 'Sunday' },
-  { value: 1, label: 'Monday' },
-  { value: 2, label: 'Tuesday' },
-  { value: 3, label: 'Wednesday' },
-  { value: 4, label: 'Thursday' },
-  { value: 5, label: 'Friday' },
-  { value: 6, label: 'Saturday' },
+  { value: 0, key: 'sun', fallback: 'Sunday' },
+  { value: 1, key: 'mon', fallback: 'Monday' },
+  { value: 2, key: 'tue', fallback: 'Tuesday' },
+  { value: 3, key: 'wed', fallback: 'Wednesday' },
+  { value: 4, key: 'thu', fallback: 'Thursday' },
+  { value: 5, key: 'fri', fallback: 'Friday' },
+  { value: 6, key: 'sat', fallback: 'Saturday' },
 ];
 
 const COMMON_TIMEZONES = [
@@ -74,6 +76,8 @@ export default function RecurringAvailabilityForm({
   defaultTimezone: string;
   onSubmit: (payload: SubmitPayload) => Promise<SubmitResult>;
 }) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [weekday, setWeekday] = useState(1);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -95,20 +99,20 @@ export default function RecurringAvailabilityForm({
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!startDate || !endDate) {
-      setError('Choose start and end dates.');
+      setError(t('portal.recurringAvailability.chooseDates', 'Choose start and end dates.'));
       return;
     }
     if (endDate < startDate) {
-      setError('End date must be on or after start date.');
+      setError(t('portal.recurringAvailability.endDateAfterStart', 'End date must be on or after start date.'));
       return;
     }
     if (startTime >= endTime) {
-      setError('End time must be later than start time.');
+      setError(t('portal.recurringAvailability.endTimeAfterStart', 'End time must be later than start time.'));
       return;
     }
     const dates = eachWeekdayInRange(weekday, startDate, endDate);
     if (!dates.length) {
-      setError('No matching dates found in the selected range.');
+      setError(t('portal.recurringAvailability.noMatchingDates', 'No matching dates found in the selected range.'));
       return;
     }
 
@@ -129,19 +133,21 @@ export default function RecurringAvailabilityForm({
     setLoading(false);
 
     if (!result.ok) {
-      setError(result.error || 'Could not create recurring slots.');
+      setError(result.error || t('portal.recurringAvailability.createError', 'Could not create recurring slots.'));
       return;
     }
 
-    setMessage(`Created ${dates.length} slots.`);
+    setMessage(t('portal.recurringAvailability.createdCount', `Created ${dates.length} slots.`).replace('{count}', String(dates.length)));
   }
 
   return (
     <form onSubmit={submit} className="space-y-3 rounded-xl border border-warm-200 dark:border-navy-600 p-4 bg-warm-50 dark:bg-navy-900">
-      <h3 className="font-semibold text-navy-800 dark:text-white">Recurring Availability</h3>
+      <h3 className="font-semibold text-navy-800 dark:text-white">
+        {t('portal.recurringAvailability.title', 'Recurring Availability')}
+      </h3>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <label className="block">
-          <span className="text-sm">Weekday</span>
+          <span className="text-sm">{t('portal.recurringAvailability.weekday', 'Weekday')}</span>
           <select
             value={weekday}
             onChange={(event) => setWeekday(Number(event.target.value))}
@@ -149,13 +155,13 @@ export default function RecurringAvailabilityForm({
           >
             {weekdayOptions.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(`portal.recurringAvailability.days.${option.key}`, option.fallback)}
               </option>
             ))}
           </select>
         </label>
         <label className="block">
-          <span className="text-sm">Start date</span>
+          <span className="text-sm">{t('portal.recurringAvailability.startDate', 'Start date')}</span>
           <input
             required
             type="date"
@@ -165,7 +171,7 @@ export default function RecurringAvailabilityForm({
           />
         </label>
         <label className="block">
-          <span className="text-sm">End date</span>
+          <span className="text-sm">{t('portal.recurringAvailability.endDate', 'End date')}</span>
           <input
             required
             type="date"
@@ -175,7 +181,7 @@ export default function RecurringAvailabilityForm({
           />
         </label>
         <label className="block">
-          <span className="text-sm">Start time</span>
+          <span className="text-sm">{t('portal.recurringAvailability.startTime', 'Start time')}</span>
           <input
             required
             type="time"
@@ -185,7 +191,7 @@ export default function RecurringAvailabilityForm({
           />
         </label>
         <label className="block">
-          <span className="text-sm">End time</span>
+          <span className="text-sm">{t('portal.recurringAvailability.endTime', 'End time')}</span>
           <input
             required
             type="time"
@@ -195,7 +201,7 @@ export default function RecurringAvailabilityForm({
           />
         </label>
         <label className="block">
-          <span className="text-sm">Timezone</span>
+          <span className="text-sm">{t('portal.displayTimezone', 'Timezone')}</span>
           <select
             required
             value={timezone}
@@ -213,14 +219,16 @@ export default function RecurringAvailabilityForm({
       <div className="flex items-center gap-4">
         <label className="inline-flex items-center gap-2 text-sm">
           <input type="checkbox" checked={isGroup} onChange={(event) => setIsGroup(event.target.checked)} />
-          Group
+          {t('portal.recurringAvailability.group', 'Group')}
         </label>
         <label className="inline-flex items-center gap-2 text-sm">
           <input type="checkbox" checked={isPrivate} onChange={(event) => setIsPrivate(event.target.checked)} />
-          Private
+          {t('portal.recurringAvailability.private', 'Private')}
         </label>
       </div>
-      <p className="text-xs text-charcoal/65 dark:text-navy-300">Preview: {count} slot(s) will be created.</p>
+      <p className="text-xs text-charcoal/65 dark:text-navy-300">
+        {t('portal.recurringAvailability.preview', `Preview: ${count} slot(s) will be created.`).replace('{count}', String(count))}
+      </p>
       {message ? <p className="text-sm text-green-700">{message}</p> : null}
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       <button
@@ -228,7 +236,9 @@ export default function RecurringAvailabilityForm({
         disabled={loading}
         className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-70"
       >
-        {loading ? 'Creating...' : 'Create Recurring Slots'}
+        {loading
+          ? t('portal.recurringAvailability.creating', 'Creating...')
+          : t('portal.recurringAvailability.createButton', 'Create Recurring Slots')}
       </button>
     </form>
   );

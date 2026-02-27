@@ -97,7 +97,7 @@ export default async function StudentAttendancePage({
           </button>
         </form>
 
-        <AttendanceSummary records={attendanceRows} />
+        <AttendanceSummary records={attendanceRows} locale={locale} />
       </SectionCard>
 
       <SectionCard title={t('portal.student.attendance.sessionLog', 'Session Log')}>

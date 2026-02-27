@@ -391,6 +391,7 @@
     ],
     "message": "Message",
     "submit": "Send Message",
+    "sending": "Sending...",
     "success": "Thank you! We'll be in touch within 24 hours.",
     "namePlaceholder": "Your full name",
     "emailPlaceholder": "your@email.com",
@@ -606,7 +607,8 @@
       },
       "reportCards": {
         "title": "Report Cards",
-        "comingSoon": "Report cards are coming soon."
+        "comingSoon": "Report cards are coming soon.",
+        "empty": "No approved report cards yet."
       },
       "common": {
         "noLinkedStudents": "No students linked to your account yet.",
@@ -619,6 +621,8 @@
         "noLegalDocs": "No legal documents assigned right now.",
         "coachLabel": "Coach",
         "zoomLabel": "Zoom",
+        "joinClass": "Join Class",
+        "zoomUnavailable": "Zoom link not yet available",
         "openLink": "Open Link",
         "openButton": "Open",
         "deleteButton": "Delete",
@@ -870,6 +874,31 @@
     },
     "displayTimezone": "Display Timezone",
     "reportBug": "Report a Bug",
+    "roles": {
+      "admin": "Admin",
+      "coach": "Coach",
+      "ta": "TA",
+      "student": "Student",
+      "parent": "Parent",
+      "portal": "Portal"
+    },
+    "shell": {
+      "portalUser": "Portal User",
+      "mainSite": "Main Site",
+      "logout": "Logout",
+      "navigation": "Navigation",
+      "openNavigation": "Open navigation",
+      "closeNavigation": "Close navigation"
+    },
+    "bugReport": {
+      "thanksTitle": "Thank you.",
+      "thanksBody": "Your bug report has been submitted. We'll look into it.",
+      "pageUrl": "Page URL",
+      "prompt": "What happened? What did you expect?",
+      "placeholder": "Describe the bug...",
+      "submittingAs": "Submitting as",
+      "submit": "Submit Bug Report"
+    },
     "settings": {
       "title": "Account Settings",
       "description": "Manage your account details.",
@@ -894,6 +923,7 @@
     "common": {
       "noResults": "No results found.",
       "loading": "Loading...",
+      "saving": "Saving...",
       "save": "Save",
       "cancel": "Cancel",
       "delete": "Delete",
@@ -906,6 +936,7 @@
       "filter": "Filter",
       "actions": "Actions",
       "status": "Status",
+      "class": "Class",
       "date": "Date",
       "time": "Time",
       "notes": "Notes",
@@ -922,6 +953,8 @@
       "sessionHistory": "Session History",
       "noSessions": "No private sessions found.",
       "pending": "Pending",
+      "absent": "Absent",
+      "late": "Late",
       "confirmed": "Confirmed",
       "completed": "Completed",
       "cancelled": "Cancelled",
@@ -936,7 +969,112 @@
       "reject": "Reject",
       "reschedule": "Reschedule",
       "complete": "Complete",
-      "approve": "Approve"
+      "approve": "Approve",
+      "deleting": "Deleting..."
+    },
+    "absenceForm": {
+      "selectClassDate": "Select class and date.",
+      "saveError": "Could not save absence.",
+      "reported": "Absence reported.",
+      "class": "Class",
+      "sessionDate": "Session date",
+      "selectDate": "Select date",
+      "reason": "Reason",
+      "optionalReason": "Optional reason"
+    },
+    "absenceManager": {
+      "submitError": "Could not report absence.",
+      "submitSuccess": "Absence reported successfully.",
+      "reportedTitle": "Reported Absences",
+      "none": "No absences reported yet.",
+      "noReason": "No reason provided.",
+      "reportedAt": "Reported"
+    },
+    "rolePreferences": {
+      "studentDescription": "Control class reminders and non-critical updates for your account.",
+      "coachDescription": "Control email alerts for sub requests, TA requests, and private sessions.",
+      "saveError": "Could not save preferences.",
+      "saved": "Saved.",
+      "subRequestAlerts": "Sub request alerts",
+      "taRequestAlerts": "TA request alerts",
+      "privateSessionAlerts": "Private session alerts"
+    },
+    "recurringAvailability": {
+      "title": "Recurring Availability",
+      "weekday": "Weekday",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "group": "Group",
+      "private": "Private",
+      "preview": "Preview: {count} slot(s) will be created.",
+      "creating": "Creating...",
+      "createButton": "Create Recurring Slots",
+      "chooseDates": "Choose start and end dates.",
+      "endDateAfterStart": "End date must be on or after start date.",
+      "endTimeAfterStart": "End time must be later than start time.",
+      "noMatchingDates": "No matching dates found in the selected range.",
+      "createError": "Could not create recurring slots.",
+      "createdCount": "Created {count} slots.",
+      "days": {
+        "sun": "Sunday",
+        "mon": "Monday",
+        "tue": "Tuesday",
+        "wed": "Wednesday",
+        "thu": "Thursday",
+        "fri": "Friday",
+        "sat": "Saturday"
+      }
+    },
+    "availabilityManager": {
+      "createError": "Could not create slot.",
+      "updateError": "Could not update slot.",
+      "deleteError": "Could not delete slot.",
+      "editTitle": "Edit Availability Slot",
+      "addTitle": "Add Availability Slot",
+      "date": "Date",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "saveSlot": "Save Slot",
+      "addSlot": "Add Slot",
+      "cancelEdit": "Cancel Edit"
+    },
+    "coachAttendanceEditor": {
+      "sessionDate": "Session date",
+      "loadingDate": "Loading date...",
+      "absenceReported": "Absence Reported",
+      "saveState": "Save State",
+      "reported": "Reported"
+    },
+    "signature": {
+      "drawFirst": "Please draw your signature first.",
+      "saveError": "Could not save signature.",
+      "clear": "Clear",
+      "signSubmit": "Sign & Submit"
+    },
+    "attendanceSummary": {
+      "totalSessions": "Total Sessions",
+      "presentRate": "Present Rate"
+    },
+    "coachSubs": {
+      "createError": "Could not create request.",
+      "requestFailed": "Request failed.",
+      "requestSub": "Request Sub",
+      "requestTa": "Request TA",
+      "session": "Session",
+      "noUpcomingSessions": "No upcoming sessions",
+      "reasonOptional": "Reason (optional)",
+      "submitSubRequest": "Submit Sub Request",
+      "submitTaRequest": "Submit TA Request",
+      "mySubRequests": "My Sub Requests",
+      "noSubRequests": "No sub requests created yet.",
+      "availableSubRequests": "Available Sub Requests",
+      "noOpenSubRequests": "No open sub requests for you right now.",
+      "myTaRequests": "My TA Requests",
+      "noTaRequests": "No TA requests created yet.",
+      "availableTaRequests": "Available TA Requests",
+      "noOpenTaRequests": "No open TA requests for you right now."
     },
     "enrollmentRequired": {
       "title": "Enroll in Classes to Get Started",
@@ -977,6 +1115,18 @@
       "zoomOptional": "Zoom link (optional)",
       "approving": "Approving...",
       "approveNotifyStudent": "Approve & Notify Student",
+      "rejectUnavailable": "Reject unavailable.",
+      "cancelUnavailable": "Cancel unavailable.",
+      "rescheduleUnavailable": "Reschedule unavailable.",
+      "approveUnavailable": "Approve unavailable.",
+      "steps": {
+        "request": "Request",
+        "coachReview": "Coach Review",
+        "adminApproval": "Admin Approval",
+        "payment": "Payment",
+        "confirmed": "Confirmed",
+        "complete": "Complete"
+      },
       "error": {
         "actionFailed": "Action failed.",
         "requestFailed": "Could not request session."
@@ -989,6 +1139,281 @@
         "awaitingPayment": "Approved. Awaiting payment",
         "awaitingPaymentShort": "Awaiting payment"
       }
+    },
+    "availabilityCalendar": {
+      "empty": "No availability slots found.",
+      "group": "Group",
+      "private": "Private",
+      "sourceTz": "Source TZ:"
+    },
+    "calendarWeek": {
+      "classesReadOnly": "Classes (read-only)",
+      "deleteEventConfirm": "Delete this event?",
+      "end": "End",
+      "endAfterStart": "End time must be after start time.",
+      "events": "Events",
+      "important": "Important",
+      "loadingEvents": "Loading events...",
+      "markImportant": "Mark as important",
+      "markImportantHint": "(sends email even to users with \"important only\" preference)",
+      "nextWeek": "Next week",
+      "previousWeek": "Previous week",
+      "start": "Start",
+      "titlePlaceholder": "Tournament prep meeting",
+      "today": "Today",
+      "update": "Update",
+      "saveFailed": "Failed to save event: {error}"
+    },
+    "coachCheckinList": {
+      "checkedInAt": "Checked in at",
+      "checkingIn": "Checking in...",
+      "empty": "No classes scheduled for today.",
+      "imHere": "I'm Here"
+    },
+    "coachClasses": {
+      "attendance": "Attendance",
+      "description": "Active-term classes assigned to you.",
+      "empty": "No active-term classes assigned.",
+      "enrolledCount": "{count} enrolled student(s)",
+      "nextSub": "Sub: {name} on {date}",
+      "nextTa": "TA: {name} on {date}",
+      "openLink": "Open Link",
+      "resources": "Resources",
+      "title": "My Classes",
+      "zoom": "Zoom:"
+    },
+    "coachDashboard": {
+      "checkIn": "Check-in",
+      "checkedIn": "Checked in",
+      "description": "Today's classes and fast actions for check-in and attendance.",
+      "empty": "No classes scheduled for today.",
+      "markAttendance": "Mark Attendance",
+      "notCheckedInYet": "Not checked in yet",
+      "title": "Coach Dashboard"
+    },
+    "coachHours": {
+      "apply": "Apply",
+      "description": "Hours are credited by class schedule duration when checked in.",
+      "empty": "No sessions found in this range.",
+      "endDate": "End date",
+      "group": "Group",
+      "onTime": "On time",
+      "private": "Private",
+      "sessionDetailDescription": "Group check-ins and completed private sessions in selected date range.",
+      "sessionDetailTitle": "Session Detail",
+      "startDate": "Start date",
+      "table": {
+        "checkedIn": "Checked in",
+        "class": "Class",
+        "classTime": "Class time",
+        "date": "Date",
+        "duration": "Duration",
+        "late": "Late",
+        "type": "Type"
+      },
+      "title": "My Hours"
+    },
+    "coachReportCards": {
+      "empty": "No active students enrolled.",
+      "lastActivity": "Last activity:",
+      "notStarted": "Not started",
+      "rejectedNotes": "Rejected notes:",
+      "replacePdf": "Replace PDF",
+      "submitError": "Could not submit report card.",
+      "submitForReview": "Submit for Review",
+      "submittedProgress": "{submitted} of {total} submitted",
+      "submitting": "Submitting...",
+      "uploadPdf": "Upload PDF",
+      "view": "View"
+    },
+    "coachReportCardsPage": {
+      "createTermFirst": "Create and activate a term before report cards.",
+      "description": "{term}: upload draft PDFs and submit for admin review.",
+      "noActiveTerm": "No active term is configured.",
+      "title": "Report Cards"
+    },
+    "coachResource": {
+      "addResource": "Add Resource",
+      "createError": "Failed to create resource.",
+      "empty": "No resources posted for this class yet.",
+      "externalUrl": "External URL (optional)",
+      "fileOrUrl": "Provide a file, a URL, or both.",
+      "postResource": "Post Resource",
+      "resourceTitle": "Resource title"
+    },
+    "error": {
+      "backToPortal": "Back to Portal",
+      "description": "This page encountered an error. Please try again or contact support if the problem persists.",
+      "title": "Something went wrong",
+      "tryAgain": "Try Again"
+    },
+    "eventForm": {
+      "addTitle": "Add Event",
+      "allCoachesTas": "All coaches & TAs",
+      "allDay": "All day event",
+      "closeModal": "Close event modal",
+      "color": "Color",
+      "createEvent": "Create Event",
+      "date": "Date",
+      "deleteError": "Could not delete event.",
+      "description": "Description",
+      "editTitle": "Edit Event",
+      "endTime": "End Time",
+      "everyone": "Everyone",
+      "important": "Important event",
+      "legacyReadOnly": "Legacy events are read-only in this modal.",
+      "onlyMe": "Only me",
+      "saveChanges": "Save Changes",
+      "saveError": "Could not save event.",
+      "startTime": "Start Time",
+      "title": "Title",
+      "visibility": "Visibility",
+      "colorAria": "Color {value}",
+      "deleteConfirm": "Delete \"{title}\"?"
+    },
+    "feedbackForm": {
+      "body": "Share your feedback",
+      "sendError": "Could not send feedback.",
+      "sending": "Sending...",
+      "subject": "Subject",
+      "submit": "Send Feedback",
+      "thankYou": "Thank you for your feedback."
+    },
+    "legalSign": {
+      "openDocument": "Open Document",
+      "reviewHint": "Review the document, then draw your signature below.",
+      "submitError": "Could not submit signature."
+    },
+    "linkParent": {
+      "claimError": "Could not claim invite code.",
+      "enterCode": "Enter 6-character parent invite code",
+      "linking": "Linking...",
+      "parentAccount": "parent account",
+      "placeholder": "ABC234",
+      "submit": "Link Parent",
+      "success": "Linked successfully to {name}."
+    },
+    "openSignedUrl": {
+      "openError": "Unable to open file.",
+      "opening": "Opening..."
+    },
+    "payrollTable": {
+      "calculatedPay": "Calculated pay",
+      "coach": "Coach",
+      "email": "Email",
+      "empty": "No payroll data for this range.",
+      "hourlyRate": "Hourly rate",
+      "hours": "Hours",
+      "late": "Late",
+      "sessions": "Sessions",
+      "ta": "TA",
+      "tiers": "Tiers",
+      "totals": "Totals"
+    },
+    "portalCalendar": {
+      "agenda": "Agenda",
+      "allClasses": "All Classes",
+      "allDay": "All day",
+      "calendar": "Calendar",
+      "classTimezone": "Class timezone:",
+      "closeClassDetails": "Close class details",
+      "closeEventDetails": "Close event details",
+      "coachLabel": "Coach:",
+      "displayIn": "Display in:",
+      "displayTimezoneLabel": "Display timezone:",
+      "emptyRange": "No classes or events in this range.",
+      "eventTimezone": "Event timezone:",
+      "fromTimezoneSuffix": "(from {timezone})",
+      "importantEvent": "Important event",
+      "loadError": "Could not load calendar.",
+      "loading": "Loading calendar...",
+      "locationLabel": "Location:",
+      "myClasses": "My Classes",
+      "nextMonth": "Next month",
+      "noActiveTerm": "No active term found. Event-only calendar is displayed.",
+      "openLink": "Open link",
+      "previousMonth": "Previous month",
+      "refreshError": "Could not refresh calendar.",
+      "sourceTimezone": "Source timezone:",
+      "startWord": "start",
+      "timeLabel": "Time:",
+      "typeLabel": "Type:",
+      "untilWord": "Until",
+      "visibilityLabel": "Visibility:",
+      "zoomLabel": "Zoom:"
+    },
+    "referralDashboard": {
+      "activePromoCodes": "Active promo codes",
+      "copied": "Copied",
+      "copy": "Copy",
+      "creditEarned": "Credit earned",
+      "empty": "No referrals yet. Share your link to get started.",
+      "enrolled": "Enrolled",
+      "history": "Referral history",
+      "shareHint": "Share this link with friends. You earn CAD $50 credit for each friend who enrolls in a full-term class.",
+      "totalReferrals": "Total referrals",
+      "yourLink": "Your referral link"
+    },
+    "reportCardUpload": {
+      "uploadFailed": "Upload failed.",
+      "uploading": "Uploading..."
+    },
+    "resourceList": {
+      "delete": "Delete",
+      "empty": "No resources available.",
+      "open": "Open",
+      "openError": "Could not open resource."
+    },
+    "setupPassword": {
+      "confirm": "Confirm Password",
+      "create": "Create Password",
+      "email": "Email",
+      "minLength": "Password must be at least 8 characters.",
+      "minLengthHint": "At least 8 characters",
+      "mismatch": "Passwords do not match.",
+      "settingUp": "Setting up...",
+      "submit": "Set Password & Enter Portal"
+    },
+    "studentCredits": {
+      "available": "Available",
+      "description": "Credits can be used towards make-up classes or future sessions. Credits are issued by your coach or admin.",
+      "noneHint": "Credits may be issued if you miss a class due to special circumstances.",
+      "noneYet": "You don't have any class credits yet.",
+      "sessionCount": "{count} session(s)",
+      "title": "Class Credits",
+      "totalAvailable": "Total available credits:",
+      "used": "Used"
+    },
+    "studentLegal": {
+      "alreadySigned": "This document is already signed.",
+      "backToLegal": "Back to legal documents",
+      "signTitle": "Sign - {title}",
+      "viewSignature": "View Signature"
+    },
+    "studentSelector": {
+      "empty": "No linked students",
+      "student": "Student"
+    },
+    "subRequestCard": {
+      "accept": "Accept",
+      "acceptError": "Could not accept request.",
+      "acceptedBy": "Accepted by:",
+      "accepting": "Accepting...",
+      "cancelError": "Could not cancel request.",
+      "cancelling": "Cancelling...",
+      "reason": "Reason:",
+      "requestingCoach": "Requesting coach:",
+      "status": "Status:",
+      "subRequest": "Sub Request",
+      "taRequest": "TA Request"
+    },
+    "timezoneSelect": {
+      "search": "Search timezone...",
+      "selected": "Selected:"
+    },
+    "locale": {
+      "english": "English",
+      "chinese": "Chinese"
     }
   }
 }

@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type ClassItem = {
   id: string;
@@ -38,6 +40,8 @@ function formatInZone(iso: string, timezone: string) {
 }
 
 export default function CoachCheckinList({ userId, timezone, classes, initialCheckins }: Props) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [checkins, setCheckins] = useState<Record<string, string>>(initialCheckins);
   const [loadingClassId, setLoadingClassId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +79,11 @@ export default function CoachCheckinList({ userId, timezone, classes, initialChe
   }
 
   if (!hasClasses) {
-    return <p className="text-sm text-charcoal/70 dark:text-navy-300">No classes scheduled for today.</p>;
+    return (
+      <p className="text-sm text-charcoal/70 dark:text-navy-300">
+        {t('portal.coachCheckinList.empty', 'No classes scheduled for today.')}
+      </p>
+    );
   }
 
   return (
@@ -94,7 +102,7 @@ export default function CoachCheckinList({ userId, timezone, classes, initialChe
               </div>
               {checkedInAt ? (
                 <p className="text-sm font-medium text-green-700 dark:text-green-400">
-                  Checked in at {formatInZone(checkedInAt, timezone)}
+                  {t('portal.coachCheckinList.checkedInAt', 'Checked in at')} {formatInZone(checkedInAt, timezone)}
                 </p>
               ) : (
                 <button
@@ -102,7 +110,9 @@ export default function CoachCheckinList({ userId, timezone, classes, initialChe
                   disabled={loadingClassId === classItem.id}
                   className="px-4 py-2 rounded-lg bg-gold-300 text-navy-900 font-semibold disabled:opacity-70"
                 >
-                  {loadingClassId === classItem.id ? 'Checking in...' : "I'm Here"}
+                  {loadingClassId === classItem.id
+                    ? t('portal.coachCheckinList.checkingIn', 'Checking in...')
+                    : t('portal.coachCheckinList.imHere', "I'm Here")}
                 </button>
               )}
             </div>

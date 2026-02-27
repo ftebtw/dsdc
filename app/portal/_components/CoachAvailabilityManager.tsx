@@ -4,6 +4,8 @@ import { useState } from 'react';
 import AvailabilityCalendar from '@/app/portal/_components/AvailabilityCalendar';
 import RecurringAvailabilityForm from '@/app/portal/_components/RecurringAvailabilityForm';
 import TimezoneSelectNative from '@/app/portal/_components/TimezoneSelectNative';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type Slot = {
   id: string;
@@ -33,6 +35,8 @@ export default function CoachAvailabilityManager({
   displayTimezone: string;
   defaultTimezone: string;
 }) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [slots, setSlots] = useState<Slot[]>(initialSlots);
   const [editing, setEditing] = useState<Slot | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -50,7 +54,7 @@ export default function CoachAvailabilityManager({
     const data = (await response.json()) as { error?: string; slot?: Slot };
     setLoading(false);
     if (!response.ok || !data.slot) {
-      setError(data.error || 'Could not create slot.');
+      setError(data.error || t('portal.availabilityManager.createError', 'Could not create slot.'));
       return;
     }
     setSlots((prev) =>
@@ -71,7 +75,7 @@ export default function CoachAvailabilityManager({
     const data = (await response.json()) as { error?: string; slot?: Slot };
     setLoading(false);
     if (!response.ok || !data.slot) {
-      setError(data.error || 'Could not update slot.');
+      setError(data.error || t('portal.availabilityManager.updateError', 'Could not update slot.'));
       return false;
     }
     setSlots((prev) => prev.map((slot) => (slot.id === slotId ? data.slot! : slot)));
@@ -85,7 +89,7 @@ export default function CoachAvailabilityManager({
     const data = (await response.json()) as { error?: string };
     setDeletingId(null);
     if (!response.ok) {
-      setError(data.error || 'Could not delete slot.');
+      setError(data.error || t('portal.availabilityManager.deleteError', 'Could not delete slot.'));
       return;
     }
     setSlots((prev) => prev.filter((slot) => slot.id !== slotId));
@@ -99,7 +103,10 @@ export default function CoachAvailabilityManager({
     });
     const data = (await response.json()) as { error?: string; slots?: Slot[] };
     if (!response.ok || !data.slots) {
-      return { ok: false, error: data.error || 'Could not create recurring slots.' };
+      return {
+        ok: false,
+        error: data.error || t('portal.recurringAvailability.createError', 'Could not create recurring slots.'),
+      };
     }
     setSlots((prev) =>
       [...prev, ...data.slots!].sort((a, b) =>
@@ -138,11 +145,15 @@ export default function CoachAvailabilityManager({
         }}
       >
         <h3 className="font-semibold text-navy-800 dark:text-white">
-          {editing ? 'Edit Availability Slot' : 'Add Availability Slot'}
+          {editing
+            ? t('portal.availabilityManager.editTitle', 'Edit Availability Slot')
+            : t('portal.availabilityManager.addTitle', 'Add Availability Slot')}
         </h3>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Date</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t('portal.availabilityManager.date', 'Date')}
+            </span>
             <input
               required
               type="date"
@@ -152,7 +163,9 @@ export default function CoachAvailabilityManager({
             />
           </label>
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Start Time</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t('portal.availabilityManager.startTime', 'Start Time')}
+            </span>
             <input
               required
               type="time"
@@ -162,7 +175,9 @@ export default function CoachAvailabilityManager({
             />
           </label>
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">End Time</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t('portal.availabilityManager.endTime', 'End Time')}
+            </span>
             <input
               required
               type="time"
@@ -172,7 +187,9 @@ export default function CoachAvailabilityManager({
             />
           </label>
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Timezone</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t('portal.displayTimezone', 'Timezone')}
+            </span>
             <TimezoneSelectNative
               name="timezone"
               defaultValue={editing?.timezone || defaultTimezone}
@@ -184,11 +201,11 @@ export default function CoachAvailabilityManager({
         <div className="flex items-center gap-4">
           <label className="inline-flex items-center gap-2 text-sm">
             <input type="checkbox" name="isGroup" defaultChecked={editing ? editing.is_group : true} />
-            Group
+            {t('portal.recurringAvailability.group', 'Group')}
           </label>
           <label className="inline-flex items-center gap-2 text-sm">
             <input type="checkbox" name="isPrivate" defaultChecked={editing ? editing.is_private : true} />
-            Private
+            {t('portal.recurringAvailability.private', 'Private')}
           </label>
         </div>
         <div className="flex items-center gap-2">
@@ -197,7 +214,11 @@ export default function CoachAvailabilityManager({
             disabled={loading}
             className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-70"
           >
-            {loading ? 'Saving...' : editing ? 'Save Slot' : 'Add Slot'}
+            {loading
+              ? t('portal.common.saving', 'Saving...')
+              : editing
+                ? t('portal.availabilityManager.saveSlot', 'Save Slot')
+                : t('portal.availabilityManager.addSlot', 'Add Slot')}
           </button>
           {editing ? (
             <button
@@ -205,7 +226,7 @@ export default function CoachAvailabilityManager({
               className="px-3 py-2 rounded-lg border border-warm-300 dark:border-navy-600 text-sm"
               onClick={() => setEditing(null)}
             >
-              Cancel Edit
+              {t('portal.availabilityManager.cancelEdit', 'Cancel Edit')}
             </button>
           ) : null}
         </div>

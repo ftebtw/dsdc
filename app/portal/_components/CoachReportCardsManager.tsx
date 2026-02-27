@@ -5,6 +5,8 @@ import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';
 import ReportCardStatusBadge from '@/app/portal/_components/ReportCardStatusBadge';
 import ReportCardUpload from '@/app/portal/_components/ReportCardUpload';
 import type { Database } from '@/lib/supabase/database.types';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type ReportCardRow = Database['public']['Tables']['report_cards']['Row'];
 
@@ -29,6 +31,8 @@ type Props = {
 };
 
 export default function CoachReportCardsManager({ termId, groups }: Props) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [state, setState] = useState<ClassGroup[]>(groups);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +86,7 @@ export default function CoachReportCardsManager({ termId, groups }: Props) {
     const data = (await response.json()) as { error?: string; reportCard?: ReportCardRow };
     setSubmittingId(null);
     if (!response.ok || !data.reportCard) {
-      setError(data.error || 'Could not submit report card.');
+      setError(data.error || t('portal.coachReportCards.submitError', 'Could not submit report card.'));
       return;
     }
     updateReportCard(studentId, classId, data.reportCard);
@@ -102,7 +106,9 @@ export default function CoachReportCardsManager({ termId, groups }: Props) {
               <p className="text-xs text-charcoal/65 dark:text-navy-300">{group.classType}</p>
             </div>
             <p className="text-sm text-charcoal/70 dark:text-navy-200">
-              {totals[group.classId]?.submitted ?? 0} of {totals[group.classId]?.total ?? 0} submitted
+              {t('portal.coachReportCards.submittedProgress', '{submitted} of {total} submitted')
+                .replace('{submitted}', String(totals[group.classId]?.submitted ?? 0))
+                .replace('{total}', String(totals[group.classId]?.total ?? 0))}
             </p>
           </div>
 
@@ -122,10 +128,14 @@ export default function CoachReportCardsManager({ termId, groups }: Props) {
                       <p className="text-xs text-charcoal/65 dark:text-navy-300">{student.studentEmail}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {card ? <ReportCardStatusBadge status={card.status} /> : <span className="text-xs">Not started</span>}
+                      {card ? (
+                        <ReportCardStatusBadge status={card.status} />
+                      ) : (
+                        <span className="text-xs">{t('portal.coachReportCards.notStarted', 'Not started')}</span>
+                      )}
                       {student.lastActivityLabel ? (
                         <span className="text-xs text-charcoal/65 dark:text-navy-300">
-                          Last activity: {student.lastActivityLabel}
+                          {t('portal.coachReportCards.lastActivity', 'Last activity:')} {student.lastActivityLabel}
                         </span>
                       ) : null}
                     </div>
@@ -133,7 +143,7 @@ export default function CoachReportCardsManager({ termId, groups }: Props) {
 
                   {card?.status === 'rejected' && card.reviewer_notes ? (
                     <p className="mb-2 rounded-md bg-red-50 px-2 py-1 text-xs text-red-700">
-                      Rejected notes: {card.reviewer_notes}
+                      {t('portal.coachReportCards.rejectedNotes', 'Rejected notes:')} {card.reviewer_notes}
                     </p>
                   ) : null}
 
@@ -143,13 +153,15 @@ export default function CoachReportCardsManager({ termId, groups }: Props) {
                       classId={group.classId}
                       studentId={student.studentId}
                       disabled={!canEdit}
-                      buttonLabel={card ? 'Replace PDF' : 'Upload PDF'}
+                      buttonLabel={card
+                        ? t('portal.coachReportCards.replacePdf', 'Replace PDF')
+                        : t('portal.coachReportCards.uploadPdf', 'Upload PDF')}
                       onUploaded={(row) => updateReportCard(student.studentId, group.classId, row)}
                     />
                     {card ? (
                       <OpenSignedUrlButton
                         endpoint={`/api/portal/report-cards/${card.id}/signed-url`}
-                        label="View"
+                        label={t('portal.coachReportCards.view', 'View')}
                       />
                     ) : null}
                     <button
@@ -158,14 +170,18 @@ export default function CoachReportCardsManager({ termId, groups }: Props) {
                       onClick={() => card && submitForReview(card.id, student.studentId, group.classId)}
                       className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-xs font-semibold disabled:opacity-60"
                     >
-                      {submittingId === card?.id ? 'Submitting...' : 'Submit for Review'}
+                      {submittingId === card?.id
+                        ? t('portal.coachReportCards.submitting', 'Submitting...')
+                        : t('portal.coachReportCards.submitForReview', 'Submit for Review')}
                     </button>
                   </div>
                 </div>
               );
             })}
             {group.students.length === 0 ? (
-              <p className="text-sm text-charcoal/70 dark:text-navy-300">No active students enrolled.</p>
+              <p className="text-sm text-charcoal/70 dark:text-navy-300">
+                {t('portal.coachReportCards.empty', 'No active students enrolled.')}
+              </p>
             ) : null}
           </div>
         </article>

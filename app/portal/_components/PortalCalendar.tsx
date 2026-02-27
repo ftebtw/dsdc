@@ -16,6 +16,8 @@ import {
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import type { PortalRole } from "@/lib/portal/auth";
 import EventFormModal, { type EventItem } from "@/app/portal/_components/EventFormModal";
+import { useI18n } from "@/lib/i18n";
+import { portalT } from "@/lib/portal/parent-i18n";
 
 type CalendarClass = {
   id: string;
@@ -42,6 +44,7 @@ type CalendarPayload = {
 };
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const weekdayKeys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 
 const classColorMap: Record<string, { solid: string; faded: string }> = {
   novice_debate: {
@@ -222,9 +225,13 @@ function convertTimeForDisplay(
   }
 }
 
-function eventTimeRange(eventItem: EventItem, displayTimezone: string) {
-  if (eventItem.is_all_day) return "All day";
-  if (!eventItem.start_time && !eventItem.end_time) return "All day";
+function eventTimeRange(
+  eventItem: EventItem,
+  displayTimezone: string,
+  t: (key: string, fallback: string) => string
+) {
+  if (eventItem.is_all_day) return t("portal.portalCalendar.allDay", "All day");
+  if (!eventItem.start_time && !eventItem.end_time) return t("portal.portalCalendar.allDay", "All day");
 
   const sourceTimezone = normalizeTimeZone(eventItem.timezone);
   const targetTimezone = normalizeTimeZone(displayTimezone);
@@ -241,15 +248,24 @@ function eventTimeRange(eventItem: EventItem, displayTimezone: string) {
     eventItem.event_date
   );
 
-  const suffix =
-    sourceTimezone !== targetTimezone ? ` (from ${shortTimezoneLabel(sourceTimezone)})` : "";
+  const suffix = sourceTimezone !== targetTimezone
+    ? t("portal.portalCalendar.fromTimezoneSuffix", "(from {timezone})").replace(
+        "{timezone}",
+        shortTimezoneLabel(sourceTimezone)
+      )
+    : "";
 
   if (start && end) return `${start} - ${end}${suffix}`;
-  if (start) return `${start} start${suffix}`;
-  return `Until ${end}${suffix}`;
+  if (start) return `${start} ${t("portal.portalCalendar.startWord", "start")}${suffix}`;
+  return `${t("portal.portalCalendar.untilWord", "Until")} ${end}${suffix}`;
 }
 
-function classTimeRange(classItem: CalendarClass, displayTimezone: string, dateKey: string) {
+function classTimeRange(
+  classItem: CalendarClass,
+  displayTimezone: string,
+  dateKey: string,
+  t: (key: string, fallback: string) => string
+) {
   const start = convertTimeForDisplay(
     classItem.schedule_start_time,
     classItem.timezone,
@@ -263,8 +279,8 @@ function classTimeRange(classItem: CalendarClass, displayTimezone: string, dateK
     dateKey
   );
   if (start && end) return `${start} - ${end}`;
-  if (start) return `${start} start`;
-  return `Until ${end}`;
+  if (start) return `${start} ${t("portal.portalCalendar.startWord", "start")}`;
+  return `${t("portal.portalCalendar.untilWord", "Until")} ${end}`;
 }
 
 export default function PortalCalendar({
@@ -274,6 +290,8 @@ export default function PortalCalendar({
   role: PortalRole;
   userTimezone?: string | null;
 }) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const canManageEvents = role === "admin" || role === "coach" || role === "ta";
   const [mobileView, setMobileView] = useState<"agenda" | "grid">("agenda");
   const [monthDate, setMonthDate] = useState<Date>(() => startOfMonth(new Date()));
@@ -333,7 +351,7 @@ export default function PortalCalendar({
       const result = (await response.json()) as CalendarPayload & { error?: string };
       if (ignore) return;
       if (!response.ok) {
-        setError(result.error || "Could not load calendar.");
+        setError(result.error || t("portal.portalCalendar.loadError", "Could not load calendar."));
         setLoading(false);
         return;
       }
@@ -405,12 +423,12 @@ export default function PortalCalendar({
       .then(async (response) => {
         const result = (await response.json()) as CalendarPayload & { error?: string };
         if (!response.ok) {
-          throw new Error(result.error || "Could not refresh calendar.");
+          throw new Error(result.error || t("portal.portalCalendar.refreshError", "Could not refresh calendar."));
         }
         setPayload(result);
       })
       .catch(() => {
-        setError("Could not refresh calendar.");
+        setError(t("portal.portalCalendar.refreshError", "Could not refresh calendar."));
       });
   }
 
@@ -422,7 +440,7 @@ export default function PortalCalendar({
             type="button"
             onClick={() => setMonthDate((current) => addDays(startOfMonth(current), -1))}
             className="rounded-md border border-warm-300 dark:border-navy-600 px-2 py-1.5"
-            aria-label="Previous month"
+            aria-label={t("portal.portalCalendar.previousMonth", "Previous month")}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -433,7 +451,7 @@ export default function PortalCalendar({
             type="button"
             onClick={() => setMonthDate((current) => addDays(endOfMonth(current), 1))}
             className="rounded-md border border-warm-300 dark:border-navy-600 px-2 py-1.5"
-            aria-label="Next month"
+            aria-label={t("portal.portalCalendar.nextMonth", "Next month")}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -442,7 +460,7 @@ export default function PortalCalendar({
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex items-center gap-2 rounded-md border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-2 py-1">
             <label className="text-xs text-charcoal/60 dark:text-navy-300" htmlFor="calendar-timezone">
-              Display in:
+              {t("portal.portalCalendar.displayIn", "Display in:")}
             </label>
             <select
               id="calendar-timezone"
@@ -465,14 +483,14 @@ export default function PortalCalendar({
                 onClick={() => updateFilter("all")}
                 className={`px-3 py-1.5 text-sm ${filter === "all" ? "bg-navy-800 text-white" : "bg-white dark:bg-navy-900 text-navy-800 dark:text-navy-100"}`}
               >
-                All Classes
+                {t("portal.portalCalendar.allClasses", "All Classes")}
               </button>
               <button
                 type="button"
                 onClick={() => updateFilter("mine")}
                 className={`px-3 py-1.5 text-sm ${filter === "mine" ? "bg-navy-800 text-white" : "bg-white dark:bg-navy-900 text-navy-800 dark:text-navy-100"}`}
               >
-                My Classes
+                {t("portal.portalCalendar.myClasses", "My Classes")}
               </button>
             </div>
           ) : null}
@@ -484,7 +502,7 @@ export default function PortalCalendar({
               className="inline-flex items-center gap-1 rounded-md bg-gold-300 text-navy-900 px-3 py-1.5 text-sm font-semibold"
             >
               <Plus className="w-4 h-4" />
-              Add Event
+              {t("portal.eventForm.addTitle", "Add Event")}
             </button>
           ) : null}
         </div>
@@ -496,18 +514,22 @@ export default function PortalCalendar({
         </p>
       ) : (
         <p className="text-sm text-charcoal/70 dark:text-navy-300">
-          No active term found. Event-only calendar is displayed.
+          {t("portal.portalCalendar.noActiveTerm", "No active term found. Event-only calendar is displayed.")}
         </p>
       )}
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      {loading ? <p className="text-sm text-charcoal/70 dark:text-navy-300">Loading calendar...</p> : null}
+      {loading ? (
+        <p className="text-sm text-charcoal/70 dark:text-navy-300">
+          {t("portal.portalCalendar.loading", "Loading calendar...")}
+        </p>
+      ) : null}
 
       <div className="hidden md:block rounded-xl border border-warm-200 dark:border-navy-600 overflow-hidden">
         <div className="grid grid-cols-7 bg-warm-100 dark:bg-navy-800 border-b border-warm-200 dark:border-navy-600">
-          {weekdayLabels.map((label) => (
+          {weekdayLabels.map((label, index) => (
             <div key={label} className="px-2 py-2 text-xs font-semibold text-charcoal/75 dark:text-navy-200">
-              {label}
+              {t(`portal.portalCalendar.weekday.${weekdayKeys[index]}`, label)}
             </div>
           ))}
         </div>
@@ -581,13 +603,13 @@ export default function PortalCalendar({
                       }}
                       className={`text-[10px] leading-tight px-1 py-0.5 rounded truncate border ${eventPillClass(eventItem.event_type)}`}
                       style={eventPillStyle(eventItem)}
-                      title={`${eventItem.title}${eventItem.start_time || eventItem.end_time ? ` (${eventTimeRange(eventItem, displayTimezone)})` : ""}`}
+                      title={`${eventItem.title}${eventItem.start_time || eventItem.end_time ? ` (${eventTimeRange(eventItem, displayTimezone, t)})` : ""}`}
                     >
-                      {eventItem.is_important ? "⚠️ " : null}
-                      {eventItem.event_type === "tournament" ? "🏆 " : null}
+                      {eventItem.is_important ? "[!] " : null}
+                      {eventItem.event_type === "tournament" ? "[T] " : null}
                       {eventItem.title}
                       {eventItem.start_time || eventItem.end_time
-                        ? ` ${eventTimeRange(eventItem, displayTimezone)}`
+                        ? ` ${eventTimeRange(eventItem, displayTimezone, t)}`
                         : ""}
                     </div>
                   ))}
@@ -605,20 +627,22 @@ export default function PortalCalendar({
             onClick={() => setMobileView("agenda")}
             className={`px-3 py-1.5 text-sm ${mobileView === "agenda" ? "bg-navy-800 text-white" : "bg-white dark:bg-navy-900 text-navy-800 dark:text-navy-100"}`}
           >
-            Agenda
+            {t("portal.portalCalendar.agenda", "Agenda")}
           </button>
           <button
             type="button"
             onClick={() => setMobileView("grid")}
             className={`px-3 py-1.5 text-sm ${mobileView === "grid" ? "bg-navy-800 text-white" : "bg-white dark:bg-navy-900 text-navy-800 dark:text-navy-100"}`}
           >
-            Calendar
+            {t("portal.portalCalendar.calendar", "Calendar")}
           </button>
         </div>
 
         {mobileView === "agenda" ? (
           agendaDays.length === 0 ? (
-            <p className="text-sm text-charcoal/70 dark:text-navy-300">No classes or events in this range.</p>
+            <p className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t("portal.portalCalendar.emptyRange", "No classes or events in this range.")}
+            </p>
           ) : (
             agendaDays.map((day) => (
               <div key={day.key} className="rounded-xl border border-warm-200 dark:border-navy-600 p-3">
@@ -630,7 +654,7 @@ export default function PortalCalendar({
                       onClick={() => openCreateEvent(day.key)}
                       className="text-xs rounded-md border border-warm-300 dark:border-navy-600 px-2 py-1"
                     >
-                      Add Event
+                      {t("portal.eventForm.addTitle", "Add Event")}
                     </button>
                   ) : null}
                 </div>
@@ -646,7 +670,7 @@ export default function PortalCalendar({
                       }}
                       className={`w-full text-left text-xs px-2 py-1 rounded ${classPillClass(classItem.type, classItem.is_mine)}`}
                     >
-                      {classItem.name} ({classTimeRange(classItem, displayTimezone, day.key)})
+                      {classItem.name} ({classTimeRange(classItem, displayTimezone, day.key, t)})
                     </button>
                   ))}
                   {day.eventItems.map((eventItem) => (
@@ -661,8 +685,8 @@ export default function PortalCalendar({
                       className={`w-full text-left text-xs px-2 py-1 rounded border ${eventPillClass(eventItem.event_type)}`}
                       style={eventPillStyle(eventItem)}
                     >
-                      {eventItem.is_important ? "⚠️ " : null}
-                      {eventItem.title} ({eventTimeRange(eventItem, displayTimezone)})
+                      {eventItem.is_important ? "[!] " : null}
+                      {eventItem.title} ({eventTimeRange(eventItem, displayTimezone, t)})
                     </button>
                   ))}
                 </div>
@@ -672,9 +696,9 @@ export default function PortalCalendar({
         ) : (
           <div className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-hidden">
             <div className="grid grid-cols-7 bg-warm-100 dark:bg-navy-800 border-b border-warm-200 dark:border-navy-600">
-              {weekdayLabels.map((label) => (
+              {weekdayLabels.map((label, index) => (
                 <div key={`m-grid-${label}`} className="px-1 py-1 text-[10px] text-center font-semibold text-charcoal/70 dark:text-navy-200">
-                  {label.slice(0, 1)}
+                  {t(`portal.portalCalendar.weekdayShort.${weekdayKeys[index]}`, label.slice(0, 1))}
                 </div>
               ))}
             </div>
@@ -726,7 +750,7 @@ export default function PortalCalendar({
                         className={`mt-0.5 text-[9px] leading-tight px-1 py-0.5 rounded truncate border ${eventPillClass(eventItem.event_type)}`}
                         style={eventPillStyle(eventItem)}
                       >
-                        {eventItem.is_important ? "⚠️ " : null}
+                        {eventItem.is_important ? "[!] " : null}
                         {eventItem.title}
                       </div>
                     ))}
@@ -755,40 +779,45 @@ export default function PortalCalendar({
               setSelectedClass(null);
               setSelectedClassDate(null);
             }}
-            aria-label="Close class details"
+            aria-label={t("portal.portalCalendar.closeClassDetails", "Close class details")}
           />
           <div className="relative w-full max-w-md rounded-xl border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 p-4">
             <h4 className="text-lg font-semibold text-navy-900 dark:text-white">{selectedClass.name}</h4>
-            <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">Type: {selectedClass.type}</p>
-            <p className="text-sm text-charcoal/70 dark:text-navy-300">Coach: {selectedClass.coach_name}</p>
+            <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
+              {t("portal.portalCalendar.typeLabel", "Type:")} {selectedClass.type}
+            </p>
             <p className="text-sm text-charcoal/70 dark:text-navy-300">
-              Time:{" "}
+              {t("portal.portalCalendar.coachLabel", "Coach:")} {selectedClass.coach_name}
+            </p>
+            <p className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t("portal.portalCalendar.timeLabel", "Time:")}{" "}
               {selectedClass.schedule_day.toUpperCase()}{" "}
               {classTimeRange(
                 selectedClass,
                 displayTimezone,
-                selectedClassDate || toKey(new Date())
+                selectedClassDate || toKey(new Date()),
+                t
               )}{" "}
               ({displayTimezone})
             </p>
             {normalizeTimeZone(selectedClass.timezone) !== normalizeTimeZone(displayTimezone) ? (
               <p className="text-xs text-charcoal/60 dark:text-navy-400">
-                Source timezone: {selectedClass.timezone}
+                {t("portal.portalCalendar.sourceTimezone", "Source timezone:")} {selectedClass.timezone}
               </p>
             ) : null}
             <p className="text-xs text-charcoal/60 dark:text-navy-400">
-              Class timezone: {selectedClass.timezone}
+              {t("portal.portalCalendar.classTimezone", "Class timezone:")} {selectedClass.timezone}
             </p>
             {selectedClass.zoom_link ? (
               <p className="mt-2 text-sm">
-                Zoom:{" "}
+                {t("portal.portalCalendar.zoomLabel", "Zoom:")}{" "}
                 <a
                   href={selectedClass.zoom_link}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline text-navy-700 dark:text-gold-300"
                 >
-                  Open link
+                  {t("portal.portalCalendar.openLink", "Open link")}
                 </a>
               </p>
             ) : null}
@@ -801,7 +830,7 @@ export default function PortalCalendar({
                 }}
                 className="rounded-md border border-warm-300 dark:border-navy-600 px-3 py-1.5 text-sm"
               >
-                Close
+                {t("portal.common.close", "Close")}
               </button>
             </div>
           </div>
@@ -814,33 +843,37 @@ export default function PortalCalendar({
             type="button"
             className="absolute inset-0 bg-black/45"
             onClick={() => setSelectedEvent(null)}
-            aria-label="Close event details"
+            aria-label={t("portal.portalCalendar.closeEventDetails", "Close event details")}
           />
           <div className="relative w-full max-w-md rounded-xl border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 p-4">
             <h4 className="text-lg font-semibold text-navy-900 dark:text-white">{selectedEvent.title}</h4>
             {selectedEvent.is_important ? (
-              <p className="text-xs text-red-700 dark:text-red-300 mt-1">⚠️ Important event</p>
+              <p className="text-xs text-red-700 dark:text-red-300 mt-1">
+                [!] {t("portal.portalCalendar.importantEvent", "Important event")}
+              </p>
             ) : null}
             <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
-              {selectedEvent.event_date} {eventTimeRange(selectedEvent, displayTimezone)}
+              {selectedEvent.event_date} {eventTimeRange(selectedEvent, displayTimezone, t)}
             </p>
             <p className="text-sm text-charcoal/70 dark:text-navy-300">
-              Type: {selectedEvent.event_type}
+              {t("portal.portalCalendar.typeLabel", "Type:")} {selectedEvent.event_type}
             </p>
             <p className="text-xs text-charcoal/60 dark:text-navy-400">
-              Display timezone: {displayTimezone}
+              {t("portal.portalCalendar.displayTimezoneLabel", "Display timezone:")} {displayTimezone}
             </p>
             {normalizeTimeZone(selectedEvent.timezone) !== normalizeTimeZone(displayTimezone) ? (
               <p className="text-xs text-charcoal/60 dark:text-navy-400">
-                Event timezone: {selectedEvent.timezone || "America/Vancouver"}
+                {t("portal.portalCalendar.eventTimezone", "Event timezone:")} {selectedEvent.timezone || "America/Vancouver"}
               </p>
             ) : null}
             {selectedEvent.location ? (
-              <p className="text-sm text-charcoal/70 dark:text-navy-300">Location: {selectedEvent.location}</p>
+              <p className="text-sm text-charcoal/70 dark:text-navy-300">
+                {t("portal.portalCalendar.locationLabel", "Location:")} {selectedEvent.location}
+              </p>
             ) : null}
             {selectedEvent.source === "calendar_events" ? (
               <p className="text-xs text-charcoal/60 dark:text-navy-400">
-                Visibility: {selectedEvent.visibility}
+                {t("portal.portalCalendar.visibilityLabel", "Visibility:")} {selectedEvent.visibility}
               </p>
             ) : null}
             {selectedEvent.description ? (
@@ -860,7 +893,7 @@ export default function PortalCalendar({
                   }}
                   className="rounded-md bg-gold-300 text-navy-900 px-3 py-1.5 text-sm font-semibold"
                 >
-                  Edit Event
+                  {t("portal.eventForm.editTitle", "Edit Event")}
                 </button>
               ) : null}
               <button
@@ -868,7 +901,7 @@ export default function PortalCalendar({
                 onClick={() => setSelectedEvent(null)}
                 className="rounded-md border border-warm-300 dark:border-navy-600 px-3 py-1.5 text-sm"
               >
-                Close
+                {t("portal.common.close", "Close")}
               </button>
             </div>
           </div>

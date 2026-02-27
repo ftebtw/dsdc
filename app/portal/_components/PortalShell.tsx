@@ -80,20 +80,23 @@ const COMMON_TIMEZONES = [
 ] as const;
 
 
-function roleToLabel(role: PortalRole | null): string {
+function roleToLabel(
+  role: PortalRole | null,
+  t: (key: string, fallback: string) => string
+): string {
   switch (role) {
     case "admin":
-      return "Admin";
+      return t("portal.roles.admin", "Admin");
     case "coach":
-      return "Coach";
+      return t("portal.roles.coach", "Coach");
     case "ta":
-      return "TA";
+      return t("portal.roles.ta", "TA");
     case "student":
-      return "Student";
+      return t("portal.roles.student", "Student");
     case "parent":
-      return "Parent";
+      return t("portal.roles.parent", "Parent");
     default:
-      return "Portal";
+      return t("portal.roles.portal", "Portal");
   }
 }
 
@@ -124,8 +127,8 @@ function PortalNav({
   timezoneUpdating: boolean;
   currentLocale: "en" | "zh";
   displayTimezone: string;
-  onLocaleChange: (nextLocale: "en" | "zh") => Promise<void>;
-  onTimezoneChange: (nextTimezone: string) => Promise<void>;
+  onLocaleChange: (nextLocale: "en" | "zh") => void;
+  onTimezoneChange: (nextTimezone: string) => void;
   onNavClick: (href: string) => void;
 }) {
   return (
@@ -152,8 +155,8 @@ function PortalNav({
             }}
             className="w-full rounded-md border border-warm-300 dark:border-navy-500 bg-white dark:bg-navy-900 px-2 py-1.5 text-sm"
           >
-            <option value="en">English</option>
-            <option value="zh">{"\u4e2d\u6587"}</option>
+            <option value="en">{t("portal.locale.english", "English")}</option>
+            <option value="zh">{t("portal.locale.chinese", "Chinese")}</option>
           </select>
         </label>
       </div>
@@ -286,7 +289,7 @@ export default function PortalShell({
     };
   }, [mobileNavOpen]);
 
-  async function onLocaleChange(nextLocale: "en" | "zh") {
+  function onLocaleChange(nextLocale: "en" | "zh") {
     if (nextLocale === currentLocale) return;
 
     if (typeof window !== "undefined") {
@@ -297,49 +300,50 @@ export default function PortalShell({
     setI18nLocale(nextLocale);
     setLocaleUpdating(true);
 
-    try {
-      const response = await fetch("/api/portal/profile/locale", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale: nextLocale }),
+    fetch("/api/portal/profile/locale", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locale: nextLocale }),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to update locale.");
+      })
+      .catch(() => {
+        const reverted = nextLocale === "en" ? "zh" : "en";
+        setOptimisticLocale(reverted);
+        setI18nLocale(reverted);
+      })
+      .finally(() => {
+        setLocaleUpdating(false);
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to update locale.");
-      }
-    } catch {
-      const reverted = nextLocale === "en" ? "zh" : "en";
-      setOptimisticLocale(reverted);
-      setI18nLocale(reverted);
-    }
-
-    setLocaleUpdating(false);
     startTransition(() => {
       router.refresh();
     });
   }
 
-  async function onTimezoneChange(nextTimezone: string) {
+  function onTimezoneChange(nextTimezone: string) {
     if (nextTimezone === displayTimezone) return;
 
     const previous = displayTimezone;
     setDisplayTimezone(nextTimezone);
     setTimezoneUpdating(true);
 
-    try {
-      const response = await fetch("/api/portal/profile/timezone", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ timezone: nextTimezone }),
+    fetch("/api/portal/profile/timezone", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ timezone: nextTimezone }),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to update timezone.");
+      })
+      .catch(() => {
+        setDisplayTimezone(previous);
+      })
+      .finally(() => {
+        setTimezoneUpdating(false);
       });
-      if (!response.ok) {
-        throw new Error("Failed to update timezone.");
-      }
-    } catch {
-      setDisplayTimezone(previous);
-    }
 
-    setTimezoneUpdating(false);
     startTransition(() => {
       router.refresh();
     });
@@ -537,10 +541,10 @@ export default function PortalShell({
             </p>
             <div className="flex items-center gap-2">
               <p className="font-semibold text-navy-800 dark:text-white truncate">
-                {name || "Portal User"}
+                {name || t("portal.shell.portalUser", "Portal User")}
               </p>
               <span className="hidden sm:inline-flex items-center rounded-full border border-gold-400/50 bg-gold-100 dark:bg-gold-900/25 px-2 py-0.5 text-[11px] font-semibold text-navy-900 dark:text-gold-100">
-                {roleToLabel(role)}
+                {roleToLabel(role, t)}
               </span>
             </div>
           </div>
@@ -549,7 +553,7 @@ export default function PortalShell({
               type="button"
               onClick={() => setMobileNavOpen(true)}
               className="lg:hidden inline-flex items-center justify-center p-2 rounded-md border border-warm-300 dark:border-navy-500 dark:bg-navy-800/80 dark:text-navy-100"
-              aria-label="Open navigation"
+              aria-label={t("portal.shell.openNavigation", "Open navigation")}
             >
               <Menu className="w-4 h-4" />
             </button>
@@ -558,14 +562,14 @@ export default function PortalShell({
               href="/"
               className="hidden sm:inline-flex px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-500 text-sm text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700/80 transition-colors"
             >
-              Main Site
+              {t("portal.shell.mainSite", "Main Site")}
             </Link>
             <form action="/portal/logout" method="post">
               <button
                 type="submit"
                 className="px-3 py-1.5 rounded-md bg-navy-800 text-white text-sm hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors"
               >
-                Logout
+                {t("portal.shell.logout", "Logout")}
               </button>
             </form>
           </div>
@@ -581,12 +585,14 @@ export default function PortalShell({
             />
             <div className="absolute inset-y-0 left-0 w-[300px] max-w-[90vw] bg-white dark:bg-gradient-to-b dark:from-navy-900 dark:to-navy-950 shadow-xl p-4 overflow-y-auto">
               <div className="mb-3 flex items-center justify-between">
-                <p className="font-semibold text-navy-900 dark:text-white">Navigation</p>
+                <p className="font-semibold text-navy-900 dark:text-white">
+                  {t("portal.shell.navigation", "Navigation")}
+                </p>
                 <button
                   type="button"
                   onClick={() => setMobileNavOpen(false)}
                   className="inline-flex items-center justify-center p-2 rounded-md border border-warm-300 dark:border-navy-500 dark:bg-navy-800/80"
-                  aria-label="Close navigation"
+                  aria-label={t("portal.shell.closeNavigation", "Close navigation")}
                 >
                   <X className="w-4 h-4" />
                 </button>

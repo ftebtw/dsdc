@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import type { Database } from '@/lib/supabase/database.types';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type ReportCardRow = Database['public']['Tables']['report_cards']['Row'];
 
@@ -22,6 +24,8 @@ export default function ReportCardUpload({
   buttonLabel = 'Upload PDF',
   onUploaded,
 }: Props) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +50,7 @@ export default function ReportCardUpload({
 
     setLoading(false);
     if (!response.ok || !data.reportCard) {
-      setError(data.error || 'Upload failed.');
+      setError(data.error || t('portal.reportCardUpload.uploadFailed', 'Upload failed.'));
       return;
     }
 
@@ -68,7 +72,7 @@ export default function ReportCardUpload({
         disabled={disabled || loading || !file}
         className="px-3 py-1.5 rounded-md bg-navy-800 text-white text-xs font-semibold disabled:opacity-60"
       >
-        {loading ? 'Uploading...' : buttonLabel}
+        {loading ? t('portal.reportCardUpload.uploading', 'Uploading...') : buttonLabel}
       </button>
       {error ? <span className="text-xs text-red-700">{error}</span> : null}
     </form>

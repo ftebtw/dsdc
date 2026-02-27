@@ -391,6 +391,7 @@
     ],
     "message": "留言",
     "submit": "发送消息",
+    "sending": "发送中...",
     "success": "感谢您的留言！我们将在24小时内与您联系。",
     "namePlaceholder": "您的姓名",
     "emailPlaceholder": "your@email.com",
@@ -589,8 +590,8 @@
         "title": "通知偏好",
         "description": "保存提醒偏好设置。通知发送功能将在后续阶段启用。",
         "classReminders": "课程提醒",
-        "dayBefore": "??1?",
-        "hourBefore": "??1??",
+        "dayBefore": "?? 1 ?",
+        "hourBefore": "?? 1 ??",
         "both": "两者都要",
         "none": "无",
         "absenceAlerts": "当我的孩子被标记为缺席时通知我",
@@ -606,7 +607,8 @@
       },
       "reportCards": {
         "title": "成绩报告",
-        "comingSoon": "成绩报告即将推出。"
+        "comingSoon": "成绩报告即将推出。",
+        "empty": "???????????"
       },
       "common": {
         "noLinkedStudents": "您的账户尚未关联任何学生。",
@@ -631,8 +633,10 @@
         "classHeader": "??",
         "statusHeader": "??",
         "cameraHeader": "摄像头",
-        "cameraOn": "??",
-        "cameraOff": "??"
+        "cameraOn": "?",
+        "cameraOff": "?",
+        "joinClass": "????",
+        "zoomUnavailable": "Zoom ??????"
       },
       "status": {
         "present": "??",
@@ -937,7 +941,12 @@
       "reject": "拒绝",
       "reschedule": "改期",
       "complete": "完成",
-      "approve": "批准"
+      "approve": "批准",
+      "saving": "???...",
+      "class": "??",
+      "absent": "??",
+      "late": "??",
+      "deleting": "正在删除..."
     },
     "enrollmentRequired": {
       "title": "报名课程以开始使用",
@@ -989,7 +998,423 @@
         "coachAccepted": "教练已接受，等待管理员审批",
         "awaitingPayment": "已审批，等待支付",
         "awaitingPaymentShort": "等待支付"
+      },
+      "rejectUnavailable": "???????",
+      "cancelUnavailable": "???????",
+      "rescheduleUnavailable": "???????",
+      "approveUnavailable": "???????",
+      "steps": {
+        "request": "??",
+        "coachReview": "????",
+        "adminApproval": "?????",
+        "payment": "??",
+        "confirmed": "???",
+        "complete": "???"
       }
+    },
+    "roles": {
+      "admin": "???",
+      "coach": "??",
+      "ta": "??",
+      "student": "??",
+      "parent": "??",
+      "portal": "??"
+    },
+    "shell": {
+      "portalUser": "????",
+      "mainSite": "??",
+      "logout": "????",
+      "navigation": "??",
+      "openNavigation": "????",
+      "closeNavigation": "????"
+    },
+    "bugReport": {
+      "thanksTitle": "????",
+      "thanksBody": "??????????????????",
+      "pageUrl": "?? URL",
+      "prompt": "????????????????",
+      "placeholder": "?????...",
+      "submittingAs": "????",
+      "submit": "??????"
+    },
+    "absenceForm": {
+      "selectClassDate": "?????????",
+      "saveError": "?????????",
+      "reported": "??????",
+      "class": "??",
+      "sessionDate": "????",
+      "selectDate": "????",
+      "reason": "??",
+      "optionalReason": "??????"
+    },
+    "absenceManager": {
+      "submitError": "???????",
+      "submitSuccess": "???????",
+      "reportedTitle": "?????",
+      "none": "???????",
+      "noReason": "??????",
+      "reportedAt": "????"
+    },
+    "rolePreferences": {
+      "studentDescription": "???????????????????",
+      "coachDescription": "???????TA ?????????????",
+      "saveError": "?????????",
+      "saved": "????",
+      "subRequestAlerts": "??????",
+      "taRequestAlerts": "TA ????",
+      "privateSessionAlerts": "????"
+    },
+    "recurringAvailability": {
+      "title": "??????",
+      "weekday": "??",
+      "startDate": "????",
+      "endDate": "????",
+      "startTime": "????",
+      "endTime": "????",
+      "group": "???",
+      "private": "??",
+      "preview": "?????? {count} ????",
+      "creating": "???...",
+      "createButton": "??????",
+      "chooseDates": "???????????",
+      "endDateAfterStart": "??????????????",
+      "endTimeAfterStart": "?????????????",
+      "noMatchingDates": "?????????????",
+      "createError": "?????????",
+      "createdCount": "??? {count} ????",
+      "days": {
+        "sun": "??",
+        "mon": "??",
+        "tue": "??",
+        "wed": "??",
+        "thu": "??",
+        "fri": "??",
+        "sat": "??"
+      }
+    },
+    "availabilityManager": {
+      "createError": "???????",
+      "updateError": "???????",
+      "deleteError": "???????",
+      "editTitle": "??????",
+      "addTitle": "??????",
+      "date": "??",
+      "startTime": "????",
+      "endTime": "????",
+      "saveSlot": "????",
+      "addSlot": "????",
+      "cancelEdit": "????"
+    },
+    "coachAttendanceEditor": {
+      "sessionDate": "????",
+      "loadingDate": "??????...",
+      "absenceReported": "?????",
+      "saveState": "????",
+      "reported": "???"
+    },
+    "signature": {
+      "drawFirst": "?????",
+      "saveError": "???????",
+      "clear": "??",
+      "signSubmit": "?????"
+    },
+    "attendanceSummary": {
+      "totalSessions": "???",
+      "presentRate": "???"
+    },
+    "coachSubs": {
+      "createError": "???????",
+      "requestFailed": "?????",
+      "requestSub": "????",
+      "requestTa": "?? TA",
+      "session": "??",
+      "noUpcomingSessions": "?????????",
+      "reasonOptional": "??????",
+      "submitSubRequest": "??????",
+      "submitTaRequest": "?? TA ??",
+      "mySubRequests": "??????",
+      "noSubRequests": "???????",
+      "availableSubRequests": "????????",
+      "noOpenSubRequests": "?????????????",
+      "myTaRequests": "?? TA ??",
+      "noTaRequests": "?? TA ???",
+      "availableTaRequests": "???? TA ??",
+      "noOpenTaRequests": "???????? TA ???"
+    },
+    "availabilityCalendar": {
+      "empty": "未找到可用插槽。",
+      "group": "团体",
+      "private": "私人的",
+      "sourceTz": "来源 TZ："
+    },
+    "calendarWeek": {
+      "classesReadOnly": "类（只读）",
+      "deleteEventConfirm": "删除这个活动吗？",
+      "end": "结尾",
+      "endAfterStart": "结束时间必须晚于开始时间。",
+      "events": "活动",
+      "important": "重要的",
+      "loadingEvents": "正在加载事件...",
+      "markImportant": "标记为重要",
+      "markImportantHint": "（甚至向具有“仅重要”偏好的用户发送电子邮件）",
+      "nextWeek": "下周",
+      "previousWeek": "上周",
+      "start": "开始",
+      "titlePlaceholder": "比赛筹备会议",
+      "today": "今天",
+      "update": "更新",
+      "saveFailed": "???????{error}"
+    },
+    "coachCheckinList": {
+      "checkedInAt": "入住时间：",
+      "checkingIn": "正在检查...",
+      "empty": "今天没有安排课程。",
+      "imHere": "我在这里"
+    },
+    "coachClasses": {
+      "attendance": "出席率",
+      "description": "分配给您的活跃学期课程。",
+      "empty": "未分配有效学期课程。",
+      "enrolledCount": "{count} 名注册学生",
+      "nextSub": "子：{name}，日期：{date}",
+      "nextTa": "???{name}?{date}?",
+      "openLink": "打开链接",
+      "resources": "资源",
+      "title": "我的课程",
+      "zoom": "飞涨："
+    },
+    "coachDashboard": {
+      "checkIn": "报到",
+      "checkedIn": "已签到",
+      "description": "今天的课程以及签到和出勤的快速操作。",
+      "empty": "今天没有安排课程。",
+      "markAttendance": "标记出勤率",
+      "notCheckedInYet": "尚未办理登机手续",
+      "title": "教练仪表板"
+    },
+    "coachHours": {
+      "apply": "申请",
+      "description": "报到时，时间将按课程表持续时间记入。",
+      "empty": "在此范围内找不到会话。",
+      "endDate": "结束日期",
+      "group": "团体",
+      "onTime": "准时",
+      "private": "私人的",
+      "sessionDetailDescription": "在选定的日期范围内进行集体签到并完成私人会议。",
+      "sessionDetailTitle": "会议详情",
+      "startDate": "开始日期",
+      "table": {
+        "checkedIn": "已签到",
+        "class": "班级",
+        "classTime": "上课时间",
+        "date": "日期",
+        "duration": "期间",
+        "late": "晚的",
+        "type": "类型"
+      },
+      "title": "我的时间"
+    },
+    "coachReportCards": {
+      "empty": "没有活跃的学生注册。",
+      "lastActivity": "上次活动：",
+      "notStarted": "未开始",
+      "rejectedNotes": "拒绝的注释：",
+      "replacePdf": "替换 PDF",
+      "submitError": "无法提交成绩单。",
+      "submitForReview": "提交审核",
+      "submittedProgress": "??? {submitted} / {total}",
+      "submitting": "正在提交...",
+      "uploadPdf": "上传 PDF",
+      "view": "看法"
+    },
+    "coachReportCardsPage": {
+      "createTermFirst": "在成绩单之前创建并激活一个术语。",
+      "description": "{term}：上传草稿 PDF 并提交以供管理员审核。",
+      "noActiveTerm": "未配置活动术语。",
+      "title": "成绩单"
+    },
+    "coachResource": {
+      "addResource": "添加资源",
+      "createError": "创建资源失败。",
+      "empty": "尚未发布该课程的资源。",
+      "externalUrl": "外部 URL（可选）",
+      "fileOrUrl": "提供文件、URL 或两者。",
+      "postResource": "帖子资源",
+      "resourceTitle": "资源标题"
+    },
+    "error": {
+      "backToPortal": "返回门户",
+      "description": "此页面遇到错误。如果问题仍然存在，请重试或联系支持人员。",
+      "title": "出了点问题",
+      "tryAgain": "再试一次"
+    },
+    "eventForm": {
+      "addTitle": "添加事件",
+      "allCoachesTas": "所有教练和助教",
+      "allDay": "全天活动",
+      "closeModal": "关闭事件模式",
+      "color": "颜色",
+      "createEvent": "创建事件",
+      "date": "日期",
+      "deleteError": "无法删除事件。",
+      "description": "描述",
+      "editTitle": "编辑事件",
+      "endTime": "结束时间",
+      "everyone": "每个人",
+      "important": "重要事件",
+      "legacyReadOnly": "旧事件在此模式中是只读的。",
+      "onlyMe": "只有我",
+      "saveChanges": "保存更改",
+      "saveError": "无法保存事件。",
+      "startTime": "开始时间",
+      "title": "标题",
+      "visibility": "能见度",
+      "colorAria": "?? {value}",
+      "deleteConfirm": "???{title}??"
+    },
+    "feedbackForm": {
+      "body": "分享您的反馈",
+      "sendError": "无法发送反馈。",
+      "sending": "正在发送...",
+      "subject": "主题",
+      "submit": "发送反馈",
+      "thankYou": "感谢您的反馈。"
+    },
+    "legalSign": {
+      "openDocument": "打开文档",
+      "reviewHint": "查看该文档，然后在下面签名。",
+      "submitError": "无法提交签名。"
+    },
+    "linkParent": {
+      "claimError": "无法领取邀请码。",
+      "enterCode": "输入 6 个字符的家长邀请码",
+      "linking": "正在链接...",
+      "parentAccount": "家长帐户",
+      "placeholder": "ABC234",
+      "submit": "链接父级",
+      "success": "已成功链接至 {name}。"
+    },
+    "openSignedUrl": {
+      "openError": "无法打开文件。",
+      "opening": "开幕..."
+    },
+    "payrollTable": {
+      "calculatedPay": "计算工资",
+      "coach": "教练",
+      "email": "电子邮件",
+      "empty": "没有该范围的工资数据。",
+      "hourlyRate": "每小时费率",
+      "hours": "时间",
+      "late": "晚的",
+      "sessions": "会议",
+      "ta": "TA",
+      "tiers": "层级",
+      "totals": "总计"
+    },
+    "portalCalendar": {
+      "agenda": "议程",
+      "allClasses": "所有课程",
+      "allDay": "全天",
+      "calendar": "日历",
+      "classTimezone": "班级时区：",
+      "closeClassDetails": "关闭课程详情",
+      "closeEventDetails": "关闭活动详情",
+      "coachLabel": "教练：",
+      "displayIn": "显示于：",
+      "displayTimezoneLabel": "显示时区：",
+      "emptyRange": "此范围内没有课程或活动。",
+      "eventTimezone": "活动时区：",
+      "fromTimezoneSuffix": "??? {timezone}?",
+      "importantEvent": "重要事件",
+      "loadError": "无法加载日历。",
+      "loading": "加载日历...",
+      "locationLabel": "地点：",
+      "myClasses": "我的课程",
+      "nextMonth": "下个月",
+      "noActiveTerm": "未找到活跃术语。显示仅事件日历。",
+      "openLink": "打开链接",
+      "previousMonth": "上个月",
+      "refreshError": "无法刷新日历。",
+      "sourceTimezone": "源时区：",
+      "startWord": "开始",
+      "timeLabel": "时间：",
+      "typeLabel": "类型：",
+      "untilWord": "直到",
+      "visibilityLabel": "能见度：",
+      "zoomLabel": "飞涨："
+    },
+    "referralDashboard": {
+      "activePromoCodes": "有效的促销代码",
+      "copied": "已复制",
+      "copy": "复制",
+      "creditEarned": "获得的学分",
+      "empty": "还没有推荐。分享您的链接以开始使用。",
+      "enrolled": "已注册",
+      "history": "推荐历史",
+      "shareHint": "与朋友分享此链接。每有一位朋友参加全学期课程，您就可以获得 50 加元的积分。",
+      "totalReferrals": "总推荐数",
+      "yourLink": "您的推荐链接"
+    },
+    "reportCardUpload": {
+      "uploadFailed": "上传失败。",
+      "uploading": "正在上传..."
+    },
+    "resourceList": {
+      "delete": "删除",
+      "empty": "没有可用资源。",
+      "open": "打开",
+      "openError": "无法打开资源。"
+    },
+    "setupPassword": {
+      "confirm": "确认密码",
+      "create": "创建密码",
+      "email": "电子邮件",
+      "minLength": "密码必须至少为 8 个字符。",
+      "minLengthHint": "至少 8 个字符",
+      "mismatch": "密码不匹配。",
+      "settingUp": "正在设置...",
+      "submit": "设置密码并进入门户"
+    },
+    "studentCredits": {
+      "available": "可用的",
+      "description": "学分可用于补课或未来的课程。学分由您的教练或管理员颁发。",
+      "noneHint": "如果因特殊情况缺课，可给予学分。",
+      "noneYet": "您还没有任何课程学分。",
+      "sessionCount": "{count} 次会话",
+      "title": "课程学分",
+      "totalAvailable": "可用学分总数：",
+      "used": "用过的"
+    },
+    "studentLegal": {
+      "alreadySigned": "该文件已经签署。",
+      "backToLegal": "返回法律文件",
+      "signTitle": "?? - {title}",
+      "viewSignature": "查看签名"
+    },
+    "studentSelector": {
+      "empty": "没有链接的学生",
+      "student": "学生"
+    },
+    "subRequestCard": {
+      "accept": "接受",
+      "acceptError": "无法接受请求。",
+      "acceptedBy": "接受者：",
+      "accepting": "接受...",
+      "cancelError": "无法取消请求。",
+      "cancelling": "正在取消...",
+      "reason": "原因：",
+      "requestingCoach": "请求教练：",
+      "status": "地位：",
+      "subRequest": "子请求",
+      "taRequest": "助教请求"
+    },
+    "timezoneSelect": {
+      "search": "搜索时区...",
+      "selected": "已选择："
+    },
+    "locale": {
+      "english": "??",
+      "chinese": "??"
     }
   }
 }

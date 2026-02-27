@@ -60,7 +60,14 @@ function statusClass(status: string) {
   return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200';
 }
 
-const stepLabels = ['Request', 'Coach Review', 'Admin Approval', 'Payment', 'Confirmed', 'Complete'];
+const stepLabelDefs = [
+  { key: 'request', fallback: 'Request' },
+  { key: 'coachReview', fallback: 'Coach Review' },
+  { key: 'adminApproval', fallback: 'Admin Approval' },
+  { key: 'payment', fallback: 'Payment' },
+  { key: 'confirmed', fallback: 'Confirmed' },
+  { key: 'complete', fallback: 'Complete' },
+];
 
 function normalizeTimeInput(value: string): string {
   const trimmed = value.trim();
@@ -137,6 +144,10 @@ export default function PrivateSessionCard(props: Props) {
     if (props.status === 'confirmed') return 5;
     return props.status === 'completed' ? 6 : 1;
   }, [props.step, props.status]);
+  const stepLabels = useMemo(
+    () => stepLabelDefs.map((label) => t(`portal.privateSessions.steps.${label.key}`, label.fallback)),
+    [t]
+  );
 
   async function runAction(label: string, fn?: () => Promise<ActionResult>) {
     if (!fn) return;
@@ -312,7 +323,17 @@ export default function PrivateSessionCard(props: Props) {
               />
               <button
                 type="button"
-                onClick={() => void runAction('reject', () => props.onReject?.(rejectNotes.trim() || undefined) || Promise.resolve({ ok: false, error: 'Reject unavailable.' }))}
+                onClick={() =>
+                  void runAction(
+                    'reject',
+                    () =>
+                      props.onReject?.(rejectNotes.trim() || undefined) ||
+                      Promise.resolve({
+                        ok: false,
+                        error: t('portal.privateSessions.rejectUnavailable', 'Reject unavailable.'),
+                      })
+                  )
+                }
                 disabled={!canRunActions}
                 className="px-3 py-1.5 rounded-md bg-red-700 text-white text-sm disabled:opacity-70"
               >
@@ -334,7 +355,17 @@ export default function PrivateSessionCard(props: Props) {
               />
               <button
                 type="button"
-                onClick={() => void runAction('cancel', () => props.onCancel?.(cancelReason.trim() || undefined) || Promise.resolve({ ok: false, error: 'Cancel unavailable.' }))}
+                onClick={() =>
+                  void runAction(
+                    'cancel',
+                    () =>
+                      props.onCancel?.(cancelReason.trim() || undefined) ||
+                      Promise.resolve({
+                        ok: false,
+                        error: t('portal.privateSessions.cancelUnavailable', 'Cancel unavailable.'),
+                      })
+                  )
+                }
                 disabled={!canRunActions}
                 className="px-3 py-1.5 rounded-md border border-red-500 text-red-700 dark:text-red-300 text-sm disabled:opacity-70"
               >
@@ -358,7 +389,11 @@ export default function PrivateSessionCard(props: Props) {
                 start: rescheduleStart,
                 end: rescheduleEnd,
                 notes: rescheduleNotes.trim() || undefined,
-              }) || Promise.resolve({ ok: false, error: 'Reschedule unavailable.' })
+              }) ||
+                Promise.resolve({
+                  ok: false,
+                  error: t('portal.privateSessions.rescheduleUnavailable', 'Reschedule unavailable.'),
+                })
             );
           }}
         >
@@ -414,7 +449,10 @@ export default function PrivateSessionCard(props: Props) {
             }
             void runAction('approve', () =>
               props.onApprove?.({ priceCad: parsedPrice, zoomLink: zoomLink.trim() || undefined }) ||
-              Promise.resolve({ ok: false, error: 'Approve unavailable.' })
+                Promise.resolve({
+                  ok: false,
+                  error: t('portal.privateSessions.approveUnavailable', 'Approve unavailable.'),
+                })
             );
           }}
         >

@@ -6,6 +6,7 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import LegalSignForm from '@/app/portal/_components/LegalSignForm';
 import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';
 import { requireRole } from '@/lib/portal/auth';
+import { portalT } from '@/lib/portal/parent-i18n';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function StudentLegalSignPage({
@@ -15,6 +16,8 @@ export default async function StudentLegalSignPage({
 }) {
   const { documentId } = await params;
   const session = await requireRole(['student']);
+  const locale = session.profile.locale === 'zh' ? 'zh' : 'en';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const supabase = await getSupabaseServerClient();
 
   const { data: document } = await supabase
@@ -36,13 +39,21 @@ export default async function StudentLegalSignPage({
     null;
 
   return (
-    <SectionCard title={`Sign - ${document.title}`} description={document.description || undefined}>
+    <SectionCard
+      title={t('portal.studentLegal.signTitle', 'Sign - {title}').replace('{title}', document.title)}
+      description={document.description || undefined}
+    >
       {existingSignature ? (
         <div className="space-y-3">
-          <p className="text-sm text-green-700">This document is already signed.</p>
-          <OpenSignedUrlButton endpoint={`/api/portal/signatures/${existingSignature.id}/signed-url`} label="View Signature" />
+          <p className="text-sm text-green-700">
+            {t('portal.studentLegal.alreadySigned', 'This document is already signed.')}
+          </p>
+          <OpenSignedUrlButton
+            endpoint={`/api/portal/signatures/${existingSignature.id}/signed-url`}
+            label={t('portal.studentLegal.viewSignature', 'View Signature')}
+          />
           <Link href="/portal/student/legal" className="inline-block text-sm underline text-navy-700 dark:text-navy-200">
-            Back to legal documents
+            {t('portal.studentLegal.backToLegal', 'Back to legal documents')}
           </Link>
         </div>
       ) : (

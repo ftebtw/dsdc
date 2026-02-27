@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import SubRequestCard from '@/app/portal/_components/SubRequestCard';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type ClassOption = {
   id: string;
@@ -87,6 +89,8 @@ export default function CoachSubsManager({
   termStartDate: string | null;
   termEndDate: string | null;
 }) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [loading, setLoading] = useState<'sub' | 'ta' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [subClassId, setSubClassId] = useState(classes[0]?.id ?? '');
@@ -144,7 +148,7 @@ export default function CoachSubsManager({
     const data = (await response.json()) as { error?: string };
     setLoading(null);
     if (!response.ok) {
-      setError(data.error || 'Could not create request.');
+      setError(data.error || t('portal.coachSubs.createError', 'Could not create request.'));
       return;
     }
     window.location.reload();
@@ -154,7 +158,7 @@ export default function CoachSubsManager({
     const response = await fetch(endpoint, { method: 'POST' });
     const data = (await response.json()) as { error?: string };
     if (!response.ok) {
-      return { ok: false, error: data.error || 'Request failed.' };
+      return { ok: false, error: data.error || t('portal.coachSubs.requestFailed', 'Request failed.') };
     }
     window.location.reload();
     return { ok: true };
@@ -180,9 +184,13 @@ export default function CoachSubsManager({
             });
           }}
         >
-          <h3 className="font-semibold text-navy-800 dark:text-white">Request Sub</h3>
+          <h3 className="font-semibold text-navy-800 dark:text-white">
+            {t('portal.coachSubs.requestSub', 'Request Sub')}
+          </h3>
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Class</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t('portal.common.class', 'Class')}
+            </span>
             <select
               required
               name="classId"
@@ -198,14 +206,16 @@ export default function CoachSubsManager({
             </select>
           </label>
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Session</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t('portal.coachSubs.session', 'Session')}
+            </span>
             <select
               required
               name="sessionDate"
               className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
             >
               {subWeeks.length === 0 ? (
-                <option value="">No upcoming sessions</option>
+                <option value="">{t('portal.coachSubs.noUpcomingSessions', 'No upcoming sessions')}</option>
               ) : (
                 subWeeks.map((week) => (
                   <option key={week.date} value={week.date}>
@@ -218,14 +228,16 @@ export default function CoachSubsManager({
           <textarea
             name="reason"
             rows={3}
-            placeholder="Reason (optional)"
+            placeholder={t('portal.coachSubs.reasonOptional', 'Reason (optional)')}
             className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
           />
           <button
             disabled={loading !== null || !classes.length || subWeeks.length === 0}
             className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-70"
           >
-            {loading === 'sub' ? 'Submitting...' : 'Submit Sub Request'}
+            {loading === 'sub'
+              ? t('portal.common.sending', 'Sending...')
+              : t('portal.coachSubs.submitSubRequest', 'Submit Sub Request')}
           </button>
         </form>
 
@@ -241,9 +253,13 @@ export default function CoachSubsManager({
             });
           }}
         >
-          <h3 className="font-semibold text-navy-800 dark:text-white">Request TA</h3>
+          <h3 className="font-semibold text-navy-800 dark:text-white">
+            {t('portal.coachSubs.requestTa', 'Request TA')}
+          </h3>
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Class</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t('portal.common.class', 'Class')}
+            </span>
             <select
               required
               name="classId"
@@ -259,14 +275,16 @@ export default function CoachSubsManager({
             </select>
           </label>
           <label className="block">
-            <span className="text-sm text-charcoal/70 dark:text-navy-300">Session</span>
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t('portal.coachSubs.session', 'Session')}
+            </span>
             <select
               required
               name="sessionDate"
               className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
             >
               {taWeeks.length === 0 ? (
-                <option value="">No upcoming sessions</option>
+                <option value="">{t('portal.coachSubs.noUpcomingSessions', 'No upcoming sessions')}</option>
               ) : (
                 taWeeks.map((week) => (
                   <option key={week.date} value={week.date}>
@@ -279,14 +297,16 @@ export default function CoachSubsManager({
           <textarea
             name="reason"
             rows={3}
-            placeholder="Reason (optional)"
+            placeholder={t('portal.coachSubs.reasonOptional', 'Reason (optional)')}
             className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
           />
           <button
             disabled={loading !== null || !classes.length || taWeeks.length === 0}
             className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-70"
           >
-            {loading === 'ta' ? 'Submitting...' : 'Submit TA Request'}
+            {loading === 'ta'
+              ? t('portal.common.sending', 'Sending...')
+              : t('portal.coachSubs.submitTaRequest', 'Submit TA Request')}
           </button>
         </form>
       </div>
@@ -294,7 +314,9 @@ export default function CoachSubsManager({
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
       <div className="space-y-3">
-        <h3 className="font-semibold text-navy-800 dark:text-white">My Sub Requests</h3>
+        <h3 className="font-semibold text-navy-800 dark:text-white">
+          {t('portal.coachSubs.mySubRequests', 'My Sub Requests')}
+        </h3>
         {mySubs.length ? (
           mySubs.map((request) => (
             <SubRequestCard
@@ -311,12 +333,16 @@ export default function CoachSubsManager({
             />
           ))
         ) : (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">No sub requests created yet.</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t('portal.coachSubs.noSubRequests', 'No sub requests created yet.')}
+          </p>
         )}
       </div>
 
       <div className="space-y-3">
-        <h3 className="font-semibold text-navy-800 dark:text-white">Available Sub Requests</h3>
+        <h3 className="font-semibold text-navy-800 dark:text-white">
+          {t('portal.coachSubs.availableSubRequests', 'Available Sub Requests')}
+        </h3>
         {availableSubs.length ? (
           availableSubs.map((request) => (
             <SubRequestCard
@@ -332,12 +358,16 @@ export default function CoachSubsManager({
             />
           ))
         ) : (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">No open sub requests for you right now.</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t('portal.coachSubs.noOpenSubRequests', 'No open sub requests for you right now.')}
+          </p>
         )}
       </div>
 
       <div className="space-y-3">
-        <h3 className="font-semibold text-navy-800 dark:text-white">My TA Requests</h3>
+        <h3 className="font-semibold text-navy-800 dark:text-white">
+          {t('portal.coachSubs.myTaRequests', 'My TA Requests')}
+        </h3>
         {myTas.length ? (
           myTas.map((request) => (
             <SubRequestCard
@@ -354,12 +384,16 @@ export default function CoachSubsManager({
             />
           ))
         ) : (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">No TA requests created yet.</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t('portal.coachSubs.noTaRequests', 'No TA requests created yet.')}
+          </p>
         )}
       </div>
 
       <div className="space-y-3">
-        <h3 className="font-semibold text-navy-800 dark:text-white">Available TA Requests</h3>
+        <h3 className="font-semibold text-navy-800 dark:text-white">
+          {t('portal.coachSubs.availableTaRequests', 'Available TA Requests')}
+        </h3>
         {availableTas.length ? (
           availableTas.map((request) => (
             <SubRequestCard
@@ -375,7 +409,9 @@ export default function CoachSubsManager({
             />
           ))
         ) : (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">No open TA requests for you right now.</p>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t('portal.coachSubs.noOpenTaRequests', 'No open TA requests for you right now.')}
+          </p>
         )}
       </div>
     </div>

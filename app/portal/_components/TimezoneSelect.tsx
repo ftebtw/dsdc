@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type Props = {
   value: string;
@@ -38,6 +40,8 @@ const fallbackTimezones = [
 ];
 
 export default function TimezoneSelect({ value, onChange, className }: Props) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [search, setSearch] = useState('');
 
   const timezones = useMemo(() => {
@@ -66,7 +70,7 @@ export default function TimezoneSelect({ value, onChange, className }: Props) {
     <div className="relative">
       <input
         type="text"
-        placeholder="Search timezone..."
+        placeholder={t('portal.timezoneSelect.search', 'Search timezone...')}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
         className={className}
@@ -87,7 +91,9 @@ export default function TimezoneSelect({ value, onChange, className }: Props) {
           ))}
         </ul>
       ) : null}
-      <p className="mt-1 text-xs text-charcoal/60 dark:text-navy-400">Selected: {value}</p>
+      <p className="mt-1 text-xs text-charcoal/60 dark:text-navy-400">
+        {t('portal.timezoneSelect.selected', 'Selected:')} {value}
+      </p>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { Database } from '@/lib/supabase/database.types';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type AttendanceStatus = Database['public']['Enums']['attendance_status'];
 
@@ -18,7 +19,14 @@ export function attendanceStatusClass(status: AttendanceStatus): string {
   return statusClass[status];
 }
 
-export default function AttendanceSummary({ records }: { records: AttendanceInput[] }) {
+export default function AttendanceSummary({
+  records,
+  locale = 'en',
+}: {
+  records: AttendanceInput[];
+  locale?: 'en' | 'zh';
+}) {
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const total = records.length;
   const present = records.filter((record) => record.status === 'present').length;
   const absent = records.filter((record) => record.status === 'absent').length;
@@ -28,19 +36,27 @@ export default function AttendanceSummary({ records }: { records: AttendanceInpu
   return (
     <div className="grid sm:grid-cols-4 gap-3">
       <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-3">
-        <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Total Sessions</p>
+        <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">
+          {t('portal.attendanceSummary.totalSessions', 'Total Sessions')}
+        </p>
         <p className="text-2xl font-bold text-navy-800 dark:text-white">{total}</p>
       </div>
       <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-3">
-        <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Present Rate</p>
+        <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">
+          {t('portal.attendanceSummary.presentRate', 'Present Rate')}
+        </p>
         <p className="text-2xl font-bold text-green-700">{presentPercent}%</p>
       </div>
       <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-3">
-        <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Absent</p>
+        <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">
+          {t('portal.common.absent', 'Absent')}
+        </p>
         <p className="text-2xl font-bold text-red-700">{absent}</p>
       </div>
       <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-3">
-        <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Late</p>
+        <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">
+          {t('portal.common.late', 'Late')}
+        </p>
         <p className="text-2xl font-bold text-amber-700">{late}</p>
       </div>
     </div>

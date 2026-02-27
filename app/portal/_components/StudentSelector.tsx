@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type LinkedStudent = {
   id: string;
@@ -11,12 +13,16 @@ type LinkedStudent = {
 };
 
 export default function StudentSelector({
-  label = 'Student',
-  emptyLabel = 'No linked students',
+  label,
+  emptyLabel,
 }: {
   label?: string;
   emptyLabel?: string;
 }) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
+  const resolvedLabel = label || t('portal.studentSelector.student', 'Student');
+  const resolvedEmptyLabel = emptyLabel || t('portal.studentSelector.empty', 'No linked students');
   const [students, setStudents] = useState<LinkedStudent[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -92,7 +98,7 @@ export default function StudentSelector({
   return (
     <label className="block">
       <span className="block text-xs mb-1 uppercase tracking-wide text-charcoal/60 dark:text-navy-300">
-        {label}
+        {resolvedLabel}
       </span>
       <select
         disabled={loading || students.length === 0}
@@ -101,7 +107,7 @@ export default function StudentSelector({
         className="w-full rounded-md border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-2 py-1.5 text-sm"
       >
         {students.length === 0 ? (
-          <option value="">{emptyLabel}</option>
+          <option value="">{resolvedEmptyLabel}</option>
         ) : (
           students.map((student) => (
             <option key={student.id} value={student.id}>

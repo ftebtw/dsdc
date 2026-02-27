@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { attendanceStatusOptions } from '@/lib/portal/labels';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/database.types';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type AttendanceStatus = Database['public']['Enums']['attendance_status'];
 
@@ -42,6 +44,8 @@ export default function CoachAttendanceEditor({
   initialAttendance,
   initialAbsenceStudentIds,
 }: Props) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [sessionDate, setSessionDate] = useState(initialSessionDate);
   const [attendance, setAttendance] = useState<Record<string, AttendanceRow>>(initialAttendance);
   const [absenceStudentIds, setAbsenceStudentIds] = useState<Set<string>>(
@@ -148,7 +152,9 @@ export default function CoachAttendanceEditor({
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <label className="text-sm font-medium text-navy-700 dark:text-navy-200">Session date</label>
+        <label className="text-sm font-medium text-navy-700 dark:text-navy-200">
+          {t('portal.coachAttendanceEditor.sessionDate', 'Session date')}
+        </label>
         <input
           type="date"
           value={sessionDate}
@@ -160,7 +166,9 @@ export default function CoachAttendanceEditor({
           className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
         />
         {loadingDate ? (
-          <span className="text-xs text-charcoal/60 dark:text-navy-300">Loading date...</span>
+          <span className="text-xs text-charcoal/60 dark:text-navy-300">
+            {t('portal.coachAttendanceEditor.loadingDate', 'Loading date...')}
+          </span>
         ) : null}
       </div>
 
@@ -168,11 +176,13 @@ export default function CoachAttendanceEditor({
         <table className="w-full min-w-[760px] text-sm">
           <thead className="bg-warm-100 dark:bg-navy-900/60">
             <tr>
-              <th className="text-left px-4 py-3">Student</th>
-              <th className="text-left px-4 py-3">Status</th>
-              <th className="text-left px-4 py-3">Camera</th>
-              <th className="text-left px-4 py-3">Absence Reported</th>
-              <th className="text-left px-4 py-3">Save State</th>
+              <th className="text-left px-4 py-3">{t('portal.common.student', 'Student')}</th>
+              <th className="text-left px-4 py-3">{t('portal.common.status', 'Status')}</th>
+              <th className="text-left px-4 py-3">{t('portal.student.attendance.camera', 'Camera')}</th>
+              <th className="text-left px-4 py-3">
+                {t('portal.coachAttendanceEditor.absenceReported', 'Absence Reported')}
+              </th>
+              <th className="text-left px-4 py-3">{t('portal.coachAttendanceEditor.saveState', 'Save State')}</th>
             </tr>
           </thead>
           <tbody>
@@ -208,25 +218,33 @@ export default function CoachAttendanceEditor({
                       checked={record.camera_on}
                       onChange={(event) => updateStudentRecord(student.id, { camera_on: event.target.checked })}
                     />
-                    <span>{record.camera_on ? 'On' : 'Off'}</span>
+                    <span>
+                      {record.camera_on
+                        ? t('portal.student.attendance.cameraOn', 'On')
+                        : t('portal.student.attendance.cameraOff', 'Off')}
+                    </span>
                   </label>
                 </td>
                 <td className="px-4 py-3">
                   {absenceStudentIds.has(student.id) ? (
                     <span className="inline-block px-2 py-1 rounded-full text-xs bg-gold-200 text-navy-900">
-                      Reported
+                      {t('portal.coachAttendanceEditor.reported', 'Reported')}
                     </span>
                   ) : (
-                    <span className="text-charcoal/60 dark:text-navy-300">No</span>
+                    <span className="text-charcoal/60 dark:text-navy-300">{t('portal.parent.preferences.none', 'No')}</span>
                   )}
                 </td>
                 <td className="px-4 py-3">
                   {record.saving ? (
-                    <span className="text-xs text-navy-600 dark:text-navy-300">Saving...</span>
+                    <span className="text-xs text-navy-600 dark:text-navy-300">
+                      {t('portal.common.saving', 'Saving...')}
+                    </span>
                   ) : record.saveError ? (
                     <span className="text-xs text-red-700">{record.saveError}</span>
                   ) : (
-                    <span className="text-xs text-green-700 dark:text-green-400">Saved</span>
+                    <span className="text-xs text-green-700 dark:text-green-400">
+                      {t('portal.rolePreferences.saved', 'Saved.')}
+                    </span>
                   )}
                 </td>
               </tr>

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { portalT } from "@/lib/portal/parent-i18n";
 
 type Props = {
   open: boolean;
@@ -11,6 +13,8 @@ type Props = {
 };
 
 export default function BugReportModal({ open, onClose, userEmail, userRole }: Props) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [description, setDescription] = useState("");
   const [page, setPage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -52,10 +56,10 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
         <div className="relative bg-white dark:bg-navy-800 rounded-2xl shadow-xl p-6 max-w-md w-full mx-4">
           <p className="text-center text-lg font-semibold text-navy-800 dark:text-white mb-2">
-            Thank you.
+            {t("portal.bugReport.thanksTitle", "Thank you.")}
           </p>
           <p className="text-center text-sm text-charcoal/70 dark:text-navy-300 mb-4">
-            Your bug report has been submitted. We&apos;ll look into it.
+            {t("portal.bugReport.thanksBody", "Your bug report has been submitted. We'll look into it.")}
           </p>
           <button
             type="button"
@@ -66,7 +70,7 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
             }}
             className="w-full rounded-lg bg-navy-800 text-white py-2 text-sm font-medium dark:bg-gold-300 dark:text-navy-900"
           >
-            Close
+            {t("portal.common.close", "Close")}
           </button>
         </div>
       </div>
@@ -78,7 +82,9 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white dark:bg-navy-800 rounded-2xl shadow-xl p-6 max-w-md w-full mx-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-navy-800 dark:text-white">Report a Bug</h3>
+          <h3 className="text-lg font-semibold text-navy-800 dark:text-white">
+            {t("portal.reportBug", "Report a Bug")}
+          </h3>
           <button
             type="button"
             onClick={onClose}
@@ -90,7 +96,9 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
 
         <div className="space-y-3">
           <div>
-            <label className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">Page URL</label>
+            <label className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+              {t("portal.bugReport.pageUrl", "Page URL")}
+            </label>
             <input
               type="text"
               value={page}
@@ -101,19 +109,19 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
 
           <div>
             <label className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
-              What happened? What did you expect?
+              {t("portal.bugReport.prompt", "What happened? What did you expect?")}
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              placeholder="Describe the bug..."
+              placeholder={t("portal.bugReport.placeholder", "Describe the bug...")}
               className="w-full rounded-lg border border-warm-300 dark:border-navy-500 bg-white dark:bg-navy-900 px-3 py-2 text-sm resize-none"
             />
           </div>
 
           <p className="text-xs text-charcoal/50 dark:text-navy-400">
-            Submitting as {userEmail} ({userRole})
+            {t("portal.bugReport.submittingAs", "Submitting as")} {userEmail} ({userRole})
           </p>
 
           <button
@@ -124,7 +132,9 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
             disabled={loading || !description.trim()}
             className="w-full rounded-lg bg-navy-800 text-white py-2.5 text-sm font-medium disabled:opacity-50 hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200"
           >
-            {loading ? "Submitting..." : "Submit Bug Report"}
+            {loading
+              ? t("portal.common.sending", "Sending...")
+              : t("portal.bugReport.submit", "Submit Bug Report")}
           </button>
         </div>
       </div>

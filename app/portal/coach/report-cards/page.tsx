@@ -7,17 +7,25 @@ import { getActiveTerm, getProfileMap } from '@/lib/portal/data';
 import { classTypeLabel } from '@/lib/portal/labels';
 import { formatUtcForUser } from '@/lib/portal/time';
 import { getReportCardLastActivityIso } from '@/lib/portal/report-cards';
+import { portalT } from '@/lib/portal/parent-i18n';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function CoachReportCardsPage() {
   const session = await requireRole(['coach', 'ta']);
+  const locale = session.profile.locale === 'zh' ? 'zh' : 'en';
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const supabase = await getSupabaseServerClient();
 
   const activeTerm = await getActiveTerm(supabase);
   if (!activeTerm) {
     return (
-      <SectionCard title="Report Cards" description="No active term is configured.">
-        <p className="text-sm text-charcoal/70 dark:text-navy-300">Create and activate a term before report cards.</p>
+      <SectionCard
+        title={t('portal.coachReportCardsPage.title', 'Report Cards')}
+        description={t('portal.coachReportCardsPage.noActiveTerm', 'No active term is configured.')}
+      >
+        <p className="text-sm text-charcoal/70 dark:text-navy-300">
+          {t('portal.coachReportCardsPage.createTermFirst', 'Create and activate a term before report cards.')}
+        </p>
       </SectionCard>
     );
   }
@@ -98,8 +106,11 @@ export default async function CoachReportCardsPage() {
 
   return (
     <SectionCard
-      title="Report Cards"
-      description={`${activeTerm.name}: upload draft PDFs and submit for admin review.`}
+      title={t('portal.coachReportCardsPage.title', 'Report Cards')}
+      description={t(
+        'portal.coachReportCardsPage.description',
+        '{term}: upload draft PDFs and submit for admin review.'
+      ).replace('{term}', activeTerm.name)}
     >
       <CoachReportCardsManager termId={activeTerm.id} groups={groups} />
     </SectionCard>

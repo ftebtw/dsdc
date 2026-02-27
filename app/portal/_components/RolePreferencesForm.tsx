@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type RolePreferencesFormProps = {
   role: 'coach' | 'ta' | 'student';
@@ -28,6 +30,8 @@ function normalizeCalendarEmails(value: unknown): 'all' | 'important_only' | 'no
 }
 
 export default function RolePreferencesForm({ role, initialPreferences }: RolePreferencesFormProps) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -56,10 +60,16 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
 
   const description = useMemo(() => {
     if (role === 'student') {
-      return 'Control class reminders and non-critical updates for your account.';
+      return t(
+        'portal.rolePreferences.studentDescription',
+        'Control class reminders and non-critical updates for your account.'
+      );
     }
-    return 'Control email alerts for sub requests, TA requests, and private sessions.';
-  }, [role]);
+    return t(
+      'portal.rolePreferences.coachDescription',
+      'Control email alerts for sub requests, TA requests, and private sessions.'
+    );
+  }, [role, t]);
 
   async function savePreferences() {
     setSaveState('saving');
@@ -91,14 +101,18 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
 
       const json = (await response.json()) as { error?: string };
       if (!response.ok) {
-        throw new Error(json.error || 'Could not save preferences.');
+        throw new Error(json.error || t('portal.rolePreferences.saveError', 'Could not save preferences.'));
       }
 
       setSaveState('saved');
       setTimeout(() => setSaveState('idle'), 1600);
     } catch (error) {
       setSaveState('error');
-      setErrorMessage(error instanceof Error ? error.message : 'Could not save preferences.');
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : t('portal.rolePreferences.saveError', 'Could not save preferences.')
+      );
     }
   }
 
@@ -109,16 +123,18 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
       {role === 'student' ? (
         <>
           <label className="block">
-            <span className="text-sm text-navy-700 dark:text-navy-200">Class reminders</span>
+            <span className="text-sm text-navy-700 dark:text-navy-200">
+              {t('portal.parent.preferences.classReminders', 'Class reminders')}
+            </span>
             <select
               value={classReminders}
               onChange={(event) => setClassReminders(event.target.value as 'both' | '1day' | '1hour' | 'none')}
               className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
             >
-              <option value="both">Both (1 day and 1 hour)</option>
-              <option value="1day">1 day before</option>
-              <option value="1hour">1 hour before</option>
-              <option value="none">None</option>
+              <option value="both">{t('portal.parent.preferences.both', 'Both')}</option>
+              <option value="1day">{t('portal.parent.preferences.dayBefore', '1 day before')}</option>
+              <option value="1hour">{t('portal.parent.preferences.hourBefore', '1 hour before')}</option>
+              <option value="none">{t('portal.parent.preferences.none', 'None')}</option>
             </select>
           </label>
 
@@ -128,7 +144,7 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
               checked={absenceAlerts}
               onChange={(event) => setAbsenceAlerts(event.target.checked)}
             />
-            Absence alerts
+            {t('portal.parent.preferences.absenceAlerts', 'Absence alerts')}
           </label>
 
           <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
@@ -137,11 +153,13 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
               checked={generalUpdates}
               onChange={(event) => setGeneralUpdates(event.target.checked)}
             />
-            General updates
+            {t('portal.parent.preferences.generalUpdates', 'General updates')}
           </label>
 
           <label className="block">
-            <span className="text-sm text-navy-700 dark:text-navy-200">Calendar event emails</span>
+            <span className="text-sm text-navy-700 dark:text-navy-200">
+              {t('portal.parent.preferences.calendarEmails', 'Calendar event emails')}
+            </span>
             <select
               value={calendarEmails}
               onChange={(event) =>
@@ -149,9 +167,11 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
               }
               className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
             >
-              <option value="all">All events</option>
-              <option value="important_only">Important only</option>
-              <option value="none">None</option>
+              <option value="all">{t('portal.parent.preferences.calendarAll', 'All events')}</option>
+              <option value="important_only">
+                {t('portal.parent.preferences.calendarImportant', 'Important only')}
+              </option>
+              <option value="none">{t('portal.parent.preferences.calendarNone', 'None')}</option>
             </select>
           </label>
         </>
@@ -163,7 +183,7 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
               checked={subRequestAlerts}
               onChange={(event) => setSubRequestAlerts(event.target.checked)}
             />
-            Sub request alerts
+            {t('portal.rolePreferences.subRequestAlerts', 'Sub request alerts')}
           </label>
 
           <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
@@ -172,7 +192,7 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
               checked={taRequestAlerts}
               onChange={(event) => setTaRequestAlerts(event.target.checked)}
             />
-            TA request alerts
+            {t('portal.rolePreferences.taRequestAlerts', 'TA request alerts')}
           </label>
 
           <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
@@ -181,11 +201,13 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
               checked={privateSessionAlerts}
               onChange={(event) => setPrivateSessionAlerts(event.target.checked)}
             />
-            Private session alerts
+            {t('portal.rolePreferences.privateSessionAlerts', 'Private session alerts')}
           </label>
 
           <label className="block mt-2">
-            <span className="text-sm text-navy-700 dark:text-navy-200">Calendar event emails</span>
+            <span className="text-sm text-navy-700 dark:text-navy-200">
+              {t('portal.parent.preferences.calendarEmails', 'Calendar event emails')}
+            </span>
             <select
               value={calendarEmails}
               onChange={(event) =>
@@ -193,9 +215,11 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
               }
               className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
             >
-              <option value="all">All events</option>
-              <option value="important_only">Important only</option>
-              <option value="none">None</option>
+              <option value="all">{t('portal.parent.preferences.calendarAll', 'All events')}</option>
+              <option value="important_only">
+                {t('portal.parent.preferences.calendarImportant', 'Important only')}
+              </option>
+              <option value="none">{t('portal.parent.preferences.calendarNone', 'None')}</option>
             </select>
           </label>
         </>
@@ -208,9 +232,15 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
           disabled={saveState === 'saving'}
           className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-60"
         >
-          {saveState === 'saving' ? 'Saving...' : 'Save Preferences'}
+          {saveState === 'saving'
+            ? t('portal.common.saving', 'Saving...')
+            : t('portal.parent.preferences.save', 'Save Preferences')}
         </button>
-        {saveState === 'saved' ? <span className="text-sm text-green-700 dark:text-green-400">Saved.</span> : null}
+        {saveState === 'saved' ? (
+          <span className="text-sm text-green-700 dark:text-green-400">
+            {t('portal.rolePreferences.saved', 'Saved.')}
+          </span>
+        ) : null}
       </div>
 
       {saveState === 'error' && errorMessage ? (

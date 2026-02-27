@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n";
+import { portalT } from "@/lib/portal/parent-i18n";
 
 export type EventItem = {
   id: string;
@@ -57,6 +59,8 @@ function normalizeTime(value: string | null | undefined): string {
 }
 
 export default function EventFormModal({ open, initialDate, event, onClose, onSaved }: Props) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [title, setTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [startTime, setStartTime] = useState("09:00");
@@ -72,7 +76,9 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
 
   const isEditing = Boolean(event?.id && event.source === "calendar_events");
   const isLegacyEvent = Boolean(event?.id && event.source === "events");
-  const heading = isEditing ? "Edit Event" : "Add Event";
+  const heading = isEditing
+    ? t("portal.eventForm.editTitle", "Edit Event")
+    : t("portal.eventForm.addTitle", "Add Event");
 
   useEffect(() => {
     if (!open) return;
@@ -132,7 +138,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
     const result = (await response.json().catch(() => ({}))) as { error?: string };
 
     if (!response.ok) {
-      setError(result.error || "Could not save event.");
+      setError(result.error || t("portal.eventForm.saveError", "Could not save event."));
       setLoading(false);
       return;
     }
@@ -144,7 +150,9 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
 
   async function remove() {
     if (!event?.id || event.source !== "calendar_events") return;
-    if (!window.confirm(`Delete "${event.title}"?`)) return;
+    if (!window.confirm(t("portal.eventForm.deleteConfirm", `Delete "${event.title}"?`).replace("{title}", event.title))) {
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -153,7 +161,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
     });
     const result = (await response.json().catch(() => ({}))) as { error?: string };
     if (!response.ok) {
-      setError(result.error || "Could not delete event.");
+      setError(result.error || t("portal.eventForm.deleteError", "Could not delete event."));
       setLoading(false);
       return;
     }
@@ -170,7 +178,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
       <button
         type="button"
         className="absolute inset-0 bg-black/45"
-        aria-label="Close event modal"
+        aria-label={t("portal.eventForm.closeModal", "Close event modal")}
         onClick={onClose}
       />
       <div className="relative w-full max-w-lg rounded-xl border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 p-4 shadow-xl">
@@ -182,19 +190,21 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
             onClick={onClose}
             disabled={loading}
           >
-            Close
+            {t("portal.common.close", "Close")}
           </button>
         </div>
 
         {isLegacyEvent ? (
           <p className="mb-3 text-sm text-charcoal/70 dark:text-navy-300">
-            Legacy events are read-only in this modal.
+            {t("portal.eventForm.legacyReadOnly", "Legacy events are read-only in this modal.")}
           </p>
         ) : null}
 
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="sm:col-span-2">
-            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">Title</span>
+            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+              {t("portal.eventForm.title", "Title")}
+            </span>
             <input
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
               value={title}
@@ -205,7 +215,9 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
           </label>
 
           <label>
-            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">Date</span>
+            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+              {t("portal.eventForm.date", "Date")}
+            </span>
             <input
               type="date"
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
@@ -216,7 +228,9 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
           </label>
 
           <label>
-            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">Timezone</span>
+            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+              {t("portal.displayTimezone", "Timezone")}
+            </span>
             <select
               value={timezone}
               onChange={(eventValue) => setTimezone(eventValue.target.value)}
@@ -232,7 +246,9 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
           </label>
 
           <label>
-            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">Start Time</span>
+            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+              {t("portal.eventForm.startTime", "Start Time")}
+            </span>
             <input
               type="time"
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
@@ -243,7 +259,9 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
           </label>
 
           <label>
-            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">End Time</span>
+            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+              {t("portal.eventForm.endTime", "End Time")}
+            </span>
             <input
               type="time"
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
@@ -256,15 +274,17 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
           <label className="sm:col-span-2 inline-flex items-center gap-2 text-sm text-navy-800 dark:text-navy-100">
             <input
               type="checkbox"
-              checked={isAllDay}
-              onChange={(eventValue) => setIsAllDay(eventValue.target.checked)}
-              disabled={isLegacyEvent}
-            />
-            All day event
+            checked={isAllDay}
+            onChange={(eventValue) => setIsAllDay(eventValue.target.checked)}
+            disabled={isLegacyEvent}
+          />
+            {t("portal.eventForm.allDay", "All day event")}
           </label>
 
           <div className="sm:col-span-2">
-            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">Color</span>
+            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+              {t("portal.eventForm.color", "Color")}
+            </span>
             <div className="flex flex-wrap gap-2">
               {colorOptions.map((value) => (
                 <button
@@ -276,14 +296,16 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
                     color === value ? "scale-110 border-navy-900 dark:border-white" : "border-transparent"
                   }`}
                   style={{ backgroundColor: value }}
-                  aria-label={`Color ${value}`}
+                  aria-label={t("portal.eventForm.colorAria", `Color ${value}`).replace("{value}", value)}
                 />
               ))}
             </div>
           </div>
 
           <label className="sm:col-span-2">
-            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">Visibility</span>
+            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+              {t("portal.eventForm.visibility", "Visibility")}
+            </span>
             <select
               value={visibility}
               onChange={(eventValue) =>
@@ -292,9 +314,9 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
               disabled={isLegacyEvent}
             >
-              <option value="personal">Only me</option>
-              <option value="all_coaches">All coaches &amp; TAs</option>
-              <option value="everyone">Everyone</option>
+              <option value="personal">{t("portal.eventForm.onlyMe", "Only me")}</option>
+              <option value="all_coaches">{t("portal.eventForm.allCoachesTas", "All coaches & TAs")}</option>
+              <option value="everyone">{t("portal.eventForm.everyone", "Everyone")}</option>
             </select>
           </label>
 
@@ -306,12 +328,14 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
                 onChange={(eventValue) => setIsImportant(eventValue.target.checked)}
                 disabled={isLegacyEvent}
               />
-              Important event
+              {t("portal.eventForm.important", "Important event")}
             </label>
           ) : null}
 
           <label className="sm:col-span-2">
-            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">Description</span>
+            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+              {t("portal.eventForm.description", "Description")}
+            </span>
             <textarea
               rows={4}
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
@@ -336,7 +360,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
                 disabled={loading}
                 className="rounded-md border border-red-300 text-red-700 dark:text-red-300 px-3 py-1.5 text-sm font-semibold disabled:opacity-50"
               >
-                Delete
+                {t("portal.common.delete", "Delete")}
               </button>
             ) : null}
           </div>
@@ -347,7 +371,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
               disabled={loading}
               className="rounded-md border border-warm-300 dark:border-navy-600 px-3 py-1.5 text-sm"
             >
-              Cancel
+              {t("portal.common.cancel", "Cancel")}
             </button>
             {!isLegacyEvent ? (
               <button
@@ -358,7 +382,11 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
                 disabled={loading || !canSubmit}
                 className="rounded-md bg-navy-800 text-white px-3 py-1.5 text-sm font-semibold disabled:opacity-50"
               >
-                {loading ? "Saving..." : isEditing ? "Save Changes" : "Create Event"}
+                {loading
+                  ? t("portal.common.saving", "Saving...")
+                  : isEditing
+                    ? t("portal.eventForm.saveChanges", "Save Changes")
+                    : t("portal.eventForm.createEvent", "Create Event")}
               </button>
             ) : null}
           </div>

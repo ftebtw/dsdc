@@ -1,6 +1,8 @@
 "use client";
 
 import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
+import { useI18n } from '@/lib/i18n';
+import { portalT } from '@/lib/portal/parent-i18n';
 
 type AvailabilitySlot = {
   id: string;
@@ -58,12 +60,18 @@ export default function AvailabilityCalendar({
   onDelete,
   deletingId,
 }: Props) {
+  const { locale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const ordered = [...slots].sort((a, b) =>
     convertedKey(a, displayTimezone).localeCompare(convertedKey(b, displayTimezone))
   );
 
   if (!ordered.length) {
-    return <p className="text-sm text-charcoal/70 dark:text-navy-300">No availability slots found.</p>;
+    return (
+      <p className="text-sm text-charcoal/70 dark:text-navy-300">
+        {t('portal.availabilityCalendar.empty', 'No availability slots found.')}
+      </p>
+    );
   }
 
   return (
@@ -82,8 +90,10 @@ export default function AvailabilityCalendar({
               ) : null}
               <p className="font-semibold text-navy-800 dark:text-white">{rangeLabel(slot, displayTimezone)}</p>
               <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
-                {slot.is_group ? 'Group' : ''}{slot.is_group && slot.is_private ? ' / ' : ''}{slot.is_private ? 'Private' : ''}
-                {' '}| Source TZ: {slot.timezone}
+                {slot.is_group ? t('portal.availabilityCalendar.group', 'Group') : ''}
+                {slot.is_group && slot.is_private ? ' / ' : ''}
+                {slot.is_private ? t('portal.availabilityCalendar.private', 'Private') : ''}
+                {' '}| {t('portal.availabilityCalendar.sourceTz', 'Source TZ:')} {slot.timezone}
               </p>
             </div>
             {editable ? (
@@ -94,7 +104,7 @@ export default function AvailabilityCalendar({
                     className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
                     onClick={() => onEdit(slot)}
                   >
-                    Edit
+                    {t('portal.common.edit', 'Edit')}
                   </button>
                 ) : null}
                 {onDelete ? (
@@ -104,7 +114,9 @@ export default function AvailabilityCalendar({
                     onClick={() => onDelete(slot.id)}
                     disabled={deletingId === slot.id}
                   >
-                    {deletingId === slot.id ? 'Deleting...' : 'Delete'}
+                    {deletingId === slot.id
+                      ? t('portal.common.deleting', 'Deleting...')
+                      : t('portal.resourceList.delete', 'Delete')}
                   </button>
                 ) : null}
               </div>
