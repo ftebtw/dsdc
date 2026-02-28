@@ -73,9 +73,14 @@ export async function getRequestSessionProfile(request: NextRequest): Promise<{ 
   try {
     const response = NextResponse.next();
     const supabase = getSupabaseRouteClient(request, response);
+
+    // Use getSession() instead of getUser(); reads JWT from cookies locally.
+    // Same optimization as getCurrentSessionProfile — avoids auth network round-trips.
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const user = session?.user ?? null;
 
     if (!user) return null;
 

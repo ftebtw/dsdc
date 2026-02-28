@@ -310,7 +310,7 @@ export default async function AdminDashboardPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Recent Attendance Updates" description="Last 10 attendance writes.">
+        <SectionCard title="Recent Attendance Updates" description="Last 10 attendance records submitted by coaches.">
           <div className="space-y-2 text-sm">
             {attendanceRows.length === 0 ? (
               <p className="text-charcoal/70 dark:text-navy-300">No attendance updates yet.</p>

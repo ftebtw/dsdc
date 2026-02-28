@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { AuthChangeEvent } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -20,7 +20,6 @@ export default function PortalLoginForm({ locale }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
-  const router = useRouter();
   const params = useSearchParams();
   const t =
     locale === "zh"
@@ -28,6 +27,8 @@ export default function PortalLoginForm({ locale }: Props) {
           resetLinkDetected: "已检测到重置链接，请在下方输入新密码。",
           recoveryModeEnabled: "已进入密码找回模式，请输入新密码。",
           resetLinkExpired: "此重置链接已过期，请重新申请。",
+          emailVerified: "邮箱验证成功！请登录您的账户。",
+          verificationFailed: "验证链接已过期或无效。请重新注册或联系支持。",
           enterEmailFirst: "请先输入电子邮箱，然后点击“忘记密码”。",
           resetSent:
             "密码重置邮件已发送，请检查您的收件箱（也包括垃圾邮件/垃圾箱文件夹）并点击链接。",
@@ -49,6 +50,9 @@ export default function PortalLoginForm({ locale }: Props) {
           resetLinkDetected: "Reset link detected. Enter a new password below.",
           recoveryModeEnabled: "Password recovery mode enabled. Enter a new password.",
           resetLinkExpired: "This reset link has expired. Please request a new one.",
+          emailVerified: "Email verified successfully! Please sign in to your account.",
+          verificationFailed:
+            "Verification link expired or invalid. Please register again or contact support.",
           enterEmailFirst: "Enter your email first, then click Forgot password.",
           resetSent:
             "Password reset email sent. Check your inbox (and spam/junk folder) and follow the link.",
@@ -78,12 +82,19 @@ export default function PortalLoginForm({ locale }: Props) {
         setInfo(t.resetLinkDetected);
       }
 
+      const verified = params.get("verified");
+      if (verified === "true") {
+        setInfo(t.emailVerified);
+        setError(null);
+      }
+
       const callbackError = params.get("error");
-      if (
-        mode !== "recovery" &&
-        (callbackError === "auth_callback_failed" || callbackError === "verification_failed")
-      ) {
+      if (mode !== "recovery" && callbackError === "auth_callback_failed") {
         setError(t.resetLinkExpired);
+        setInfo(null);
+      }
+      if (mode !== "recovery" && callbackError === "verification_failed") {
+        setError(t.verificationFailed);
         setInfo(null);
       }
     }
@@ -99,7 +110,15 @@ export default function PortalLoginForm({ locale }: Props) {
     return () => {
       data.subscription.unsubscribe();
     };
-  }, [params, supabase, t.recoveryModeEnabled, t.resetLinkDetected, t.resetLinkExpired]);
+  }, [
+    params,
+    supabase,
+    t.recoveryModeEnabled,
+    t.resetLinkDetected,
+    t.resetLinkExpired,
+    t.emailVerified,
+    t.verificationFailed,
+  ]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

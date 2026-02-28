@@ -1387,3 +1387,35 @@ export function pendingApprovalAdminReminderTemplate(input: {
 
   return { subject, html, text };
 }
+
+export function classCancelledNotice(input: {
+  className: string;
+  cancellationDate: string;
+  reason: string;
+  creditIssued: boolean;
+  portalUrl: string;
+}) {
+  const lines = [
+    `${input.className} scheduled for ${input.cancellationDate} has been cancelled.`,
+    `Reason: ${input.reason}`,
+  ];
+
+  if (input.creditIssued) {
+    lines.push(
+      "A class credit has been added to the student's account. This credit can be used toward a make-up class."
+    );
+  }
+
+  const { html, text } = renderTemplate({
+    title: "Class Session Cancelled",
+    bodyLines: lines,
+    buttonLabel: "Open Portal",
+    buttonUrl: input.portalUrl,
+  });
+
+  return {
+    subject: `Class Cancelled: ${input.className} - ${input.cancellationDate}`,
+    html,
+    text,
+  };
+}

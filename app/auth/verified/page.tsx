@@ -17,7 +17,7 @@ export default async function AccountVerifiedPage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/portal/login");
+    redirect("/portal/login?verified=true");
   }
 
   const { data: profile } = await supabase

@@ -54,7 +54,12 @@ export default function PortalCalendar({
     const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     return normalizeTimeZone(userTimezone || browserTimezone || "America/Vancouver");
   });
-  const [payload, setPayload] = useState<CalendarPayload>({ classes: [], events: [], term: null });
+  const [payload, setPayload] = useState<CalendarPayload>({
+    classes: [],
+    events: [],
+    cancellations: [],
+    term: null,
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedClass, setSelectedClass] = useState<CalendarClass | null>(null);
@@ -112,6 +117,7 @@ export default function PortalCalendar({
       setPayload({
         classes: result.classes ?? [],
         events: result.events ?? [],
+        cancellations: result.cancellations ?? [],
         term: result.term ?? null,
       });
       setLoading(false);
@@ -143,6 +149,22 @@ export default function PortalCalendar({
     }
     return map;
   }, [payload.events]);
+
+  const cancelledSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const cancellation of payload.cancellations) {
+      set.add(`${cancellation.class_id}::${cancellation.cancellation_date}`);
+    }
+    return set;
+  }, [payload.cancellations]);
+
+  function getCancellationReason(classId: string, dateKey: string): string | null {
+    const found = payload.cancellations.find(
+      (cancellation) =>
+        cancellation.class_id === classId && cancellation.cancellation_date === dateKey
+    );
+    return found?.reason ?? null;
+  }
 
   const agendaDays = useMemo(() => {
     return dayCells
@@ -317,33 +339,45 @@ export default function PortalCalendar({
                   </span>
                 </div>
                 <div className="space-y-1">
-                  {classItems.map((classItem) => (
-                    <div
-                      key={`${key}-${classItem.id}`}
-                      role="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setSelectedClass(classItem);
-                        setSelectedClassDate(key);
-                        setSelectedEvent(null);
-                      }}
-                      className={`text-[10px] leading-tight px-1 py-0.5 rounded truncate ${classPillClass(classItem.type, classItem.is_mine)}`}
-                      title={`${classItem.name} ${convertTimeForDisplay(
-                        classItem.schedule_start_time,
-                        classItem.timezone,
-                        displayTimezone,
-                        key
-                      )}`}
-                    >
-                      {classItem.name}{" "}
-                      {convertTimeForDisplay(
-                        classItem.schedule_start_time,
-                        classItem.timezone,
-                        displayTimezone,
-                        key
-                      )}
-                    </div>
-                  ))}
+                  {classItems.map((classItem) => {
+                    const isCancelled = cancelledSet.has(`${classItem.id}::${key}`);
+                    const cancellationReason = getCancellationReason(classItem.id, key);
+                    return (
+                      <div
+                        key={`${key}-${classItem.id}`}
+                        role="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setSelectedClass(classItem);
+                          setSelectedClassDate(key);
+                          setSelectedEvent(null);
+                        }}
+                        className={`text-[10px] leading-tight px-1 py-0.5 rounded truncate ${
+                          isCancelled
+                            ? "line-through opacity-60 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700"
+                            : classPillClass(classItem.type, classItem.is_mine)
+                        }`}
+                        title={
+                          isCancelled
+                            ? `Cancelled: ${cancellationReason || "No reason given"}`
+                            : `${classItem.name} ${convertTimeForDisplay(
+                                classItem.schedule_start_time,
+                                classItem.timezone,
+                                displayTimezone,
+                                key
+                              )}`
+                        }
+                      >
+                        {isCancelled ? `✕ ${classItem.name}` : classItem.name}{" "}
+                        {convertTimeForDisplay(
+                          classItem.schedule_start_time,
+                          classItem.timezone,
+                          displayTimezone,
+                          key
+                        )}
+                      </div>
+                    );
+                  })}
 
                   {eventItems.map((eventItem) => (
                     <div
@@ -413,20 +447,34 @@ export default function PortalCalendar({
                   ) : null}
                 </div>
                 <div className="space-y-1">
-                  {day.classItems.map((classItem) => (
-                    <button
-                      type="button"
-                      key={`m-${day.key}-${classItem.id}`}
-                      onClick={() => {
-                        setSelectedClass(classItem);
-                        setSelectedClassDate(day.key);
-                        setSelectedEvent(null);
-                      }}
-                      className={`w-full text-left text-xs px-2 py-1 rounded ${classPillClass(classItem.type, classItem.is_mine)}`}
-                    >
-                      {classItem.name} ({classTimeRange(classItem, displayTimezone, day.key, t)})
-                    </button>
-                  ))}
+                  {day.classItems.map((classItem) => {
+                    const isCancelled = cancelledSet.has(`${classItem.id}::${day.key}`);
+                    const cancellationReason = getCancellationReason(classItem.id, day.key);
+                    return (
+                      <button
+                        type="button"
+                        key={`m-${day.key}-${classItem.id}`}
+                        onClick={() => {
+                          setSelectedClass(classItem);
+                          setSelectedClassDate(day.key);
+                          setSelectedEvent(null);
+                        }}
+                        className={`w-full text-left text-xs px-2 py-1 rounded ${
+                          isCancelled
+                            ? "line-through opacity-60 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700"
+                            : classPillClass(classItem.type, classItem.is_mine)
+                        }`}
+                        title={
+                          isCancelled
+                            ? `Cancelled: ${cancellationReason || "No reason given"}`
+                            : undefined
+                        }
+                      >
+                        {isCancelled ? `✕ ${classItem.name}` : classItem.name} (
+                        {classTimeRange(classItem, displayTimezone, day.key, t)})
+                      </button>
+                    );
+                  })}
                   {day.eventItems.map((eventItem) => (
                     <button
                       type="button"
@@ -476,21 +524,34 @@ export default function PortalCalendar({
                     <div className={`text-[10px] ${isToday(date) ? "font-bold text-gold-700 dark:text-gold-300" : "text-charcoal/70 dark:text-navy-200"}`}>
                       {format(date, "d")}
                     </div>
-                    {classItems.slice(0, 2).map((classItem) => (
-                      <div
-                        key={`m-grid-class-${key}-${classItem.id}`}
-                        role="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setSelectedClass(classItem);
-                          setSelectedClassDate(key);
-                          setSelectedEvent(null);
-                        }}
-                        className={`mt-0.5 text-[9px] leading-tight px-1 py-0.5 rounded truncate ${classPillClass(classItem.type, classItem.is_mine)}`}
-                      >
-                        {classItem.name}
-                      </div>
-                    ))}
+                    {classItems.slice(0, 2).map((classItem) => {
+                      const isCancelled = cancelledSet.has(`${classItem.id}::${key}`);
+                      const cancellationReason = getCancellationReason(classItem.id, key);
+                      return (
+                        <div
+                          key={`m-grid-class-${key}-${classItem.id}`}
+                          role="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedClass(classItem);
+                            setSelectedClassDate(key);
+                            setSelectedEvent(null);
+                          }}
+                          className={`mt-0.5 text-[9px] leading-tight px-1 py-0.5 rounded truncate ${
+                            isCancelled
+                              ? "line-through opacity-60 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700"
+                              : classPillClass(classItem.type, classItem.is_mine)
+                          }`}
+                          title={
+                            isCancelled
+                              ? `Cancelled: ${cancellationReason || "No reason given"}`
+                              : undefined
+                          }
+                        >
+                          {isCancelled ? `✕ ${classItem.name}` : classItem.name}
+                        </div>
+                      );
+                    })}
                     {eventItems.slice(0, 1).map((eventItem) => (
                       <div
                         key={`m-grid-event-${key}-${eventItem.id}`}
@@ -529,6 +590,9 @@ export default function PortalCalendar({
           classItem={selectedClass}
           classDate={selectedClassDate}
           displayTimezone={displayTimezone}
+          cancellationReason={
+            selectedClassDate ? getCancellationReason(selectedClass.id, selectedClassDate) : null
+          }
           t={t}
           onClose={() => {
             setSelectedClass(null);

@@ -1,6 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
+import CancelClassButton from '@/app/portal/_components/CancelClassButton';
+import ConfirmDeleteButton from '@/app/portal/_components/ConfirmDeleteButton';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import TimezoneSelectNative from '@/app/portal/_components/TimezoneSelectNative';
 import { requireRole } from '@/lib/portal/auth';
@@ -402,13 +404,22 @@ export default async function AdminClassesPage({
                     'No students'
                   )}
                 </div>
-                <div className="lg:col-span-4 flex items-center gap-2">
+                <div className="lg:col-span-4 flex flex-wrap items-center gap-2">
                   <button type="submit" className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold">
                     Save
                   </button>
-                  <button formAction={deleteClass} className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm">
+                  <CancelClassButton
+                    classId={classRow.id}
+                    className={classRow.name}
+                    scheduleDay={classRow.schedule_day}
+                  />
+                  <ConfirmDeleteButton
+                    action={deleteClass}
+                    hiddenFields={{ id: classRow.id }}
+                    confirmMessage={`Delete "${classRow.name}"? This removes the class permanently and does NOT notify students. Use "Cancel Session" instead if the class is temporarily cancelled.`}
+                  >
                     Delete
-                  </button>
+                  </ConfirmDeleteButton>
                   <Link
                     href={`/portal/admin/students?classId=${classRow.id}`}
                     className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"

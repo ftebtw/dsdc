@@ -1,7 +1,7 @@
 "use client";
 
 import type { EventItem } from "./EventFormModal";
-import { eventTimeRange, normalizeTimeZone } from "./calendarUtils";
+import { eventTimeRange } from "./calendarUtils";
 
 type Props = {
   event: EventItem;
@@ -28,45 +28,42 @@ export default function EventDetailSheet({
         onClick={onClose}
         aria-label={t("portal.portalCalendar.closeEventDetails", "Close event details")}
       />
-      <div className="relative w-full max-w-md rounded-xl border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 p-4">
-        <h4 className="text-lg font-semibold text-navy-900 dark:text-white">{event.title}</h4>
+      <div className="relative w-full max-w-md rounded-xl border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 p-5 overflow-hidden">
+        <h4 className="text-lg font-semibold text-navy-900 dark:text-white pr-8">{event.title}</h4>
         {event.is_important ? (
-          <p className="text-xs text-red-700 dark:text-red-300 mt-1">
-            [!] {t("portal.portalCalendar.importantEvent", "Important event")}
-          </p>
+          <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300">
+            {t("portal.portalCalendar.importantEvent", "Important")}
+          </span>
         ) : null}
-        <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
+        <p className="text-sm text-charcoal/80 dark:text-navy-200 mt-2">
           {event.event_date} {eventTimeRange(event, displayTimezone, t)}
         </p>
-        <p className="text-sm text-charcoal/70 dark:text-navy-300">
-          {t("portal.portalCalendar.typeLabel", "Type:")} {event.event_type}
-        </p>
-        <p className="text-xs text-charcoal/60 dark:text-navy-400">
-          {t("portal.portalCalendar.displayTimezoneLabel", "Display timezone:")} {displayTimezone}
-        </p>
-        {normalizeTimeZone(event.timezone) !== normalizeTimeZone(displayTimezone) ? (
-          <p className="text-xs text-charcoal/60 dark:text-navy-400">
-            {t("portal.portalCalendar.eventTimezone", "Event timezone:")}{" "}
-            {event.timezone || "America/Vancouver"}
-          </p>
-        ) : null}
         {event.location ? (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">
-            {t("portal.portalCalendar.locationLabel", "Location:")} {event.location}
-          </p>
-        ) : null}
-        {event.source === "calendar_events" ? (
-          <p className="text-xs text-charcoal/60 dark:text-navy-400">
-            {t("portal.portalCalendar.visibilityLabel", "Visibility:")} {event.visibility}
+          <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
+            📍 {event.location}
           </p>
         ) : null}
         {event.description ? (
-          <p className="text-sm text-charcoal/80 dark:text-navy-200 mt-2 whitespace-pre-wrap">
-            {event.description}
-          </p>
+          <div className="mt-3 text-sm text-charcoal/80 dark:text-navy-200 whitespace-pre-wrap break-words overflow-wrap-anywhere [overflow-wrap:anywhere]">
+            {event.description.split(/(https?:\/\/[^\s]+)/g).map((part, index) =>
+              /^https?:\/\//.test(part) ? (
+                <a
+                  key={index}
+                  href={part}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 underline break-all"
+                >
+                  {part.length > 60 ? `${part.slice(0, 57)}...` : part}
+                </a>
+              ) : (
+                <span key={index}>{part}</span>
+              )
+            )}
+          </div>
         ) : null}
         <div className="mt-4 flex items-center gap-2">
-          {canManageEvents && event.source === "calendar_events" ? (
+          {canManageEvents ? (
             <button
               type="button"
               onClick={onEdit}

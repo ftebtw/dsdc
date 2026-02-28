@@ -118,6 +118,48 @@ export type Database = {
           },
         ]
       }
+      class_cancellations: {
+        Row: {
+          cancellation_date: string
+          cancelled_by: string | null
+          class_id: string
+          created_at: string
+          id: string
+          reason: string
+        }
+        Insert: {
+          cancellation_date: string
+          cancelled_by?: string | null
+          class_id: string
+          created_at?: string
+          id?: string
+          reason?: string
+        }
+        Update: {
+          cancellation_date?: string
+          cancelled_by?: string | null
+          class_id?: string
+          created_at?: string
+          id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_cancellations_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_cancellations_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_credits: {
         Row: {
           amount_sessions: number

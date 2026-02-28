@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       classes: [],
       events: [],
+      cancellations: [],
       term: null,
     });
   }
@@ -140,6 +141,20 @@ export async function GET(request: NextRequest) {
     })
     .filter((row) => parsedFilter.data === "all" || row.is_mine);
 
+  const visibleClassIds = classes.map((row) => row.id);
+  const { data: cancellationsData } = visibleClassIds.length
+    ? await admin
+        .from("class_cancellations")
+        .select("class_id,cancellation_date,reason")
+        .in("class_id", visibleClassIds)
+    : { data: [] };
+
+  const cancellations = (cancellationsData ?? []) as Array<{
+    class_id: string;
+    cancellation_date: string;
+    reason: string;
+  }>;
+
   let legacyEventQuery = admin
     .from("events")
     .select(
@@ -226,6 +241,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     classes,
     events,
+    cancellations,
     term: {
       start_date: activeTerm.start_date,
       end_date: activeTerm.end_date,

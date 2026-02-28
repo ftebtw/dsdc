@@ -76,7 +76,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
 
   const isEditing = Boolean(event?.id && event.source === "calendar_events");
   const isLegacyEvent = Boolean(event?.id && event.source === "events");
-  const heading = isEditing
+  const heading = isEditing || isLegacyEvent
     ? t("portal.eventForm.editTitle", "Edit Event")
     : t("portal.eventForm.addTitle", "Add Event");
 
@@ -104,8 +104,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
 
   const canSubmit = useMemo(() => {
     if (!title.trim() || !eventDate) return false;
-    if (isLegacyEvent) return false;
-    if (!isAllDay && endTime <= startTime) return false;
+    if (!isAllDay && !isLegacyEvent && endTime <= startTime) return false;
     return true;
   }, [endTime, eventDate, isAllDay, isLegacyEvent, startTime, title]);
 
@@ -114,21 +113,52 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
     setLoading(true);
     setError(null);
 
-    const payload = {
-      title: title.trim(),
-      description: description.trim() || "",
-      eventDate,
-      startTime: isAllDay ? "00:00" : startTime,
-      endTime: isAllDay ? "23:59" : endTime,
-      timezone,
-      color,
-      visibility,
-      isAllDay,
-      isImportant: visibility === "personal" ? false : isImportant,
-    };
+    let endpoint: string;
+    let method: string;
+    let payload: Record<string, unknown>;
 
-    const endpoint = isEditing ? `/api/portal/calendar-events/${event!.id}` : "/api/portal/calendar-events";
-    const method = isEditing ? "PUT" : "POST";
+    if (isLegacyEvent && event) {
+      endpoint = `/api/portal/admin/events/${event.id}`;
+      method = "PATCH";
+      payload = {
+        title: title.trim(),
+        description: description.trim() || null,
+        event_date: eventDate,
+        start_time: isAllDay ? null : (startTime || null),
+        end_time: isAllDay ? null : (endTime || null),
+        timezone,
+      };
+    } else if (isEditing && event) {
+      endpoint = `/api/portal/calendar-events/${event.id}`;
+      method = "PUT";
+      payload = {
+        title: title.trim(),
+        description: description.trim() || "",
+        eventDate,
+        startTime: isAllDay ? "00:00" : startTime,
+        endTime: isAllDay ? "23:59" : endTime,
+        timezone,
+        color,
+        visibility,
+        isAllDay,
+        isImportant: visibility === "personal" ? false : isImportant,
+      };
+    } else {
+      endpoint = "/api/portal/calendar-events";
+      method = "POST";
+      payload = {
+        title: title.trim(),
+        description: description.trim() || "",
+        eventDate,
+        startTime: isAllDay ? "00:00" : startTime,
+        endTime: isAllDay ? "23:59" : endTime,
+        timezone,
+        color,
+        visibility,
+        isAllDay,
+        isImportant: visibility === "personal" ? false : isImportant,
+      };
+    }
 
     const response = await fetch(endpoint, {
       method,
@@ -149,16 +179,20 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
   }
 
   async function remove() {
-    if (!event?.id || event.source !== "calendar_events") return;
+    if (!event?.id) return;
     if (!window.confirm(t("portal.eventForm.deleteConfirm", `Delete "${event.title}"?`).replace("{title}", event.title))) {
       return;
     }
 
     setLoading(true);
     setError(null);
-    const response = await fetch(`/api/portal/calendar-events/${event.id}`, {
-      method: "DELETE",
-    });
+
+    const endpoint =
+      event.source === "events"
+        ? `/api/portal/admin/events/${event.id}`
+        : `/api/portal/calendar-events/${event.id}`;
+
+    const response = await fetch(endpoint, { method: "DELETE" });
     const result = (await response.json().catch(() => ({}))) as { error?: string };
     if (!response.ok) {
       setError(result.error || t("portal.eventForm.deleteError", "Could not delete event."));
@@ -194,12 +228,6 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
           </button>
         </div>
 
-        {isLegacyEvent ? (
-          <p className="mb-3 text-sm text-charcoal/70 dark:text-navy-300">
-            {t("portal.eventForm.legacyReadOnly", "Legacy events are read-only in this modal.")}
-          </p>
-        ) : null}
-
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="sm:col-span-2">
             <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
@@ -210,7 +238,6 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
               value={title}
               onChange={(eventValue) => setTitle(eventValue.target.value)}
               maxLength={160}
-              disabled={isLegacyEvent}
             />
           </label>
 
@@ -223,7 +250,6 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
               value={eventDate}
               onChange={(eventValue) => setEventDate(eventValue.target.value)}
-              disabled={isLegacyEvent}
             />
           </label>
 
@@ -235,7 +261,6 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
               value={timezone}
               onChange={(eventValue) => setTimezone(eventValue.target.value)}
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
-              disabled={isLegacyEvent}
             >
               {timezoneOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -254,7 +279,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
               value={startTime}
               onChange={(eventValue) => setStartTime(eventValue.target.value)}
-              disabled={isAllDay || isLegacyEvent}
+              disabled={isAllDay}
             />
           </label>
 
@@ -267,17 +292,16 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
               value={endTime}
               onChange={(eventValue) => setEndTime(eventValue.target.value)}
-              disabled={isAllDay || isLegacyEvent}
+              disabled={isAllDay}
             />
           </label>
 
           <label className="sm:col-span-2 inline-flex items-center gap-2 text-sm text-navy-800 dark:text-navy-100">
             <input
               type="checkbox"
-            checked={isAllDay}
-            onChange={(eventValue) => setIsAllDay(eventValue.target.checked)}
-            disabled={isLegacyEvent}
-          />
+              checked={isAllDay}
+              onChange={(eventValue) => setIsAllDay(eventValue.target.checked)}
+            />
             {t("portal.eventForm.allDay", "All day event")}
           </label>
 
@@ -342,7 +366,6 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
               value={description}
               onChange={(eventValue) => setDescription(eventValue.target.value)}
               maxLength={4000}
-              disabled={isLegacyEvent}
             />
           </label>
         </div>
@@ -351,7 +374,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
 
         <div className="mt-4 flex items-center justify-between gap-2">
           <div>
-            {isEditing ? (
+            {isEditing || isLegacyEvent ? (
               <button
                 type="button"
                 onClick={() => {
@@ -373,22 +396,20 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
             >
               {t("portal.common.cancel", "Cancel")}
             </button>
-            {!isLegacyEvent ? (
-              <button
-                type="button"
-                onClick={() => {
-                  void submit();
-                }}
-                disabled={loading || !canSubmit}
-                className="rounded-md bg-navy-800 text-white px-3 py-1.5 text-sm font-semibold disabled:opacity-50"
-              >
-                {loading
-                  ? t("portal.common.saving", "Saving...")
-                  : isEditing
-                    ? t("portal.eventForm.saveChanges", "Save Changes")
-                    : t("portal.eventForm.createEvent", "Create Event")}
-              </button>
-            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                void submit();
+              }}
+              disabled={loading || !canSubmit}
+              className="rounded-md bg-navy-800 text-white px-3 py-1.5 text-sm font-semibold disabled:opacity-50"
+            >
+              {loading
+                ? t("portal.common.saving", "Saving...")
+                : isEditing || isLegacyEvent
+                  ? t("portal.eventForm.saveChanges", "Save Changes")
+                  : t("portal.eventForm.createEvent", "Create Event")}
+            </button>
           </div>
         </div>
       </div>

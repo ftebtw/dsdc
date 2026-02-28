@@ -16,8 +16,8 @@ type Student = {
 };
 
 type AttendanceRow = {
-  status: AttendanceStatus;
-  camera_on: boolean;
+  status: AttendanceStatus | null;
+  camera_on: boolean | null;
   marked_at?: string;
   saving?: boolean;
   saveError?: string | null;
@@ -33,7 +33,7 @@ type Props = {
 };
 
 function blankRow(): AttendanceRow {
-  return { status: 'present', camera_on: true, saveError: null };
+  return { status: null, camera_on: null, saveError: null };
 }
 
 export default function CoachAttendanceEditor({
@@ -52,6 +52,8 @@ export default function CoachAttendanceEditor({
     new Set(initialAbsenceStudentIds)
   );
   const [loadingDate, setLoadingDate] = useState(false);
+  const [submittingAll, setSubmittingAll] = useState(false);
+  const [submitAllResult, setSubmitAllResult] = useState<string | null>(null);
   const timerRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const studentRows = useMemo(() => {
@@ -102,6 +104,8 @@ export default function CoachAttendanceEditor({
   }
 
   async function persist(studentId: string, nextRecord: AttendanceRow, date: string) {
+    if (!nextRecord.status) return;
+
     const supabase = getSupabaseBrowserClient();
     const { error } = await supabase.from('attendance_records').upsert(
       {
@@ -109,7 +113,7 @@ export default function CoachAttendanceEditor({
         student_id: studentId,
         session_date: date,
         status: nextRecord.status,
-        camera_on: nextRecord.camera_on,
+        camera_on: nextRecord.camera_on ?? false,
         marked_by: userId,
         marked_at: new Date().toISOString(),
       },
@@ -141,12 +145,70 @@ export default function CoachAttendanceEditor({
       const nextRecord: AttendanceRow = {
         ...current,
         ...updates,
-        saving: true,
         saveError: null,
       };
-      scheduleSave(studentId, nextRecord);
+
+      if (nextRecord.status) {
+        nextRecord.saving = true;
+        scheduleSave(studentId, nextRecord);
+      }
+
       return { ...prev, [studentId]: nextRecord };
     });
+  }
+
+  async function submitAll() {
+    setSubmittingAll(true);
+    setSubmitAllResult(null);
+
+    const supabase = getSupabaseBrowserClient();
+    const rows = students
+      .map((student) => {
+        const record = attendance[student.id];
+        if (!record?.status) return null;
+
+        return {
+          class_id: classId,
+          student_id: student.id,
+          session_date: sessionDate,
+          status: record.status,
+          camera_on: record.camera_on ?? false,
+          marked_by: userId,
+          marked_at: new Date().toISOString(),
+        };
+      })
+      .filter((row): row is NonNullable<typeof row> => row !== null);
+
+    if (rows.length === 0) {
+      setSubmitAllResult('No students marked yet. Select a status for each student first.');
+      setSubmittingAll(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('attendance_records')
+      .upsert(rows, { onConflict: 'class_id,student_id,session_date' });
+
+    if (error) {
+      setSubmitAllResult(`Error: ${error.message}`);
+    } else {
+      const unmarkedCount = students.length - rows.length;
+      setSubmitAllResult(
+        `Saved ${rows.length} record(s).${unmarkedCount > 0 ? ` ${unmarkedCount} student(s) still unmarked.` : ''}`
+      );
+
+      setAttendance((prev) => {
+        const next = { ...prev };
+        for (const student of students) {
+          if (next[student.id]?.status) {
+            next[student.id] = { ...next[student.id], saving: false, saveError: null };
+          }
+        }
+        return next;
+      });
+    }
+
+    setSubmittingAll(false);
   }
 
   return (
@@ -196,14 +258,21 @@ export default function CoachAttendanceEditor({
                 </td>
                 <td className="px-4 py-3">
                   <select
-                    value={record.status}
+                    value={record.status ?? ''}
                     onChange={(event) =>
                       updateStudentRecord(student.id, {
                         status: event.target.value as AttendanceStatus,
                       })
                     }
-                    className="rounded-md border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+                    className={`rounded-md border px-3 py-2 ${
+                      record.status
+                        ? 'border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900'
+                        : 'border-amber-400 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20'
+                    }`}
                   >
+                    <option value="" disabled>
+                      — Select —
+                    </option>
                     {attendanceStatusOptions.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
@@ -212,18 +281,30 @@ export default function CoachAttendanceEditor({
                   </select>
                 </td>
                 <td className="px-4 py-3">
-                  <label className="inline-flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={record.camera_on}
-                      onChange={(event) => updateStudentRecord(student.id, { camera_on: event.target.checked })}
-                    />
-                    <span>
-                      {record.camera_on
-                        ? t('portal.student.attendance.cameraOn', 'On')
-                        : t('portal.student.attendance.cameraOff', 'Off')}
-                    </span>
-                  </label>
+                  <div className="inline-flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => updateStudentRecord(student.id, { camera_on: true })}
+                      className={`px-2.5 py-1 rounded-l-md text-xs font-medium border ${
+                        record.camera_on === true
+                          ? 'bg-green-600 text-white border-green-700'
+                          : 'bg-white dark:bg-navy-900 border-warm-300 dark:border-navy-600 text-charcoal/70 dark:text-navy-300'
+                      }`}
+                    >
+                      {t('portal.student.attendance.cameraOn', 'On')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateStudentRecord(student.id, { camera_on: false })}
+                      className={`px-2.5 py-1 rounded-r-md text-xs font-medium border ${
+                        record.camera_on === false
+                          ? 'bg-red-600 text-white border-red-700'
+                          : 'bg-white dark:bg-navy-900 border-warm-300 dark:border-navy-600 text-charcoal/70 dark:text-navy-300'
+                      }`}
+                    >
+                      {t('portal.student.attendance.cameraOff', 'Off')}
+                    </button>
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   {absenceStudentIds.has(student.id) ? (
@@ -235,7 +316,11 @@ export default function CoachAttendanceEditor({
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  {record.saving ? (
+                  {!record.status ? (
+                    <span className="text-xs text-amber-600 dark:text-amber-400">
+                      {t('portal.coachAttendanceEditor.notMarked', 'Not marked')}
+                    </span>
+                  ) : record.saving ? (
                     <span className="text-xs text-navy-600 dark:text-navy-300">
                       {t('portal.common.saving', 'Saving...')}
                     </span>
@@ -252,6 +337,43 @@ export default function CoachAttendanceEditor({
           </tbody>
         </table>
       </div>
+
+      {students.length > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-2">
+          {(() => {
+            const unmarkedCount = students.filter((student) => !attendance[student.id]?.status).length;
+
+            return (
+              <>
+                <button
+                  type="button"
+                  onClick={submitAll}
+                  disabled={submittingAll}
+                  className="px-5 py-2.5 rounded-lg bg-navy-800 dark:bg-gold-300 text-white dark:text-navy-900 font-semibold disabled:opacity-60"
+                >
+                  {submittingAll
+                    ? t('portal.common.saving', 'Saving...')
+                    : t('portal.coachAttendanceEditor.submitAll', 'Submit All Attendance')}
+                </button>
+                {unmarkedCount > 0 ? (
+                  <span className="text-sm text-amber-600 dark:text-amber-400">
+                    {unmarkedCount} student(s) not yet marked
+                  </span>
+                ) : null}
+                {submitAllResult ? (
+                  <span
+                    className={`text-sm ${
+                      submitAllResult.startsWith('Error') ? 'text-red-600' : 'text-green-700 dark:text-green-400'
+                    }`}
+                  >
+                    {submitAllResult}
+                  </span>
+                ) : null}
+              </>
+            );
+          })()}
+        </div>
+      )}
     </div>
   );
 }

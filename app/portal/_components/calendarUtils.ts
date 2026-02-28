@@ -15,9 +15,16 @@ export type CalendarClass = {
   weekday_index: number;
 };
 
+export type CalendarCancellation = {
+  class_id: string;
+  cancellation_date: string;
+  reason: string;
+};
+
 export type CalendarPayload = {
   classes: CalendarClass[];
   events: EventItem[];
+  cancellations: CalendarCancellation[];
   term: {
     start_date: string;
     end_date: string;

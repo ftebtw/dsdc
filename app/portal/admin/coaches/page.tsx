@@ -37,8 +37,7 @@ function isLate(
 ): boolean {
   const localStart = `${sessionDate}T${scheduleStartTime}`;
   const scheduledUtc = fromZonedTime(localStart, timezone).getTime();
-  const threshold = scheduledUtc + 10 * 60 * 1000;
-  return new Date(checkedInAtIso).getTime() > threshold;
+  return new Date(checkedInAtIso).getTime() > scheduledUtc;
 }
 
 function formatTierLabel(tier: string): string {
