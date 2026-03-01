@@ -22,17 +22,35 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const response = NextResponse.next();
+  let response = NextResponse.next({
+    request,
+  });
   const supabase = createServerClient(url, anonKey, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (cookiesToSet: Array<{ name: string; value: string; options?: any }>) => {
+        for (const cookie of cookiesToSet) {
+          request.cookies.set(cookie.name, cookie.value);
+        }
+
+        response = NextResponse.next({
+          request,
+        });
+
         for (const cookie of cookiesToSet) {
           response.cookies.set(cookie.name, cookie.value, cookie.options);
         }
       },
     },
   });
+
+  function redirectWithCookies(url: URL) {
+    const redirectResponse = NextResponse.redirect(url);
+    for (const cookie of response.cookies.getAll()) {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie as any);
+    }
+    return redirectResponse;
+  }
 
   const {
     data: { user },
@@ -50,7 +68,7 @@ export async function middleware(request: NextRequest) {
     if (!isAuthFlow) {
       loginUrl.searchParams.set('redirectTo', pathname);
     }
-    return NextResponse.redirect(loginUrl);
+    return redirectWithCookies(loginUrl);
   }
 
   if (isSetupPassword) {
@@ -81,34 +99,34 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!role) {
-    return NextResponse.redirect(new URL('/portal/login', request.url));
+    return redirectWithCookies(new URL('/portal/login', request.url));
   }
 
   if ((isLogin && !isRecovery) || pathname === '/portal') {
-    return NextResponse.redirect(new URL(roleHome(role), request.url));
+    return redirectWithCookies(new URL(roleHome(role), request.url));
   }
 
   if (pathname.startsWith('/portal/signup') || pathname.startsWith('/portal/admin')) {
     if (role !== 'admin') {
-      return NextResponse.redirect(new URL(roleHome(role), request.url));
+      return redirectWithCookies(new URL(roleHome(role), request.url));
     }
   }
 
   if (pathname.startsWith('/portal/coach')) {
     if (!(role === 'coach' || role === 'ta')) {
-      return NextResponse.redirect(new URL(roleHome(role), request.url));
+      return redirectWithCookies(new URL(roleHome(role), request.url));
     }
   }
 
   if (pathname.startsWith('/portal/student')) {
     if (role !== 'student') {
-      return NextResponse.redirect(new URL(roleHome(role), request.url));
+      return redirectWithCookies(new URL(roleHome(role), request.url));
     }
   }
 
   if (pathname.startsWith('/portal/parent')) {
     if (role !== 'parent') {
-      return NextResponse.redirect(new URL(roleHome(role), request.url));
+      return redirectWithCookies(new URL(roleHome(role), request.url));
     }
   }
 
