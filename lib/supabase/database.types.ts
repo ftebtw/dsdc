@@ -1269,6 +1269,7 @@ export type Database = {
           file_path: string | null
           id: string
           posted_by: string
+          session_date: string
           title: string
           type: Database["public"]["Enums"]["resource_type"]
           url: string | null
@@ -1279,6 +1280,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           posted_by: string
+          session_date?: string
           title: string
           type: Database["public"]["Enums"]["resource_type"]
           url?: string | null
@@ -1289,6 +1291,7 @@ export type Database = {
           file_path?: string | null
           id?: string
           posted_by?: string
+          session_date?: string
           title?: string
           type?: Database["public"]["Enums"]["resource_type"]
           url?: string | null

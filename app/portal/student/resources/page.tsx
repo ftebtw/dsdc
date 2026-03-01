@@ -76,6 +76,8 @@ export default async function StudentResourcesPage({
     ...resource,
     className: resource.class_id ? classMap[resource.class_id] || null : null,
   }));
+  const activeTerm = (await supabase.from('terms').select('start_date').eq('is_active', true).maybeSingle()).data;
+  const termStartDate = activeTerm?.start_date || '2025-01-01';
 
   return (
     <div className="space-y-6">
@@ -112,7 +114,7 @@ export default async function StudentResourcesPage({
             {t('portal.student.resources.apply', 'Apply')}
           </button>
         </form>
-        <ResourceList resources={resources} />
+        <ResourceList resources={resources} termStartDate={termStartDate} />
       </SectionCard>
     </div>
   );

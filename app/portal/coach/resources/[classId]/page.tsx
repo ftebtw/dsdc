@@ -46,6 +46,12 @@ export default async function CoachResourcesPage({
     ]);
     if (!coCoach && !subReq && !taReq) notFound();
   }
+  const { data: termRow } = await supabase
+    .from('terms')
+    .select('start_date')
+    .eq('id', classRow.term_id)
+    .maybeSingle();
+  const termStartDate = termRow?.start_date || classRow.created_at?.slice(0, 10) || '2025-01-01';
 
   const { data: resources } = await supabase
     .from('resources')
@@ -58,7 +64,7 @@ export default async function CoachResourcesPage({
       title={`Class Resources • ${classRow.name}`}
       description="Upload files or post external links for students."
     >
-      <CoachResourceManager classId={classId} initialResources={resources ?? []} />
+      <CoachResourceManager classId={classId} initialResources={resources ?? []} termStartDate={termStartDate} />
     </SectionCard>
   );
 }

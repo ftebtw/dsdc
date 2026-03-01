@@ -8,6 +8,7 @@ import CoachResourceManager from '@/app/portal/_components/CoachResourceManager'
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
 import { classTypeLabel } from '@/lib/portal/labels';
+import { getWeekNumber } from '@/lib/portal/resource-weeks';
 import { getSessionDateForClassTimezone, formatClassScheduleForViewer } from '@/lib/portal/time';
 import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -32,6 +33,12 @@ export default async function AdminClassDetailPage({
 
   const { data: classRow } = await supabase.from('classes').select('*').eq('id', classId).maybeSingle();
   if (!classRow) notFound();
+  const { data: termRow } = await supabase
+    .from('terms')
+    .select('start_date')
+    .eq('id', classRow.term_id)
+    .maybeSingle();
+  const termStartDate = termRow?.start_date || '2025-01-01';
 
   const { data: enrollmentsData } = await supabase
     .from('enrollments')
@@ -243,55 +250,74 @@ export default async function AdminClassDetailPage({
       >
         {sortedDates.length === 0 ? (
           <p className="text-sm text-charcoal/60 dark:text-navy-400">No attendance records yet.</p>
-        ) : (
-          <div className="space-y-4">
-            {sortedDates.map((dateStr) => {
-              const rows = attendanceByDate.get(dateStr) ?? [];
-              const present = rows.filter((row) => row.status === 'present').length;
-              const total = rows.length;
-              return (
+        ) : (() => {
+          const weekMap = new Map<number, string[]>();
+          for (const dateStr of sortedDates) {
+            const week = getWeekNumber(termStartDate, dateStr);
+            if (!weekMap.has(week)) weekMap.set(week, []);
+            weekMap.get(week)!.push(dateStr);
+          }
+          const sortedWeeks = [...weekMap.entries()].sort((a, b) => b[0] - a[0]);
+
+          return (
+            <div className="space-y-4">
+              {sortedWeeks.map(([week, dates]) => (
                 <div
-                  key={dateStr}
-                  className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-3"
+                  key={week}
+                  className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-hidden"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <span className="font-semibold text-navy-800 dark:text-white text-sm">{dateStr}</span>
-                      <span className="ml-2 text-xs text-charcoal/60 dark:text-navy-400">
-                        {present}/{total} present
-                      </span>
-                    </div>
-                    <Link
-                      href={`/portal/admin/classes/${classId}?date=${dateStr}`}
-                      className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      Edit
-                    </Link>
+                  <div className="px-4 py-3 bg-warm-100 dark:bg-navy-800">
+                    <h3 className="font-semibold text-navy-800 dark:text-white">Week {week}</h3>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {rows.map((row) => (
-                      <span
-                        key={row.student_id}
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
-                          statusClass[row.status]
-                        }`}
-                      >
-                        {profileMap[row.student_id]?.display_name ||
-                          profileMap[row.student_id]?.email ||
-                          row.student_id.slice(0, 8)}
-                        {row.camera_on === false ? ' camera-off' : ''}
-                      </span>
-                    ))}
+                  <div className="divide-y divide-warm-100 dark:divide-navy-700">
+                    {dates.map((dateStr) => {
+                      const rows = attendanceByDate.get(dateStr) ?? [];
+                      const present = rows.filter((row) => row.status === 'present').length;
+                      const total = rows.length;
+                      return (
+                        <div key={dateStr} className="px-4 py-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <span className="font-medium text-navy-800 dark:text-white text-sm">{dateStr}</span>
+                              <span className="ml-2 text-xs text-charcoal/60 dark:text-navy-400">
+                                {present}/{total} present
+                              </span>
+                            </div>
+                            <Link
+                              href={`/portal/admin/classes/${classId}?date=${dateStr}`}
+                              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              Edit
+                            </Link>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {rows.map((row) => (
+                              <span
+                                key={row.student_id}
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
+                                  statusClass[row.status] || 'bg-gray-100 text-gray-700'
+                                }`}
+                              >
+                                {profileMap[row.student_id]?.display_name ||
+                                  profileMap[row.student_id]?.email ||
+                                  row.student_id.slice(0, 8)}
+                                {row.camera_on === false ? ' 📷✗' : ''}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+              ))}
+            </div>
+          );
+        })()}
       </SectionCard>
 
       <SectionCard title="Resources" description="Upload files or post links for students in this class.">
-        <CoachResourceManager classId={classId} initialResources={resources ?? []} />
+        <CoachResourceManager classId={classId} initialResources={resources ?? []} termStartDate={termStartDate} />
       </SectionCard>
 
       {cancellations.length > 0 ? (

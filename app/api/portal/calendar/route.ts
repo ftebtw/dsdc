@@ -91,7 +91,39 @@ export async function GET(request: NextRequest) {
   if (session.profile.role === "admin") {
     mineClassIds = new Set(classRows.map((row) => row.id));
   } else if (session.profile.role === "coach" || session.profile.role === "ta") {
-    mineClassIds = new Set(classRows.filter((row) => row.coach_id === session.userId).map((row) => row.id));
+    const primaryIds = classRows
+      .filter((row) => row.coach_id === session.userId)
+      .map((row) => row.id);
+
+    const { data: coCoachRows } = await admin
+      .from("class_coaches")
+      .select("class_id")
+      .eq("coach_id", session.userId);
+    const coCoachClassIds = (coCoachRows ?? []).map((row: { class_id: string }) => row.class_id);
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const { data: subRows } = await admin
+      .from("sub_requests")
+      .select("class_id")
+      .eq("accepting_coach_id", session.userId)
+      .eq("status", "accepted")
+      .gte("session_date", todayStr);
+    const subClassIds = (subRows ?? []).map((row: { class_id: string }) => row.class_id);
+
+    const { data: taRows } = await admin
+      .from("ta_requests")
+      .select("class_id")
+      .eq("accepting_ta_id", session.userId)
+      .eq("status", "accepted")
+      .gte("session_date", todayStr);
+    const taClassIds = (taRows ?? []).map((row: { class_id: string }) => row.class_id);
+
+    mineClassIds = new Set([
+      ...primaryIds,
+      ...coCoachClassIds,
+      ...subClassIds,
+      ...taClassIds,
+    ]);
   } else if (session.profile.role === "student") {
     if (classRows.length) {
       const { data: enrollmentsData } = await admin

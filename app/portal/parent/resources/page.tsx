@@ -100,6 +100,8 @@ export default async function ParentResourcesPage({
     ...resource,
     className: resource.class_id ? classMap[resource.class_id] || null : null,
   }));
+  const activeTerm = (await supabase.from('terms').select('start_date').eq('is_active', true).maybeSingle()).data;
+  const termStartDate = activeTerm?.start_date || '2025-01-01';
 
   return (
     <SectionCard
@@ -141,6 +143,7 @@ export default async function ParentResourcesPage({
 
       <ResourceList
         resources={resources}
+        termStartDate={termStartDate}
         labels={{
           open: parentT(locale, 'portal.parent.common.openButton', 'Open'),
           delete: parentT(locale, 'portal.parent.common.deleteButton', 'Delete'),

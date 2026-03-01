@@ -10,6 +10,7 @@ const metadataSchema = z.object({
   title: z.string().min(1).max(180),
   type: z.enum(['homework', 'lesson_plan', 'slides', 'document', 'recording', 'other']),
   url: z.string().url().optional(),
+  sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 function jsonError(message: string, status = 400) {
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
     title: formData.get('title'),
     type: formData.get('type'),
     url: formData.get('url') || undefined,
+    sessionDate: formData.get('sessionDate') || undefined,
   });
   if (!parsed.success) return mergeCookies(supabaseResponse, jsonError('Invalid upload payload.'));
 
@@ -50,8 +52,37 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
     const classRow = classRowData as any;
 
-    if (!classRow || classRow.coach_id !== session.userId) {
-      return mergeCookies(supabaseResponse, jsonError('Not allowed for this class.', 403));
+    if (!classRow) {
+      return mergeCookies(supabaseResponse, jsonError('Class not found.', 404));
+    }
+
+    // Allow primary coach, co-coaches, accepted subs, or accepted TAs.
+    if (classRow.coach_id !== session.userId) {
+      const [{ data: coCoach }, { data: subReq }, { data: taReq }] = await Promise.all([
+        supabase
+          .from('class_coaches')
+          .select('id')
+          .eq('class_id', classId)
+          .eq('coach_id', session.userId)
+          .maybeSingle(),
+        supabase
+          .from('sub_requests')
+          .select('id')
+          .eq('class_id', classId)
+          .eq('accepting_coach_id', session.userId)
+          .eq('status', 'accepted')
+          .maybeSingle(),
+        supabase
+          .from('ta_requests')
+          .select('id')
+          .eq('class_id', classId)
+          .eq('accepting_ta_id', session.userId)
+          .eq('status', 'accepted')
+          .maybeSingle(),
+      ]);
+      if (!coCoach && !subReq && !taReq) {
+        return mergeCookies(supabaseResponse, jsonError('Not allowed for this class.', 403));
+      }
     }
   }
 
@@ -60,6 +91,7 @@ export async function POST(request: NextRequest) {
     posted_by: session.userId,
     title: parsed.data.title,
     type: parsed.data.type,
+    session_date: parsed.data.sessionDate || new Date().toISOString().slice(0, 10),
   };
 
   if (hasUrl) {
