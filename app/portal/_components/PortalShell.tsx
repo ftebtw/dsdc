@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Banknote,
@@ -242,7 +242,9 @@ export default function PortalShell({
   );
   const [displayTimezone, setDisplayTimezone] = useState(timezone);
   const [localeUpdating, setLocaleUpdating] = useState(false);
+  const localeUpdatingRef = useRef(false);
   const [timezoneUpdating, setTimezoneUpdating] = useState(false);
+  const timezoneUpdatingRef = useRef(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [pendingPath, setPendingPath] = useState<string | null>(null);
   const [bugModalOpen, setBugModalOpen] = useState(false);
@@ -259,10 +261,12 @@ export default function PortalShell({
   }, [locale, i18nLocale, setI18nLocale]);
 
   useEffect(() => {
+    if (localeUpdatingRef.current) return;
     setOptimisticLocale(locale === "zh" ? "zh" : "en");
   }, [locale]);
 
   useEffect(() => {
+    if (timezoneUpdatingRef.current) return;
     setDisplayTimezone(timezone);
   }, [timezone]);
 
@@ -296,19 +300,24 @@ export default function PortalShell({
       localStorage.setItem("dsdc-portal-locale-set", "true");
     }
 
-    // Instant update - all useI18n() components re-render immediately.
+    // Instant optimistic update - client components using useI18n() switch immediately.
     setOptimisticLocale(nextLocale);
     setI18nLocale(nextLocale);
     setLocaleUpdating(true);
+    localeUpdatingRef.current = true;
 
-    // Fire-and-forget DB save. No router.refresh() needed - client components
-    // already have the new locale via context. Server components pick it up
-    // on the next navigation.
+    // Await the DB write then refresh so server components read the new locale.
     fetch("/api/portal/profile/locale", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ locale: nextLocale }),
     })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to update locale.");
+        startTransition(() => {
+          router.refresh();
+        });
+      })
       .catch(() => {
         const reverted = nextLocale === "en" ? "zh" : "en";
         setOptimisticLocale(reverted);
@@ -316,6 +325,7 @@ export default function PortalShell({
       })
       .finally(() => {
         setLocaleUpdating(false);
+        localeUpdatingRef.current = false;
       });
   }
 
@@ -325,17 +335,25 @@ export default function PortalShell({
     const previous = displayTimezone;
     setDisplayTimezone(nextTimezone);
     setTimezoneUpdating(true);
+    timezoneUpdatingRef.current = true;
 
     fetch("/api/portal/profile/timezone", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ timezone: nextTimezone }),
     })
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to update timezone.");
+        startTransition(() => {
+          router.refresh();
+        });
+      })
       .catch(() => {
         setDisplayTimezone(previous);
       })
       .finally(() => {
         setTimezoneUpdating(false);
+        timezoneUpdatingRef.current = false;
       });
   }
 

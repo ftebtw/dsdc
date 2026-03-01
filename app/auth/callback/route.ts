@@ -133,5 +133,16 @@ export async function GET(request: NextRequest) {
     return buildRedirect(supabase, request, sessionResponse, type, nextPath);
   }
 
+  // If this was an email verification but we received neither code nor token_hash
+  // (implicit flow — token is in the hash fragment, invisible to server),
+  // redirect to login with verified=true so the user sees the success message.
+  // The email IS verified at this point — Supabase confirmed it before redirecting here.
+  if (type === "signup" || type === "email" || type === "invite" || type === "magiclink") {
+    return withSessionCookies(
+      sessionResponse,
+      NextResponse.redirect(new URL("/portal/login?verified=true", request.url))
+    );
+  }
+
   return withSessionCookies(sessionResponse, NextResponse.redirect(new URL(nextPath, request.url)));
 }

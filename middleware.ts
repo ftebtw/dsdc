@@ -102,7 +102,17 @@ export async function middleware(request: NextRequest) {
     return redirectWithCookies(new URL('/portal/login', request.url));
   }
 
-  if ((isLogin && !isRecovery) || pathname === '/portal') {
+  if (pathname === '/portal') {
+    return redirectWithCookies(new URL(roleHome(role), request.url));
+  }
+
+  if (isLogin && !isRecovery) {
+    // If user just verified their email and has a session, show the verified page
+    // instead of silently redirecting to dashboard.
+    const verified = request.nextUrl.searchParams.get('verified');
+    if (verified === 'true') {
+      return redirectWithCookies(new URL(`/auth/verified?role=${role}`, request.url));
+    }
     return redirectWithCookies(new URL(roleHome(role), request.url));
   }
 
