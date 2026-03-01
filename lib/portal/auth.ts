@@ -16,23 +16,24 @@ export const getCurrentSessionProfile = cache(
     try {
       const supabase = await getSupabaseServerClient();
 
-      // Use getSession() instead of getUser(); this reads JWT from cookies locally.
-      // /portal/* requests are already verified by middleware before this executes.
+      // Must use getUser() - it validates and refreshes expired tokens server-side.
+      // getSession() only reads the JWT locally and does NOT refresh, causing a redirect
+      // loop when the access token expires (~1hr) because all DB queries fail silently.
       const {
-        data: { session },
-      } = await supabase.auth.getSession();
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (!session?.user) return null;
+      if (!user) return null;
 
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', session.user.id)
+        .eq('id', user.id)
         .single();
 
       if (!profile) return null;
 
-      return { userId: session.user.id, profile };
+      return { userId: user.id, profile };
     } catch (error) {
       console.error('[portal-auth] getCurrentSessionProfile failed', error);
       return null;
@@ -74,13 +75,10 @@ export async function getRequestSessionProfile(request: NextRequest): Promise<{ 
     const response = NextResponse.next();
     const supabase = getSupabaseRouteClient(request, response);
 
-    // Use getSession() instead of getUser(); reads JWT from cookies locally.
-    // Same optimization as getCurrentSessionProfile — avoids auth network round-trips.
+    // Must use getUser() for the same reason as above - getSession() doesn't refresh.
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    const user = session?.user ?? null;
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) return null;
 
