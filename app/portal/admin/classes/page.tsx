@@ -472,6 +472,12 @@ export default async function AdminClassesPage({
                   >
                     View Students
                   </Link>
+                  <Link
+                    href={`/portal/admin/classes/${classRow.id}`}
+                    className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                  >
+                    View Details
+                  </Link>
                 </div>
               </form>
             );
