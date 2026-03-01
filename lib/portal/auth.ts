@@ -16,24 +16,23 @@ export const getCurrentSessionProfile = cache(
     try {
       const supabase = await getSupabaseServerClient();
 
-      // Must use getUser() - it validates and refreshes expired tokens server-side.
-      // getSession() only reads the JWT locally and does NOT refresh, causing a redirect
-      // loop when the access token expires (~1hr) because all DB queries fail silently.
+      // Use getSession() for speed (~0ms local JWT read vs ~100ms getUser() network call).
+      // Safe because middleware already called getUser() which refreshed the token.
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (!user) return null;
+      if (!session?.user) return null;
 
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', session.user.id)
         .single();
 
       if (!profile) return null;
 
-      return { userId: user.id, profile };
+      return { userId: session.user.id, profile };
     } catch (error) {
       console.error('[portal-auth] getCurrentSessionProfile failed', error);
       return null;
