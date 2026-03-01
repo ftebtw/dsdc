@@ -102,7 +102,7 @@ export async function middleware(request: NextRequest) {
     return redirectWithCookies(new URL('/portal/login', request.url));
   }
 
-  if ((isLogin && !isRecovery) || pathname === '/portal') {
+  if (pathname === '/portal') {
     return redirectWithCookies(new URL(roleHome(role), request.url));
   }
 
