@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { portalT } from '@/lib/portal/parent-i18n';
 
 type ActionResult = { ok: boolean; error?: string };
@@ -110,8 +111,8 @@ function statusBadgeText(status: string, t: (key: string, fallback: string) => s
 }
 
 export default function PrivateSessionCard(props: Props) {
-  const locale = props.locale ?? 'en';
-  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
+  const { locale: contextLocale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(contextLocale, key, fallback);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -164,10 +165,8 @@ export default function PrivateSessionCard(props: Props) {
     <article className="rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900 p-4 space-y-3">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-1">
-          <h3 className="font-semibold text-navy-800 dark:text-white">{props.whenText}</h3>
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">
-            {t('portal.common.coach', 'Coach')}: {props.coachName}
-          </p>
+          <h3 className="font-semibold text-navy-800 dark:text-white">{props.coachName}</h3>
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">{props.whenText}</p>
           <p className="text-sm text-charcoal/70 dark:text-navy-300">
             {t('portal.common.student', 'Student')}: {props.studentName}
           </p>

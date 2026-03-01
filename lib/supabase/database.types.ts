@@ -160,6 +160,42 @@ export type Database = {
           },
         ]
       }
+      class_coaches: {
+        Row: {
+          class_id: string
+          coach_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          class_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          class_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_coaches_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_coaches_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_credits: {
         Row: {
           amount_sessions: number
@@ -1494,6 +1530,14 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_coach_or_ta: { Args: never; Returns: boolean }
+      is_subbing_class: {
+        Args: { target_class_id: string; target_date: string }
+        Returns: boolean
+      }
+      is_subbing_class_any: {
+        Args: { target_class_id: string }
+        Returns: boolean
+      }
       is_parent_of_student: {
         Args: { target_student_id: string }
         Returns: boolean

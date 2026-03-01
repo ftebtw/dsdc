@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import PrivateSessionsManager from "@/app/portal/_components/PrivateSessionsManager";
+import { useI18n } from "@/lib/i18n";
 import { portalT } from "@/lib/portal/parent-i18n";
 
 type AvailableSlot = {
@@ -45,7 +46,8 @@ export default function StudentBookingManager({
   sessions: SessionItem[];
   locale?: "en" | "zh";
 }) {
-  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
+  const { locale: contextLocale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(contextLocale, key, fallback);
   const [selectedSlotIds, setSelectedSlotIds] = useState<Set<string>>(new Set());
   const [studentNotes, setStudentNotes] = useState("");
   const [loading, setLoading] = useState(false);

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 import { portalT } from "@/lib/portal/parent-i18n";
 
 type Props = {
@@ -9,7 +10,8 @@ type Props = {
 };
 
 export default function EnrollmentRequiredBanner({ role, locale = "en" }: Props) {
-  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
+  const { locale: contextLocale } = useI18n();
+  const t = (key: string, fallback: string) => portalT(contextLocale, key, fallback);
   const enrollUrl = role === "parent" ? "/portal/parent/enroll" : "/portal/student/enroll";
 
   const title =

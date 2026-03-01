@@ -65,11 +65,12 @@ export default async function AdminClassesPage({
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
 
-  const [{ data: termsData }, { data: coachProfilesData }, { data: tierAssignmentsData }, { data: allClassesData }] = await Promise.all([
+  const [{ data: termsData }, { data: coachProfilesData }, { data: tierAssignmentsData }, { data: allClassesData }, { data: classCoachesData }] = await Promise.all([
     supabase.from('terms').select('*').order('start_date', { ascending: false }),
     supabase.from('coach_profiles').select('coach_id,tier,is_ta'),
     supabase.from('coach_tier_assignments').select('coach_id,tier'),
     supabase.from('classes').select('id,term_id'),
+    supabase.from('class_coaches').select('class_id,coach_id'),
   ]);
   const terms = (termsData ?? []) as Array<Record<string, any>>;
   const coachProfiles = (coachProfilesData ?? []) as Array<Record<string, any>>;
@@ -83,6 +84,12 @@ export default async function AdminClassesPage({
   const classCountByTerm = new Map<string, number>();
   for (const cls of allClasses) {
     classCountByTerm.set(cls.term_id, (classCountByTerm.get(cls.term_id) ?? 0) + 1);
+  }
+  const classCoachesMap = new Map<string, string[]>();
+  for (const row of (classCoachesData ?? []) as Array<{ class_id: string; coach_id: string }>) {
+    const list = classCoachesMap.get(row.class_id) ?? [];
+    list.push(row.coach_id);
+    classCoachesMap.set(row.class_id, list);
   }
 
   const selectedTermId =
@@ -168,6 +175,19 @@ export default async function AdminClassesPage({
                 </option>
               ))}
             </select>
+            <fieldset className="col-span-full">
+              <legend className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300 mb-1">
+                Additional Coaches (optional)
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                {coachProfiles.map((coach: any) => (
+                  <label key={coach.coach_id} className="flex items-center gap-1 text-sm">
+                    <input type="checkbox" name="co_coach_ids" value={coach.coach_id} />
+                    {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <select
               name="schedule_day"
               defaultValue="sat"
@@ -327,6 +347,24 @@ export default async function AdminClassesPage({
                     </option>
                   ))}
                 </select>
+                <fieldset className="lg:col-span-4">
+                  <legend className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300 mb-1">
+                    Additional Coaches
+                  </legend>
+                  <div className="flex flex-wrap gap-2">
+                    {coachProfiles.map((coach: any) => (
+                      <label key={coach.coach_id} className="flex items-center gap-1 text-sm">
+                        <input
+                          type="checkbox"
+                          name="co_coach_ids"
+                          value={coach.coach_id}
+                          defaultChecked={(classCoachesMap.get(classRow.id) ?? []).includes(coach.coach_id)}
+                        />
+                        {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
                 <TimezoneSelectNative
                   name="timezone"
                   defaultValue={classRow.timezone}
@@ -404,6 +442,14 @@ export default async function AdminClassesPage({
                     'No students'
                   )}
                 </div>
+                {(classCoachesMap.get(classRow.id) ?? []).length > 0 ? (
+                  <p className="lg:col-span-4 text-xs text-charcoal/50 dark:text-navy-400">
+                    +{' '}
+                    {(classCoachesMap.get(classRow.id) ?? [])
+                      .map((id: string) => coachMap[id]?.display_name || coachMap[id]?.email || id)
+                      .join(', ')}
+                  </p>
+                ) : null}
                 <div className="lg:col-span-4 flex flex-wrap items-center gap-2">
                   <button type="submit" className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold">
                     Save

@@ -16,6 +16,8 @@ export default async function CoachClassesPage() {
 
   const supabase = await getSupabaseServerClient();
   const classes = await getClassesForCoachInActiveTerm(supabase, session.userId);
+  const primaryClassIdSet = new Set(classes.map((classRow) => classRow.id));
+  const today = new Date().toISOString().slice(0, 10);
 
   const classIds = classes.map((classRow) => classRow.id);
   const { data: enrollmentsData } = classIds.length
@@ -28,7 +30,6 @@ export default async function CoachClassesPage() {
   const enrollments = (enrollmentsData ?? []) as Array<Record<string, any>>;
 
   const studentIds = [...new Set(enrollments.map((row: any) => row.student_id))];
-  const today = new Date().toISOString().slice(0, 10);
   const subRows = classIds.length
     ? (((await supabase
         .from('sub_requests')
@@ -47,6 +48,31 @@ export default async function CoachClassesPage() {
         .gte('session_date', today)
         .order('session_date', { ascending: true })).data ?? []) as Array<Record<string, any>>)
     : ([] as Array<Record<string, any>>);
+  const [{ data: acceptedSubRows }, { data: acceptedTaRows }] = await Promise.all([
+    supabase
+      .from('sub_requests')
+      .select('class_id,session_date')
+      .eq('accepting_coach_id', session.userId)
+      .eq('status', 'accepted')
+      .gte('session_date', today),
+    supabase
+      .from('ta_requests')
+      .select('class_id,session_date')
+      .eq('accepting_ta_id', session.userId)
+      .eq('status', 'accepted')
+      .gte('session_date', today),
+  ]);
+
+  const subbedClassIds = [
+    ...new Set([
+      ...(acceptedSubRows ?? []).map((row: any) => row.class_id),
+      ...(acceptedTaRows ?? []).map((row: any) => row.class_id),
+    ]),
+  ].filter((id) => !primaryClassIdSet.has(id));
+
+  const subbedClasses = subbedClassIds.length
+    ? (((await supabase.from('classes').select('*').in('id', subbedClassIds)).data ?? []) as typeof classes)
+    : ([] as typeof classes);
 
   const profileMap = await getProfileMap(supabase, [
     ...studentIds,
@@ -70,98 +96,139 @@ export default async function CoachClassesPage() {
   }
 
   return (
-    <SectionCard
-      title={t('portal.coachClasses.title', 'My Classes')}
-      description={t('portal.coachClasses.description', 'Active-term classes assigned to you.')}
-    >
-      {classes.length === 0 ? (
-        <p className="text-sm text-charcoal/70 dark:text-navy-300">
-          {t('portal.coachClasses.empty', 'No active-term classes assigned.')}
-        </p>
-      ) : (
-        <div className="space-y-4">
-          {classes.map((classRow) => {
-            const studentIdsForClass = enrollmentsByClass.get(classRow.id) ?? [];
-            const nextSub = nextSubByClass.get(classRow.id);
-            const nextTa = nextTaByClass.get(classRow.id);
-            return (
+    <div className="space-y-6">
+      <SectionCard
+        title={t('portal.coachClasses.title', 'My Classes')}
+        description={t('portal.coachClasses.description', 'Active-term classes assigned to you.')}
+      >
+        {classes.length === 0 ? (
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t('portal.coachClasses.empty', 'No active-term classes assigned.')}
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {classes.map((classRow) => {
+              const studentIdsForClass = enrollmentsByClass.get(classRow.id) ?? [];
+              const nextSub = nextSubByClass.get(classRow.id);
+              const nextTa = nextTaByClass.get(classRow.id);
+              return (
+                <article
+                  key={classRow.id}
+                  className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4"
+                >
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
+                      <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-1">
+                        {classTypeLabel[classRow.type as keyof typeof classTypeLabel] || String(classRow.type)} -{' '}
+                        {formatClassScheduleForViewer(
+                          classRow.schedule_day,
+                          classRow.schedule_start_time,
+                          classRow.schedule_end_time,
+                          classRow.timezone,
+                          session.profile.timezone
+                        )}
+                      </p>
+                      {classRow.zoom_link ? (
+                        <p className="text-sm mt-1">
+                          {t('portal.coachClasses.zoom', 'Zoom:')}{' '}
+                          <a
+                            className="underline text-navy-700 dark:text-navy-200"
+                            href={classRow.zoom_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {t('portal.coachClasses.openLink', 'Open Link')}
+                          </a>
+                        </p>
+                      ) : null}
+                      <p className="text-sm mt-2">
+                        {t('portal.coachClasses.enrolledCount', '{count} enrolled student(s)')
+                          .replace('{count}', String(studentIdsForClass.length))
+                          .replace('(s)', studentIdsForClass.length === 1 ? '' : 's')}
+                      </p>
+                      {studentIdsForClass.length > 0 ? (
+                        <p className="text-xs text-charcoal/70 dark:text-navy-300 mt-2">
+                          {studentIdsForClass
+                            .map((studentId) => profileMap[studentId]?.display_name || profileMap[studentId]?.email || studentId)
+                            .join(', ')}
+                        </p>
+                      ) : null}
+                      {nextSub ? (
+                        <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
+                          {t('portal.coachClasses.nextSub', 'Sub: {name} on {date}')
+                            .replace('{name}', profileMap[nextSub.accepting_coach_id]?.display_name || profileMap[nextSub.accepting_coach_id]?.email || nextSub.accepting_coach_id)
+                            .replace('{date}', nextSub.session_date)}
+                        </p>
+                      ) : null}
+                      {nextTa ? (
+                        <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
+                          {t('portal.coachClasses.nextTa', 'TA: {name} on {date}')
+                            .replace('{name}', profileMap[nextTa.accepting_ta_id]?.display_name || profileMap[nextTa.accepting_ta_id]?.email || nextTa.accepting_ta_id)
+                            .replace('{date}', nextTa.session_date)}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/portal/coach/attendance/${classRow.id}`}
+                        className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                      >
+                        {t('portal.coachClasses.attendance', 'Attendance')}
+                      </Link>
+                      <Link
+                        href={`/portal/coach/resources/${classRow.id}`}
+                        className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold"
+                      >
+                        {t('portal.coachClasses.resources', 'Resources')}
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </SectionCard>
+
+      {subbedClasses.length > 0 ? (
+        <SectionCard title="Subbing / TA Assignments" description="Classes you're covering as a sub or TA.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {subbedClasses.map((classRow) => (
               <article
                 key={classRow.id}
-                className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4"
+                className="rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4"
               >
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                  <div>
-                    <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
-                    <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-1">
-                      {classTypeLabel[classRow.type as keyof typeof classTypeLabel] || String(classRow.type)} -{' '}
-                      {formatClassScheduleForViewer(
-                        classRow.schedule_day,
-                        classRow.schedule_start_time,
-                        classRow.schedule_end_time,
-                        classRow.timezone,
-                        session.profile.timezone
-                      )}
-                    </p>
-                    {classRow.zoom_link ? (
-                      <p className="text-sm mt-1">
-                        {t('portal.coachClasses.zoom', 'Zoom:')}{' '}
-                        <a
-                          className="underline text-navy-700 dark:text-navy-200"
-                          href={classRow.zoom_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {t('portal.coachClasses.openLink', 'Open Link')}
-                        </a>
-                      </p>
-                    ) : null}
-                    <p className="text-sm mt-2">
-                      {t('portal.coachClasses.enrolledCount', '{count} enrolled student(s)')
-                        .replace('{count}', String(studentIdsForClass.length))
-                        .replace('(s)', studentIdsForClass.length === 1 ? '' : 's')}
-                    </p>
-                    {studentIdsForClass.length > 0 ? (
-                      <p className="text-xs text-charcoal/70 dark:text-navy-300 mt-2">
-                        {studentIdsForClass
-                          .map((studentId) => profileMap[studentId]?.display_name || profileMap[studentId]?.email || studentId)
-                          .join(', ')}
-                      </p>
-                    ) : null}
-                    {nextSub ? (
-                      <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
-                        {t('portal.coachClasses.nextSub', 'Sub: {name} on {date}')
-                          .replace('{name}', profileMap[nextSub.accepting_coach_id]?.display_name || profileMap[nextSub.accepting_coach_id]?.email || nextSub.accepting_coach_id)
-                          .replace('{date}', nextSub.session_date)}
-                      </p>
-                    ) : null}
-                    {nextTa ? (
-                      <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
-                        {t('portal.coachClasses.nextTa', 'TA: {name} on {date}')
-                          .replace('{name}', profileMap[nextTa.accepting_ta_id]?.display_name || profileMap[nextTa.accepting_ta_id]?.email || nextTa.accepting_ta_id)
-                          .replace('{date}', nextTa.session_date)}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Link
-                      href={`/portal/coach/attendance/${classRow.id}`}
-                      className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
-                    >
-                      {t('portal.coachClasses.attendance', 'Attendance')}
-                    </Link>
-                    <Link
-                      href={`/portal/coach/resources/${classRow.id}`}
-                      className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold"
-                    >
-                      {t('portal.coachClasses.resources', 'Resources')}
-                    </Link>
-                  </div>
+                <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
+                <p className="text-xs text-charcoal/60 dark:text-navy-300 mt-1">
+                  {classTypeLabel[classRow.type as keyof typeof classTypeLabel] || classRow.type} -{' '}
+                  {formatClassScheduleForViewer(
+                    classRow.schedule_day,
+                    classRow.schedule_start_time,
+                    classRow.schedule_end_time,
+                    classRow.timezone,
+                    session.profile.timezone
+                  )}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link
+                    href={`/portal/coach/attendance/${classRow.id}`}
+                    className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
+                  >
+                    Attendance
+                  </Link>
+                  <Link
+                    href={`/portal/coach/resources/${classRow.id}`}
+                    className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
+                  >
+                    Resources
+                  </Link>
                 </div>
               </article>
-            );
-          })}
-        </div>
-      )}
-    </SectionCard>
+            ))}
+          </div>
+        </SectionCard>
+      ) : null}
+    </div>
   );
 }

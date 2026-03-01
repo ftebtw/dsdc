@@ -15,6 +15,32 @@ export default async function CoachDashboardPage() {
 
   const supabase = await getSupabaseServerClient();
   const todayClasses = await getTodayClassesForCoach(supabase, session.userId);
+  const todayDate = new Date().toISOString().slice(0, 10);
+  const [{ data: todaySubs }, { data: todayTAs }] = await Promise.all([
+    supabase
+      .from('sub_requests')
+      .select('class_id')
+      .eq('accepting_coach_id', session.userId)
+      .eq('status', 'accepted')
+      .eq('session_date', todayDate),
+    supabase
+      .from('ta_requests')
+      .select('class_id')
+      .eq('accepting_ta_id', session.userId)
+      .eq('status', 'accepted')
+      .eq('session_date', todayDate),
+  ]);
+
+  const subbedTodayIds = [
+    ...new Set([
+      ...(todaySubs ?? []).map((row: any) => row.class_id),
+      ...(todayTAs ?? []).map((row: any) => row.class_id),
+    ]),
+  ].filter((id) => !todayClasses.some((classRow) => classRow.id === id));
+
+  const subbedTodayClasses = subbedTodayIds.length
+    ? (((await supabase.from('classes').select('*').in('id', subbedTodayIds)).data ?? []) as typeof todayClasses)
+    : ([] as typeof todayClasses);
 
   const checkins = await Promise.all(
     todayClasses.map(async (classRow) => {
@@ -89,6 +115,47 @@ export default async function CoachDashboardPage() {
           </div>
         )}
       </SectionCard>
+
+      {subbedTodayClasses.length > 0 ? (
+        <SectionCard
+          title={t('portal.coachDashboard.subbingToday', "Today's Sub/TA Assignments")}
+          description={t('portal.coachDashboard.subbingDesc', 'Classes you are covering today.')}
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            {subbedTodayClasses.map((classRow) => (
+              <article
+                key={classRow.id}
+                className="rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4"
+              >
+                <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
+                <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-1">
+                  {formatClassScheduleForViewer(
+                    classRow.schedule_day,
+                    classRow.schedule_start_time,
+                    classRow.schedule_end_time,
+                    classRow.timezone,
+                    session.profile.timezone
+                  )}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link
+                    href={`/portal/coach/attendance/${classRow.id}`}
+                    className="px-3 py-1.5 rounded-md bg-amber-200 text-navy-900 text-sm font-semibold"
+                  >
+                    {t('portal.coachDashboard.markAttendance', 'Attendance')}
+                  </Link>
+                  <Link
+                    href={`/portal/coach/resources/${classRow.id}`}
+                    className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                  >
+                    Resources
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+      ) : null}
     </div>
   );
 }

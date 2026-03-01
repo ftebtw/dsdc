@@ -21,7 +21,31 @@ export default async function CoachResourcesPage({
     .eq('id', classId)
     .maybeSingle();
   if (!classRow) notFound();
-  if (classRow.coach_id !== session.userId) notFound();
+  if (classRow.coach_id !== session.userId) {
+    const [{ data: coCoach }, { data: subReq }, { data: taReq }] = await Promise.all([
+      supabase
+        .from('class_coaches')
+        .select('id')
+        .eq('class_id', classId)
+        .eq('coach_id', session.userId)
+        .maybeSingle(),
+      supabase
+        .from('sub_requests')
+        .select('id')
+        .eq('class_id', classId)
+        .eq('accepting_coach_id', session.userId)
+        .eq('status', 'accepted')
+        .maybeSingle(),
+      supabase
+        .from('ta_requests')
+        .select('id')
+        .eq('class_id', classId)
+        .eq('accepting_ta_id', session.userId)
+        .eq('status', 'accepted')
+        .maybeSingle(),
+    ]);
+    if (!coCoach && !subReq && !taReq) notFound();
+  }
 
   const { data: resources } = await supabase
     .from('resources')

@@ -24,14 +24,43 @@ export async function getClassesForCoachInActiveTerm(
   const activeTerm = await getActiveTerm(supabase);
   if (!activeTerm) return [];
 
-  const { data } = await supabase
+  // Classes where this coach is primary.
+  const { data: primary } = await supabase
     .from('classes')
     .select('*')
     .eq('coach_id', coachId)
     .eq('term_id', activeTerm.id)
     .order('schedule_start_time', { ascending: true });
 
-  return data ?? [];
+  // Classes where this coach is an additional co-coach.
+  const { data: coCoachRows } = await supabase
+    .from('class_coaches')
+    .select('class_id')
+    .eq('coach_id', coachId);
+
+  const coClassIds = (coCoachRows ?? []).map((row: any) => row.class_id);
+  let secondary: PortalClass[] = [];
+  if (coClassIds.length) {
+    const { data } = await supabase
+      .from('classes')
+      .select('*')
+      .in('id', coClassIds)
+      .eq('term_id', activeTerm.id)
+      .order('schedule_start_time', { ascending: true });
+    secondary = data ?? [];
+  }
+
+  // Deduplicate and merge primary + co-coach classes.
+  const seen = new Set((primary ?? []).map((classRow: any) => classRow.id));
+  const merged = [...(primary ?? [])];
+  for (const classRow of secondary) {
+    if (!seen.has(classRow.id)) {
+      seen.add(classRow.id);
+      merged.push(classRow);
+    }
+  }
+
+  return merged;
 }
 
 export async function getTodayClassesForCoach(
