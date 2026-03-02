@@ -35,16 +35,12 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [studentPhoneLabel, setStudentPhoneLabel] = useState("Emergency Contact");
-  const [studentPhoneNumber, setStudentPhoneNumber] = useState("");
   const [parentFirstName, setParentFirstName] = useState("");
   const [parentLastName, setParentLastName] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const [parentPassword, setParentPassword] = useState("");
   const [parentConfirmPassword, setParentConfirmPassword] = useState("");
-  const [parentPhones, setParentPhones] = useState<Array<{ label: string; number: string }>>([
-    { label: "", number: "" },
-  ]);
+  const [parentPhone, setParentPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showVerifyEmail, setShowVerifyEmail] = useState(false);
@@ -106,19 +102,6 @@ export default function RegisterForm() {
     return null;
   }
 
-  function addParentPhone() {
-    if (parentPhones.length >= 5) return;
-    setParentPhones((prev) => [...prev, { label: "", number: "" }]);
-  }
-
-  function removeParentPhone(index: number) {
-    setParentPhones((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function updateParentPhone(index: number, field: "label" | "number", value: string) {
-    setParentPhones((prev) => prev.map((phone, i) => (i === index ? { ...phone, [field]: value } : phone)));
-  }
-
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -150,14 +133,6 @@ export default function RegisterForm() {
             locale: resolvedLocale,
             timezone,
             referralCode: referralCode || undefined,
-            phoneNumbers: studentPhoneNumber.trim()
-              ? [
-                  {
-                    label: studentPhoneLabel.trim() || "Emergency Contact",
-                    number: studentPhoneNumber.trim(),
-                  },
-                ]
-              : [],
           }
         : {
             role,
@@ -168,12 +143,7 @@ export default function RegisterForm() {
             locale: resolvedLocale,
             timezone,
             referralCode: referralCode || undefined,
-            phoneNumbers: parentPhones
-              .filter((phone) => phone.number.trim())
-              .map((phone) => ({
-                label: phone.label.trim() || "Phone",
-                number: phone.number.trim(),
-              })),
+            phoneNumbers: parentPhone.trim() ? [{ label: "Primary", number: parentPhone.trim() }] : [],
           };
 
     try {
@@ -441,26 +411,6 @@ export default function RegisterForm() {
                 </p>
               ) : null}
             </label>
-            <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-800 p-3">
-              <p className="text-sm font-medium text-navy-700 dark:text-navy-200 mb-2">
-                {tx("registerPage.emergencyContact", "Emergency Contact (optional)")}
-              </p>
-              <div className="grid sm:grid-cols-2 gap-2">
-                <input
-                  placeholder={tx("registerPage.contactLabel", "Label (e.g. Mom, Dad)")}
-                  value={studentPhoneLabel}
-                  onChange={(event) => setStudentPhoneLabel(event.target.value)}
-                  className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 dark:text-white px-3 py-2 text-sm"
-                />
-                <input
-                  type="tel"
-                  placeholder={tx("registerPage.phoneNumber", "Phone number")}
-                  value={studentPhoneNumber}
-                  onChange={(event) => setStudentPhoneNumber(event.target.value)}
-                  className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 dark:text-white px-3 py-2 text-sm"
-                />
-              </div>
-            </div>
           </>
         ) : (
           <>
@@ -562,48 +512,18 @@ export default function RegisterForm() {
                 </p>
               ) : null}
             </label>
-            <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-800 p-3">
-              <p className="text-sm font-medium text-navy-700 dark:text-navy-200 mb-2">
-                {tx("registerPage.phoneNumbers", "Phone Numbers (optional)")}
-              </p>
-              <div className="space-y-2">
-                {parentPhones.map((phone, index) => (
-                  <div key={index} className="flex gap-2 items-center">
-                    <input
-                      placeholder={tx("registerPage.contactLabel", "Label (e.g. Mom, Dad)")}
-                      value={phone.label}
-                      onChange={(event) => updateParentPhone(index, "label", event.target.value)}
-                      className="flex-1 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 dark:text-white px-3 py-2 text-sm"
-                    />
-                    <input
-                      type="tel"
-                      placeholder={tx("registerPage.phoneNumber", "Phone number")}
-                      value={phone.number}
-                      onChange={(event) => updateParentPhone(index, "number", event.target.value)}
-                      className="flex-1 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 dark:text-white px-3 py-2 text-sm"
-                    />
-                    {parentPhones.length > 1 ? (
-                      <button
-                        type="button"
-                        onClick={() => removeParentPhone(index)}
-                        className="text-red-500 text-sm px-2"
-                      >
-                        x
-                      </button>
-                    ) : null}
-                  </div>
-                ))}
-                {parentPhones.length < 5 ? (
-                  <button
-                    type="button"
-                    onClick={addParentPhone}
-                    className="text-sm text-navy-700 dark:text-navy-200 underline"
-                  >
-                    {tx("registerPage.addPhone", "+ Add another phone number")}
-                  </button>
-                ) : null}
-              </div>
-            </div>
+            <label className="block">
+              <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+                {tx("registerPage.phoneNumber", "Phone Number (optional)")}
+              </span>
+              <input
+                type="tel"
+                placeholder="604-555-1234"
+                value={parentPhone}
+                onChange={(event) => setParentPhone(event.target.value)}
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
+              />
+            </label>
             <p className="text-sm text-charcoal/60 dark:text-navy-300 bg-warm-50 dark:bg-navy-800 rounded-lg px-3 py-2">
               {tx(
                 "registerPage.linkStudentLater",

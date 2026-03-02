@@ -32,7 +32,6 @@ const studentSchema = baseSchema.extend({
   email: z.string().email(),
   password: passwordSchema,
   referralCode: z.string().trim().min(3).max(32).optional(),
-  phoneNumbers: z.array(phoneEntrySchema).max(5).optional(),
 });
 
 const parentSchema = baseSchema.extend({
@@ -158,17 +157,6 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
       timezone: body.timezone,
     })
   );
-
-  // Save phone numbers.
-  if (body.phoneNumbers?.length) {
-    const phoneRows = body.phoneNumbers.map((phone) => ({
-      user_id: userId,
-      label: phone.label,
-      phone_number: phone.number,
-    }));
-    const { error: phoneError } = await admin.from("phone_numbers").insert(phoneRows);
-    if (phoneError) throw new Error(phoneError.message);
-  }
 
   await sendVerificationEmail(admin, {
     email: body.email,
