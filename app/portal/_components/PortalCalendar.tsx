@@ -150,6 +150,64 @@ export default function PortalCalendar({
     return map;
   }, [payload.events]);
 
+  const upcomingEvents = useMemo(() => {
+    const todayKey = toKey(new Date());
+    return [...payload.events]
+      .filter((eventItem) => eventItem.event_date >= todayKey)
+      .sort((a, b) => {
+        if (a.event_date !== b.event_date) return a.event_date < b.event_date ? -1 : 1;
+        return (a.start_time ?? "00:00") < (b.start_time ?? "00:00") ? -1 : 1;
+      })
+      .slice(0, 10);
+  }, [payload.events]);
+
+  const upcomingSidebar = (
+    <div className="space-y-2">
+      <h4 className="font-semibold text-navy-900 dark:text-white text-sm">
+        {t("portal.portalCalendar.upcomingEvents", "Upcoming Events")}
+      </h4>
+      {upcomingEvents.length === 0 ? (
+        <p className="text-xs text-charcoal/60 dark:text-navy-400">
+          {t("portal.portalCalendar.noUpcoming", "No upcoming events.")}
+        </p>
+      ) : (
+        <div className="space-y-1.5">
+          {upcomingEvents.map((eventItem) => (
+            <button
+              type="button"
+              key={`upcoming-${eventItem.id}`}
+              onClick={() => {
+                setSelectedEvent(eventItem);
+                setSelectedClass(null);
+                setSelectedClassDate(null);
+              }}
+              className={`w-full text-left rounded-lg border px-3 py-2 transition-colors hover:bg-warm-50 dark:hover:bg-navy-800 ${eventPillClass(eventItem.event_type)}`}
+              style={eventPillStyle(eventItem)}
+            >
+              <div className="flex items-start gap-2">
+                {eventItem.is_important ? (
+                  <span className="shrink-0 mt-0.5 text-red-500 text-xs font-bold">!</span>
+                ) : null}
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{eventItem.title}</p>
+                  <p className="text-xs opacity-75 mt-0.5">
+                    {format(parseISO(eventItem.event_date), "EEE, MMM d")}
+                    {eventItem.is_all_day ? "" : ` · ${eventTimeRange(eventItem, displayTimezone, t)}`}
+                  </p>
+                  {eventItem.location ? (
+                    <p className="text-xs opacity-60 truncate mt-0.5">
+                      Location: {eventItem.location}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   const cancelledSet = useMemo(() => {
     const set = new Set<string>();
     for (const cancellation of payload.cancellations) {
@@ -301,7 +359,8 @@ export default function PortalCalendar({
         </p>
       ) : null}
 
-      <div className="hidden md:block rounded-xl border border-warm-200 dark:border-navy-600 overflow-hidden">
+      <div className="hidden md:flex gap-4">
+        <div className="flex-1 min-w-0 rounded-xl border border-warm-200 dark:border-navy-600 overflow-hidden">
         <div className="grid grid-cols-7 bg-warm-100 dark:bg-navy-800 border-b border-warm-200 dark:border-navy-600">
           {weekdayLabels.map((label, index) => (
             <div key={label} className="px-2 py-2 text-xs font-semibold text-charcoal/75 dark:text-navy-200">
@@ -405,6 +464,12 @@ export default function PortalCalendar({
               </button>
             );
           })}
+        </div>
+      </div>
+        <div className="w-64 shrink-0">
+          <div className="sticky top-4 rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900 p-3">
+            {upcomingSidebar}
+          </div>
         </div>
       </div>
 
@@ -575,6 +640,9 @@ export default function PortalCalendar({
             </div>
           </div>
         )}
+        <div className="rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900 p-3">
+          {upcomingSidebar}
+        </div>
       </div>
 
       <EventFormModal

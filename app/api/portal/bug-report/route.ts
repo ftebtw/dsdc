@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
 import { sendPortalEmail } from '@/lib/email/send';
@@ -14,6 +15,10 @@ function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
+function cleanFilename(name: string) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '-');
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -27,11 +32,63 @@ export async function POST(request: NextRequest) {
   const session = await requireApiRole(request, ['admin', 'coach', 'ta', 'student', 'parent']);
   if (!session) return jsonError('Unauthorized', 401);
 
-  const parsed = bodySchema.safeParse(await request.json());
+  const contentType = request.headers.get('content-type') || '';
+  let parsed: z.SafeParseReturnType<
+    unknown,
+    { description: string; page?: string | undefined; userAgent?: string | undefined }
+  >;
+  let screenshot: File | null = null;
+
+  if (contentType.includes('application/json')) {
+    parsed = bodySchema.safeParse(await request.json());
+  } else {
+    const formData = await request.formData();
+    parsed = bodySchema.safeParse({
+      description: formData.get('description'),
+      page: formData.get('page') || undefined,
+      userAgent: formData.get('userAgent') || undefined,
+    });
+    const fileValue = formData.get('screenshot');
+    screenshot = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
+  }
+
   if (!parsed.success) return jsonError('Invalid report.');
 
   try {
     const admin = getSupabaseAdminClient();
+    const report = parsed.data;
+    let screenshotUrl: string | null = null;
+
+    if (screenshot) {
+      if (!screenshot.type.startsWith('image/')) {
+        return jsonError('Screenshot must be an image.', 400);
+      }
+      if (screenshot.size > 5 * 1024 * 1024) {
+        return jsonError('Screenshot must be 5MB or smaller.', 400);
+      }
+
+      const bucket = process.env.PORTAL_BUCKET_RESOURCES || 'portal-resources';
+      const safeName = cleanFilename(screenshot.name || 'screenshot.png');
+      const objectPath = `bug-reports/${session.userId}/${Date.now()}-${randomUUID()}/${safeName}`;
+      const fileBuffer = await screenshot.arrayBuffer();
+
+      const uploadResult = await admin.storage
+        .from(bucket)
+        .upload(objectPath, fileBuffer, {
+          contentType: screenshot.type || undefined,
+          upsert: false,
+        });
+
+      if (uploadResult.error) {
+        return jsonError(`Could not upload screenshot: ${uploadResult.error.message}`, 400);
+      }
+
+      const signedResult = await admin.storage
+        .from(bucket)
+        .createSignedUrl(objectPath, 60 * 60 * 24 * 30);
+      screenshotUrl = signedResult.data?.signedUrl || null;
+    }
+
     const { data: adminProfiles } = await admin
       .from('profiles')
       .select('email')
@@ -42,7 +99,6 @@ export async function POST(request: NextRequest) {
       .filter(Boolean) as string[];
 
     if (adminEmails.length > 0) {
-      const report = parsed.data;
       const reporterName = session.profile.display_name || session.profile.email || 'Unknown';
       const when = new Date().toISOString();
       const subject = `[DSDC Bug Report] from ${reporterName}`;
@@ -51,6 +107,7 @@ export async function POST(request: NextRequest) {
         `Role: ${session.profile.role}`,
         `Page: ${report.page || 'Not specified'}`,
         `Browser: ${report.userAgent || 'Unknown'}`,
+        `Screenshot: ${screenshotUrl || 'Not provided'}`,
         `Time: ${when}`,
         '',
         'Description:',
@@ -70,6 +127,11 @@ export async function POST(request: NextRequest) {
             <tr><td style="padding:6px 12px;font-weight:bold;color:#555;">Page</td><td style="padding:6px 12px;">${escapeHtml(
               report.page || 'Not specified'
             )}</td></tr>
+            <tr><td style="padding:6px 12px;font-weight:bold;color:#555;">Screenshot</td><td style="padding:6px 12px;">${
+              screenshotUrl
+                ? `<a href="${escapeHtml(screenshotUrl)}" target="_blank" rel="noopener noreferrer">Open screenshot</a>`
+                : 'Not provided'
+            }</td></tr>
             <tr><td style="padding:6px 12px;font-weight:bold;color:#555;">Time</td><td style="padding:6px 12px;">${escapeHtml(
               when
             )}</td></tr>

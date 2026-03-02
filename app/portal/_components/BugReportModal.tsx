@@ -17,6 +17,8 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [description, setDescription] = useState("");
   const [page, setPage] = useState("");
+  const [screenshot, setScreenshot] = useState<File | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -30,22 +32,52 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
 
   async function handleSubmit() {
     if (!description.trim()) return;
+    setSubmitError(null);
+
+    if (screenshot && !screenshot.type.startsWith("image/")) {
+      setSubmitError(t("portal.bugReport.imageOnly", "Screenshot must be an image file."));
+      return;
+    }
+
+    if (screenshot && screenshot.size > 5 * 1024 * 1024) {
+      setSubmitError(t("portal.bugReport.imageTooLarge", "Screenshot must be 5MB or smaller."));
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await fetch("/api/portal/bug-report", {
+      const formData = new FormData();
+      formData.append("description", description.trim());
+      formData.append("page", page);
+      formData.append(
+        "userAgent",
+        typeof navigator !== "undefined" ? navigator.userAgent : ""
+      );
+      if (screenshot) {
+        formData.append("screenshot", screenshot);
+      }
+
+      const response = await fetch("/api/portal/bug-report", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          description: description.trim(),
-          page,
-          userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
-        }),
+        body: formData,
       });
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        setSubmitError(
+          data.error ||
+            t("portal.bugReport.submitError", "Could not submit bug report. Please try again.")
+        );
+        setLoading(false);
+        return;
+      }
+
       setSubmitted(true);
     } catch (error) {
       console.error("[bug-report] error:", error);
-      setSubmitted(true);
+      setSubmitError(
+        t("portal.bugReport.submitError", "Could not submit bug report. Please try again.")
+      );
     }
 
     setLoading(false);
@@ -67,6 +99,8 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
             onClick={() => {
               setSubmitted(false);
               setDescription("");
+              setScreenshot(null);
+              setSubmitError(null);
               onClose();
             }}
             className="w-full rounded-lg bg-navy-800 text-white py-2 text-sm font-medium dark:bg-gold-300 dark:text-navy-900"
@@ -121,9 +155,31 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
             />
           </div>
 
+          <div>
+            <label className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+              {t("portal.bugReport.screenshot", "Add a screenshot (optional)")}
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) => {
+                const file = event.target.files?.[0] || null;
+                setScreenshot(file);
+              }}
+              className="w-full rounded-lg border border-warm-300 dark:border-navy-500 bg-white dark:bg-navy-900 px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-warm-100 file:px-2 file:py-1 dark:file:bg-navy-700"
+            />
+            {screenshot ? (
+              <p className="mt-1 text-xs text-charcoal/60 dark:text-navy-400 truncate">
+                {screenshot.name}
+              </p>
+            ) : null}
+          </div>
+
           <p className="text-xs text-charcoal/50 dark:text-navy-400">
             {t("portal.bugReport.submittingAs", "Submitting as")} {userEmail} ({userRole})
           </p>
+
+          {submitError ? <p className="text-xs text-red-600">{submitError}</p> : null}
 
           <button
             type="button"
