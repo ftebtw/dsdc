@@ -69,6 +69,7 @@ export default async function AdminStudentDetailPage({
     { data: classesData },
     { data: termsData },
     { data: parentLinksData },
+    { data: studentPhonesData },
     { data: parentProfilesData },
   ] = await Promise.all([
     supabase
@@ -85,6 +86,11 @@ export default async function AdminStudentDetailPage({
     supabase.from('classes').select('*'),
     supabase.from('terms').select('*'),
     supabase.from('parent_student_links').select('*').eq('student_id', studentId),
+    supabase
+      .from('phone_numbers')
+      .select('label,phone_number')
+      .eq('user_id', studentId)
+      .order('created_at', { ascending: true }),
     supabase.from('profiles').select('id,display_name,email').eq('role', 'parent').order('display_name'),
   ]);
 
@@ -93,11 +99,31 @@ export default async function AdminStudentDetailPage({
   const classes = (classesData ?? []) as Array<Record<string, any>>;
   const terms = (termsData ?? []) as Array<Record<string, any>>;
   const parentLinks = (parentLinksData ?? []) as Array<Record<string, any>>;
+  const studentPhones = (studentPhonesData ?? []) as Array<{ label: string; phone_number: string }>;
   const parentProfiles = (parentProfilesData ?? []) as Array<Record<string, any>>;
 
   const classMap = Object.fromEntries(classes.map((classRow: any) => [classRow.id, classRow]));
   const termMap = Object.fromEntries(terms.map((term: any) => [term.id, term]));
   const linkedParentIds = new Set(parentLinks.map((row: any) => row.parent_id));
+  const linkedParentIdsArr = parentLinks.map((row: any) => row.parent_id);
+  const { data: parentPhonesData } = linkedParentIdsArr.length
+    ? await supabase
+        .from('phone_numbers')
+        .select('user_id,label,phone_number')
+        .in('user_id', linkedParentIdsArr)
+        .order('created_at', { ascending: true })
+    : { data: [] };
+  const parentPhones = (parentPhonesData ?? []) as Array<{
+    user_id: string;
+    label: string;
+    phone_number: string;
+  }>;
+  const parentPhonesByParent = new Map<string, typeof parentPhones>();
+  for (const phone of parentPhones) {
+    const list = parentPhonesByParent.get(phone.user_id) ?? [];
+    list.push(phone);
+    parentPhonesByParent.set(phone.user_id, list);
+  }
 
   return (
     <div className="space-y-6">
@@ -106,9 +132,21 @@ export default async function AdminStudentDetailPage({
           <p>
             <span className="font-medium">Email:</span> {student.email}
           </p>
-          <p>
-            <span className="font-medium">Phone:</span> {student.phone || '-'}
-          </p>
+          <div>
+            <span className="font-medium">Phone / Emergency Contact:</span>
+            {studentPhones.length > 0 ? (
+              <div className="mt-1 space-y-0.5">
+                {studentPhones.map((phone, index) => (
+                  <p key={`${phone.phone_number}:${index}`} className="text-sm">
+                    {phone.label ? <span className="font-medium">{phone.label}:</span> : null}{" "}
+                    {phone.phone_number}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <span className="ml-1">{student.phone || '-'}</span>
+            )}
+          </div>
           <p>
             <span className="font-medium">Timezone:</span> {student.timezone}
           </p>
@@ -153,6 +191,20 @@ export default async function AdminStudentDetailPage({
                   <p className="text-sm">
                     {parent?.display_name || parent?.email || link.parent_id}
                     {parent?.email ? ` (${parent.email})` : ''}
+                    {(() => {
+                      const phones = parentPhonesByParent.get(link.parent_id) ?? [];
+                      return phones.length > 0 ? (
+                        <span className="text-xs text-charcoal/60 dark:text-navy-400 ml-1">
+                          (
+                          {phones
+                            .map((phone) =>
+                              `${phone.label ? `${phone.label}: ` : ''}${phone.phone_number}`
+                            )
+                            .join(', ')}
+                          )
+                        </span>
+                      ) : null;
+                    })()}
                   </p>
                   <form action={unlinkParent}>
                     <input type="hidden" name="student_id" value={studentId} />

@@ -79,6 +79,24 @@ export default async function CoachClassesPage() {
     ...subRows.map((row: any) => row.accepting_coach_id).filter(Boolean),
     ...taRows.map((row: any) => row.accepting_ta_id).filter(Boolean),
   ]);
+  const allStudentIds = [...new Set(enrollments.map((row: any) => row.student_id))];
+  const { data: studentPhonesData } = allStudentIds.length
+    ? await supabase
+        .from('phone_numbers')
+        .select('user_id,label,phone_number')
+        .in('user_id', allStudentIds)
+        .order('created_at', { ascending: true })
+    : { data: [] };
+  const phonesByStudent = new Map<string, Array<{ label: string; phone_number: string }>>();
+  for (const phone of (studentPhonesData ?? []) as Array<{
+    user_id: string;
+    label: string;
+    phone_number: string;
+  }>) {
+    const list = phonesByStudent.get(phone.user_id) ?? [];
+    list.push(phone);
+    phonesByStudent.set(phone.user_id, list);
+  }
 
   const enrollmentsByClass = new Map<string, string[]>();
   for (const enrollment of enrollments) {
@@ -148,11 +166,31 @@ export default async function CoachClassesPage() {
                           .replace('(s)', studentIdsForClass.length === 1 ? '' : 's')}
                       </p>
                       {studentIdsForClass.length > 0 ? (
-                        <p className="text-xs text-charcoal/70 dark:text-navy-300 mt-2">
-                          {studentIdsForClass
-                            .map((studentId) => profileMap[studentId]?.display_name || profileMap[studentId]?.email || studentId)
-                            .join(', ')}
-                        </p>
+                        <div className="text-xs text-charcoal/70 dark:text-navy-300 mt-2 space-y-0.5">
+                          {studentIdsForClass.map((studentId) => {
+                            const name =
+                              profileMap[studentId]?.display_name ||
+                              profileMap[studentId]?.email ||
+                              studentId;
+                            const phones = phonesByStudent.get(studentId) ?? [];
+                            return (
+                              <p key={studentId}>
+                                {name}
+                                {phones.length > 0 ? (
+                                  <span className="text-charcoal/50 dark:text-navy-400 ml-1">
+                                    (
+                                    {phones
+                                      .map((phone) =>
+                                        `${phone.label ? `${phone.label}: ` : ''}${phone.phone_number}`
+                                      )
+                                      .join(', ')}
+                                    )
+                                  </span>
+                                ) : null}
+                              </p>
+                            );
+                          })}
+                        </div>
                       ) : null}
                       {nextSub ? (
                         <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">

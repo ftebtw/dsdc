@@ -13,13 +13,26 @@ const baseSchema = z.object({
   timezone: z.string().min(1).max(80).default("America/Vancouver"),
 });
 
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters.")
+  .max(128)
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
+  .regex(/\d/, "Password must contain at least one number.");
+
+const phoneEntrySchema = z.object({
+  label: z.string().trim().max(60).default(""),
+  number: z.string().trim().min(1).max(30),
+});
+
 const studentSchema = baseSchema.extend({
   role: z.literal("student"),
   firstName: z.string().trim().min(1).max(60),
   lastName: z.string().trim().min(1).max(60),
   email: z.string().email(),
-  password: z.string().min(8).max(128),
+  password: passwordSchema,
   referralCode: z.string().trim().min(3).max(32).optional(),
+  phoneNumbers: z.array(phoneEntrySchema).max(5).optional(),
 });
 
 const parentSchema = baseSchema.extend({
@@ -27,8 +40,9 @@ const parentSchema = baseSchema.extend({
   parentFirstName: z.string().trim().min(1).max(60),
   parentLastName: z.string().trim().min(1).max(60),
   parentEmail: z.string().email(),
-  parentPassword: z.string().min(8).max(128),
+  parentPassword: passwordSchema,
   referralCode: z.string().trim().min(3).max(32).optional(),
+  phoneNumbers: z.array(phoneEntrySchema).max(5).optional(),
 });
 
 const bodySchema = z.discriminatedUnion("role", [studentSchema, parentSchema]);
@@ -145,6 +159,17 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
     })
   );
 
+  // Save phone numbers.
+  if (body.phoneNumbers?.length) {
+    const phoneRows = body.phoneNumbers.map((phone) => ({
+      user_id: userId,
+      label: phone.label,
+      phone_number: phone.number,
+    }));
+    const { error: phoneError } = await admin.from("phone_numbers").insert(phoneRows);
+    if (phoneError) throw new Error(phoneError.message);
+  }
+
   await sendVerificationEmail(admin, {
     email: body.email,
     displayName: studentDisplayName,
@@ -195,6 +220,17 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
       timezone: body.timezone,
     })
   );
+
+  // Save phone numbers.
+  if (body.phoneNumbers?.length) {
+    const phoneRows = body.phoneNumbers.map((phone) => ({
+      user_id: parentId,
+      label: phone.label,
+      phone_number: phone.number,
+    }));
+    const { error: phoneError } = await admin.from("phone_numbers").insert(phoneRows);
+    if (phoneError) throw new Error(phoneError.message);
+  }
 
   await sendVerificationEmail(admin, {
     email: body.parentEmail,
@@ -266,13 +302,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: ParsedBody;
-  try {
-    body = bodySchema.parse(await request.json());
-  } catch (err) {
-    console.error("[register] invalid request body", err);
-    return jsonError("Invalid request body.");
+  const parsed = bodySchema.safeParse(await request.json());
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0]?.message || "Invalid input.";
+    return jsonError(firstError);
   }
+  const body = parsed.data;
 
   if (!isValidTimezone(body.timezone)) {
     return jsonError("Invalid timezone.");

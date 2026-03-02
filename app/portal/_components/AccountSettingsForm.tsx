@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { portalT } from "@/lib/portal/parent-i18n";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import PhoneNumbersManager from "./PhoneNumbersManager";
 
 type Message = { type: "success" | "error"; text: string };
 
@@ -13,9 +14,14 @@ type Props = {
   email: string;
   timezone: string;
   locale?: "en" | "zh";
+  phoneNumbers?: Array<{ id: string; label: string; phone_number: string }>;
 };
 
-export default function AccountSettingsForm({ displayName, email, locale = "en" }: Props) {
+export default function AccountSettingsForm({
+  displayName,
+  email,
+  phoneNumbers = [],
+}: Props) {
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
   const { locale: contextLocale } = useI18n();
@@ -257,6 +263,15 @@ export default function AccountSettingsForm({ displayName, email, locale = "en" 
           </button>
         </div>
         {passwordMessage ? <p className={`mt-1 ${msgStyle(passwordMessage)}`}>{passwordMessage.text}</p> : null}
+      </section>
+
+      <hr className="border-warm-200 dark:border-navy-700" />
+
+      <section>
+        <h3 className="font-semibold text-navy-800 dark:text-white mb-3">
+          {t("portal.settings.phoneNumbers", "Phone Numbers")}
+        </h3>
+        <PhoneNumbersManager initialPhones={phoneNumbers} />
       </section>
     </div>
   );

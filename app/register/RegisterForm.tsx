@@ -34,10 +34,17 @@ export default function RegisterForm() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [studentPhoneLabel, setStudentPhoneLabel] = useState("Emergency Contact");
+  const [studentPhoneNumber, setStudentPhoneNumber] = useState("");
   const [parentFirstName, setParentFirstName] = useState("");
   const [parentLastName, setParentLastName] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const [parentPassword, setParentPassword] = useState("");
+  const [parentConfirmPassword, setParentConfirmPassword] = useState("");
+  const [parentPhones, setParentPhones] = useState<Array<{ label: string; number: string }>>([
+    { label: "", number: "" },
+  ]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showVerifyEmail, setShowVerifyEmail] = useState(false);
@@ -76,10 +83,60 @@ export default function RegisterForm() {
     return value === key ? fallback : value;
   }
 
+  const passwordRules = (pw: string) => ({
+    minLength: pw.length >= 8,
+    hasUpper: /[A-Z]/.test(pw),
+    hasNumber: /\d/.test(pw),
+  });
+
+  function passwordStrengthError(pw: string): string | null {
+    const rules = passwordRules(pw);
+    if (!rules.minLength) {
+      return tx("registerPage.pwMin8", "Password must be at least 8 characters.");
+    }
+    if (!rules.hasUpper) {
+      return tx(
+        "registerPage.pwNeedUpper",
+        "Password must contain at least one uppercase letter."
+      );
+    }
+    if (!rules.hasNumber) {
+      return tx("registerPage.pwNeedNumber", "Password must contain at least one number.");
+    }
+    return null;
+  }
+
+  function addParentPhone() {
+    if (parentPhones.length >= 5) return;
+    setParentPhones((prev) => [...prev, { label: "", number: "" }]);
+  }
+
+  function removeParentPhone(index: number) {
+    setParentPhones((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updateParentPhone(index: number, field: "label" | "number", value: string) {
+    setParentPhones((prev) => prev.map((phone, i) => (i === index ? { ...phone, [field]: value } : phone)));
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
+
+    const pw = role === "student" ? password : parentPassword;
+    const cpw = role === "student" ? confirmPassword : parentConfirmPassword;
+    const strengthError = passwordStrengthError(pw);
+    if (strengthError) {
+      setError(strengthError);
+      setLoading(false);
+      return;
+    }
+    if (pw !== cpw) {
+      setError(tx("registerPage.passwordsNoMatch", "Passwords do not match."));
+      setLoading(false);
+      return;
+    }
 
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Vancouver";
     const payload =
@@ -93,6 +150,14 @@ export default function RegisterForm() {
             locale: resolvedLocale,
             timezone,
             referralCode: referralCode || undefined,
+            phoneNumbers: studentPhoneNumber.trim()
+              ? [
+                  {
+                    label: studentPhoneLabel.trim() || "Emergency Contact",
+                    number: studentPhoneNumber.trim(),
+                  },
+                ]
+              : [],
           }
         : {
             role,
@@ -103,6 +168,12 @@ export default function RegisterForm() {
             locale: resolvedLocale,
             timezone,
             referralCode: referralCode || undefined,
+            phoneNumbers: parentPhones
+              .filter((phone) => phone.number.trim())
+              .map((phone) => ({
+                label: phone.label.trim() || "Phone",
+                number: phone.number.trim(),
+              })),
           };
 
     try {
@@ -312,7 +383,84 @@ export default function RegisterForm() {
                 onChange={(event) => setPassword(event.target.value)}
                 className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
               />
+              {password
+                ? (() => {
+                    const rules = passwordRules(password);
+                    return (
+                      <div className="mt-1.5 space-y-0.5 text-xs">
+                        <p
+                          className={
+                            rules.minLength
+                              ? "text-green-600"
+                              : "text-charcoal/50 dark:text-navy-400"
+                          }
+                        >
+                          {rules.minLength ? "[x]" : "[ ]"}{" "}
+                          {tx("registerPage.rule8chars", "At least 8 characters")}
+                        </p>
+                        <p
+                          className={
+                            rules.hasUpper
+                              ? "text-green-600"
+                              : "text-charcoal/50 dark:text-navy-400"
+                          }
+                        >
+                          {rules.hasUpper ? "[x]" : "[ ]"}{" "}
+                          {tx("registerPage.ruleUpper", "One uppercase letter")}
+                        </p>
+                        <p
+                          className={
+                            rules.hasNumber
+                              ? "text-green-600"
+                              : "text-charcoal/50 dark:text-navy-400"
+                          }
+                        >
+                          {rules.hasNumber ? "[x]" : "[ ]"}{" "}
+                          {tx("registerPage.ruleNumber", "One number")}
+                        </p>
+                      </div>
+                    );
+                  })()
+                : null}
             </label>
+            <label className="block">
+              <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+                {tx("registerPage.confirmPassword", "Confirm Password")}
+              </span>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
+              />
+              {confirmPassword && password !== confirmPassword ? (
+                <p className="mt-1 text-xs text-red-500">
+                  {tx("registerPage.passwordsNoMatch", "Passwords do not match.")}
+                </p>
+              ) : null}
+            </label>
+            <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-800 p-3">
+              <p className="text-sm font-medium text-navy-700 dark:text-navy-200 mb-2">
+                {tx("registerPage.emergencyContact", "Emergency Contact (optional)")}
+              </p>
+              <div className="grid sm:grid-cols-2 gap-2">
+                <input
+                  placeholder={tx("registerPage.contactLabel", "Label (e.g. Mom, Dad)")}
+                  value={studentPhoneLabel}
+                  onChange={(event) => setStudentPhoneLabel(event.target.value)}
+                  className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 dark:text-white px-3 py-2 text-sm"
+                />
+                <input
+                  type="tel"
+                  placeholder={tx("registerPage.phoneNumber", "Phone number")}
+                  value={studentPhoneNumber}
+                  onChange={(event) => setStudentPhoneNumber(event.target.value)}
+                  className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 dark:text-white px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
           </>
         ) : (
           <>
@@ -366,7 +514,96 @@ export default function RegisterForm() {
                 onChange={(event) => setParentPassword(event.target.value)}
                 className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
               />
+              {parentPassword
+                ? (() => {
+                    const rules = passwordRules(parentPassword);
+                    return (
+                      <div className="mt-1.5 space-y-0.5 text-xs">
+                        <p
+                          className={
+                            rules.minLength ? "text-green-600" : "text-charcoal/50 dark:text-navy-400"
+                          }
+                        >
+                          {rules.minLength ? "[x]" : "[ ]"}{" "}
+                          {tx("registerPage.rule8chars", "At least 8 characters")}
+                        </p>
+                        <p
+                          className={rules.hasUpper ? "text-green-600" : "text-charcoal/50 dark:text-navy-400"}
+                        >
+                          {rules.hasUpper ? "[x]" : "[ ]"}{" "}
+                          {tx("registerPage.ruleUpper", "One uppercase letter")}
+                        </p>
+                        <p
+                          className={rules.hasNumber ? "text-green-600" : "text-charcoal/50 dark:text-navy-400"}
+                        >
+                          {rules.hasNumber ? "[x]" : "[ ]"}{" "}
+                          {tx("registerPage.ruleNumber", "One number")}
+                        </p>
+                      </div>
+                    );
+                  })()
+                : null}
             </label>
+            <label className="block">
+              <span className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+                {tx("registerPage.confirmPassword", "Confirm Password")}
+              </span>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={parentConfirmPassword}
+                onChange={(event) => setParentConfirmPassword(event.target.value)}
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-400 px-3 py-2"
+              />
+              {parentConfirmPassword && parentPassword !== parentConfirmPassword ? (
+                <p className="mt-1 text-xs text-red-500">
+                  {tx("registerPage.passwordsNoMatch", "Passwords do not match.")}
+                </p>
+              ) : null}
+            </label>
+            <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-800 p-3">
+              <p className="text-sm font-medium text-navy-700 dark:text-navy-200 mb-2">
+                {tx("registerPage.phoneNumbers", "Phone Numbers (optional)")}
+              </p>
+              <div className="space-y-2">
+                {parentPhones.map((phone, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <input
+                      placeholder={tx("registerPage.contactLabel", "Label (e.g. Mom, Dad)")}
+                      value={phone.label}
+                      onChange={(event) => updateParentPhone(index, "label", event.target.value)}
+                      className="flex-1 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 dark:text-white px-3 py-2 text-sm"
+                    />
+                    <input
+                      type="tel"
+                      placeholder={tx("registerPage.phoneNumber", "Phone number")}
+                      value={phone.number}
+                      onChange={(event) => updateParentPhone(index, "number", event.target.value)}
+                      className="flex-1 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 dark:text-white px-3 py-2 text-sm"
+                    />
+                    {parentPhones.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => removeParentPhone(index)}
+                        className="text-red-500 text-sm px-2"
+                      >
+                        x
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+                {parentPhones.length < 5 ? (
+                  <button
+                    type="button"
+                    onClick={addParentPhone}
+                    className="text-sm text-navy-700 dark:text-navy-200 underline"
+                  >
+                    {tx("registerPage.addPhone", "+ Add another phone number")}
+                  </button>
+                ) : null}
+              </div>
+            </div>
             <p className="text-sm text-charcoal/60 dark:text-navy-300 bg-warm-50 dark:bg-navy-800 rounded-lg px-3 py-2">
               {tx(
                 "registerPage.linkStudentLater",

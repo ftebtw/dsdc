@@ -85,6 +85,24 @@ export default async function AdminParentsPage() {
     : { data: [], error: null as { message: string } | null };
   if (linksError) throw new Error(linksError.message);
 
+  const { data: parentPhonesData } = parentIds.length
+    ? await supabase
+        .from("phone_numbers")
+        .select("user_id,label,phone_number")
+        .in("user_id", parentIds)
+        .order("created_at", { ascending: true })
+    : { data: [] };
+  const parentPhonesByParent = new Map<string, Array<{ label: string; phone_number: string }>>();
+  for (const phone of (parentPhonesData ?? []) as Array<{
+    user_id: string;
+    label: string;
+    phone_number: string;
+  }>) {
+    const list = parentPhonesByParent.get(phone.user_id) ?? [];
+    list.push(phone);
+    parentPhonesByParent.set(phone.user_id, list);
+  }
+
   const links = (linksData ?? []) as Array<{ parent_id: string; student_id: string }>;
   const studentMap = new Map(students.map((student) => [student.id, student]));
   const linkedIdsByParent = new Map<string, string[]>();
@@ -98,11 +116,12 @@ export default async function AdminParentsPage() {
   return (
     <SectionCard title="Parents" description="Parent accounts and student links.">
       <div className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-x-auto">
-        <table className="w-full min-w-[980px] text-sm">
+        <table className="w-full min-w-[1100px] text-sm">
           <thead className="bg-warm-100 dark:bg-navy-900/60">
             <tr>
               <th className="px-4 py-3 text-left">Name</th>
               <th className="px-4 py-3 text-left">Email</th>
+              <th className="px-4 py-3 text-left">Phone</th>
               <th className="px-4 py-3 text-left">Linked Students</th>
               <th className="px-4 py-3 text-left">Created</th>
             </tr>
@@ -126,6 +145,23 @@ export default async function AdminParentsPage() {
                     {parent.display_name || "-"}
                   </td>
                   <td className="px-4 py-3">{parent.email}</td>
+                  <td className="px-4 py-3">
+                    {(() => {
+                      const phones = parentPhonesByParent.get(parent.id) ?? [];
+                      return phones.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {phones.map((phone, index) => (
+                            <p key={`${phone.phone_number}:${index}`} className="text-xs">
+                              {phone.label ? <span className="font-medium">{phone.label}:</span> : null}{" "}
+                              {phone.phone_number}
+                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-charcoal/40 dark:text-navy-500">-</span>
+                      );
+                    })()}
+                  </td>
                   <td className="px-4 py-3">
                     {linkedStudents.length > 0 ? (
                       <div className="flex flex-wrap gap-2 mb-2">

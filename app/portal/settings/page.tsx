@@ -2,6 +2,7 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import AccountSettingsForm from '@/app/portal/_components/AccountSettingsForm';
 import { requireSession } from '@/lib/portal/auth';
 import { portalT } from '@/lib/portal/parent-i18n';
+import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +10,12 @@ export default async function PortalSettingsPage() {
   const session = await requireSession();
   const locale = (session.profile.locale === "zh" ? "zh" : "en") as "en" | "zh";
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
+  const supabase = await getSupabaseServerClient();
+  const { data: phoneData } = await supabase
+    .from('phone_numbers')
+    .select('id,label,phone_number')
+    .eq('user_id', session.userId)
+    .order('created_at', { ascending: true });
 
   return (
     <div className="space-y-6">
@@ -21,6 +28,7 @@ export default async function PortalSettingsPage() {
           email={session.profile.email}
           timezone={session.profile.timezone || 'America/Vancouver'}
           locale={locale}
+          phoneNumbers={phoneData ?? []}
         />
       </SectionCard>
     </div>
