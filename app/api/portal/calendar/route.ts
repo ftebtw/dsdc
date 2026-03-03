@@ -174,19 +174,6 @@ export async function GET(request: NextRequest) {
     .filter((row) => parsedFilter.data === "all" || row.is_mine);
 
   const visibleClassIds = classes.map((row) => row.id);
-  const { data: cancellationsData } = visibleClassIds.length
-    ? await admin
-        .from("class_cancellations")
-        .select("class_id,cancellation_date,reason")
-        .in("class_id", visibleClassIds)
-    : { data: [] };
-
-  const cancellations = (cancellationsData ?? []) as Array<{
-    class_id: string;
-    cancellation_date: string;
-    reason: string;
-  }>;
-
   let legacyEventQuery = admin
     .from("events")
     .select(
@@ -197,9 +184,6 @@ export async function GET(request: NextRequest) {
 
   if (from) legacyEventQuery = legacyEventQuery.gte("event_date", from);
   if (to) legacyEventQuery = legacyEventQuery.lte("event_date", to);
-
-  const { data: legacyEventsData, error: legacyEventError } = await legacyEventQuery;
-  if (legacyEventError) return jsonError(legacyEventError.message, 500);
 
   let calendarEventQuery = admin
     .from("calendar_events")
@@ -212,8 +196,28 @@ export async function GET(request: NextRequest) {
   if (from) calendarEventQuery = calendarEventQuery.gte("event_date", from);
   if (to) calendarEventQuery = calendarEventQuery.lte("event_date", to);
 
-  const { data: calendarEventsData, error: calendarEventError } = await calendarEventQuery;
-  if (calendarEventError) return jsonError(calendarEventError.message, 500);
+  const [cancellationsResult, legacyEventsResult, calendarEventsResult] = await Promise.all([
+    visibleClassIds.length
+      ? admin
+          .from("class_cancellations")
+          .select("class_id,cancellation_date,reason")
+          .in("class_id", visibleClassIds)
+      : Promise.resolve({ data: [], error: null }),
+    legacyEventQuery,
+    calendarEventQuery,
+  ]);
+
+  if (cancellationsResult.error) return jsonError(cancellationsResult.error.message, 500);
+  if (legacyEventsResult.error) return jsonError(legacyEventsResult.error.message, 500);
+  if (calendarEventsResult.error) return jsonError(calendarEventsResult.error.message, 500);
+
+  const cancellations = (cancellationsResult.data ?? []) as Array<{
+    class_id: string;
+    cancellation_date: string;
+    reason: string;
+  }>;
+  const legacyEventsData = legacyEventsResult.data ?? [];
+  const calendarEventsData = calendarEventsResult.data ?? [];
 
   const role = session.profile.role;
   const viewerUserId = session.userId;

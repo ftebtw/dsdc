@@ -37,6 +37,23 @@ import {
   classTimeRange,
 } from "./calendarUtils";
 
+type CalendarCacheEntry = {
+  payload: CalendarPayload;
+  fetchedAt: number;
+};
+
+const CALENDAR_CACHE_TTL_MS = 60_000;
+const calendarPayloadCache = new Map<string, CalendarCacheEntry>();
+
+function calendarCacheKey(
+  role: PortalRole,
+  filter: "all" | "mine",
+  from: string,
+  to: string
+): string {
+  return `${role}:${filter}:${from}:${to}`;
+}
+
 export default function PortalCalendar({
   role,
   userTimezone,
@@ -86,6 +103,12 @@ export default function PortalCalendar({
   const monthEnd = useMemo(() => endOfMonth(monthDate), [monthDate]);
   const gridStart = useMemo(() => startOfWeek(monthStart, { weekStartsOn: 0 }), [monthStart]);
   const gridEnd = useMemo(() => endOfWeek(monthEnd, { weekStartsOn: 0 }), [monthEnd]);
+  const rangeFrom = useMemo(() => toKey(gridStart), [gridStart]);
+  const rangeTo = useMemo(() => toKey(gridEnd), [gridEnd]);
+  const cacheKey = useMemo(
+    () => calendarCacheKey(role, filter, rangeFrom, rangeTo),
+    [filter, rangeFrom, rangeTo, role]
+  );
 
   const dayCells = useMemo(() => {
     const result: Date[] = [];
@@ -100,11 +123,25 @@ export default function PortalCalendar({
   useEffect(() => {
     let ignore = false;
     async function loadData() {
-      setLoading(true);
+      const now = Date.now();
+      const cached = calendarPayloadCache.get(cacheKey);
+      const isFresh = Boolean(cached && now - cached.fetchedAt < CALENDAR_CACHE_TTL_MS);
+
+      if (cached) {
+        setPayload(cached.payload);
+      }
+
       setError(null);
-      const from = toKey(gridStart);
-      const to = toKey(gridEnd);
-      const response = await fetch(`/api/portal/calendar?from=${from}&to=${to}&filter=${filter}`, {
+      if (isFresh) {
+        setLoading(false);
+        return;
+      }
+
+      if (!cached) {
+        setLoading(true);
+      }
+
+      const response = await fetch(`/api/portal/calendar?from=${rangeFrom}&to=${rangeTo}&filter=${filter}`, {
         cache: "no-store",
       });
       const result = (await response.json()) as CalendarPayload & { error?: string };
@@ -120,6 +157,15 @@ export default function PortalCalendar({
         cancellations: result.cancellations ?? [],
         term: result.term ?? null,
       });
+      calendarPayloadCache.set(cacheKey, {
+        payload: {
+          classes: result.classes ?? [],
+          events: result.events ?? [],
+          cancellations: result.cancellations ?? [],
+          term: result.term ?? null,
+        },
+        fetchedAt: Date.now(),
+      });
       setLoading(false);
     }
 
@@ -127,7 +173,7 @@ export default function PortalCalendar({
     return () => {
       ignore = true;
     };
-  }, [filter, gridEnd, gridStart]);
+  }, [cacheKey, filter, rangeFrom, rangeTo]);
 
   const classesByDate = useMemo(() => {
     const map = new Map<string, CalendarClass[]>();
@@ -251,15 +297,20 @@ export default function PortalCalendar({
   }
 
   function onSavedEvent() {
-    const from = toKey(gridStart);
-    const to = toKey(gridEnd);
-    void fetch(`/api/portal/calendar?from=${from}&to=${to}&filter=${filter}`, { cache: "no-store" })
+    void fetch(`/api/portal/calendar?from=${rangeFrom}&to=${rangeTo}&filter=${filter}`, { cache: "no-store" })
       .then(async (response) => {
         const result = (await response.json()) as CalendarPayload & { error?: string };
         if (!response.ok) {
           throw new Error(result.error || t("portal.portalCalendar.refreshError", "Could not refresh calendar."));
         }
-        setPayload(result);
+        const nextPayload: CalendarPayload = {
+          classes: result.classes ?? [],
+          events: result.events ?? [],
+          cancellations: result.cancellations ?? [],
+          term: result.term ?? null,
+        };
+        setPayload(nextPayload);
+        calendarPayloadCache.set(cacheKey, { payload: nextPayload, fetchedAt: Date.now() });
       })
       .catch(() => {
         setError(t("portal.portalCalendar.refreshError", "Could not refresh calendar."));

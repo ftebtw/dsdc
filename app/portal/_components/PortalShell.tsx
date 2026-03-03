@@ -521,14 +521,6 @@ export default function PortalShell({
     return [];
   }, [currentLocale, role]);
 
-  useEffect(() => {
-    for (const section of navSections) {
-      for (const item of section.items) {
-        router.prefetch(item.href);
-      }
-    }
-  }, [navSections, router]);
-
   function onNavClick(href: string) {
     if (pathname?.startsWith(href)) return;
     setPendingPath(href);
