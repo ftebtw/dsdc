@@ -58,13 +58,14 @@ export async function POST(request: NextRequest) {
     const admin = getSupabaseAdminClient();
     const report = parsed.data;
     let screenshotUrl: string | null = null;
+    let screenshotWarning: string | null = null;
 
     if (screenshot) {
       if (!screenshot.type.startsWith('image/')) {
         return jsonError('Screenshot must be an image.', 400);
       }
-      if (screenshot.size > 5 * 1024 * 1024) {
-        return jsonError('Screenshot must be 5MB or smaller.', 400);
+      if (screenshot.size > 4 * 1024 * 1024) {
+        return jsonError('Screenshot must be 4MB or smaller.', 400);
       }
 
       const bucket = process.env.PORTAL_BUCKET_RESOURCES || 'portal-resources';
@@ -80,13 +81,17 @@ export async function POST(request: NextRequest) {
         });
 
       if (uploadResult.error) {
-        return jsonError(`Could not upload screenshot: ${uploadResult.error.message}`, 400);
+        screenshotWarning = `Screenshot upload failed: ${uploadResult.error.message}`;
+      } else {
+        const signedResult = await admin.storage
+          .from(bucket)
+          .createSignedUrl(objectPath, 60 * 60 * 24 * 30);
+        if (signedResult.error) {
+          screenshotWarning = `Screenshot link failed: ${signedResult.error.message}`;
+        } else {
+          screenshotUrl = signedResult.data?.signedUrl || null;
+        }
       }
-
-      const signedResult = await admin.storage
-        .from(bucket)
-        .createSignedUrl(objectPath, 60 * 60 * 24 * 30);
-      screenshotUrl = signedResult.data?.signedUrl || null;
     }
 
     const { data: adminProfiles } = await admin
@@ -108,6 +113,7 @@ export async function POST(request: NextRequest) {
         `Page: ${report.page || 'Not specified'}`,
         `Browser: ${report.userAgent || 'Unknown'}`,
         `Screenshot: ${screenshotUrl || 'Not provided'}`,
+        `Screenshot warning: ${screenshotWarning || 'None'}`,
         `Time: ${when}`,
         '',
         'Description:',
@@ -132,6 +138,9 @@ export async function POST(request: NextRequest) {
                 ? `<a href="${escapeHtml(screenshotUrl)}" target="_blank" rel="noopener noreferrer">Open screenshot</a>`
                 : 'Not provided'
             }</td></tr>
+            <tr><td style="padding:6px 12px;font-weight:bold;color:#555;">Screenshot status</td><td style="padding:6px 12px;">${
+              screenshotWarning ? escapeHtml(screenshotWarning) : 'Attached successfully or not provided'
+            }</td></tr>
             <tr><td style="padding:6px 12px;font-weight:bold;color:#555;">Time</td><td style="padding:6px 12px;">${escapeHtml(
               when
             )}</td></tr>
@@ -142,13 +151,17 @@ export async function POST(request: NextRequest) {
         </div>
       `;
 
-      await Promise.all(
+      const sendResults = await Promise.all(
         adminEmails.map((adminEmail) => sendPortalEmail({ to: adminEmail, subject, html, text }))
       );
+      const successCount = sendResults.filter((result) => result.ok).length;
+      if (successCount === 0) {
+        return jsonError('Could not send bug report email. Please try again.', 502);
+      }
     }
+    return NextResponse.json({ ok: true, warning: screenshotWarning });
   } catch (error) {
     console.error('[bug-report] failed to send admin notification', error);
+    return jsonError('Could not submit bug report. Please try again.', 500);
   }
-
-  return NextResponse.json({ ok: true });
 }

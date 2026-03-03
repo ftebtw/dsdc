@@ -19,6 +19,7 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
   const [page, setPage] = useState("");
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitWarning, setSubmitWarning] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -33,14 +34,15 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
   async function handleSubmit() {
     if (!description.trim()) return;
     setSubmitError(null);
+    setSubmitWarning(null);
 
     if (screenshot && !screenshot.type.startsWith("image/")) {
       setSubmitError(t("portal.bugReport.imageOnly", "Screenshot must be an image file."));
       return;
     }
 
-    if (screenshot && screenshot.size > 5 * 1024 * 1024) {
-      setSubmitError(t("portal.bugReport.imageTooLarge", "Screenshot must be 5MB or smaller."));
+    if (screenshot && screenshot.size > 4 * 1024 * 1024) {
+      setSubmitError(t("portal.bugReport.imageTooLarge", "Screenshot must be 4MB or smaller."));
       return;
     }
 
@@ -62,8 +64,8 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
         method: "POST",
         body: formData,
       });
+      const data = (await response.json().catch(() => ({}))) as { error?: string; warning?: string };
       if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { error?: string };
         setSubmitError(
           data.error ||
             t("portal.bugReport.submitError", "Could not submit bug report. Please try again.")
@@ -72,6 +74,9 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
         return;
       }
 
+      if (data.warning) {
+        setSubmitWarning(data.warning);
+      }
       setSubmitted(true);
     } catch (error) {
       console.error("[bug-report] error:", error);
@@ -94,6 +99,9 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
           <p className="text-center text-sm text-charcoal/70 dark:text-navy-300 mb-4">
             {t("portal.bugReport.thanksBody", "Your bug report has been submitted. We'll look into it.")}
           </p>
+          {submitWarning ? (
+            <p className="text-center text-xs text-amber-600 mb-4">{submitWarning}</p>
+          ) : null}
           <button
             type="button"
             onClick={() => {
@@ -101,6 +109,7 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
               setDescription("");
               setScreenshot(null);
               setSubmitError(null);
+              setSubmitWarning(null);
               onClose();
             }}
             className="w-full rounded-lg bg-navy-800 text-white py-2 text-sm font-medium dark:bg-gold-300 dark:text-navy-900"
@@ -180,6 +189,7 @@ export default function BugReportModal({ open, onClose, userEmail, userRole }: P
           </p>
 
           {submitError ? <p className="text-xs text-red-600">{submitError}</p> : null}
+          {submitWarning ? <p className="text-xs text-amber-600">{submitWarning}</p> : null}
 
           <button
             type="button"
