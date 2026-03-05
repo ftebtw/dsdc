@@ -6,6 +6,7 @@ import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
 import { portalT } from '@/lib/portal/parent-i18n';
 import { formatSessionRangeForViewer } from '@/lib/portal/time';
+import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 function stepForStatus(status: string): number {
@@ -53,6 +54,20 @@ export default async function StudentBookingPage() {
     ]),
   ];
   const coachMap = await getProfileMap(supabase, coachIds);
+  const missingCoachIds = coachIds.filter((id) => Boolean(id) && !coachMap[id]);
+  if (missingCoachIds.length) {
+    const admin = getSupabaseAdminClient();
+    const [{ data: coachRows }, { data: adminProfiles }] = await Promise.all([
+      admin.from('coach_profiles').select('coach_id').in('coach_id', missingCoachIds),
+      admin.from('profiles').select('*').in('id', missingCoachIds),
+    ]);
+    const coachIdSet = new Set((coachRows ?? []).map((row: { coach_id: string }) => row.coach_id));
+    for (const profile of adminProfiles ?? []) {
+      if (coachIdSet.has(profile.id)) {
+        coachMap[profile.id] = profile;
+      }
+    }
+  }
 
   const availableSlots = availability.map((slot: any) => {
     let whenText = '—';

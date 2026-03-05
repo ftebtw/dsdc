@@ -87,17 +87,21 @@ export default function ClassesPage() {
               {t("classesPage.typicalClassTitle")}
             </h2>
           </AnimatedSection>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 auto-rows-fr">
             {typicalItems.map((item, i) => {
               const Icon = typicalIcons[i];
               return (
-                <AnimatedSection key={i} delay={i * 0.08}>
-                  <div className="text-center p-5 sm:p-6 md:p-8 rounded-2xl bg-warm-50 dark:bg-navy-800 border border-warm-200 dark:border-navy-700">
+                <AnimatedSection key={i} delay={i * 0.08} className="h-full">
+                  <div className="h-full min-h-[220px] sm:min-h-[230px] text-center p-5 sm:p-6 md:p-8 rounded-2xl bg-warm-50 dark:bg-navy-800 border border-warm-200 dark:border-navy-700 flex flex-col items-center">
                     <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gold-400/10 dark:bg-gold-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
                       <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-gold-500 dark:text-gold-400" />
                     </div>
-                    <h4 className="text-sm sm:text-base font-bold text-navy-800 dark:text-white mb-2 font-serif">{item.title}</h4>
-                    <p className="text-xs sm:text-sm text-charcoal/50 dark:text-navy-300 font-sans leading-relaxed">{item.description}</p>
+                    <h4 className="text-sm sm:text-base font-bold text-navy-800 dark:text-white mb-2 font-serif min-h-[2.5rem] flex items-center justify-center">
+                      {item.title}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-charcoal/50 dark:text-navy-300 font-sans leading-relaxed max-w-[34ch] mx-auto flex-1">
+                      {item.description}
+                    </p>
                   </div>
                 </AnimatedSection>
               );
