@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -18,6 +18,9 @@ export default function PortalLoginForm({ locale }: Props) {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [emailNotConfirmed, setEmailNotConfirmed] = useState(false);
+  const [resendVerificationLoading, setResendVerificationLoading] = useState(false);
+  const [resendVerificationInfo, setResendVerificationInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const params = useSearchParams();
@@ -30,8 +33,7 @@ export default function PortalLoginForm({ locale }: Props) {
           emailVerified: "邮箱验证成功！请登录您的账户。",
           verificationFailed: "验证链接已过期或无效。请重新注册或联系支持。",
           enterEmailFirst: "请先输入电子邮箱，然后点击“忘记密码”。",
-          resetSent:
-            "密码重置邮件已发送，请检查您的收件箱（也包括垃圾邮件/垃圾箱文件夹）并点击链接。",
+          resetSent: "密码重置邮件已发送，请检查收件箱（含垃圾邮件）并点击链接。",
           newPasswordMin: "新密码至少需要 8 个字符。",
           passwordsNoMatch: "两次输入的密码不一致。",
           passwordUpdated: "密码已更新，现在可以登录。",
@@ -45,6 +47,10 @@ export default function PortalLoginForm({ locale }: Props) {
           signIn: "登录",
           sendingResetEmail: "发送重置邮件中...",
           forgotPassword: "忘记密码",
+          resendVerification: "重新发送验证邮件",
+          resendingVerification: "发送中...",
+          resendVerificationSent:
+            "如果该邮箱尚未验证，我们已重新发送验证邮件。请检查收件箱和垃圾邮件。",
         }
       : {
           resetLinkDetected: "Reset link detected. Enter a new password below.",
@@ -69,6 +75,10 @@ export default function PortalLoginForm({ locale }: Props) {
           signIn: "Sign In",
           sendingResetEmail: "Sending reset email...",
           forgotPassword: "Forgot Password",
+          resendVerification: "Resend verification email",
+          resendingVerification: "Resending...",
+          resendVerificationSent:
+            "If this email is still unverified, we sent a new verification email. Check your inbox and spam folder.",
         };
 
   useEffect(() => {
@@ -130,18 +140,23 @@ export default function PortalLoginForm({ locale }: Props) {
     setLoading(true);
     setError(null);
     setInfo(null);
+    setEmailNotConfirmed(false);
+    setResendVerificationInfo(null);
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     setLoading(false);
 
     if (signInError) {
-      if (signInError.message.toLowerCase().includes("email not confirmed")) {
+      const message = signInError.message.toLowerCase();
+      if (message.includes("email not confirmed") || message.includes("email_not_confirmed")) {
+        setEmailNotConfirmed(true);
         setError(
           locale === "zh"
             ? "请先验证您的邮箱。请检查收件箱中的验证链接。"
             : "Please verify your email first. Check your inbox for the verification link."
         );
       } else {
+        setEmailNotConfirmed(false);
         setError(signInError.message);
       }
       return;
@@ -151,6 +166,30 @@ export default function PortalLoginForm({ locale }: Props) {
 
     const redirectTo = params.get("redirectTo") || "/portal";
     window.location.href = redirectTo;
+  }
+
+  async function onResendVerification() {
+    if (!email.trim()) {
+      setError(t.enterEmailFirst);
+      return;
+    }
+
+    setResendVerificationLoading(true);
+    setResendVerificationInfo(null);
+    setInfo(null);
+
+    try {
+      await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), locale }),
+      });
+    } catch (resendError) {
+      console.error("[portal-login] resend verification error:", resendError);
+    }
+
+    setResendVerificationLoading(false);
+    setResendVerificationInfo(t.resendVerificationSent);
   }
 
   async function onSendResetEmail() {
@@ -270,6 +309,21 @@ export default function PortalLoginForm({ locale }: Props) {
       )}
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {emailNotConfirmed ? (
+        <button
+          type="button"
+          disabled={resendVerificationLoading}
+          onClick={() => {
+            void onResendVerification();
+          }}
+          className="text-sm text-blue-600 dark:text-blue-400 underline disabled:opacity-60"
+        >
+          {resendVerificationLoading ? t.resendingVerification : t.resendVerification}
+        </button>
+      ) : null}
+      {resendVerificationInfo ? (
+        <p className="text-sm text-green-700 dark:text-green-400">{resendVerificationInfo}</p>
+      ) : null}
       {info ? <p className="text-sm text-green-700 dark:text-green-400">{info}</p> : null}
 
       <button
