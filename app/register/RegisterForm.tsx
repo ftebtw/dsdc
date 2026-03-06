@@ -17,6 +17,7 @@ type RegisterResponse = {
   loginPassword: string;
   verificationSent?: boolean;
   verificationEmail?: string;
+  verificationResent?: boolean;
   error?: string;
 };
 
@@ -45,6 +46,10 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [showVerifyEmail, setShowVerifyEmail] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const [verificationNotice, setVerificationNotice] = useState<string | null>(null);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [resendError, setResendError] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
 
   const langParam = params.get("lang");
@@ -102,6 +107,80 @@ export default function RegisterForm() {
     return null;
   }
 
+  function buildRegistrationPayload() {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Vancouver";
+    if (role === "student") {
+      return {
+        role,
+        firstName,
+        lastName,
+        email,
+        password,
+        locale: resolvedLocale,
+        timezone,
+        referralCode: referralCode || undefined,
+      };
+    }
+
+    return {
+      role,
+      parentFirstName,
+      parentLastName,
+      parentEmail,
+      parentPassword,
+      locale: resolvedLocale,
+      timezone,
+      referralCode: referralCode || undefined,
+      phoneNumbers: parentPhone.trim() ? [{ label: "Primary", number: parentPhone.trim() }] : [],
+    };
+  }
+
+  async function onResendVerification() {
+    setResending(true);
+    setResendError(null);
+    setResendMessage(null);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildRegistrationPayload()),
+      });
+      const data = (await response.json()) as RegisterResponse;
+
+      if (!response.ok || data.error || !data.verificationSent) {
+        setResendError(
+          data.error ||
+            tx(
+              "registerPage.resendError",
+              "Could not resend verification email right now. Please try again in a minute."
+            )
+        );
+        setResending(false);
+        return;
+      }
+
+      setRegisteredEmail(data.verificationEmail || data.loginEmail || registeredEmail);
+      setResendMessage(
+        tx(
+          "registerPage.resendSuccess",
+          "Verification email sent again. Please check your inbox and spam folder."
+        )
+      );
+    } catch (resendErr) {
+      console.error("[register] resend error:", resendErr);
+      setResendError(
+        tx(
+          "registerPage.resendError",
+          "Could not resend verification email right now. Please try again in a minute."
+        )
+      );
+    }
+
+    setResending(false);
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -121,30 +200,7 @@ export default function RegisterForm() {
       return;
     }
 
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Vancouver";
-    const payload =
-      role === "student"
-        ? {
-            role,
-            firstName,
-            lastName,
-            email,
-            password,
-            locale: resolvedLocale,
-            timezone,
-            referralCode: referralCode || undefined,
-          }
-        : {
-            role,
-            parentFirstName,
-            parentLastName,
-            parentEmail,
-            parentPassword,
-            locale: resolvedLocale,
-            timezone,
-            referralCode: referralCode || undefined,
-            phoneNumbers: parentPhone.trim() ? [{ label: "Primary", number: parentPhone.trim() }] : [],
-          };
+    const payload = buildRegistrationPayload();
 
     try {
       const response = await fetch("/api/register", {
@@ -162,6 +218,16 @@ export default function RegisterForm() {
       // Show verification screen - do not sign in before email confirmation.
       if (data.verificationSent) {
         setRegisteredEmail(data.verificationEmail || data.loginEmail);
+        setVerificationNotice(
+          data.verificationResent
+            ? tx(
+                "registerPage.verificationResentExisting",
+                "This email is already registered but not verified. We sent you a new verification email."
+              )
+            : null
+        );
+        setResendMessage(null);
+        setResendError(null);
         setShowVerifyEmail(true);
         setLoading(false);
         return;
@@ -238,12 +304,34 @@ export default function RegisterForm() {
               "Click the link in the email to verify your account and continue with registration. Check your spam or junk folder if you don't see it."
             )}
           </p>
+          {verificationNotice ? (
+            <p className="mb-3 text-sm text-blue-700 dark:text-blue-300">{verificationNotice}</p>
+          ) : null}
+          {resendMessage ? (
+            <p className="mb-3 text-sm text-green-700 dark:text-green-300">{resendMessage}</p>
+          ) : null}
+          {resendError ? <p className="mb-3 text-sm text-red-600">{resendError}</p> : null}
 
           <div className="space-y-2">
             <button
               type="button"
               onClick={() => {
+                void onResendVerification();
+              }}
+              disabled={resending}
+              className="w-full rounded-lg border-2 border-gold-300 dark:border-gold-400 py-2.5 text-sm font-medium text-navy-700 dark:text-navy-100 hover:bg-gold-50 dark:hover:bg-navy-700 transition-colors disabled:opacity-60"
+            >
+              {resending
+                ? tx("registerPage.resending", "Resending...")
+                : tx("registerPage.resendVerification", "Resend verification email")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
                 setShowVerifyEmail(false);
+                setVerificationNotice(null);
+                setResendMessage(null);
+                setResendError(null);
                 setError(null);
               }}
               className="w-full rounded-lg border-2 border-warm-300 dark:border-navy-600 py-2.5 text-sm font-medium text-navy-700 dark:text-navy-200 hover:bg-warm-50 dark:hover:bg-navy-700 transition-colors"

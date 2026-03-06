@@ -17,13 +17,25 @@ export async function sendPortalEmail(input: SendInput): Promise<{ ok: boolean; 
   }
 
   try {
-    await client.emails.send({
+    const result = await client.emails.send({
       from,
       to: input.to,
       subject: input.subject,
       html: input.html,
       text: input.text,
     });
+
+    const apiError = (result as { error?: { message?: string } | null } | null)?.error;
+    if (apiError) {
+      const message = apiError.message || 'Unknown email provider error';
+      console.error('[email] provider rejected send', {
+        to: input.to,
+        subject: input.subject,
+        error: message,
+      });
+      return { ok: false, error: message };
+    }
+
     return { ok: true };
   } catch (error) {
     console.error('[email] send failed', {

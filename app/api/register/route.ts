@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { getPortalAppUrl } from "@/lib/email/resend";
 import { sendPortalEmail } from "@/lib/email/send";
@@ -57,6 +58,37 @@ function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
+function isAlreadyRegisteredAuthError(message?: string | null): boolean {
+  if (!message) return false;
+  const lower = message.toLowerCase();
+  return lower.includes("already been registered") || lower.includes("already registered");
+}
+
+async function resendVerificationViaSupabase(input: { email: string; redirectTo: string }) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return { ok: false as const, error: "Fallback email sender not configured." };
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: input.email,
+    options: { emailRedirectTo: input.redirectTo },
+  });
+
+  if (error) {
+    return { ok: false as const, error: error.message };
+  }
+
+  return { ok: true as const };
+}
+
 function profilePayload(input: {
   id: string;
   email: string;
@@ -92,15 +124,21 @@ async function sendVerificationEmail(
   }
 ) {
   const portalBase = getPortalAppUrl().replace(/\/$/, "");
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const redirectTo = `${portalBase}/auth/callback?type=signup`;
+
   const { data, error } = await admin.auth.admin.generateLink({
     type: "signup",
-    email: input.email,
+    email: normalizedEmail,
     options: {
-      redirectTo: `${portalBase}/auth/callback?type=signup`,
+      redirectTo,
     },
   });
 
   if (error) {
+    if (isAlreadyRegisteredAuthError(error.message)) {
+      throw new Error("This email is already registered. Please sign in from the portal login page.");
+    }
     throw new Error(`Failed to generate verification link: ${error.message}`);
   }
 
@@ -116,12 +154,23 @@ async function sendVerificationEmail(
   });
 
   const emailResult = await sendPortalEmail({
-    to: input.email,
+    to: normalizedEmail,
     ...template,
   });
 
-  if (!emailResult.ok) {
-    throw new Error(emailResult.error || "Failed to send verification email.");
+  if (emailResult.ok) {
+    return;
+  }
+
+  const fallback = await resendVerificationViaSupabase({
+    email: normalizedEmail,
+    redirectTo,
+  });
+
+  if (!fallback.ok) {
+    throw new Error(
+      `Failed to send verification email. Email provider error: ${emailResult.error || "unknown"}. Fallback error: ${fallback.error}`
+    );
   }
 }
 
@@ -141,7 +190,35 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
       timezone: body.timezone,
     },
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (!isAlreadyRegisteredAuthError(error.message)) {
+      throw new Error(error.message);
+    }
+
+    await sendVerificationEmail(admin, {
+      email: body.email,
+      displayName: studentDisplayName,
+      locale: body.locale,
+    });
+
+    const { data: existingProfile } = await admin
+      .from("profiles")
+      .select("id")
+      .ilike("email", body.email.trim().toLowerCase())
+      .maybeSingle();
+
+    return {
+      studentId: existingProfile?.id || "",
+      parentId: null,
+      studentNeedsPasswordSetup: false,
+      role: "student" as const,
+      loginEmail: body.email,
+      loginPassword: body.password,
+      verificationSent: true,
+      verificationEmail: body.email,
+      verificationResent: true,
+    };
+  }
 
   const userId = data.user?.id;
   if (!userId) throw new Error("Unable to create student account.");
@@ -173,6 +250,7 @@ async function createStudentRegistration(admin: any, body: ParsedBody) {
     loginPassword: body.password,
     verificationSent: true,
     verificationEmail: body.email,
+    verificationResent: false,
   };
 }
 
@@ -192,7 +270,35 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
       timezone: body.timezone,
     },
   });
-  if (parentResult.error) throw new Error(parentResult.error.message);
+  if (parentResult.error) {
+    if (!isAlreadyRegisteredAuthError(parentResult.error.message)) {
+      throw new Error(parentResult.error.message);
+    }
+
+    await sendVerificationEmail(admin, {
+      email: body.parentEmail,
+      displayName: parentDisplayName,
+      locale: body.locale,
+    });
+
+    const { data: existingProfile } = await admin
+      .from("profiles")
+      .select("id")
+      .ilike("email", body.parentEmail.trim().toLowerCase())
+      .maybeSingle();
+
+    return {
+      studentId: "",
+      parentId: existingProfile?.id || "",
+      studentNeedsPasswordSetup: false,
+      role: "parent" as const,
+      loginEmail: body.parentEmail,
+      loginPassword: body.parentPassword,
+      verificationSent: true,
+      verificationEmail: body.parentEmail,
+      verificationResent: true,
+    };
+  }
 
   const parentId = parentResult.data.user?.id;
   if (!parentId) throw new Error("Unable to create parent account.");
@@ -235,6 +341,7 @@ async function createParentRegistration(admin: any, body: ParsedBody) {
     loginPassword: body.parentPassword,
     verificationSent: true,
     verificationEmail: body.parentEmail,
+    verificationResent: false,
   };
 }
 
