@@ -110,6 +110,10 @@ export default async function ParentPrivateSessionsPage({
         return `${slot.available_date ?? '?'} ${(slot.start_time || '').slice(0, 5)}-${(slot.end_time || '').slice(0, 5)}`;
       }
     })(),
+    availableDate: slot.available_date,
+    startTime: slot.start_time,
+    endTime: slot.end_time,
+    timezone: slot.timezone,
   }));
 
   const items = sessions.map((row: any) => {

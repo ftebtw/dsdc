@@ -9,6 +9,10 @@ type AvailableSlot = {
   id: string;
   coachName: string;
   whenText: string;
+  availableDate: string;
+  startTime: string;
+  endTime: string;
+  timezone: string;
 };
 
 type BookingSessionItem = {
@@ -37,6 +41,55 @@ type BookingSessionItem = {
   canComplete?: boolean;
 };
 
+type SlotRange = { start: string; end: string };
+
+function normalizeTime(timeValue: string): string {
+  const trimmed = timeValue.trim();
+  if (/^\d{2}:\d{2}:\d{2}$/.test(trimmed)) return trimmed.slice(0, 5);
+  return trimmed.slice(0, 5);
+}
+
+function toMinutes(timeValue: string): number | null {
+  const normalized = normalizeTime(timeValue);
+  const match = normalized.match(/^(\d{2}):(\d{2})$/);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(totalMinutes: number): string {
+  const hours = Math.floor(totalMinutes / 60)
+    .toString()
+    .padStart(2, "0");
+  const minutes = (totalMinutes % 60).toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+function hourlyBoundaries(startRaw: string, endRaw: string): string[] {
+  const startMin = toMinutes(startRaw);
+  const endMin = toMinutes(endRaw);
+  if (startMin === null || endMin === null || endMin <= startMin) return [];
+
+  const firstBoundary = Math.ceil(startMin / 60) * 60;
+  const lastBoundary = Math.floor(endMin / 60) * 60;
+  if (lastBoundary - firstBoundary < 60) return [];
+
+  const output: string[] = [];
+  for (let minute = firstBoundary; minute <= lastBoundary; minute += 60) {
+    output.push(minutesToTime(minute));
+  }
+  return output;
+}
+
+function defaultRangeForSlot(slot: AvailableSlot): SlotRange | null {
+  const boundaries = hourlyBoundaries(slot.startTime, slot.endTime);
+  if (boundaries.length < 2) return null;
+  return { start: boundaries[0], end: boundaries[1] };
+}
+
 export default function ParentBookingManager({
   availableSlots,
   sessions,
@@ -51,21 +104,56 @@ export default function ParentBookingManager({
   const { locale: contextLocale } = useI18n();
   const t = (key: string, fallback: string) => portalT(contextLocale, key, fallback);
   const [selectedSlotIds, setSelectedSlotIds] = useState<Set<string>>(new Set());
+  const [slotRanges, setSlotRanges] = useState<Record<string, SlotRange>>({});
   const [notes, setNotes] = useState("");
   const [requesting, setRequesting] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
   const [requestSuccess, setRequestSuccess] = useState(false);
 
-  function toggleSlot(id: string) {
+  function toggleSlot(slot: AvailableSlot) {
     setSelectedSlotIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
+      if (next.has(slot.id)) {
+        next.delete(slot.id);
       } else {
-        next.add(id);
+        const defaultRange = defaultRangeForSlot(slot);
+        if (!defaultRange) return next;
+        next.add(slot.id);
+        setSlotRanges((current) => ({
+          ...current,
+          [slot.id]: current[slot.id] || defaultRange,
+        }));
       }
       return next;
     });
+  }
+
+  function updateSlotStart(slot: AvailableSlot, nextStart: string) {
+    const boundaries = hourlyBoundaries(slot.startTime, slot.endTime);
+    const current = slotRanges[slot.id] || defaultRangeForSlot(slot);
+    if (!current) return;
+
+    const nextIndex = boundaries.indexOf(nextStart);
+    const currentEndIndex = boundaries.indexOf(current.end);
+    const safeEnd =
+      currentEndIndex > nextIndex
+        ? current.end
+        : boundaries[Math.min(nextIndex + 1, boundaries.length - 1)];
+
+    setSlotRanges((prev) => ({
+      ...prev,
+      [slot.id]: { start: nextStart, end: safeEnd },
+    }));
+  }
+
+  function updateSlotEnd(slotId: string, nextEnd: string) {
+    setSlotRanges((prev) => ({
+      ...prev,
+      [slotId]: {
+        ...(prev[slotId] || { start: "", end: "" }),
+        end: nextEnd,
+      },
+    }));
   }
 
   async function requestSessions() {
@@ -78,19 +166,39 @@ export default function ParentBookingManager({
     const errors: string[] = [];
 
     for (const slotId of slotArray) {
+      const slot = availableSlots.find((item) => item.id === slotId);
+      if (!slot) {
+        errors.push(`${slotId}: Slot not found`);
+        continue;
+      }
+
+      const boundaries = hourlyBoundaries(slot.startTime, slot.endTime);
+      if (boundaries.length < 2) {
+        errors.push(`${slot.whenText}: No full 1-hour window available in this slot.`);
+        continue;
+      }
+
+      const selectedRange = slotRanges[slotId] || defaultRangeForSlot(slot);
+      if (!selectedRange) {
+        errors.push(`${slot.whenText}: Could not determine requested time range.`);
+        continue;
+      }
+
       try {
         const response = await fetch("/api/portal/private-sessions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             availabilityId: slotId,
+            requestedStartTime: selectedRange.start,
+            requestedEndTime: selectedRange.end,
             studentNotes: notes || undefined,
             studentId,
           }),
         });
         if (!response.ok) {
           const data = (await response.json().catch(() => ({}))) as { error?: string };
-          const slotLabel = availableSlots.find((slot) => slot.id === slotId)?.whenText || slotId;
+          const slotLabel = `${slot.whenText} (${selectedRange.start}-${selectedRange.end})`;
           errors.push(`${slotLabel}: ${data.error || "Failed"}`);
         }
       } catch (requestErrorUnknown) {
@@ -129,39 +237,106 @@ export default function ParentBookingManager({
           <div className="space-y-2">
             {availableSlots.map((slot) => {
               const isSelected = selectedSlotIds.has(slot.id);
+              const boundaries = hourlyBoundaries(slot.startTime, slot.endTime);
+              const hasBookableHour = boundaries.length >= 2;
+              const selectedRange = slotRanges[slot.id] || defaultRangeForSlot(slot);
+              const selectedStart = selectedRange?.start || "";
+              const selectedStartIndex = boundaries.indexOf(selectedStart);
+              const endOptions =
+                selectedStartIndex >= 0 ? boundaries.slice(selectedStartIndex + 1) : boundaries.slice(1);
+              const durationHours =
+                selectedRange && toMinutes(selectedRange.end) !== null && toMinutes(selectedRange.start) !== null
+                  ? ((toMinutes(selectedRange.end) || 0) - (toMinutes(selectedRange.start) || 0)) / 60
+                  : 0;
+
               return (
-                <button
+                <div
                   key={slot.id}
-                  type="button"
-                  onClick={() => toggleSlot(slot.id)}
-                  className={`w-full text-left flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                  className={`rounded-xl border p-3 transition-colors ${
                     isSelected
                       ? "border-gold-400 bg-gold-50 dark:bg-gold-900/20 dark:border-gold-500"
-                      : "border-warm-200 dark:border-navy-600 hover:bg-warm-50 dark:hover:bg-navy-800"
+                      : "border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900"
                   }`}
                 >
-                  <div
-                    className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center ${
-                      isSelected ? "border-gold-500 bg-gold-400" : "border-warm-300 dark:border-navy-500"
-                    }`}
+                  <button
+                    type="button"
+                    onClick={() => toggleSlot(slot)}
+                    disabled={!hasBookableHour}
+                    className="w-full text-left flex items-center gap-3 disabled:opacity-60"
                   >
-                    {isSelected ? (
-                      <svg
-                        className="w-3 h-3 text-navy-900"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={3}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : null}
-                  </div>
-                  <div>
-                    <p className="font-medium text-navy-800 dark:text-white">{slot.coachName}</p>
-                    <p className="text-sm text-charcoal/70 dark:text-navy-300">{slot.whenText}</p>
-                  </div>
-                </button>
+                    <div
+                      className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center ${
+                        isSelected ? "border-gold-500 bg-gold-400" : "border-warm-300 dark:border-navy-500"
+                      }`}
+                    >
+                      {isSelected ? (
+                        <svg
+                          className="w-3 h-3 text-navy-900"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={3}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : null}
+                    </div>
+                    <div>
+                      <p className="font-medium text-navy-800 dark:text-white">{slot.coachName}</p>
+                      <p className="text-sm text-charcoal/70 dark:text-navy-300">{slot.whenText}</p>
+                    </div>
+                  </button>
+
+                  {!hasBookableHour ? (
+                    <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-400">
+                      {t(
+                        "portal.privateSessions.noHourlyWindow",
+                        "This slot does not contain a full 1-hour bookable window."
+                      )}
+                    </p>
+                  ) : null}
+
+                  {isSelected && hasBookableHour && selectedRange ? (
+                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                      <label className="text-xs text-charcoal/70 dark:text-navy-300">
+                        {t("portal.privateSessions.startTime", "Start")}
+                        <select
+                          value={selectedRange.start}
+                          onChange={(event) => updateSlotStart(slot, event.target.value)}
+                          className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-2 py-1.5 text-sm"
+                        >
+                          {boundaries.slice(0, -1).map((timeValue) => (
+                            <option key={timeValue} value={timeValue}>
+                              {timeValue}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label className="text-xs text-charcoal/70 dark:text-navy-300">
+                        {t("portal.privateSessions.endTime", "End")}
+                        <select
+                          value={selectedRange.end}
+                          onChange={(event) => updateSlotEnd(slot.id, event.target.value)}
+                          className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-2 py-1.5 text-sm"
+                        >
+                          {endOptions.map((timeValue) => (
+                            <option key={timeValue} value={timeValue}>
+                              {timeValue}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <div className="text-xs text-charcoal/70 dark:text-navy-300 sm:self-end pb-1">
+                        {t("portal.privateSessions.duration", "Duration")}: {durationHours}{" "}
+                        {durationHours === 1
+                          ? t("portal.common.hour", "hour")
+                          : t("portal.common.hours", "hours")}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               );
             })}
           </div>

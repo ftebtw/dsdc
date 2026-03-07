@@ -88,6 +88,10 @@ export default async function StudentBookingPage() {
       id: slot.id,
       coachName: coachMap[slot.coach_id]?.display_name || coachMap[slot.coach_id]?.email || slot.coach_id,
       whenText,
+      availableDate: slot.available_date,
+      startTime: slot.start_time,
+      endTime: slot.end_time,
+      timezone: slot.timezone,
     };
   });
 
