@@ -1407,6 +1407,8 @@ export type Database = {
         Row: {
           accepted_at: string | null
           accepting_coach_id: string | null
+          attachment_name: string | null
+          attachment_path: string | null
           class_id: string
           created_at: string
           id: string
@@ -1418,6 +1420,8 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           accepting_coach_id?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
           class_id: string
           created_at?: string
           id?: string
@@ -1429,6 +1433,8 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           accepting_coach_id?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
           class_id?: string
           created_at?: string
           id?: string
@@ -1465,6 +1471,8 @@ export type Database = {
         Row: {
           accepted_at: string | null
           accepting_ta_id: string | null
+          attachment_name: string | null
+          attachment_path: string | null
           class_id: string
           created_at: string
           id: string
@@ -1476,6 +1484,8 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           accepting_ta_id?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
           class_id: string
           created_at?: string
           id?: string
@@ -1487,6 +1497,8 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           accepting_ta_id?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
           class_id?: string
           created_at?: string
           id?: string

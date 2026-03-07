@@ -12,6 +12,8 @@ type Props = {
   status: string;
   reason?: string | null;
   acceptedByName?: string | null;
+  attachmentName?: string | null;
+  attachmentEndpoint?: string | null;
   canAccept?: boolean;
   canCancel?: boolean;
   onAccept?: () => Promise<{ ok: boolean; error?: string }>;
@@ -26,6 +28,8 @@ export default function SubRequestCard({
   status,
   reason,
   acceptedByName,
+  attachmentName,
+  attachmentEndpoint,
   canAccept = false,
   canCancel = false,
   onAccept,
@@ -34,6 +38,7 @@ export default function SubRequestCard({
   const { locale } = useI18n();
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [loading, setLoading] = useState<'accept' | 'cancel' | null>(null);
+  const [attachmentLoading, setAttachmentLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleAccept() {
@@ -54,6 +59,20 @@ export default function SubRequestCard({
     if (!result.ok) setError(result.error || t('portal.subRequestCard.cancelError', 'Could not cancel request.'));
   }
 
+  async function openAttachment() {
+    if (!attachmentEndpoint) return;
+    setAttachmentLoading(true);
+    setError(null);
+    const response = await fetch(attachmentEndpoint);
+    const data = (await response.json()) as { error?: string; url?: string };
+    setAttachmentLoading(false);
+    if (!response.ok || !data.url) {
+      setError(data.error || t('portal.subRequestCard.attachmentError', 'Could not open attachment.'));
+      return;
+    }
+    window.open(data.url, '_blank', 'noopener,noreferrer');
+  }
+
   return (
     <article className="rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900 p-4">
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
@@ -72,6 +91,23 @@ export default function SubRequestCard({
           {acceptedByName ? (
             <p className="text-sm mt-1">
               {t('portal.subRequestCard.acceptedBy', 'Accepted by:')} {acceptedByName}
+            </p>
+          ) : null}
+          {attachmentEndpoint ? (
+            <p className="text-sm mt-1">
+              {t('portal.subRequestCard.attachment', 'Attachment:')}{' '}
+              <button
+                type="button"
+                onClick={() => {
+                  void openAttachment();
+                }}
+                disabled={attachmentLoading}
+                className="text-blue-600 dark:text-blue-400 underline disabled:opacity-60"
+              >
+                {attachmentLoading
+                  ? t('portal.common.loading', 'Loading...')
+                  : attachmentName || t('portal.subRequestCard.openAttachment', 'Open attachment')}
+              </button>
             </p>
           ) : null}
           <p className="text-xs mt-2 uppercase">

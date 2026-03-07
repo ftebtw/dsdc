@@ -19,6 +19,8 @@ type RequestItem = {
   class_id: string;
   className: string;
   session_date: string;
+  attachment_path?: string | null;
+  attachment_name?: string | null;
   whenText: string;
   reason: string | null;
   status: string;
@@ -134,16 +136,12 @@ export default function CoachSubsManager({
     [taClass, termStartDate, termEndDate]
   );
 
-  async function createRequest(
-    kind: 'sub' | 'ta',
-    payload: { classId: string; sessionDate: string; reason: string }
-  ) {
+  async function createRequest(kind: 'sub' | 'ta', payload: FormData) {
     setLoading(kind);
     setError(null);
     const response = await fetch(kind === 'sub' ? '/api/portal/subs' : '/api/portal/ta-requests', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: payload,
     });
     const data = (await response.json()) as { error?: string };
     setLoading(null);
@@ -177,11 +175,7 @@ export default function CoachSubsManager({
           onSubmit={async (event) => {
             event.preventDefault();
             const formData = new FormData(event.currentTarget);
-            await createRequest('sub', {
-              classId: String(formData.get('classId') || ''),
-              sessionDate: String(formData.get('sessionDate') || ''),
-              reason: String(formData.get('reason') || ''),
-            });
+            await createRequest('sub', formData);
           }}
         >
           <h3 className="font-semibold text-navy-800 dark:text-white">
@@ -231,6 +225,16 @@ export default function CoachSubsManager({
             placeholder={t('portal.coachSubs.reasonOptional', 'Reason (optional)')}
             className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
           />
+          <label className="block">
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t('portal.coachSubs.attachmentOptional', 'Attachment (optional)')}
+            </span>
+            <input
+              type="file"
+              name="attachment"
+              className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-gold-300 file:px-3 file:py-1"
+            />
+          </label>
           <button
             disabled={loading !== null || !classes.length || subWeeks.length === 0}
             className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-70"
@@ -246,11 +250,7 @@ export default function CoachSubsManager({
           onSubmit={async (event) => {
             event.preventDefault();
             const formData = new FormData(event.currentTarget);
-            await createRequest('ta', {
-              classId: String(formData.get('classId') || ''),
-              sessionDate: String(formData.get('sessionDate') || ''),
-              reason: String(formData.get('reason') || ''),
-            });
+            await createRequest('ta', formData);
           }}
         >
           <h3 className="font-semibold text-navy-800 dark:text-white">
@@ -300,6 +300,16 @@ export default function CoachSubsManager({
             placeholder={t('portal.coachSubs.reasonOptional', 'Reason (optional)')}
             className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
           />
+          <label className="block">
+            <span className="text-sm text-charcoal/70 dark:text-navy-300">
+              {t('portal.coachSubs.attachmentOptional', 'Attachment (optional)')}
+            </span>
+            <input
+              type="file"
+              name="attachment"
+              className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-gold-300 file:px-3 file:py-1"
+            />
+          </label>
           <button
             disabled={loading !== null || !classes.length || taWeeks.length === 0}
             className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-70"
@@ -328,6 +338,10 @@ export default function CoachSubsManager({
               status={request.status}
               reason={request.reason}
               acceptedByName={request.acceptingName}
+              attachmentName={request.attachment_name}
+              attachmentEndpoint={
+                request.attachment_path ? `/api/portal/subs/${request.id}/attachment` : null
+              }
               canCancel={request.status === 'open'}
               onCancel={() => runAction(`/api/portal/subs/${request.id}/cancel`)}
             />
@@ -353,6 +367,10 @@ export default function CoachSubsManager({
               requestingName={request.requestingName}
               status={request.status}
               reason={request.reason}
+              attachmentName={request.attachment_name}
+              attachmentEndpoint={
+                request.attachment_path ? `/api/portal/subs/${request.id}/attachment` : null
+              }
               canAccept
               onAccept={() => runAction(`/api/portal/subs/${request.id}/accept`)}
             />
@@ -379,6 +397,10 @@ export default function CoachSubsManager({
               status={request.status}
               reason={request.reason}
               acceptedByName={request.acceptingName}
+              attachmentName={request.attachment_name}
+              attachmentEndpoint={
+                request.attachment_path ? `/api/portal/ta-requests/${request.id}/attachment` : null
+              }
               canCancel={request.status === 'open'}
               onCancel={() => runAction(`/api/portal/ta-requests/${request.id}/cancel`)}
             />
@@ -404,6 +426,10 @@ export default function CoachSubsManager({
               requestingName={request.requestingName}
               status={request.status}
               reason={request.reason}
+              attachmentName={request.attachment_name}
+              attachmentEndpoint={
+                request.attachment_path ? `/api/portal/ta-requests/${request.id}/attachment` : null
+              }
               canAccept
               onAccept={() => runAction(`/api/portal/ta-requests/${request.id}/accept`)}
             />

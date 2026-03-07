@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
 import { sendPortalEmails } from '@/lib/email/send';
@@ -23,11 +24,37 @@ function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
+function cleanFilename(name: string) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '-');
+}
+
+async function parsePayload(request: NextRequest) {
+  const contentType = request.headers.get('content-type') || '';
+  if (contentType.includes('multipart/form-data')) {
+    const formData = await request.formData();
+    const fileValue = formData.get('attachment');
+    const attachment = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
+    return {
+      parsed: schema.safeParse({
+        classId: formData.get('classId'),
+        sessionDate: formData.get('sessionDate'),
+        reason: formData.get('reason') || undefined,
+      }),
+      attachment,
+    };
+  }
+
+  return {
+    parsed: schema.safeParse(await request.json()),
+    attachment: null as File | null,
+  };
+}
+
 export async function POST(request: NextRequest) {
   const session = await requireApiRole(request, ['coach', 'ta']);
   if (!session) return jsonError('Unauthorized', 401);
 
-  const parsed = schema.safeParse(await request.json());
+  const { parsed, attachment } = await parsePayload(request);
   if (!parsed.success) return jsonError('Invalid payload.');
 
   const supabaseResponse = NextResponse.next();
@@ -45,18 +72,44 @@ export async function POST(request: NextRequest) {
     return mergeCookies(supabaseResponse, jsonError('You can only request TA support for your own class.', 403));
   }
 
+  const requestId = randomUUID();
+  const bucket = process.env.PORTAL_BUCKET_RESOURCES || 'portal-resources';
+  let attachmentPath: string | null = null;
+  let attachmentName: string | null = null;
+
+  if (attachment) {
+    const safeName = cleanFilename(attachment.name || 'attachment.bin');
+    attachmentPath = `sub-ta-requests/ta/${requestId}/${safeName}`;
+    attachmentName = attachment.name || safeName;
+    const arrayBuffer = await attachment.arrayBuffer();
+    const uploadResult = await supabase.storage
+      .from(bucket)
+      .upload(attachmentPath, arrayBuffer, { contentType: attachment.type || undefined, upsert: false });
+    if (uploadResult.error) {
+      return mergeCookies(supabaseResponse, jsonError(uploadResult.error.message, 400));
+    }
+  }
+
   const { data: taRequest, error: createError } = await supabase
     .from('ta_requests')
     .insert({
+      id: requestId,
       requesting_coach_id: session.userId,
       class_id: parsed.data.classId,
       session_date: parsed.data.sessionDate,
       reason: parsed.data.reason || null,
+      attachment_path: attachmentPath,
+      attachment_name: attachmentName,
       status: 'open',
     })
     .select('*')
     .single();
-  if (createError) return mergeCookies(supabaseResponse, jsonError(createError.message, 400));
+  if (createError) {
+    if (attachmentPath) {
+      await supabase.storage.from(bucket).remove([attachmentPath]);
+    }
+    return mergeCookies(supabaseResponse, jsonError(createError.message, 400));
+  }
 
   const [requestingProfile, taProfilesRaw] = await Promise.all([
     admin
