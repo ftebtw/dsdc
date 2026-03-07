@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 400 400">
+  <title>DSDC Logo</title>
+  <desc>Blue circular DSDC mark for email brand avatar.</desc>
+  <rect width="400" height="400" fill="#ffffff"/>
+  <circle cx="200" cy="200" r="176" fill="#0f2f63"/>
+  <text
+    x="200"
+    y="220"
+    fill="#ffffff"
+    font-family="Arial, sans-serif"
+    font-size="96"
+    font-weight="700"
+    letter-spacing="2"
+    text-anchor="middle"
+  >
+    DSDC
+  </text>
+</svg>
