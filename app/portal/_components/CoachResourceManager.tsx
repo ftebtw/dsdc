@@ -43,6 +43,7 @@ export default function CoachResourceManager({
   const [description, setDescription] = useState('');
   const [type, setType] = useState<ResourceType>('homework');
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().slice(0, 10));
+  const [publishDate, setPublishDate] = useState(new Date().toISOString().slice(0, 10));
   const [url, setUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -152,6 +153,7 @@ export default function CoachResourceManager({
     if (description.trim()) formData.append('description', description.trim());
     formData.append('type', type);
     formData.append('sessionDate', sessionDate);
+    formData.append('publishAt', publishDate);
     if (url.trim()) formData.append('url', url.trim());
     if (file) formData.append('file', file);
 
@@ -256,13 +258,27 @@ export default function CoachResourceManager({
               className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
             />
           </div>
-          <input
-            placeholder={t('portal.coachResource.externalUrl', 'External URL (optional)')}
-            value={url}
-            onChange={(event) => setUrl(event.target.value)}
-            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 self-end"
-          />
+          <div>
+            <label className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+              Publish Date
+            </label>
+            <input
+              type="date"
+              value={publishDate}
+              onChange={(event) => setPublishDate(event.target.value)}
+              className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+            />
+          </div>
         </div>
+        <input
+          placeholder={t('portal.coachResource.externalUrl', 'External URL (optional)')}
+          value={url}
+          onChange={(event) => setUrl(event.target.value)}
+          className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+        />
+        <p className="text-xs text-charcoal/60 dark:text-navy-400 -mt-1">
+          Set a future publish date to schedule this resource for students and parents.
+        </p>
         <input
           ref={fileInputRef}
           type="file"
@@ -381,7 +397,10 @@ export default function CoachResourceManager({
                           {resourceTypeLabel[typeName] || typeName}
                         </h4>
                         <div className="space-y-2 pl-1">
-                          {items.map((resource) => (
+                          {items.map((resource) => {
+                            const publishAt = resource.publish_at || resource.created_at;
+                            const isScheduled = new Date(publishAt).getTime() > Date.now();
+                            return (
                             <div
                               key={resource.id}
                               className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 hover:bg-warm-50 dark:hover:bg-navy-800 transition-colors"
@@ -390,6 +409,16 @@ export default function CoachResourceManager({
                                 <p className="font-medium text-navy-800 dark:text-white truncate">
                                   {resource.title}
                                 </p>
+                                {isScheduled ? (
+                                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                                    Scheduled for{' '}
+                                    {new Date(publishAt).toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      year: 'numeric',
+                                    })}
+                                  </p>
+                                ) : null}
                                 {resource.description ? (
                                   <p className="text-xs text-charcoal/65 dark:text-navy-300 mt-0.5 whitespace-pre-wrap break-words">
                                     {resource.description}
@@ -419,7 +448,8 @@ export default function CoachResourceManager({
                                 </button>
                               </div>
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     ))}

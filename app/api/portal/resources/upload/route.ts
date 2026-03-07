@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import { fromZonedTime } from 'date-fns-tz';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
 import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
@@ -12,6 +13,7 @@ const metadataSchema = z.object({
   type: z.enum(['homework', 'lesson_plan', 'slides', 'document', 'recording', 'other']),
   url: z.string().url().optional(),
   sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  publishAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 function jsonError(message: string, status = 400) {
@@ -36,6 +38,7 @@ export async function POST(request: NextRequest) {
     type: formData.get('type'),
     url: formData.get('url') || undefined,
     sessionDate: formData.get('sessionDate') || undefined,
+    publishAt: formData.get('publishAt') || undefined,
   });
   if (!parsed.success) return mergeCookies(supabaseResponse, jsonError('Invalid upload payload.'));
 
@@ -46,10 +49,11 @@ export async function POST(request: NextRequest) {
 
   const classId = parsed.data.classId ?? null;
 
+  let classTimezone = 'UTC';
   if (classId && session.profile.role !== 'admin') {
     const { data: classRowData } = await supabase
       .from('classes')
-      .select('id, coach_id')
+      .select('id, coach_id, timezone')
       .eq('id', classId)
       .maybeSingle();
     const classRow = classRowData as any;
@@ -57,6 +61,7 @@ export async function POST(request: NextRequest) {
     if (!classRow) {
       return mergeCookies(supabaseResponse, jsonError('Class not found.', 404));
     }
+    classTimezone = classRow.timezone || 'UTC';
 
     // Allow primary coach, co-coaches, accepted subs, or accepted TAs.
     if (classRow.coach_id !== session.userId) {
@@ -86,7 +91,23 @@ export async function POST(request: NextRequest) {
         return mergeCookies(supabaseResponse, jsonError('Not allowed for this class.', 403));
       }
     }
+  } else if (classId) {
+    const { data: classRowData } = await supabase
+      .from('classes')
+      .select('id, timezone')
+      .eq('id', classId)
+      .maybeSingle();
+    const classRow = classRowData as any;
+    if (!classRow) {
+      return mergeCookies(supabaseResponse, jsonError('Class not found.', 404));
+    }
+    classTimezone = classRow.timezone || 'UTC';
   }
+
+  const publishAt =
+    parsed.data.publishAt
+      ? fromZonedTime(`${parsed.data.publishAt}T00:00:00`, classTimezone).toISOString()
+      : new Date().toISOString();
 
   const rowPayload: Database['public']['Tables']['resources']['Insert'] = {
     class_id: classId,
@@ -95,6 +116,7 @@ export async function POST(request: NextRequest) {
     description: parsed.data.description?.trim() || null,
     type: parsed.data.type,
     session_date: parsed.data.sessionDate || new Date().toISOString().slice(0, 10),
+    publish_at: publishAt,
   };
 
   if (hasUrl) {

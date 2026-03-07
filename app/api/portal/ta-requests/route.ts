@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
+import { formatInTimeZone } from 'date-fns-tz';
 import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
 import { sendPortalEmails } from '@/lib/email/send';
@@ -26,6 +27,25 @@ function jsonError(message: string, status = 400) {
 
 function cleanFilename(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '-');
+}
+
+function normalizeTime(value: string): string {
+  if (!value) return '00:00:00';
+  return value.length === 5 ? `${value}:00` : value.slice(0, 8);
+}
+
+function isSessionRequestStillOpen(
+  sessionDate: string,
+  classTimezone: string,
+  classEndTime: string,
+  now = new Date()
+): boolean {
+  const todayInClassTimezone = formatInTimeZone(now, classTimezone, 'yyyy-MM-dd');
+  if (sessionDate > todayInClassTimezone) return true;
+  if (sessionDate < todayInClassTimezone) return false;
+
+  const nowTimeInClassTimezone = formatInTimeZone(now, classTimezone, 'HH:mm:ss');
+  return nowTimeInClassTimezone <= normalizeTime(classEndTime);
 }
 
 async function parsePayload(request: NextRequest) {
@@ -70,6 +90,18 @@ export async function POST(request: NextRequest) {
   if (!classRow) return mergeCookies(supabaseResponse, jsonError('Class not found.', 404));
   if (classRow.coach_id !== session.userId) {
     return mergeCookies(supabaseResponse, jsonError('You can only request TA support for your own class.', 403));
+  }
+  if (
+    !isSessionRequestStillOpen(
+      parsed.data.sessionDate,
+      classRow.timezone || 'UTC',
+      classRow.schedule_end_time
+    )
+  ) {
+    return mergeCookies(
+      supabaseResponse,
+      jsonError('This class session has already ended. You can only request TA support before class ends.', 400)
+    );
   }
 
   const requestId = randomUUID();

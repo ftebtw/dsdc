@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import { formatInTimeZone } from 'date-fns-tz';
 import SubRequestCard from '@/app/portal/_components/SubRequestCard';
 import { useI18n } from '@/lib/i18n';
 import { portalT } from '@/lib/portal/parent-i18n';
@@ -41,10 +42,34 @@ const DAY_MAP: Record<string, number> = {
   sat: 6,
 };
 
+function toDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function normalizeTime(value: string): string {
+  if (!value) return '00:00:00';
+  return value.length === 5 ? `${value}:00` : value.slice(0, 8);
+}
+
+function isSessionRequestStillOpen(dateStr: string, classTimezone: string, classEndTime: string): boolean {
+  const now = new Date();
+  const todayInClassTimezone = formatInTimeZone(now, classTimezone, 'yyyy-MM-dd');
+  if (dateStr > todayInClassTimezone) return true;
+  if (dateStr < todayInClassTimezone) return false;
+
+  const nowTimeInClassTimezone = formatInTimeZone(now, classTimezone, 'HH:mm:ss');
+  return nowTimeInClassTimezone <= normalizeTime(classEndTime);
+}
+
 function getSessionDates(
   scheduleDay: string | null | undefined,
   termStart: string,
-  termEnd: string
+  termEnd: string,
+  classTimezone: string,
+  classEndTime: string
 ): Array<{ label: string; date: string }> {
   if (!scheduleDay) return [];
   const dayNum = DAY_MAP[scheduleDay.toLowerCase()];
@@ -52,8 +77,6 @@ function getSessionDates(
 
   const start = new Date(`${termStart}T00:00:00`);
   const end = new Date(`${termEnd}T00:00:00`);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
   const dates: Array<{ label: string; date: string }> = [];
   const current = new Date(start);
@@ -62,10 +85,10 @@ function getSessionDates(
   while (current <= end) {
     if (current.getDay() === dayNum) {
       weekNum += 1;
-      const dateStr = current.toISOString().slice(0, 10);
+      const dateStr = toDateKey(current);
       const month = current.getMonth() + 1;
       const day = current.getDate();
-      if (current >= today) {
+      if (isSessionRequestStillOpen(dateStr, classTimezone, classEndTime)) {
         dates.push({
           label: `Week ${weekNum} (${month}/${day})`,
           date: dateStr,
@@ -124,14 +147,26 @@ export default function CoachSubsManager({
   const subWeeks = useMemo(
     () =>
       subClass && termStartDate && termEndDate
-        ? getSessionDates(subClass.schedule_day, termStartDate, termEndDate)
+        ? getSessionDates(
+            subClass.schedule_day,
+            termStartDate,
+            termEndDate,
+            subClass.timezone || 'UTC',
+            subClass.schedule_end_time
+          )
         : [],
     [subClass, termStartDate, termEndDate]
   );
   const taWeeks = useMemo(
     () =>
       taClass && termStartDate && termEndDate
-        ? getSessionDates(taClass.schedule_day, termStartDate, termEndDate)
+        ? getSessionDates(
+            taClass.schedule_day,
+            termStartDate,
+            termEndDate,
+            taClass.timezone || 'UTC',
+            taClass.schedule_end_time
+          )
         : [],
     [taClass, termStartDate, termEndDate]
   );

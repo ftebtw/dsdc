@@ -1301,6 +1301,7 @@ export type Database = {
           description: string | null
           file_path: string | null
           id: string
+          publish_at: string
           posted_by: string
           session_date: string | null
           title: string
@@ -1313,6 +1314,7 @@ export type Database = {
           description?: string | null
           file_path?: string | null
           id?: string
+          publish_at?: string
           posted_by: string
           session_date?: string | null
           title: string
@@ -1325,6 +1327,7 @@ export type Database = {
           description?: string | null
           file_path?: string | null
           id?: string
+          publish_at?: string
           posted_by?: string
           session_date?: string | null
           title?: string
