@@ -108,6 +108,19 @@ export default async function AdminClassDetailPage({
     .select('*')
     .eq('class_id', classId)
     .order('created_at', { ascending: false });
+  const { data: weekTitleRows, error: weekTitleError } = await (supabase as any)
+    .from('class_resource_week_titles')
+    .select('week_number,title')
+    .eq('class_id', classId);
+  if (weekTitleError && weekTitleError.code !== '42P01') {
+    console.error('[admin-class-detail] failed to load week titles', weekTitleError);
+  }
+  const initialWeekTitles = Object.fromEntries(
+    ((weekTitleRows ?? []) as Array<{ week_number: number; title: string }>).map((row) => [
+      String(row.week_number),
+      row.title,
+    ])
+  );
 
   const { data: cancellationsData } = await supabase
     .from('class_cancellations')
@@ -241,6 +254,7 @@ export default async function AdminClassDetailPage({
           students={studentProfiles}
           initialAttendance={attendanceByStudent}
           initialAbsenceStudentIds={(absencesForDateData ?? []).map((row: { student_id: string }) => row.student_id)}
+          allowDelete
         />
       </SectionCard>
 
@@ -317,7 +331,12 @@ export default async function AdminClassDetailPage({
       </SectionCard>
 
       <SectionCard title="Resources" description="Upload files or post links for students in this class.">
-        <CoachResourceManager classId={classId} initialResources={resources ?? []} termStartDate={termStartDate} />
+        <CoachResourceManager
+          classId={classId}
+          initialResources={resources ?? []}
+          termStartDate={termStartDate}
+          initialWeekTitles={initialWeekTitles}
+        />
       </SectionCard>
 
       {cancellations.length > 0 ? (

@@ -389,7 +389,7 @@ export default function PortalShell({
             { href: "/portal/admin/report-cards", label: t("portal.nav.admin.reportCards", "Report Cards"), icon: GraduationCap },
             { href: "/portal/admin/payroll", label: t("portal.nav.admin.payroll", "Payroll"), icon: ClipboardCheck },
             { href: "/portal/admin/availability", label: t("portal.nav.admin.availability", "Availability"), icon: Calendar },
-            { href: "/portal/admin/subs", label: t("portal.nav.admin.subRequests", "Sub Requests"), icon: Users },
+            { href: "/portal/admin/subs", label: t("portal.nav.admin.subRequests", "Sub/TA Requests"), icon: Users },
             {
               href: "/portal/admin/private-sessions",
               label: t("portal.nav.admin.privateSessions", "Private Sessions"),
@@ -441,7 +441,7 @@ export default function PortalShell({
           title: t("portal.nav.coach.sectionSchedule", "Schedule"),
           items: [
             { href: "/portal/coach/availability", label: t("portal.nav.coach.availability", "Availability"), icon: Calendar },
-            { href: "/portal/coach/subs", label: t("portal.nav.coach.subRequests", "Sub Requests"), icon: Users },
+            { href: "/portal/coach/subs", label: t("portal.nav.coach.subRequests", "Sub/TA Requests"), icon: Users },
             {
               href: "/portal/coach/private-sessions",
               label: t("portal.nav.coach.privateSessions", "Private Sessions"),

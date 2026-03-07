@@ -32,9 +32,11 @@ import {
   eventPillStyle,
   inTerm,
   normalizeTimeZone,
+  convertDateKeyForDisplay,
   convertTimeForDisplay,
   eventTimeRange,
   classTimeRange,
+  todayKeyForTimezone,
 } from "./calendarUtils";
 
 type CalendarCacheEntry = {
@@ -120,6 +122,19 @@ export default function PortalCalendar({
     return result;
   }, [gridEnd, gridStart]);
 
+  const visibleDateKeys = useMemo(() => new Set(dayCells.map((date) => toKey(date))), [dayCells]);
+
+  function eventDisplayDateKey(eventItem: EventItem) {
+    const hasExplicitTime = Boolean(eventItem.start_time || eventItem.end_time);
+    if (eventItem.is_all_day || !hasExplicitTime) return eventItem.event_date;
+    return convertDateKeyForDisplay(
+      eventItem.event_date,
+      eventItem.start_time || eventItem.end_time,
+      eventItem.timezone,
+      displayTimezone
+    );
+  }
+
   useEffect(() => {
     let ignore = false;
     async function loadData() {
@@ -177,35 +192,60 @@ export default function PortalCalendar({
 
   const classesByDate = useMemo(() => {
     const map = new Map<string, CalendarClass[]>();
-    for (const date of dayCells) {
-      if (!inTerm(date, payload.term)) continue;
-      const list = payload.classes.filter((classItem) => classItem.weekday_index === date.getDay());
-      if (list.length) map.set(toKey(date), list);
+
+    // Include one day on each side so timezone shifts across midnight still land in visible cells.
+    let sourceDate = addDays(gridStart, -1);
+    const sourceEnd = addDays(gridEnd, 1);
+    while (sourceDate <= sourceEnd) {
+      if (!inTerm(sourceDate, payload.term)) {
+        sourceDate = addDays(sourceDate, 1);
+        continue;
+      }
+
+      const sourceKey = toKey(sourceDate);
+      const weekday = sourceDate.getDay();
+      for (const classItem of payload.classes) {
+        if (classItem.weekday_index !== weekday) continue;
+        const displayKey = convertDateKeyForDisplay(
+          sourceKey,
+          classItem.schedule_start_time,
+          classItem.timezone,
+          displayTimezone
+        );
+        if (!visibleDateKeys.has(displayKey)) continue;
+        const existing = map.get(displayKey) ?? [];
+        existing.push(classItem);
+        map.set(displayKey, existing);
+      }
+
+      sourceDate = addDays(sourceDate, 1);
     }
+
     return map;
-  }, [dayCells, payload.classes, payload.term]);
+  }, [displayTimezone, gridEnd, gridStart, payload.classes, payload.term, visibleDateKeys]);
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, EventItem[]>();
     for (const eventItem of payload.events) {
-      const key = eventItem.event_date;
+      const key = eventDisplayDateKey(eventItem);
       const existing = map.get(key) ?? [];
       existing.push(eventItem);
       map.set(key, existing);
     }
     return map;
-  }, [payload.events]);
+  }, [displayTimezone, payload.events]);
 
   const upcomingEvents = useMemo(() => {
-    const todayKey = toKey(new Date());
+    const todayKey = todayKeyForTimezone(displayTimezone);
     return [...payload.events]
-      .filter((eventItem) => eventItem.event_date >= todayKey)
+      .map((eventItem) => ({ eventItem, displayDateKey: eventDisplayDateKey(eventItem) }))
+      .filter(({ displayDateKey }) => displayDateKey >= todayKey)
       .sort((a, b) => {
-        if (a.event_date !== b.event_date) return a.event_date < b.event_date ? -1 : 1;
-        return (a.start_time ?? "00:00") < (b.start_time ?? "00:00") ? -1 : 1;
+        if (a.displayDateKey !== b.displayDateKey) return a.displayDateKey < b.displayDateKey ? -1 : 1;
+        return (a.eventItem.start_time ?? "00:00") < (b.eventItem.start_time ?? "00:00") ? -1 : 1;
       })
       .slice(0, 10);
-  }, [payload.events]);
+  }, [displayTimezone, payload.events]);
 
   const upcomingSidebar = (
     <div className="space-y-2">
@@ -218,10 +258,10 @@ export default function PortalCalendar({
         </p>
       ) : (
         <div className="space-y-1.5">
-          {upcomingEvents.map((eventItem) => (
+          {upcomingEvents.map(({ eventItem, displayDateKey }) => (
             <button
               type="button"
-              key={`upcoming-${eventItem.id}`}
+              key={`upcoming-${eventItem.id}-${displayDateKey}`}
               onClick={() => {
                 setSelectedEvent(eventItem);
                 setSelectedClass(null);
@@ -237,7 +277,7 @@ export default function PortalCalendar({
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{eventItem.title}</p>
                   <p className="text-xs opacity-75 mt-0.5">
-                    {format(parseISO(eventItem.event_date), "EEE, MMM d")}
+                    {format(parseISO(displayDateKey), "EEE, MMM d")}
                     {eventItem.is_all_day ? "" : ` · ${eventTimeRange(eventItem, displayTimezone, t)}`}
                   </p>
                   {eventItem.location ? (
@@ -254,20 +294,28 @@ export default function PortalCalendar({
     </div>
   );
 
-  const cancelledSet = useMemo(() => {
-    const set = new Set<string>();
+  const cancellationReasonMap = useMemo(() => {
+    const classById = new Map(payload.classes.map((classItem) => [classItem.id, classItem]));
+    const map = new Map<string, string | null>();
     for (const cancellation of payload.cancellations) {
-      set.add(`${cancellation.class_id}::${cancellation.cancellation_date}`);
+      const classItem = classById.get(cancellation.class_id);
+      const displayDateKey = classItem
+        ? convertDateKeyForDisplay(
+            cancellation.cancellation_date,
+            classItem.schedule_start_time,
+            classItem.timezone,
+            displayTimezone
+          )
+        : cancellation.cancellation_date;
+      map.set(`${cancellation.class_id}::${displayDateKey}`, cancellation.reason ?? null);
     }
-    return set;
-  }, [payload.cancellations]);
+    return map;
+  }, [displayTimezone, payload.cancellations, payload.classes]);
+
+  const cancelledSet = useMemo(() => new Set(cancellationReasonMap.keys()), [cancellationReasonMap]);
 
   function getCancellationReason(classId: string, dateKey: string): string | null {
-    const found = payload.cancellations.find(
-      (cancellation) =>
-        cancellation.class_id === classId && cancellation.cancellation_date === dateKey
-    );
-    return found?.reason ?? null;
+    return cancellationReasonMap.get(`${classId}::${dateKey}`) ?? null;
   }
 
   const agendaDays = useMemo(() => {

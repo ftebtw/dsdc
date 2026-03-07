@@ -105,6 +105,26 @@ export function toKey(date: Date) {
   return format(date, "yyyy-MM-dd");
 }
 
+function dateKeyInTimezone(date: Date, timezone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const values = new Map<string, string>();
+  for (const part of parts) {
+    if (part.type !== "literal") values.set(part.type, part.value);
+  }
+
+  const year = values.get("year");
+  const month = values.get("month");
+  const day = values.get("day");
+  if (!year || !month || !day) return toKey(date);
+  return `${year}-${month}-${day}`;
+}
+
 export function toTimeLabel(value: string | null | undefined) {
   if (!value) return "";
   return value.slice(0, 5);
@@ -224,6 +244,31 @@ export function convertTimeForDisplay(
     console.error("[portal-calendar] error:", error);
     return toTimeLabel(time);
   }
+}
+
+export function convertDateKeyForDisplay(
+  dateStr: string,
+  time: string | null | undefined,
+  fromTimezone: string | null | undefined,
+  toTimezone: string | null | undefined
+) {
+  const from = normalizeTimeZone(fromTimezone);
+  const to = normalizeTimeZone(toTimezone);
+  if (!dateStr || from === to) return dateStr;
+
+  try {
+    const anchorTime = time || "12:00:00";
+    const utcDate = localTimeInTimezoneToUtc(dateStr, anchorTime, from);
+    if (!utcDate) return dateStr;
+    return dateKeyInTimezone(utcDate, to);
+  } catch (error) {
+    console.error("[portal-calendar] error:", error);
+    return dateStr;
+  }
+}
+
+export function todayKeyForTimezone(timezone: string) {
+  return dateKeyInTimezone(new Date(), normalizeTimeZone(timezone));
 }
 
 export function eventTimeRange(

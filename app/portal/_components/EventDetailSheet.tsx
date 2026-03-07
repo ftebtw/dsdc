@@ -1,7 +1,7 @@
 "use client";
 
 import type { EventItem } from "./EventFormModal";
-import { eventTimeRange } from "./calendarUtils";
+import { convertDateKeyForDisplay, eventTimeRange } from "./calendarUtils";
 
 type Props = {
   event: EventItem;
@@ -20,6 +20,15 @@ export default function EventDetailSheet({
   onClose,
   onEdit,
 }: Props) {
+  const displayDate = event.is_all_day
+    ? event.event_date
+    : convertDateKeyForDisplay(
+        event.event_date,
+        event.start_time || event.end_time,
+        event.timezone,
+        displayTimezone
+      );
+
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
       <button
@@ -36,7 +45,7 @@ export default function EventDetailSheet({
           </span>
         ) : null}
         <p className="text-sm text-charcoal/80 dark:text-navy-200 mt-2">
-          {event.event_date} {eventTimeRange(event, displayTimezone, t)}
+          {displayDate} {eventTimeRange(event, displayTimezone, t)}
         </p>
         {event.location ? (
           <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">

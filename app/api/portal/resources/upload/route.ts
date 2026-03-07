@@ -8,6 +8,7 @@ import type { Database } from '@/lib/supabase/database.types';
 const metadataSchema = z.object({
   classId: z.string().uuid().optional(),
   title: z.string().min(1).max(180),
+  description: z.string().trim().max(4000).optional(),
   type: z.enum(['homework', 'lesson_plan', 'slides', 'document', 'recording', 'other']),
   url: z.string().url().optional(),
   sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest) {
   const parsed = metadataSchema.safeParse({
     classId: formData.get('classId') || undefined,
     title: formData.get('title'),
+    description: formData.get('description') || undefined,
     type: formData.get('type'),
     url: formData.get('url') || undefined,
     sessionDate: formData.get('sessionDate') || undefined,
@@ -90,6 +92,7 @@ export async function POST(request: NextRequest) {
     class_id: classId,
     posted_by: session.userId,
     title: parsed.data.title,
+    description: parsed.data.description?.trim() || null,
     type: parsed.data.type,
     session_date: parsed.data.sessionDate || new Date().toISOString().slice(0, 10),
   };

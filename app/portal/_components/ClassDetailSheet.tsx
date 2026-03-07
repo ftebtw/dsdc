@@ -1,5 +1,6 @@
 "use client";
 
+import { format, parseISO } from "date-fns";
 import type { CalendarClass } from "./calendarUtils";
 import { classTimeRange, normalizeTimeZone, toKey } from "./calendarUtils";
 
@@ -20,6 +21,8 @@ export default function ClassDetailSheet({
   t,
   onClose,
 }: Props) {
+  const displayDayLabel = classDate ? format(parseISO(classDate), "EEE").toUpperCase() : classItem.schedule_day.toUpperCase();
+
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
       <button
@@ -43,7 +46,7 @@ export default function ClassDetailSheet({
           {t("portal.portalCalendar.coachLabel", "Coach:")} {classItem.coach_name}
         </p>
         <p className="text-sm text-charcoal/70 dark:text-navy-300">
-          {t("portal.portalCalendar.timeLabel", "Time:")} {classItem.schedule_day.toUpperCase()}{" "}
+          {t("portal.portalCalendar.timeLabel", "Time:")} {displayDayLabel}{" "}
           {classTimeRange(classItem, displayTimezone, classDate || toKey(new Date()), t)} (
           {displayTimezone})
         </p>

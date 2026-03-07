@@ -30,6 +30,7 @@ type Props = {
   students: Student[];
   initialAttendance: Record<string, AttendanceRow>;
   initialAbsenceStudentIds: string[];
+  allowDelete?: boolean;
 };
 
 function blankRow(): AttendanceRow {
@@ -43,6 +44,7 @@ export default function CoachAttendanceEditor({
   students,
   initialAttendance,
   initialAbsenceStudentIds,
+  allowDelete = false,
 }: Props) {
   const { locale } = useI18n();
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
@@ -211,6 +213,52 @@ export default function CoachAttendanceEditor({
     setSubmittingAll(false);
   }
 
+  async function deleteAttendanceLog(studentId: string) {
+    setSubmitAllResult(null);
+
+    if (timerRef.current[studentId]) {
+      clearTimeout(timerRef.current[studentId]);
+      delete timerRef.current[studentId];
+    }
+
+    const current = attendance[studentId] ?? blankRow();
+    setAttendance((prev) => ({
+      ...prev,
+      [studentId]: {
+        ...current,
+        saving: true,
+        saveError: null,
+      },
+    }));
+
+    const supabase = getSupabaseBrowserClient();
+    const { error } = await supabase
+      .from('attendance_records')
+      .delete()
+      .eq('class_id', classId)
+      .eq('student_id', studentId)
+      .eq('session_date', sessionDate);
+
+    if (error) {
+      setAttendance((prev) => ({
+        ...prev,
+        [studentId]: {
+          ...(prev[studentId] ?? blankRow()),
+          saving: false,
+          saveError: error.message,
+        },
+      }));
+      return;
+    }
+
+    setAttendance((prev) => {
+      const next = { ...prev };
+      delete next[studentId];
+      return next;
+    });
+    setSubmitAllResult(t('portal.coachAttendanceEditor.deletedLog', 'Attendance log deleted.'));
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -245,6 +293,9 @@ export default function CoachAttendanceEditor({
                 {t('portal.coachAttendanceEditor.absenceReported', 'Absence Reported')}
               </th>
               <th className="text-left px-4 py-3">{t('portal.coachAttendanceEditor.saveState', 'Save State')}</th>
+              {allowDelete ? (
+                <th className="text-left px-4 py-3">{t('portal.common.actions', 'Actions')}</th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -332,6 +383,24 @@ export default function CoachAttendanceEditor({
                     </span>
                   )}
                 </td>
+                {allowDelete ? (
+                  <td className="px-4 py-3">
+                    {record.status ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void deleteAttendanceLog(student.id);
+                        }}
+                        disabled={Boolean(record.saving)}
+                        className="px-3 py-1.5 rounded-md bg-red-600 text-white text-xs disabled:opacity-60"
+                      >
+                        {t('portal.coachAttendanceEditor.deleteLog', 'Delete Log')}
+                      </button>
+                    ) : (
+                      <span className="text-charcoal/60 dark:text-navy-300 text-xs">-</span>
+                    )}
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>

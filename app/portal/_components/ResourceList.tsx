@@ -144,6 +144,11 @@ export default function ResourceList({
                               <p className="font-medium text-navy-800 dark:text-white truncate">
                                 {resource.title}
                               </p>
+                              {resource.description ? (
+                                <p className="text-xs text-charcoal/65 dark:text-navy-300 mt-0.5 whitespace-pre-wrap break-words">
+                                  {resource.description}
+                                </p>
+                              ) : null}
                               <p className="text-xs text-charcoal/50 dark:text-navy-400">
                                 {resource.className ? `${resource.className} - ` : ''}
                                 Posted{' '}
@@ -197,6 +202,11 @@ export default function ResourceList({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <p className="font-medium text-navy-800 dark:text-white">{resource.title}</p>
+              {resource.description ? (
+                <p className="text-xs text-charcoal/65 dark:text-navy-300 mt-0.5 whitespace-pre-wrap break-words">
+                  {resource.description}
+                </p>
+              ) : null}
               <p className="text-xs text-charcoal/65 dark:text-navy-300">
                 {resource.className ? `${resource.className} - ` : ''}
                 {resource.type.replace('_', ' ')} - {new Date(resource.created_at).toLocaleString()}
