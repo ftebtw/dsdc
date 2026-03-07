@@ -824,6 +824,31 @@ export function reportCardApproved(input: {
   return { subject, html, text };
 }
 
+export function homeworkFeedbackTemplate(input: {
+  studentName: string;
+  className: string;
+  homeworkTitle: string;
+  grade: string;
+  feedback: string;
+  portalUrl: string;
+}) {
+  const subject = `Homework graded: ${input.homeworkTitle}`;
+  const { html, text } = renderTemplate({
+    title: 'Homework Feedback Ready',
+    bodyLines: [
+      `Hi ${input.studentName}, your homework has been reviewed.`,
+      `Class: ${input.className}`,
+      `Assignment: ${input.homeworkTitle}`,
+      `Grade: ${input.grade}`,
+      input.feedback ? `Feedback: ${input.feedback}` : 'Feedback: (none provided)',
+    ],
+    buttonLabel: 'Open Portal',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}
+
 export function reportCardRejected(input: {
   coachName: string;
   studentName: string;
