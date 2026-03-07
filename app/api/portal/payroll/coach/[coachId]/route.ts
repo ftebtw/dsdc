@@ -34,6 +34,7 @@ export async function GET(
       start: range.start,
       end: range.end,
       coachId,
+      includeManualAdjustments: true,
     });
     const summary = dataset.summary[0] ?? null;
     return mergeCookies(supabaseResponse, NextResponse.json({

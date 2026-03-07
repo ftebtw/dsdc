@@ -7,10 +7,13 @@ import { portalT } from '@/lib/portal/parent-i18n';
 type Props = {
   rows: PayrollSummaryRow[];
   showPayColumns?: boolean;
+  showAdjustmentColumns?: boolean;
   totals?: {
     sessions: number;
     totalHours: number;
     lateCount: number;
+    manualAdjustmentHours?: number;
+    adjustedHours?: number;
     calculatedPay?: number;
   };
 };
@@ -30,7 +33,12 @@ function formatTiers(tiers: string[]): string {
   return tiers.map((tier) => formatTierLabel(tier)).join(', ');
 }
 
-export default function PayrollTable({ rows, showPayColumns = true, totals }: Props) {
+export default function PayrollTable({
+  rows,
+  showPayColumns = true,
+  showAdjustmentColumns = false,
+  totals,
+}: Props) {
   const { locale } = useI18n();
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   return (
@@ -43,6 +51,12 @@ export default function PayrollTable({ rows, showPayColumns = true, totals }: Pr
             <th className="px-3 py-2 text-left">{t('portal.payrollTable.tiers', 'Tiers')}</th>
             <th className="px-3 py-2 text-right">{t('portal.payrollTable.sessions', 'Sessions')}</th>
             <th className="px-3 py-2 text-right">{t('portal.payrollTable.hours', 'Hours')}</th>
+            {showAdjustmentColumns ? (
+              <th className="px-3 py-2 text-right">{t('portal.payrollTable.adjustment', 'Manual +/-')}</th>
+            ) : null}
+            {showAdjustmentColumns ? (
+              <th className="px-3 py-2 text-right">{t('portal.payrollTable.finalHours', 'Final Hours')}</th>
+            ) : null}
             <th className="px-3 py-2 text-right">{t('portal.payrollTable.late', 'Late')}</th>
             {showPayColumns ? <th className="px-3 py-2 text-right">{t('portal.payrollTable.hourlyRate', 'Hourly rate')}</th> : null}
             {showPayColumns ? <th className="px-3 py-2 text-right">{t('portal.payrollTable.calculatedPay', 'Calculated pay')}</th> : null}
@@ -56,6 +70,13 @@ export default function PayrollTable({ rows, showPayColumns = true, totals }: Pr
               <td className="px-3 py-2">{row.isTa ? t('portal.payrollTable.ta', 'TA') : formatTiers(row.coachTiers)}</td>
               <td className="px-3 py-2 text-right">{row.sessions}</td>
               <td className="px-3 py-2 text-right">{row.totalHours.toFixed(2)}</td>
+              {showAdjustmentColumns ? (
+                <td className="px-3 py-2 text-right">
+                  {row.manualAdjustmentHours > 0 ? '+' : ''}
+                  {row.manualAdjustmentHours.toFixed(2)}
+                </td>
+              ) : null}
+              {showAdjustmentColumns ? <td className="px-3 py-2 text-right">{row.adjustedHours.toFixed(2)}</td> : null}
               <td className="px-3 py-2 text-right">{row.lateCount}</td>
               {showPayColumns ? <td className="px-3 py-2 text-right">{formatMoney(row.hourlyRate)}</td> : null}
               {showPayColumns ? <td className="px-3 py-2 text-right">{formatMoney(row.calculatedPay)}</td> : null}
@@ -64,7 +85,7 @@ export default function PayrollTable({ rows, showPayColumns = true, totals }: Pr
           {rows.length === 0 ? (
             <tr>
               <td
-                colSpan={showPayColumns ? 8 : 6}
+                colSpan={5 + (showAdjustmentColumns ? 2 : 0) + (showPayColumns ? 2 : 0)}
                 className="px-3 py-4 text-center text-charcoal/65 dark:text-navy-300"
               >
                 {t('portal.payrollTable.empty', 'No payroll data for this range.')}
@@ -80,6 +101,17 @@ export default function PayrollTable({ rows, showPayColumns = true, totals }: Pr
               </td>
               <td className="px-3 py-2 text-right font-semibold">{totals.sessions}</td>
               <td className="px-3 py-2 text-right font-semibold">{totals.totalHours.toFixed(2)}</td>
+              {showAdjustmentColumns ? (
+                <td className="px-3 py-2 text-right font-semibold">
+                  {(totals.manualAdjustmentHours ?? 0) > 0 ? '+' : ''}
+                  {(totals.manualAdjustmentHours ?? 0).toFixed(2)}
+                </td>
+              ) : null}
+              {showAdjustmentColumns ? (
+                <td className="px-3 py-2 text-right font-semibold">
+                  {(totals.adjustedHours ?? totals.totalHours).toFixed(2)}
+                </td>
+              ) : null}
               <td className="px-3 py-2 text-right font-semibold">{totals.lateCount}</td>
               {showPayColumns ? <td className="px-3 py-2" /> : null}
               {showPayColumns ? (

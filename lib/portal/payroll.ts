@@ -73,6 +73,8 @@ export type PayrollSummaryRow = {
   isTa: boolean;
   sessions: number;
   totalHours: number;
+  manualAdjustmentHours: number;
+  adjustedHours: number;
   lateCount: number;
   hourlyRate: number | null;
   calculatedPay: number | null;
@@ -84,6 +86,8 @@ export type PayrollDataset = {
   totals: {
     sessions: number;
     totalHours: number;
+    manualAdjustmentHours: number;
+    adjustedHours: number;
     calculatedPay: number;
     lateCount: number;
   };
@@ -148,6 +152,7 @@ export async function fetchPayrollDataset(
     start: string;
     end: string;
     coachId?: string | null;
+    includeManualAdjustments?: boolean;
   }
 ): Promise<PayrollDataset> {
   let coachProfilesQuery = supabase.from('coach_profiles').select('coach_id,tier,is_ta,hourly_rate');
@@ -162,7 +167,14 @@ export async function fetchPayrollDataset(
     return {
       sessions: [],
       summary: [],
-      totals: { sessions: 0, totalHours: 0, calculatedPay: 0, lateCount: 0 },
+      totals: {
+        sessions: 0,
+        totalHours: 0,
+        manualAdjustmentHours: 0,
+        adjustedHours: 0,
+        calculatedPay: 0,
+        lateCount: 0,
+      },
     };
   }
 
@@ -360,6 +372,8 @@ export async function fetchPayrollDataset(
       isTa: coachProfile.is_ta,
       sessions: 0,
       totalHours: 0,
+      manualAdjustmentHours: 0,
+      adjustedHours: 0,
       lateCount: 0,
       hourlyRate: coachProfile.hourly_rate,
       calculatedPay: coachProfile.hourly_rate == null ? null : 0,
@@ -372,28 +386,64 @@ export async function fetchPayrollDataset(
     item.sessions += 1;
     item.totalHours += row.durationHours;
     if (row.late) item.lateCount += 1;
-    if (item.hourlyRate != null) {
-      item.calculatedPay = (item.calculatedPay ?? 0) + row.durationHours * item.hourlyRate;
+  }
+
+  if (input.includeManualAdjustments) {
+    let adjustmentsQuery = (supabase as any)
+      .from('payroll_adjustments')
+      .select('coach_id,hours_delta')
+      .in('coach_id', coachIds)
+      .gte('adjustment_date', input.start)
+      .lte('adjustment_date', input.end);
+    if (input.coachId) adjustmentsQuery = adjustmentsQuery.eq('coach_id', input.coachId);
+
+    const { data: adjustmentsData, error: adjustmentsError } = await adjustmentsQuery;
+    if (adjustmentsError && adjustmentsError.code !== '42P01') {
+      throw new Error(adjustmentsError.message);
+    }
+
+    const adjustments = (adjustmentsData ?? []) as Array<{ coach_id: string; hours_delta: number }>;
+    for (const adjustment of adjustments) {
+      const item = summaryMap.get(adjustment.coach_id);
+      if (!item) continue;
+      item.manualAdjustmentHours += Number(adjustment.hours_delta) || 0;
     }
   }
 
   const summary = [...summaryMap.values()]
-    .map((row) => ({
-      ...row,
-      totalHours: round2(row.totalHours),
-      calculatedPay: row.calculatedPay == null ? null : round2(row.calculatedPay),
-    }))
+    .map((row) => {
+      const totalHours = round2(row.totalHours);
+      const manualAdjustmentHours = round2(row.manualAdjustmentHours);
+      const adjustedHours = round2(totalHours + manualAdjustmentHours);
+      const calculatedPay = row.hourlyRate == null ? null : round2(adjustedHours * row.hourlyRate);
+      return {
+        ...row,
+        totalHours,
+        manualAdjustmentHours,
+        adjustedHours,
+        calculatedPay,
+      };
+    })
     .sort((a, b) => a.coachName.localeCompare(b.coachName));
 
   const totals = summary.reduce(
     (acc, row) => {
       acc.sessions += row.sessions;
       acc.totalHours += row.totalHours;
+      acc.manualAdjustmentHours += row.manualAdjustmentHours;
+      acc.adjustedHours += row.adjustedHours;
       acc.lateCount += row.lateCount;
       if (row.calculatedPay != null) acc.calculatedPay += row.calculatedPay;
       return acc;
     },
-    { sessions: 0, totalHours: 0, calculatedPay: 0, lateCount: 0 }
+    {
+      sessions: 0,
+      totalHours: 0,
+      manualAdjustmentHours: 0,
+      adjustedHours: 0,
+      calculatedPay: 0,
+      lateCount: 0,
+    }
   );
 
   return {
@@ -405,6 +455,8 @@ export async function fetchPayrollDataset(
     totals: {
       sessions: totals.sessions,
       totalHours: round2(totals.totalHours),
+      manualAdjustmentHours: round2(totals.manualAdjustmentHours),
+      adjustedHours: round2(totals.adjustedHours),
       calculatedPay: round2(totals.calculatedPay),
       lateCount: totals.lateCount,
     },

@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
       start: range.start,
       end: range.end,
       coachId: coachId || undefined,
+      includeManualAdjustments: true,
     });
 
     const header = [
