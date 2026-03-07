@@ -8,6 +8,7 @@ import { getActiveTerm, getProfileMap } from '@/lib/portal/data';
 import { classTypeLabel } from '@/lib/portal/labels';
 import { portalT } from '@/lib/portal/parent-i18n';
 import { formatClassScheduleForViewer } from '@/lib/portal/time';
+import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function StudentClassesPage() {
@@ -108,7 +109,22 @@ export default async function StudentClassesPage() {
   const coachIds = [...new Set(classes.map((classRow: any) => classRow.coach_id))];
   const subCoachIds = [...new Set(subRequests.map((row: any) => row.accepting_coach_id).filter(Boolean))];
   const taIds = [...new Set(taRequests.map((row: any) => row.accepting_ta_id).filter(Boolean))];
-  const profileMap = await getProfileMap(supabase, [...new Set([...coachIds, ...subCoachIds, ...taIds])]);
+  const peopleIds = [...new Set([...coachIds, ...subCoachIds, ...taIds].filter(Boolean))];
+  const profileMap = await getProfileMap(supabase, peopleIds);
+  const missingPeopleIds = peopleIds.filter((id) => !profileMap[id]);
+  if (missingPeopleIds.length) {
+    const admin = getSupabaseAdminClient();
+    const [{ data: coachRows }, { data: profileRows }] = await Promise.all([
+      admin.from('coach_profiles').select('coach_id').in('coach_id', missingPeopleIds),
+      admin.from('profiles').select('id,display_name,email').in('id', missingPeopleIds),
+    ]);
+    const coachIdSet = new Set((coachRows ?? []).map((row: { coach_id: string }) => row.coach_id));
+    for (const profile of (profileRows ?? []) as Array<{ id: string; display_name: string | null; email: string }>) {
+      if (coachIdSet.has(profile.id)) {
+        profileMap[profile.id] = profile as any;
+      }
+    }
+  }
   const nextSubByClass = new Map<string, any>();
   for (const subRequest of subRequests) {
     if (!nextSubByClass.has(subRequest.class_id)) {
@@ -153,7 +169,8 @@ export default async function StudentClassesPage() {
                     )}
                   </p>
                   <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
-                    {t('portal.student.classes.coach', 'Coach')}: {coach?.display_name || coach?.email || classRow.coach_id}
+                    {t('portal.student.classes.coach', 'Coach')}:{' '}
+                    {coach?.display_name || coach?.email || t('portal.student.classes.coachFallback', 'DSDC Coach')}
                   </p>
                   <p className="text-sm mt-1">
                     {classRow.zoom_link ? (
@@ -179,7 +196,7 @@ export default async function StudentClassesPage() {
                       {t('portal.student.classes.substituteCoachOn', 'Substitute coach on')} {nextSub.session_date}:{' '}
                       {profileMap[nextSub.accepting_coach_id]?.display_name ||
                         profileMap[nextSub.accepting_coach_id]?.email ||
-                        nextSub.accepting_coach_id}
+                        t('portal.student.classes.subFallback', 'Coach')}
                     </p>
                   ) : null}
                   {nextTa ? (
@@ -187,7 +204,7 @@ export default async function StudentClassesPage() {
                       {t('portal.student.classes.taOn', 'TA on')} {nextTa.session_date}:{' '}
                       {profileMap[nextTa.accepting_ta_id]?.display_name ||
                         profileMap[nextTa.accepting_ta_id]?.email ||
-                        nextTa.accepting_ta_id}
+                        t('portal.student.classes.taFallback', 'TA')}
                     </p>
                   ) : null}
                 </article>
