@@ -6,6 +6,7 @@ type SendInput = {
   subject: string;
   html: string;
   text: string;
+  replyTo?: string | string[];
 };
 
 export async function sendPortalEmail(input: SendInput): Promise<{ ok: boolean; error?: string }> {
@@ -23,6 +24,7 @@ export async function sendPortalEmail(input: SendInput): Promise<{ ok: boolean; 
       subject: input.subject,
       html: input.html,
       text: input.text,
+      replyTo: input.replyTo,
     });
 
     const apiError = (result as { error?: { message?: string } | null } | null)?.error;

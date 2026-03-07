@@ -14,7 +14,6 @@ type RegisterResponse = {
   studentNeedsPasswordSetup: boolean;
   role: RegistrationRole;
   loginEmail: string;
-  loginPassword: string;
   verificationSent?: boolean;
   verificationEmail?: string;
   verificationResent?: boolean;
@@ -237,7 +236,7 @@ export default function RegisterForm() {
       const supabase = getSupabaseBrowserClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: data.loginEmail,
-        password: data.loginPassword,
+        password: pw,
       });
 
       if (signInError) {

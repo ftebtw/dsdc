@@ -16,12 +16,66 @@ const metadataSchema = z.object({
   publishAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
+const RESOURCE_MAX_FILE_BYTES = 25 * 1024 * 1024; // 25MB
+const RESOURCE_ALLOWED_MIME_TYPES = new Set([
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/zip',
+  'text/plain',
+  'text/csv',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'audio/mpeg',
+  'audio/mp4',
+  'video/mp4',
+]);
+const RESOURCE_ALLOWED_EXTENSIONS = new Set([
+  'pdf',
+  'doc',
+  'docx',
+  'ppt',
+  'pptx',
+  'xls',
+  'xlsx',
+  'zip',
+  'txt',
+  'csv',
+  'jpg',
+  'jpeg',
+  'png',
+  'webp',
+  'gif',
+  'mp3',
+  'm4a',
+  'mp4',
+]);
+
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
 function cleanFilename(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '-');
+}
+
+function fileExtension(name: string): string {
+  const dotIndex = name.lastIndexOf('.');
+  if (dotIndex < 0) return '';
+  return name.slice(dotIndex + 1).toLowerCase();
+}
+
+function isAllowedResourceFile(file: File): boolean {
+  const mime = (file.type || '').toLowerCase();
+  if (mime && RESOURCE_ALLOWED_MIME_TYPES.has(mime)) return true;
+  const ext = fileExtension(file.name || '');
+  return !!ext && RESOURCE_ALLOWED_EXTENSIONS.has(ext);
 }
 
 export async function POST(request: NextRequest) {
@@ -46,6 +100,21 @@ export async function POST(request: NextRequest) {
   const file = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
   const hasUrl = Boolean(parsed.data.url);
   if (!file && !hasUrl) return mergeCookies(supabaseResponse, jsonError('Provide a file or URL.'));
+  if (file && file.size > RESOURCE_MAX_FILE_BYTES) {
+    return mergeCookies(
+      supabaseResponse,
+      jsonError('File is too large. Maximum size is 25MB.', 400)
+    );
+  }
+  if (file && !isAllowedResourceFile(file)) {
+    return mergeCookies(
+      supabaseResponse,
+      jsonError(
+        'Unsupported file type. Allowed: PDF, Office docs, ZIP, text, images, MP3/M4A, and MP4.',
+        400
+      )
+    );
+  }
 
   const classId = parsed.data.classId ?? null;
 

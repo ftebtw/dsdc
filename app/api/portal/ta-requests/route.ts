@@ -21,12 +21,60 @@ const schema = z.object({
   reason: z.string().max(1000).optional(),
 });
 
+const ATTACHMENT_MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB
+const ATTACHMENT_ALLOWED_MIME_TYPES = new Set([
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/zip',
+  'text/plain',
+  'text/csv',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+]);
+const ATTACHMENT_ALLOWED_EXTENSIONS = new Set([
+  'pdf',
+  'doc',
+  'docx',
+  'ppt',
+  'pptx',
+  'xls',
+  'xlsx',
+  'zip',
+  'txt',
+  'csv',
+  'jpg',
+  'jpeg',
+  'png',
+  'webp',
+  'gif',
+]);
+
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
 function cleanFilename(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '-');
+}
+
+function fileExtension(name: string): string {
+  const dotIndex = name.lastIndexOf('.');
+  if (dotIndex < 0) return '';
+  return name.slice(dotIndex + 1).toLowerCase();
+}
+
+function isAllowedAttachmentFile(file: File): boolean {
+  const mime = (file.type || '').toLowerCase();
+  if (mime && ATTACHMENT_ALLOWED_MIME_TYPES.has(mime)) return true;
+  const ext = fileExtension(file.name || '');
+  return !!ext && ATTACHMENT_ALLOWED_EXTENSIONS.has(ext);
 }
 
 function normalizeTime(value: string): string {
@@ -76,6 +124,14 @@ export async function POST(request: NextRequest) {
 
   const { parsed, attachment } = await parsePayload(request);
   if (!parsed.success) return jsonError('Invalid payload.');
+  if (attachment && attachment.size > ATTACHMENT_MAX_FILE_BYTES) {
+    return jsonError('Attachment is too large. Maximum size is 15MB.');
+  }
+  if (attachment && !isAllowedAttachmentFile(attachment)) {
+    return jsonError(
+      'Unsupported attachment type. Allowed: PDF, Office docs, ZIP, text, and images.'
+    );
+  }
 
   const supabaseResponse = NextResponse.next();
   const supabase = getSupabaseRouteClient(request, supabaseResponse);

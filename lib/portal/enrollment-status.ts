@@ -3,7 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 type Client = SupabaseClient<any, "public", any>;
 
-const ENROLLED_STATUSES = ["active", "pending_etransfer", "etransfer_sent", "pending_approval"];
+// Access gates should only treat fully approved enrollments as enrolled.
+// Pending payment/approval states reserve seats but do not unlock portal features.
+const ENROLLED_STATUSES = ["active"];
 
 /**
  * Returns true if a student has at least one enrollment in the active term.

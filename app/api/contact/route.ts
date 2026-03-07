@@ -52,7 +52,8 @@ export async function POST(request: NextRequest) {
 
   const result = await sendPortalEmail({
     to: contactEmail,
-    subject: `DSDC Contact Form — ${name}`,
+    subject: `DSDC Contact Form - ${name}`,
+    replyTo: email,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1a365d; border-bottom: 2px solid #d4a843; padding-bottom: 8px;">
@@ -85,3 +86,4 @@ function escapeHtml(str: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
+
