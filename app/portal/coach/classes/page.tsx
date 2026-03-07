@@ -5,6 +5,7 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getClassesForCoachInActiveTerm, getProfileMap } from '@/lib/portal/data';
+import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { classTypeLabel } from '@/lib/portal/labels';
 import { formatClassScheduleForViewer } from '@/lib/portal/time';
 import { portalT } from '@/lib/portal/parent-i18n';
@@ -79,6 +80,22 @@ export default async function CoachClassesPage() {
     ...subRows.map((row: any) => row.accepting_coach_id).filter(Boolean),
     ...taRows.map((row: any) => row.accepting_ta_id).filter(Boolean),
   ]);
+  const missingProfileIds = [
+    ...new Set(
+      [
+        ...studentIds,
+        ...subRows.map((row: any) => row.accepting_coach_id).filter(Boolean),
+        ...taRows.map((row: any) => row.accepting_ta_id).filter(Boolean),
+      ].filter((id) => Boolean(id) && !profileMap[id])
+    ),
+  ];
+  if (missingProfileIds.length) {
+    const admin = getSupabaseAdminClient();
+    const { data: adminProfiles } = await admin.from('profiles').select('*').in('id', missingProfileIds);
+    for (const profile of adminProfiles ?? []) {
+      profileMap[profile.id] = profile;
+    }
+  }
   const allStudentIds = [...new Set(enrollments.map((row: any) => row.student_id))];
   const { data: studentPhonesData } = allStudentIds.length
     ? await supabase
@@ -171,7 +188,7 @@ export default async function CoachClassesPage() {
                             const name =
                               profileMap[studentId]?.display_name ||
                               profileMap[studentId]?.email ||
-                              studentId;
+                              t('portal.coachClasses.studentFallback', 'Student');
                             const phones = phonesByStudent.get(studentId) ?? [];
                             return (
                               <p key={studentId}>
@@ -195,14 +212,24 @@ export default async function CoachClassesPage() {
                       {nextSub ? (
                         <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
                           {t('portal.coachClasses.nextSub', 'Sub: {name} on {date}')
-                            .replace('{name}', profileMap[nextSub.accepting_coach_id]?.display_name || profileMap[nextSub.accepting_coach_id]?.email || nextSub.accepting_coach_id)
+                            .replace(
+                              '{name}',
+                              profileMap[nextSub.accepting_coach_id]?.display_name ||
+                                profileMap[nextSub.accepting_coach_id]?.email ||
+                                t('portal.coachClasses.coachFallback', 'Coach')
+                            )
                             .replace('{date}', nextSub.session_date)}
                         </p>
                       ) : null}
                       {nextTa ? (
                         <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
                           {t('portal.coachClasses.nextTa', 'TA: {name} on {date}')
-                            .replace('{name}', profileMap[nextTa.accepting_ta_id]?.display_name || profileMap[nextTa.accepting_ta_id]?.email || nextTa.accepting_ta_id)
+                            .replace(
+                              '{name}',
+                              profileMap[nextTa.accepting_ta_id]?.display_name ||
+                                profileMap[nextTa.accepting_ta_id]?.email ||
+                                t('portal.coachClasses.taFallback', 'TA')
+                            )
                             .replace('{date}', nextTa.session_date)}
                         </p>
                       ) : null}

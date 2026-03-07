@@ -210,19 +210,29 @@ export async function POST(request: NextRequest) {
     .eq('id', session.userId)
     .maybeSingle();
 
-  const { data: eligibleTierAssignments, error: tierAssignmentsError } = await admin
-    .from('coach_tier_assignments')
-    .select('coach_id')
-    .eq('tier', classRow.eligible_sub_tier);
-
-  let eligibleRows = (eligibleTierAssignments ?? []) as Array<{ coach_id: string }>;
-  if (tierAssignmentsError && isMissingTierAssignmentsTableError(tierAssignmentsError)) {
-    const { data: fallbackProfiles } = await admin
+  const [eligibleTierAssignmentsResult, fallbackProfilesResult] = await Promise.all([
+    admin
+      .from('coach_tier_assignments')
+      .select('coach_id')
+      .eq('tier', classRow.eligible_sub_tier),
+    admin
       .from('coach_profiles')
       .select('coach_id')
-      .eq('tier', classRow.eligible_sub_tier);
-    eligibleRows = (fallbackProfiles ?? []) as Array<{ coach_id: string }>;
+      .eq('tier', classRow.eligible_sub_tier),
+  ]);
+
+  const tierAssignmentsError = eligibleTierAssignmentsResult.error;
+  if (tierAssignmentsError && !isMissingTierAssignmentsTableError(tierAssignmentsError)) {
+    return mergeCookies(supabaseResponse, jsonError(tierAssignmentsError.message, 400));
   }
+  if (fallbackProfilesResult.error) {
+    return mergeCookies(supabaseResponse, jsonError(fallbackProfilesResult.error.message, 400));
+  }
+
+  const eligibleRows = [
+    ...((eligibleTierAssignmentsResult.data ?? []) as Array<{ coach_id: string }>),
+    ...((fallbackProfilesResult.data ?? []) as Array<{ coach_id: string }>),
+  ];
   const recipientIds = [
     ...new Set(
       eligibleRows

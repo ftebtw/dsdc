@@ -44,29 +44,29 @@ export async function POST(
     return mergeCookies(supabaseResponse, jsonError('You cannot accept your own request.', 403));
   }
 
-  const [{ data: classRow }, coachTiersResult] = await Promise.all([
+  const [{ data: classRow }, coachTiersResult, fallbackCoachProfileResult] = await Promise.all([
     admin.from('classes').select('*').eq('id', requestRow.class_id).maybeSingle(),
     admin.from('coach_tier_assignments').select('tier').eq('coach_id', session.userId),
+    admin.from('coach_profiles').select('tier').eq('coach_id', session.userId).maybeSingle(),
   ]);
   if (!classRow) return mergeCookies(supabaseResponse, jsonError('Class not found.', 404));
 
-  let coachTiers = (coachTiersResult.data ?? []) as Array<{ tier: string }>;
-  if (coachTiersResult.error && isMissingTierAssignmentsTableError(coachTiersResult.error)) {
-    const { data: fallbackCoachProfile, error: fallbackCoachProfileError } = await admin
-      .from('coach_profiles')
-      .select('tier')
-      .eq('coach_id', session.userId)
-      .maybeSingle();
-    if (fallbackCoachProfileError) {
-      return mergeCookies(supabaseResponse, jsonError(fallbackCoachProfileError.message, 400));
-    }
-    coachTiers = fallbackCoachProfile?.tier ? [{ tier: fallbackCoachProfile.tier }] : [];
+  if (coachTiersResult.error && !isMissingTierAssignmentsTableError(coachTiersResult.error)) {
+    return mergeCookies(supabaseResponse, jsonError(coachTiersResult.error.message, 400));
   }
+  if (fallbackCoachProfileResult.error) {
+    return mergeCookies(supabaseResponse, jsonError(fallbackCoachProfileResult.error.message, 400));
+  }
+
+  const coachTiers = (coachTiersResult.data ?? []) as Array<{ tier: string }>;
   const tierSet = new Set(
     coachTiers
       .map((row) => row.tier)
       .filter((tier): tier is string => Boolean(tier))
   );
+  if (fallbackCoachProfileResult.data?.tier) {
+    tierSet.add(fallbackCoachProfileResult.data.tier);
+  }
   if (!tierSet.has(classRow.eligible_sub_tier)) {
     return mergeCookies(supabaseResponse, jsonError('You are not eligible to accept this sub request.', 403));
   }

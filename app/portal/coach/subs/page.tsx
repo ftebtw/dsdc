@@ -63,12 +63,14 @@ export default async function CoachSubsPage() {
   const people = await getProfileMap(supabase, personIds);
 
   const coachTiers = new Set<string>();
-  if (coachTiersRaw.error && coachTiersRaw.error.code === '42P01') {
-    if (coachProfileRaw.data?.tier) coachTiers.add(coachProfileRaw.data.tier);
-  } else {
+  if (!coachTiersRaw.error) {
     for (const row of (coachTiersRaw.data ?? []) as Array<{ tier: string }>) {
       if (row.tier) coachTiers.add(row.tier);
     }
+  }
+  // Backward compatibility: some accounts may still only have coach_profiles.tier populated.
+  if (coachProfileRaw.data?.tier) {
+    coachTiers.add(coachProfileRaw.data.tier);
   }
   const isTa = Boolean(coachProfileRaw.data?.is_ta);
 
