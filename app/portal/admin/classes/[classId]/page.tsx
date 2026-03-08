@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
+import { notFound, redirect } from 'next/navigation';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import CoachAttendanceEditor from '@/app/portal/_components/CoachAttendanceEditor';
 import CoachResourceManager from '@/app/portal/_components/CoachResourceManager';
@@ -18,6 +19,51 @@ type AttendanceStatus = Database['public']['Enums']['attendance_status'];
 type EnrollmentRow = Pick<Database['public']['Tables']['enrollments']['Row'], 'student_id' | 'status'>;
 type CancellationRow = Database['public']['Tables']['class_cancellations']['Row'];
 type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+
+function isValidDate(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+async function deleteAttendanceSession(formData: FormData) {
+  'use server';
+
+  await requireRole(['admin']);
+  const classId = String(formData.get('class_id') || '').trim();
+  const sessionDate = String(formData.get('session_date') || '').trim();
+
+  if (!classId || !isValidDate(sessionDate)) return;
+
+  const supabase = await getSupabaseServerClient();
+  await Promise.all([
+    supabase.from('attendance_records').delete().eq('class_id', classId).eq('session_date', sessionDate),
+    supabase.from('student_absences').delete().eq('class_id', classId).eq('session_date', sessionDate),
+  ]);
+
+  revalidatePath(`/portal/admin/classes/${classId}`);
+  redirect(`/portal/admin/classes/${classId}?date=${sessionDate}`);
+}
+
+async function deleteAttendanceStudentLog(formData: FormData) {
+  'use server';
+
+  await requireRole(['admin']);
+  const classId = String(formData.get('class_id') || '').trim();
+  const sessionDate = String(formData.get('session_date') || '').trim();
+  const studentId = String(formData.get('student_id') || '').trim();
+
+  if (!classId || !isValidDate(sessionDate) || !studentId) return;
+
+  const supabase = await getSupabaseServerClient();
+  await supabase
+    .from('attendance_records')
+    .delete()
+    .eq('class_id', classId)
+    .eq('session_date', sessionDate)
+    .eq('student_id', studentId);
+
+  revalidatePath(`/portal/admin/classes/${classId}`);
+  redirect(`/portal/admin/classes/${classId}?date=${sessionDate}`);
+}
 
 export default async function AdminClassDetailPage({
   params,
@@ -246,6 +292,16 @@ export default async function AdminClassDetailPage({
             Load Date
           </button>
         </form>
+        <form action={deleteAttendanceSession} className="mb-4">
+          <input type="hidden" name="class_id" value={classId} />
+          <input type="hidden" name="session_date" value={selectedDate} />
+          <button
+            type="submit"
+            className="px-3 py-2 rounded-lg border border-red-300 text-red-700 text-sm font-semibold hover:bg-red-50"
+          >
+            Delete All Logs For {selectedDate}
+          </button>
+        </form>
 
         <CoachAttendanceEditor
           classId={classId}
@@ -297,26 +353,48 @@ export default async function AdminClassDetailPage({
                                 {present}/{total} present
                               </span>
                             </div>
-                            <Link
-                              href={`/portal/admin/classes/${classId}?date=${dateStr}`}
-                              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                            >
-                              Edit
-                            </Link>
+                            <div className="flex items-center gap-3">
+                              <Link
+                                href={`/portal/admin/classes/${classId}?date=${dateStr}`}
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                              >
+                                Edit
+                              </Link>
+                              <form action={deleteAttendanceSession}>
+                                <input type="hidden" name="class_id" value={classId} />
+                                <input type="hidden" name="session_date" value={dateStr} />
+                                <button
+                                  type="submit"
+                                  className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                                >
+                                  Delete
+                                </button>
+                              </form>
+                            </div>
                           </div>
                           <div className="flex flex-wrap gap-1.5">
                             {rows.map((row) => (
-                              <span
-                                key={row.student_id}
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
-                                  statusClass[row.status] || 'bg-gray-100 text-gray-700'
-                                }`}
-                              >
-                                {profileMap[row.student_id]?.display_name ||
-                                  profileMap[row.student_id]?.email ||
-                                  row.student_id.slice(0, 8)}
-                                {row.camera_on === false ? ' 📷✗' : ''}
-                              </span>
+                              <form key={row.student_id} action={deleteAttendanceStudentLog} className="inline-flex">
+                                <input type="hidden" name="class_id" value={classId} />
+                                <input type="hidden" name="session_date" value={dateStr} />
+                                <input type="hidden" name="student_id" value={row.student_id} />
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
+                                    statusClass[row.status] || 'bg-gray-100 text-gray-700'
+                                  }`}
+                                >
+                                  {profileMap[row.student_id]?.display_name ||
+                                    profileMap[row.student_id]?.email ||
+                                    row.student_id.slice(0, 8)}
+                                  {row.camera_on === false ? ' (camera off)' : ''}
+                                  <button
+                                    type="submit"
+                                    className="ml-1 text-[10px] font-semibold underline opacity-85 hover:opacity-100"
+                                  >
+                                    Delete
+                                  </button>
+                                </span>
+                              </form>
                             ))}
                           </div>
                         </div>
