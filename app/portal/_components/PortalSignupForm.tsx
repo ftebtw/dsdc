@@ -40,6 +40,7 @@ export default function PortalSignupForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const isStaffRole = state.role === 'coach' || state.role === 'ta';
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -138,8 +139,13 @@ export default function PortalSignupForm() {
       ) : null}
 
       <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
-        <input type="checkbox" checked={state.send_invite} onChange={(e) => setState({ ...state, send_invite: e.target.checked })} />
-        Send invite email
+        <input
+          type="checkbox"
+          checked={isStaffRole ? true : state.send_invite}
+          disabled={isStaffRole}
+          onChange={(e) => setState({ ...state, send_invite: e.target.checked })}
+        />
+        {isStaffRole ? 'Email temporary password (required for coach/TA)' : 'Send invite email'}
       </label>
 
       {message ? <p className="text-sm text-green-700">{message}</p> : null}
