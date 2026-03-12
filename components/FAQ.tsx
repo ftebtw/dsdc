@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus } from "lucide-react";
@@ -26,6 +27,7 @@ export default function FAQ() {
         <div className="space-y-3">
           {items.map((item, i) => {
             const isOpen = openIndex === i;
+            const shouldShowBeginnersLink = i === 3;
             return (
               <AnimatedSection key={i} delay={i * 0.05}>
                 <div className="bg-white dark:bg-navy-800 rounded-xl overflow-hidden shadow-sm border border-warm-200 dark:border-navy-700">
@@ -55,6 +57,15 @@ export default function FAQ() {
                         <p className="px-4 sm:px-5 pb-4 sm:pb-5 text-sm sm:text-base text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans">
                           {item.a}
                         </p>
+                        {shouldShowBeginnersLink ? (
+                          <p className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-3 text-sm font-medium text-navy-700 dark:text-gold-300">
+                            Learn more about our{" "}
+                            <Link href="/debate-classes-for-beginners" className="underline underline-offset-4 hover:text-gold-400 transition-colors">
+                              beginner-friendly classes
+                            </Link>
+                            .
+                          </p>
+                        ) : null}
                       </motion.div>
                     )}
                   </AnimatePresence>

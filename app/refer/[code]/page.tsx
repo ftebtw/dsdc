@@ -38,7 +38,7 @@ export default async function ReferralLandingPage({
         <div className="rounded-2xl border border-warm-200 bg-white/95 shadow-xl p-8 text-center space-y-5">
           <Image
             src="/images/logos/logo-full.png"
-            alt="DSDC"
+            alt="DSDC - Online Debate and Public Speaking Classes"
             width={400}
             height={100}
             className="h-12 w-auto mx-auto"

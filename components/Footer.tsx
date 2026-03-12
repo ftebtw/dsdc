@@ -18,7 +18,7 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <Image
               src="/images/logos/logo-full.png"
-              alt="DSDC Logo"
+              alt="DSDC - Online Debate and Public Speaking Classes"
               width={120}
               height={40}
               loading="lazy"

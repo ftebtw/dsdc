@@ -47,7 +47,7 @@ export default function CoachCard({
             {image ? (
               <Image
                 src={image}
-                alt={name}
+                alt={`Coach ${name} - DSDC debate instructor`}
                 width={400}
                 height={500}
                 className="absolute inset-0 w-full h-full object-cover object-[center_20%]"
@@ -162,7 +162,7 @@ export default function CoachCard({
         {image ? (
           <Image
             src={image}
-            alt={name}
+            alt={`Coach ${name} - DSDC debate instructor`}
             width={400}
             height={500}
             className="absolute inset-0 w-full h-full object-cover object-[center_20%]"

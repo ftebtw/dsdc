@@ -8,6 +8,18 @@ type TemplateArgs = {
   preferenceUrl?: string;
 };
 
+function getEmailLogoUrl(): string {
+  const explicitLogoUrl = process.env.EMAIL_LOGO_URL?.trim();
+  if (explicitLogoUrl) return explicitLogoUrl;
+
+  const baseUrl =
+    process.env.PORTAL_APP_URL?.trim() ||
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+    'https://dsdc.ca';
+
+  return `${baseUrl.replace(/\/$/, '')}/images/logos/logo-full.png`;
+}
+
 function escapeHtml(value: string): string {
   return value
     .replaceAll('&', '&amp;')
@@ -18,6 +30,7 @@ function escapeHtml(value: string): string {
 }
 
 function renderTemplate(args: TemplateArgs): { html: string; text: string } {
+  const logoUrl = getEmailLogoUrl();
   const lineHtml = args.bodyLines
     .map((line) => `<p style="margin:0 0 12px 0;">${escapeHtml(line)}</p>`)
     .join('');
@@ -35,7 +48,7 @@ function renderTemplate(args: TemplateArgs): { html: string; text: string } {
     '<p style="font-size:12px;color:#888;margin:16px 0 0 0;">If this email landed in your spam folder, please mark it as "not spam" so future messages arrive in your inbox.</p>';
 
   return {
-    html: `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#111;line-height:1.45;"><div style="max-width:640px;margin:0 auto;border:1px solid #eee;border-radius:10px;padding:18px;"><h2 style="margin:0 0 14px 0;color:#11294a;">${escapeHtml(args.title)}</h2>${lineHtml}${buttonHtml}${preferenceHtml}${spamNoticeHtml}</div></body></html>`,
+    html: `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#111;line-height:1.45;"><div style="max-width:640px;margin:0 auto;border:1px solid #eee;border-radius:10px;padding:18px;"><div style="margin:0 0 14px 0;text-align:center;"><img src="${escapeHtml(logoUrl)}" alt="DSDC" style="max-width:180px;height:auto;display:inline-block;" /></div><h2 style="margin:0 0 14px 0;color:#11294a;">${escapeHtml(args.title)}</h2>${lineHtml}${buttonHtml}${preferenceHtml}${spamNoticeHtml}</div></body></html>`,
     text: [args.title, '', ...args.bodyLines, args.buttonUrl ? `Portal: ${args.buttonUrl}` : '', args.preferenceUrl ? `Preferences: ${args.preferenceUrl}` : '']
       .filter(Boolean)
       .join('\n'),

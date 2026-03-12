@@ -112,7 +112,7 @@ export default function PricingPageClient() {
             transition={{ duration: 0.8 }}
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
           >
-            {t("pricingPage.title")}
+            Debate Class Pricing & Plans
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}

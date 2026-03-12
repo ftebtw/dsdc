@@ -175,6 +175,17 @@ export default function BlogPostContent({
               >
                 {t("hero.cta")}
               </Link>
+              <p className="mt-4 text-sm text-white/80 font-sans">
+                Ready to start?{" "}
+                <Link href="/book" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+                  Book a free consultation
+                </Link>{" "}
+                or{" "}
+                <Link href="/classes" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+                  explore our classes
+                </Link>
+                .
+              </p>
             </div>
           </AnimatedSection>
         </div>

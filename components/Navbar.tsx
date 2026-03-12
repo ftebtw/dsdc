@@ -81,7 +81,7 @@ export default function Navbar() {
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <Image
               src="/images/logos/logo-full.png"
-              alt="DSDC Logo"
+              alt="DSDC - Online Debate and Public Speaking Classes"
               width={120}
               height={40}
               priority

@@ -34,6 +34,13 @@ export default function MissionSection() {
               <p className="text-lg text-charcoal/70 dark:text-navy-200 leading-relaxed mb-8 font-sans">
                 {t("mission.text")}
               </p>
+              <p className="text-base text-charcoal/70 dark:text-navy-300 leading-relaxed mb-8 font-sans">
+                We serve students{" "}
+                <Link href="/debate-classes-canada" className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors">
+                  across Canada
+                </Link>{" "}
+                and around the world through live online classes.
+              </p>
               <Link
                 href="/team"
                 className="inline-flex items-center px-6 py-3 bg-navy-800 dark:bg-navy-700 text-white font-semibold

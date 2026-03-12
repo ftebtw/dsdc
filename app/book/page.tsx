@@ -30,7 +30,7 @@ export default function BookPage() {
             transition={{ duration: 0.8 }}
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6"
           >
-            {t("bookPage.title")}
+            Book a Free Consultation
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}

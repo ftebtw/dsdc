@@ -1,12 +1,34 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Pricing",
+  title: "Debate Class Pricing | Online Group & Private Coaching from $30/hr | DSDC",
   description:
-    "Transparent debate and public speaking class rates. Group classes are billed per 12-week term in CAD, plus applicable taxes, with mid-term proration by weeks remaining. Private coaching available.",
+    "Transparent pricing for DSDC's online debate and public speaking classes. Group classes from $30-50/hr. Private coaching available with flexible scheduling.",
+  alternates: {
+    canonical: "https://dsdc.ca/pricing",
+  },
   openGraph: {
-    title: "Pricing | DSDC",
-    description: "Transparent pricing for debate and public speaking classes. No hidden fees.",
+    title: "Debate Class Pricing | Online Group & Private Coaching from $30/hr | DSDC",
+    description:
+      "Transparent pricing for DSDC's online debate and public speaking classes. Group classes from $30-50/hr. Private coaching available with flexible scheduling.",
+    url: "https://dsdc.ca/pricing",
+    siteName: "DSDC",
+    type: "website",
+    images: [
+      {
+        url: "https://dsdc.ca/images/photos/wsc-group-2.jpg",
+        width: 1200,
+        height: 630,
+        alt: "DSDC Online Debate Classes",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Debate Class Pricing | Online Group & Private Coaching from $30/hr | DSDC",
+    description:
+      "Transparent pricing for DSDC's online debate and public speaking classes. Group classes from $30-50/hr. Private coaching available with flexible scheduling.",
+    images: ["https://dsdc.ca/images/photos/wsc-group-2.jpg"],
   },
 };
 

@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+﻿export const dynamic = 'force-dynamic';
 
 import { notFound } from 'next/navigation';
 import SectionCard from '@/app/portal/_components/SectionCard';
@@ -21,6 +21,7 @@ export default async function CoachResourcesPage({
     .eq('id', classId)
     .maybeSingle();
   if (!classRow) notFound();
+
   if (classRow.coach_id !== session.userId) {
     const [{ data: coCoach }, { data: subReq }, { data: taReq }] = await Promise.all([
       supabase
@@ -46,6 +47,7 @@ export default async function CoachResourcesPage({
     ]);
     if (!coCoach && !subReq && !taReq) notFound();
   }
+
   const { data: termRow } = await supabase
     .from('terms')
     .select('start_date')
@@ -59,12 +61,31 @@ export default async function CoachResourcesPage({
     .eq('class_id', classId)
     .order('created_at', { ascending: false });
 
+  const { data: weekTitleRows, error: weekTitleError } = await (supabase as any)
+    .from('class_resource_week_titles')
+    .select('week_number,title')
+    .eq('class_id', classId);
+  if (weekTitleError && weekTitleError.code !== '42P01') {
+    console.error('[coach-resources] failed to load week titles', weekTitleError);
+  }
+  const initialWeekTitles = Object.fromEntries(
+    ((weekTitleRows ?? []) as Array<{ week_number: number; title: string }>).map((row) => [
+      String(row.week_number),
+      row.title,
+    ])
+  );
+
   return (
     <SectionCard
-      title={`Class Resources • ${classRow.name}`}
+      title={`Class Resources - ${classRow.name}`}
       description="Upload files or post external links for students."
     >
-      <CoachResourceManager classId={classId} initialResources={resources ?? []} termStartDate={termStartDate} />
+      <CoachResourceManager
+        classId={classId}
+        initialResources={resources ?? []}
+        termStartDate={termStartDate}
+        initialWeekTitles={initialWeekTitles}
+      />
     </SectionCard>
   );
 }

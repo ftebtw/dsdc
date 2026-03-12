@@ -44,6 +44,7 @@
     "@types/react": "^19.1.2",
     "@types/react-signature-canvas": "^1.0.6",
     "playwright": "^1.58.2",
+    "puppeteer": "^24.37.5",
     "supabase": "^2.76.12",
     "tsx": "^4.21.0",
     "typescript": "^5.8.3"

@@ -286,7 +286,7 @@ export default function AwardsPage() {
             transition={{ duration: 0.8 }}
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
           >
-            {t("awardsPage.title")}
+            Student Awards & Tournament Results
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}

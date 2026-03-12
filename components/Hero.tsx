@@ -31,13 +31,22 @@ export default function Hero() {
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-        <motion.h1
+        <motion.p
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
+          className="text-base sm:text-lg md:text-xl text-white/90 mb-3 font-semibold"
+        >
+          Breaking Barriers, Building Confidence
+        </motion.p>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.35 }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-6"
         >
-          {t("hero.headline")}
+          Online Debate & Public Speaking Classes
         </motion.h1>
 
         <motion.p

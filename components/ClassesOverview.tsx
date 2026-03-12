@@ -11,16 +11,19 @@ const classData = [
     key: "publicSpeaking",
     icon: Mic,
     image: "/images/photos/dsdc-class-photo.jpg",
+    alt: "Online public speaking class for students",
   },
   {
     key: "debate",
     icon: Scale,
     image: "/images/photos/wsc-students-2.jpg",
+    alt: "Students participating in an online debate class",
   },
   {
     key: "wsc",
     icon: Globe,
     image: "/images/photos/wsc-students-1.jpg",
+    alt: "DSDC students at the World Scholar's Cup competition",
   },
 ];
 
@@ -34,18 +37,26 @@ export default function ClassesOverview() {
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-navy-800 dark:text-white">
             {t("classesOverview.title")}
           </h2>
+          <p className="text-center text-charcoal/70 dark:text-navy-300 font-sans mb-10 -mt-10">
+            Explore our{" "}
+            <Link href="/online-debate-classes" className="text-navy-800 dark:text-gold-300 font-semibold hover:underline">
+              online debate classes
+            </Link>
+            .
+          </p>
         </AnimatedSection>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {classData.map((cls, i) => {
             const Icon = cls.icon;
+            const targetHref = cls.key === "wsc" ? "/world-scholars-cup-coaching" : "/classes";
             return (
               <AnimatedSection key={cls.key} delay={i * 0.15} className="h-full">
-                <Link href="/classes" className="group block h-full">
+                <Link href={targetHref} className="group block h-full">
                   <div className="relative h-full rounded-2xl overflow-hidden aspect-[3/4] shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                     <Image
                       src={cls.image}
-                      alt={t(`classesOverview.${cls.key}.title`)}
+                      alt={cls.alt}
                       width={600}
                       height={400}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

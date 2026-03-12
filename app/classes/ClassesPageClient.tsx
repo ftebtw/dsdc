@@ -18,6 +18,16 @@ const classImages = [
 ];
 const typicalIcons = [Users, Clock, BookOpen, Swords, MessageSquare, ClipboardList];
 
+function classImageAlt(className: string): string {
+  const normalized = className.toLowerCase();
+  if (normalized.includes("novice")) return "Online debate class for elementary school students";
+  if (normalized.includes("junior")) return "Online debate class for middle school students";
+  if (normalized.includes("senior") || normalized.includes("advanced")) return "Competitive debate training for high school students";
+  if (normalized.includes("world scholar") || normalized.includes("wsc")) return "DSDC students at the World Scholar's Cup competition";
+  if (normalized.includes("public speaking")) return "Online public speaking class for students";
+  return "Students participating in an online debate class";
+}
+
 export default function ClassesPage() {
   const { t, messages } = useI18n();
   const classes = ((messages.classesPage as { classes?: Array<{
@@ -58,7 +68,7 @@ export default function ClassesPage() {
             transition={{ duration: 0.8 }}
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6"
           >
-            {t("classesPage.title")}
+            Online Debate & Public Speaking Classes
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -75,6 +85,14 @@ export default function ClassesPage() {
             className="text-base text-gold-400 font-sans"
           >
             {t("classesPage.online")}
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="text-sm sm:text-base text-white/85 font-sans mt-4"
+          >
+            DSDC offers online debate and public speaking classes for students of all ages and experience levels - no experience needed.
           </motion.p>
         </div>
       </section>
@@ -133,6 +151,7 @@ export default function ClassesPage() {
               const Icon = classIcons[i % classIcons.length];
               const image = classImages[i % classImages.length];
               const isEven = i % 2 === 0;
+              const isNoviceClass = i === 0 || /novice/i.test(cls.name);
               return (
                 <AnimatedSection key={cls.name} delay={i * 0.1}>
                   <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-8 items-center`}>
@@ -140,7 +159,7 @@ export default function ClassesPage() {
                       <div className="rounded-2xl overflow-hidden aspect-[16/10] shadow-lg">
                         <Image
                           src={image}
-                          alt={`${cls.name} class`}
+                          alt={classImageAlt(cls.name)}
                           width={600}
                           height={400}
                           className="w-full h-full object-cover"
@@ -176,6 +195,15 @@ export default function ClassesPage() {
                       <p className="text-charcoal/70 dark:text-navy-200 leading-relaxed text-lg font-sans">
                         {cls.description}
                       </p>
+                      {isNoviceClass ? (
+                        <p className="mt-3 text-sm font-medium text-navy-700 dark:text-gold-300">
+                          New to debate?{" "}
+                          <Link href="/debate-classes-for-beginners" className="underline underline-offset-4 hover:text-gold-400 transition-colors">
+                            Perfect for beginners
+                          </Link>
+                          .
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 </AnimatedSection>
@@ -198,13 +226,14 @@ export default function ClassesPage() {
             {otherClasses.map((cls, i) => {
               const Icon = classIcons[(i + 4) % classIcons.length];
               const image = classImages[(i + 4) % classImages.length];
+              const isWscClass = /world scholar|wsc/i.test(`${cls.name} ${cls.description}`);
               return (
                 <AnimatedSection key={cls.name} delay={i * 0.15}>
                   <div className="bg-warm-50 dark:bg-navy-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                     <div className="aspect-[16/9] overflow-hidden">
                       <Image
                         src={image}
-                        alt={`${cls.name} class`}
+                        alt={classImageAlt(cls.name)}
                         width={600}
                         height={400}
                         className="w-full h-full object-cover"
@@ -235,6 +264,15 @@ export default function ClassesPage() {
                       )}
                       <h3 className="text-xl font-bold text-navy-800 dark:text-white mb-3 font-serif">{cls.name}</h3>
                       <p className="text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans">{cls.description}</p>
+                      {isWscClass ? (
+                        <p className="mt-3 text-sm font-medium text-navy-700 dark:text-gold-300">
+                          {" "}
+                          <Link href="/world-scholars-cup-coaching" className="underline underline-offset-4 hover:text-gold-400 transition-colors">
+                            Learn more about our WSC coaching
+                          </Link>
+                          .
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 </AnimatedSection>
