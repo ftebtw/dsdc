@@ -91,7 +91,7 @@ export default async function AdminClassDetailPage({
     .select('student_id,status')
     .eq('class_id', classId);
   const enrollments = (enrollmentsData ?? []) as EnrollmentRow[];
-  const activeStudentIds = enrollments.filter((item) => item.status === 'active').map((item) => item.student_id);
+  const enrolledStudentIds = enrollments.map((item) => item.student_id);
 
   const profileMap = await getProfileMap(supabase, [classRow.coach_id, ...enrollments.map((item) => item.student_id)]);
 
@@ -175,7 +175,7 @@ export default async function AdminClassDetailPage({
     .order('cancellation_date', { ascending: false });
   const cancellations = (cancellationsData ?? []) as CancellationRow[];
 
-  const studentProfiles = activeStudentIds
+  const studentProfiles = enrolledStudentIds
     .map((id) => profileMap[id])
     .filter((profile): profile is ProfileRow => Boolean(profile))
     .map((profile) => ({
@@ -239,19 +239,19 @@ export default async function AdminClassDetailPage({
           </p>
           <p>
             <span className="font-medium text-navy-800 dark:text-white">Max students:</span> {classRow.max_students}{' '}
-            - <span className="font-medium text-navy-800 dark:text-white">Enrolled:</span> {activeStudentIds.length}
+            - <span className="font-medium text-navy-800 dark:text-white">Enrolled:</span> {enrolledStudentIds.length}
           </p>
         </div>
 
         <div className="mt-4">
           <h3 className="text-sm font-semibold text-navy-800 dark:text-white mb-2">
-            Enrolled Students ({activeStudentIds.length})
+            Enrolled Students ({enrolledStudentIds.length})
           </h3>
-          {activeStudentIds.length === 0 ? (
+          {enrolledStudentIds.length === 0 ? (
             <p className="text-sm text-charcoal/60 dark:text-navy-400">No students enrolled.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
-              {activeStudentIds.map((id) => (
+              {enrolledStudentIds.map((id) => (
                 <Link
                   key={id}
                   href={`/portal/admin/students/${id}`}

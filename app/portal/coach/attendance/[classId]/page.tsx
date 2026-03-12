@@ -5,6 +5,7 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import CoachAttendanceEditor from '@/app/portal/_components/CoachAttendanceEditor';
 import { requireRole } from '@/lib/portal/auth';
 import type { Database } from '@/lib/supabase/database.types';
+import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { classTypeLabel } from '@/lib/portal/labels';
 import { getSessionDateForClassTimezone, formatClassScheduleForViewer } from '@/lib/portal/time';
@@ -63,7 +64,7 @@ export default async function CoachAttendancePage({
   const sessionDate = getSessionDateForClassTimezone(classRow.timezone);
 
   const [{ data: enrollmentsData }, { data: attendanceRowsData }, { data: absencesData }] = await Promise.all([
-    supabase.from('enrollments').select('student_id').eq('class_id', classId).eq('status', 'active'),
+    supabase.from('enrollments').select('student_id').eq('class_id', classId),
     supabase
       .from('attendance_records')
       .select('student_id,status,camera_on,marked_at')
@@ -80,10 +81,16 @@ export default async function CoachAttendancePage({
   const absences = (absencesData ?? []) as AbsenceStudentRow[];
 
   const studentIds = enrollments.map((item) => item.student_id);
+  const admin = getSupabaseAdminClient();
   const { data: profilesData } = studentIds.length
-    ? await supabase.from('profiles').select('id,display_name,email').in('id', studentIds)
+    ? await admin.from('profiles').select('id,display_name,email').in('id', studentIds)
     : { data: [] as Array<{ id: string; display_name: string | null; email: string }> };
-  const profiles = (profilesData ?? []) as AttendanceStudentProfile[];
+  const profileRows = (profilesData ?? []) as AttendanceStudentProfile[];
+  const profileById = new Map(profileRows.map((row) => [row.id, row]));
+  const profiles = studentIds.map((id) => {
+    const profile = profileById.get(id);
+    return profile ?? { id, display_name: null, email: id };
+  });
 
   const attendanceByStudent = Object.fromEntries(
     attendanceRows.map((row) => [
