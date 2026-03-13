@@ -94,7 +94,18 @@ const orgSchema = {
     addressCountry: "CA",
   },
   email: "education.dsdc@gmail.com",
-  sameAs: [],
+  sameAs: [
+    "https://instagram.com/debate_education/",
+    "https://www.linkedin.com/company/debate-and-speech-development-community/",
+  ],
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Debate & Speech Development Community",
+  alternateName: ["DSDC", "DSDC Debate Academy"],
+  url: "https://dsdc.ca",
 };
 
 export default async function RootLayout({
@@ -115,6 +126,10 @@ export default async function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
       </head>
       <body className="font-sans antialiased">

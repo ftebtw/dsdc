@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import KeyFactsBox from "@/components/KeyFactsBox";
 
 export const metadata: Metadata = {
   title: "Debate Classes in Canada | Online Programs for Grades 4-12 | DSDC",
@@ -61,6 +62,21 @@ export default function DebateClassesCanadaPage() {
           </p>
         </div>
       </section>
+
+      <KeyFactsBox
+        itemType="https://schema.org/EducationalOrganization"
+        title="Key Facts"
+        facts={[
+          { label: "Founded", value: "2017, Vancouver, Canada" },
+          { label: "Format", value: "Live online via Zoom" },
+          { label: "Class size", value: "8-12 students" },
+          { label: "Ages", value: "Grades 4-12 and university students" },
+          { label: "Pricing", value: "$30-50 CAD/hr (group classes)" },
+          { label: "Formats taught", value: "CNDF, British Parliamentary, World Schools, Cross-Examination" },
+          { label: "Location", value: "Vancouver, BC, Canada" },
+          { label: "Service area", value: "All provinces across Canada via online classes" },
+        ]}
+      />
     </>
   );
 }

@@ -35,6 +35,15 @@ export default function MissionSection() {
               <p className="text-lg text-charcoal/70 dark:text-navy-200 leading-relaxed mb-8 font-sans">
                 {t("mission.text")}
               </p>
+              <div
+                className="about-dsdc mb-8 rounded-2xl border border-warm-200 bg-warm-50 p-5 text-base leading-relaxed text-charcoal/80 shadow-sm dark:border-navy-700 dark:bg-navy-800/70 dark:text-navy-200"
+                itemScope
+                itemType="https://schema.org/EducationalOrganization"
+              >
+                <p itemProp="description">
+                  {t("mission.geoFacts")}
+                </p>
+              </div>
               <p className="text-base text-charcoal/70 dark:text-navy-300 leading-relaxed mb-8 font-sans">
                 We serve students{" "}
                 <Link href="/debate-classes-canada" className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors">

@@ -120,6 +120,15 @@ const faqSchema = {
   ],
 };
 
+const speakableSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  speakable: {
+    "@type": "SpeakableSpecification",
+    cssSelector: [".about-dsdc", ".faq-section", ".stats-section"],
+  },
+};
+
 export default async function HomePage() {
   const { isEnabled } = await draftMode();
   return (
@@ -127,6 +136,10 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(speakableSchema) }}
       />
       <AuthHashRedirect />
       <Hero />

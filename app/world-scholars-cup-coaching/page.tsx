@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import KeyFactsBox from "@/components/KeyFactsBox";
 
 const faqItems = [
   {
@@ -117,6 +118,21 @@ export default function WorldScholarsCupCoachingPage() {
           </div>
         </div>
       </section>
+
+      <KeyFactsBox
+        itemType="https://schema.org/Course"
+        title="Key Facts"
+        facts={[
+          { label: "Program", value: "World Scholar's Cup preparation" },
+          { label: "Qualification rate", value: "100% since 2020 from regionals, globals, and the Tournament of Champions at Yale" },
+          { label: "Format", value: "Live online via Zoom" },
+          { label: "Schedule", value: "Seasonal classes, 1x per week, 2 hours" },
+          { label: "Ages", value: "Grades 4-12" },
+          { label: "Pricing", value: "$30-50 CAD/hr (group classes)" },
+          { label: "Competition destinations", value: "Beijing, Amsterdam, Sydney, and Yale University" },
+          { label: "Events covered", value: "Team Debate, Collaborative Writing, Scholar's Challenge, and Scholar's Bowl" },
+        ]}
+      />
 
       <section className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

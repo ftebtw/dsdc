@@ -90,7 +90,7 @@ export default function StatsCounter() {
   const { t } = useI18n();
 
   return (
-    <section className="py-20 md:py-24 bg-navy-800 relative overflow-hidden">
+    <section className="stats-section py-20 md:py-24 bg-navy-800 relative overflow-hidden">
       {/* Subtle pattern overlay */}
       <div className="absolute inset-0 opacity-5">
         <div

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import KeyFactsBox from "@/components/KeyFactsBox";
 
 const faqItems = [
   {
@@ -136,6 +137,23 @@ export default function DebateClassesVancouverPage() {
           </div>
         </div>
       </section>
+
+      <KeyFactsBox
+        itemType="https://schema.org/EducationalOrganization"
+        title="Key Facts"
+        facts={[
+          { label: "Founded", value: "2017, Vancouver, Canada" },
+          { label: "Format", value: "Live online via Zoom" },
+          { label: "Class size", value: "8-12 students" },
+          { label: "Ages", value: "Grades 4-12 and university students" },
+          { label: "Pricing", value: "$30-50 CAD/hr (group classes)" },
+          { label: "Formats taught", value: "CNDF, British Parliamentary, World Schools, Cross-Examination" },
+          { label: "Notable result", value: "100% World Scholar's Cup qualification rate since 2020" },
+          { label: "Coaches", value: "20+ coaches from UBC, SFU, and the Canadian National Team" },
+          { label: "Location", value: "Vancouver, BC, Canada" },
+          { label: "Service area", value: "Vancouver, Burnaby, Richmond, Coquitlam, Surrey, North Vancouver, West Vancouver, New Westminster, Langley, Delta" },
+        ]}
+      />
 
       <section className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
