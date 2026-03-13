@@ -108,6 +108,16 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-390603959" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'AW-390603959');`,
+          }}
+        />
         <link rel="alternate" hrefLang="en" href="https://dsdc.ca" />
         <link rel="alternate" hrefLang="zh" href="https://dsdc.ca" />
         <link rel="alternate" hrefLang="x-default" href="https://dsdc.ca" />
