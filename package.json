@@ -2,6 +2,9 @@
   "name": "dsdc-website",
   "version": "1.0.0",
   "private": true,
+  "browserslist": [
+    "defaults and supports es6-module"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",

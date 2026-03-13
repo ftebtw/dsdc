@@ -108,26 +108,29 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
-        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-390603959" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-
-gtag('config', 'AW-390603959');`,
-          }}
-        />
         <link rel="alternate" hrefLang="en" href="https://dsdc.ca" />
         <link rel="alternate" hrefLang="zh" href="https://dsdc.ca" />
         <link rel="alternate" hrefLang="x-default" href="https://dsdc.ca" />
+        <link rel="preconnect" href="https://9rjkctzpxtq3g6gf.public.blob.vercel-storage.com" crossOrigin="" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
         />
       </head>
       <body className="font-sans antialiased">
-        <Script id="meta-pixel" strategy="afterInteractive">
+        <Script
+          id="google-ads-script"
+          src="https://www.googletagmanager.com/gtag/js?id=AW-390603959"
+          strategy="lazyOnload"
+        />
+        <Script id="google-ads" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', 'AW-390603959');`}
+        </Script>
+        <Script id="meta-pixel" strategy="lazyOnload">
           {`!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};

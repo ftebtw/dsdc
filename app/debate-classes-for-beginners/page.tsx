@@ -190,14 +190,17 @@ export default function DebateClassesForBeginnersPage() {
               {
                 title: "Novice Debate (Grades 4-6)",
                 text: "An excellent starting point for younger scholars eager to develop public speaking and debate skills. Perfect for students with zero debate experience. Build confidence through speech fundamentals and introductory debate formats.",
+                learnMoreLabel: "View Novice Debate Classes",
               },
               {
                 title: "Junior Debate (Grades 7-9)",
                 text: "Also welcoming to beginners. Coaches adapt to each student's experience level, so new debaters can start here and progress quickly.",
+                learnMoreLabel: "View Junior Debate Classes",
               },
               {
                 title: "Public Speaking (Grades 4-9)",
                 text: "If your child is not ready for debate yet, our Public Speaking class focuses on confidence, voice projection, and presentation skills - a great stepping stone.",
+                learnMoreLabel: "View Public Speaking Classes",
               },
             ].map((item) => (
               <article
@@ -211,7 +214,7 @@ export default function DebateClassesForBeginnersPage() {
                     href="/classes"
                     className="px-4 py-2 rounded-md border border-warm-300 dark:border-navy-600 text-sm font-medium text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors"
                   >
-                    Learn More
+                    {item.learnMoreLabel}
                   </Link>
                   <Link
                     href="/book"

@@ -1,5 +1,6 @@
 "use client";
 
+import Script from "next/script";
 import { motion } from "framer-motion";
 import { Calendar, Clock, Video, CheckCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -14,6 +15,13 @@ export default function BookPage() {
 
   return (
     <>
+      <Script id="google-ads-conversion" strategy="afterInteractive">
+        {`gtag('event', 'conversion', {
+  'send_to': 'AW-390603959/uChFCKeu14ccELfJoLoB',
+  'value': 1.0,
+  'currency': 'CAD'
+});`}
+      </Script>
       {/* Hero */}
       <section className="relative pt-32 pb-16 md:pt-40 md:pb-20 bg-gradient-to-br from-navy-800 via-navy-700 to-navy-900 overflow-hidden">
         <div

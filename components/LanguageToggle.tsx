@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Globe } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
@@ -30,17 +29,15 @@ export default function LanguageToggle({ variant = "dark" }: LanguageToggleProps
 
       {/* Language options with sliding pill */}
       <div className="relative flex items-center">
-        {/* Sliding highlight pill */}
-        <motion.div
+        <div
           className={`absolute top-0 bottom-0 rounded-full ${
             isLight ? "bg-white/20" : "bg-navy-800/10 dark:bg-white/10"
           }`}
-          initial={false}
-          animate={{
-            left: isEn ? 0 : "calc(50% + 2px)",
-            width: isEn ? "calc(50% - 2px)" : "calc(50% - 2px)",
+          style={{
+            width: "calc(50% - 2px)",
+            transform: isEn ? "translateX(0)" : "translateX(calc(100% + 2px))",
+            transition: "transform 200ms ease",
           }}
-          transition={{ type: "spring", stiffness: 400, damping: 30 }}
         />
 
         <span

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 
 interface CounterProps {
@@ -12,8 +11,26 @@ interface CounterProps {
 
 function Counter({ value, label, delay }: CounterProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true });
+  const [isInView, setIsInView] = useState(false);
   const [displayValue, setDisplayValue] = useState("0");
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.2 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!isInView) return;
@@ -48,21 +65,14 @@ function Counter({ value, label, delay }: CounterProps) {
   }, [isInView, value, delay]);
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, delay }}
-      className="text-center"
-    >
+    <div ref={ref} className="text-center">
       <div className="text-4xl md:text-5xl font-bold text-gold-400 font-serif mb-2">
         {isInView ? displayValue : "0"}
       </div>
       <div className="text-sm md:text-base text-white/80 font-sans uppercase tracking-wider">
         {label}
       </div>
-    </motion.div>
+    </div>
   );
 }
 

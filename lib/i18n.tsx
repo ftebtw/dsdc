@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import { useEffect, useMemo } from "react";
 import en from "@/messages/en.json";
-import zh from "@/messages/zh.json";
 
 type Locale = "en" | "zh";
 type Messages = typeof en;
@@ -16,8 +15,7 @@ interface I18nContextType {
   messages: Record<string, unknown>;
   contentSource: "static" | "live" | "fallback";
 }
-
-const messages: Record<Locale, Messages> = { en, zh };
+const defaultMessages = en as unknown as Record<string, unknown>;
 
 const I18nContext = createContext<I18nContextType | null>(null);
 
@@ -85,6 +83,7 @@ export function I18nProvider({
     return "en";
   });
   const [cmsOverrides, setCmsOverrides] = useState<CmsOverridesPayload>(initialCmsOverrides ?? null);
+  const [zhMessages, setZhMessages] = useState<Record<string, unknown> | null>(null);
   const [contentSource, setContentSource] = useState<"static" | "live" | "fallback">(
     initialCmsOverrides ? "live" : "static"
   );
@@ -98,6 +97,25 @@ export function I18nProvider({
       localStorage.setItem("dsdc-locale", locale);
     }
   }, [locale]);
+
+  useEffect(() => {
+    if (locale !== "zh" || zhMessages) return;
+
+    let cancelled = false;
+
+    async function loadZhMessages() {
+      const module = await import("@/messages/zh.json");
+      if (!cancelled) {
+        setZhMessages(module.default as Record<string, unknown>);
+      }
+    }
+
+    void loadZhMessages();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [locale, zhMessages]);
 
   useEffect(() => {
     if (initialCmsOverrides) return;
@@ -128,11 +146,11 @@ export function I18nProvider({
   }, [initialCmsOverrides]);
 
   const currentMessages = useMemo(() => {
-    const base = messages[locale] as unknown as Record<string, unknown>;
+    const base = locale === "zh" ? zhMessages ?? defaultMessages : defaultMessages;
     if (!cmsOverrides) return base;
     const override = cmsOverrides[locale] || {};
     return deepMerge(base, override);
-  }, [locale, cmsOverrides]);
+  }, [locale, cmsOverrides, zhMessages]);
 
   const t = useCallback(
     (key: string) => getNestedValue(currentMessages, key),

@@ -228,26 +228,32 @@ export default function OnlineDebateClassesPage() {
               {
                 title: "Novice (Grades 4–6)",
                 text: "An excellent starting point for younger scholars eager to develop public speaking and debate skills. Build confidence through the fundamentals of speech execution and foundational debate formats — even shy and introverted children thrive. Saturdays, 2 hours/week.",
+                learnMoreLabel: "View Novice Debate Classes",
               },
               {
                 title: "Junior (Grades 7–9)",
                 text: "Build competitive debate skills while accelerating academic growth. Coaches integrate challenging topics like International Relations, Law, Philosophy, and Economics into debate practice. Weekends, 2 hours/week.",
+                learnMoreLabel: "View Junior Debate Classes",
               },
               {
                 title: "Senior (Grades 10–12)",
                 text: "Rigorous practice in British Parliamentary, CNDF, and World Schools formats with advanced lectures on complex topics. 1–2x per week, 2 hours.",
+                learnMoreLabel: "View Senior Debate Classes",
               },
               {
                 title: "Advanced Competitive (Grades 10–12)",
                 text: "An elite program led by world-renowned university debaters for students deeply committed to competitive debate. Intensive drills, mock debates, and personalized coaching. 2x per week, 2 hours.",
+                learnMoreLabel: "View Advanced Competitive Classes",
               },
               {
                 title: "Public Speaking (Grades 4–9)",
                 text: "Comprehensive training in impromptu, persuasive, interpretive, and parliamentary formats. Designed to prepare students for BC speech provincials.",
+                learnMoreLabel: "View Public Speaking Classes",
               },
               {
                 title: "World Scholar's Cup (Grades 4–12)",
                 text: "Full WSC preparation with a 100% qualification rate since 2020 — from regionals to the Tournament of Champions at Yale.",
+                learnMoreLabel: "View WSC Coaching",
               },
             ].map((item) => (
               <article
@@ -261,7 +267,7 @@ export default function OnlineDebateClassesPage() {
                     href="/classes"
                     className="px-4 py-2 rounded-md border border-warm-300 dark:border-navy-600 text-sm font-medium text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors"
                   >
-                    Learn More
+                    {item.learnMoreLabel}
                   </Link>
                   <Link
                     href="/book"

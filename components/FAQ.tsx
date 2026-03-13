@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "./AnimatedSection";
@@ -36,39 +35,32 @@ export default function FAQ() {
                     className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-warm-50 dark:hover:bg-navy-700/50 transition-colors"
                     aria-expanded={isOpen}
                   >
-                    <span className="text-navy-800 dark:text-navy-100 font-semibold pr-3 sm:pr-4 text-sm sm:text-base font-sans">{item.q}</span>
+                    <span className="text-navy-800 dark:text-navy-100 font-semibold pr-3 sm:pr-4 text-sm sm:text-base font-sans">
+                      {item.q}
+                    </span>
                     <span className="shrink-0 w-8 h-8 rounded-full bg-navy-800 dark:bg-navy-600 flex items-center justify-center">
-                      {isOpen ? (
-                        <Minus className="w-4 h-4 text-white" />
-                      ) : (
-                        <Plus className="w-4 h-4 text-white" />
-                      )}
+                      {isOpen ? <Minus className="w-4 h-4 text-white" /> : <Plus className="w-4 h-4 text-white" />}
                     </span>
                   </button>
-                  <AnimatePresence>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="overflow-hidden"
-                      >
-                        <p className="px-4 sm:px-5 pb-4 sm:pb-5 text-sm sm:text-base text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans">
-                          {item.a}
+                  {isOpen ? (
+                    <div className="overflow-hidden">
+                      <p className="px-4 sm:px-5 pb-4 sm:pb-5 text-sm sm:text-base text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans">
+                        {item.a}
+                      </p>
+                      {shouldShowBeginnersLink ? (
+                        <p className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-3 text-sm font-medium text-navy-700 dark:text-gold-300">
+                          Learn more about our{" "}
+                          <Link
+                            href="/debate-classes-for-beginners"
+                            className="underline underline-offset-4 hover:text-gold-400 transition-colors"
+                          >
+                            beginner-friendly classes
+                          </Link>
+                          .
                         </p>
-                        {shouldShowBeginnersLink ? (
-                          <p className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-3 text-sm font-medium text-navy-700 dark:text-gold-300">
-                            Learn more about our{" "}
-                            <Link href="/debate-classes-for-beginners" className="underline underline-offset-4 hover:text-gold-400 transition-colors">
-                              beginner-friendly classes
-                            </Link>
-                            .
-                          </p>
-                        ) : null}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
               </AnimatedSection>
             );

@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import { draftMode } from "next/headers";
 import type { Metadata } from "next";
 import Hero from "@/components/Hero";
@@ -6,12 +7,13 @@ import HowItWorks from "@/components/HowItWorks";
 import MissionSection from "@/components/MissionSection";
 import ClassesOverview from "@/components/ClassesOverview";
 import AuthHashRedirect from "@/components/AuthHashRedirect";
-import StatsCounter from "@/components/StatsCounter";
 import CompetitionLogos from "@/components/CompetitionLogos";
-import TestimonialCarousel from "@/components/TestimonialCarousel";
-import FAQ from "@/components/FAQ";
 import FinalCTA from "@/components/FinalCTA";
 import { homePageDataSanity } from "@/lib/sanity/presentation";
+
+const StatsCounter = dynamic(() => import("@/components/StatsCounter"));
+const TestimonialCarousel = dynamic(() => import("@/components/TestimonialCarousel"));
+const FAQ = dynamic(() => import("@/components/FAQ"));
 
 export const revalidate = 60;
 
