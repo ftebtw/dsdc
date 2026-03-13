@@ -7,13 +7,13 @@ import HowItWorks from "@/components/HowItWorks";
 import MissionSection from "@/components/MissionSection";
 import ClassesOverview from "@/components/ClassesOverview";
 import AuthHashRedirect from "@/components/AuthHashRedirect";
-import CompetitionLogos from "@/components/CompetitionLogos";
 import FinalCTA from "@/components/FinalCTA";
 import { homePageDataSanity } from "@/lib/sanity/presentation";
 
 const StatsCounter = dynamic(() => import("@/components/StatsCounter"));
-const TestimonialCarousel = dynamic(() => import("@/components/TestimonialCarousel"));
-const FAQ = dynamic(() => import("@/components/FAQ"));
+const CompetitionLogos = dynamic(() => import("@/components/CompetitionLogos"), { ssr: true });
+const TestimonialCarousel = dynamic(() => import("@/components/TestimonialCarousel"), { ssr: true });
+const FAQ = dynamic(() => import("@/components/FAQ"), { ssr: true });
 
 export const revalidate = 60;
 

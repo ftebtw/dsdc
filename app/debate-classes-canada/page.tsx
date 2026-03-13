@@ -49,6 +49,16 @@ export default function DebateClassesCanadaPage() {
             </Link>
             .
           </p>
+          <p className="mt-2 text-sm sm:text-base text-white/85 font-sans">
+            Want to learn more about how competitive debate works across the country? Read our{" "}
+            <Link
+              href="/guide-to-debate-in-canada"
+              className="underline underline-offset-4 hover:text-gold-300 transition-colors"
+            >
+              Complete Guide to High School Debate in Canada
+            </Link>
+            .
+          </p>
         </div>
       </section>
     </>

@@ -27,6 +27,7 @@ export default function FAQ() {
           {items.map((item, i) => {
             const isOpen = openIndex === i;
             const shouldShowBeginnersLink = i === 3;
+            const shouldShowCanadaGuideLink = i === 3;
             return (
               <AnimatedSection key={i} delay={i * 0.05}>
                 <div className="bg-white dark:bg-navy-800 rounded-xl overflow-hidden shadow-sm border border-warm-200 dark:border-navy-700">
@@ -55,6 +56,18 @@ export default function FAQ() {
                             className="underline underline-offset-4 hover:text-gold-400 transition-colors"
                           >
                             beginner-friendly classes
+                          </Link>
+                          .
+                        </p>
+                      ) : null}
+                      {shouldShowCanadaGuideLink ? (
+                        <p className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-3 text-sm font-medium text-navy-700 dark:text-gold-300">
+                          For a complete overview of how debate works in Canada, see our{" "}
+                          <Link
+                            href="/guide-to-debate-in-canada"
+                            className="underline underline-offset-4 hover:text-gold-400 transition-colors"
+                          >
+                            Complete Guide to High School Debate in Canada
                           </Link>
                           .
                         </p>

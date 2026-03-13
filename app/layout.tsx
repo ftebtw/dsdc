@@ -121,9 +121,9 @@ export default async function RootLayout({
         <Script
           id="google-ads-script"
           src="https://www.googletagmanager.com/gtag/js?id=AW-390603959"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-ads-config" strategy="afterInteractive">
+        <Script id="google-ads-config" strategy="lazyOnload">
           {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());

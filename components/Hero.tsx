@@ -1,28 +1,70 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
+const HERO_DESKTOP_VIDEO_SRC =
+  "https://9rjkctzpxtq3g6gf.public.blob.vercel-storage.com/dsdc-cover-video-shorter_2.mp4";
+const HERO_MOBILE_VIDEO_SRC = "/videos/hero-mobile.mp4";
+
 export default function Hero() {
   const { t } = useI18n();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const loadVideo = () => {
+      // ffmpeg is not installed in this environment. Place the compressed mobile file at
+      // /public/videos/hero-mobile.mp4 to enable the smaller mobile asset path below.
+      const mobileVariantEnabled = false;
+      const nextSrc =
+        window.innerWidth < 768 && mobileVariantEnabled
+          ? HERO_MOBILE_VIDEO_SRC
+          : HERO_DESKTOP_VIDEO_SRC;
+
+      const playVideo = () => {
+        const playPromise = video.play();
+        if (playPromise) {
+          playPromise.catch(() => {
+            // Ignore autoplay interruptions; the poster image remains visible.
+          });
+        }
+      };
+
+      video.src = nextSrc;
+      video.load();
+      video.addEventListener("loadeddata", playVideo, { once: true });
+    };
+
+    const timer = window.setTimeout(loadVideo, 1000);
+
+    return () => {
+      window.clearTimeout(timer);
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+    };
+  }, []);
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
       {/* Background video */}
       <video
+        ref={videoRef}
         autoPlay
         loop
         muted
         playsInline
-        preload="metadata"
+        preload="none"
         className="absolute inset-0 w-full h-full object-cover"
         poster="/images/photos/wsc-group-2.jpg"
+        aria-hidden="true"
       >
-        <source
-          src="https://9rjkctzpxtq3g6gf.public.blob.vercel-storage.com/dsdc-cover-video-shorter_2.mp4"
-          type="video/mp4"
-        />
+        Your browser does not support the background video.
       </video>
 
       {/* Dark overlay */}

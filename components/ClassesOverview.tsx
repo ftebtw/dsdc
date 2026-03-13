@@ -61,7 +61,7 @@ export default function ClassesOverview() {
                       height={400}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       loading="lazy"
-                      sizes="(max-width: 768px) 100vw, 50vw"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-navy-900/90 via-navy-900/45 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-6 min-h-[200px] md:min-h-[220px] flex flex-col justify-end">

@@ -79,14 +79,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
+    {
+      url: `${baseUrl}/guide-to-debate-in-canada`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
   ];
 
-  const blogEntries: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.date),
-    changeFrequency: "monthly",
-    priority: 0.7,
-  }));
+  const blogEntries: MetadataRoute.Sitemap = blogPosts
+    .filter((post) => post.slug !== "guide-to-debate-in-canada")
+    .map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.date),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    }));
 
   return [...staticEntries, ...blogEntries];
 }

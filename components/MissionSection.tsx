@@ -20,6 +20,7 @@ export default function MissionSection() {
                 width={800}
                 height={600}
                 className="w-full h-full object-cover"
+                loading="lazy"
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-900/30 to-transparent" />

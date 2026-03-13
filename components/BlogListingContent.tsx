@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { getBlogPostHref } from "@/lib/blogPostPaths";
 import AnimatedSection from "./AnimatedSection";
 import type { BlogPost } from "@/lib/blogPosts";
 
@@ -61,7 +62,7 @@ export default function BlogListingContent({ initialPosts }: { initialPosts: Blo
       <section className="py-12 md:py-16 bg-white dark:bg-navy-900/30">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection>
-            <Link href={`/blog/${featured.slug}`} className="group block">
+            <Link href={getBlogPostHref(featured.slug)} className="group block">
               <div className="bg-warm-50 dark:bg-navy-800 rounded-2xl p-6 sm:p-10 border border-warm-200 dark:border-navy-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <div className="flex flex-wrap items-center gap-3 mb-4">
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${categoryColors[featured.category] || "bg-gray-50 dark:bg-navy-700 text-gray-700 dark:text-navy-200"}`}>
@@ -100,7 +101,7 @@ export default function BlogListingContent({ initialPosts }: { initialPosts: Blo
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {rest.map((post, i) => (
               <AnimatedSection key={post.slug} delay={(i % 3) * 0.1}>
-                <Link href={`/blog/${post.slug}`} className="group block h-full">
+                <Link href={getBlogPostHref(post.slug)} className="group block h-full">
                   <article className="bg-white dark:bg-navy-800 rounded-xl border border-warm-200 dark:border-navy-700 p-5 sm:p-6 h-full flex flex-col hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${categoryColors[post.category] || "bg-gray-50 dark:bg-navy-700 text-gray-700 dark:text-navy-200"}`}>

@@ -9,6 +9,15 @@ import LanguageToggle from "./LanguageToggle";
 export default function Footer() {
   const { t, locale } = useI18n();
   const registerHref = `/register?lang=${locale === "zh" ? "zh" : "en"}`;
+  const currentYear = new Date().getFullYear();
+  const footerTagline =
+    locale === "zh"
+      ? "为所有年龄段学生提供在线辩论与公共演讲课程"
+      : "Online debate and public speaking classes for students of all ages";
+  const footerCopyright =
+    locale === "zh"
+      ? `© ${currentYear} 辩论与演讲发展社区 (DSDC) 版权所有。`
+      : `© ${currentYear} Debate & Speech Development Community (DSDC) Incorporated. All rights reserved.`;
 
   return (
     <footer className="bg-navy-800 dark:bg-navy-900 text-white border-t border-navy-700 dark:border-navy-800">
@@ -25,7 +34,7 @@ export default function Footer() {
               className="h-10 w-auto brightness-0 invert mb-4"
             />
             <p className="text-navy-200 text-sm leading-relaxed">
-              {t("footer.tagline")}
+              {footerTagline}
             </p>
           </div>
 
@@ -132,7 +141,7 @@ export default function Footer() {
 
         <div className="border-t border-navy-700 mt-12 pt-8 text-center">
           <p className="text-navy-300 text-xs">
-            {t("footer.copyright")}
+            {footerCopyright}
           </p>
         </div>
       </div>

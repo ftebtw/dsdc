@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowLeft, User, ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
+import { getBlogPostHref } from "@/lib/blogPostPaths";
 import AnimatedSection from "./AnimatedSection";
 import type { BlogPost } from "@/lib/blogPosts";
 
@@ -79,6 +80,7 @@ export default function BlogPostContent({
   allPosts: BlogPost[];
 }) {
   const { t } = useI18n();
+  const postHref = getBlogPostHref(post.slug);
   const related = allPosts
     .filter((p) => p.slug !== post.slug)
     .sort((a, b) => (a.category === post.category ? -1 : 1))
@@ -102,7 +104,7 @@ export default function BlogPostContent({
               url: "https://dsdc.ca",
               logo: { "@type": "ImageObject", url: "https://dsdc.ca/images/logos/logo-full.png" },
             },
-            mainEntityOfPage: { "@type": "WebPage", "@id": `https://dsdc.ca/blog/${post.slug}` },
+            mainEntityOfPage: { "@type": "WebPage", "@id": `https://dsdc.ca${postHref}` },
           }),
         }}
       />
@@ -172,6 +174,11 @@ export default function BlogPostContent({
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="prose-custom">
             {post.sections.map((section, i) => {
+              const singleInternalLinkMatch =
+                section.type === "paragraph"
+                  ? section.content.match(/^\[([^\]]+)\]\((\/[^)]+)\)$/)
+                  : null;
+
               if (section.type === "heading") {
                 return (
                   <AnimatedSection key={i} delay={0.05}>
@@ -206,6 +213,20 @@ export default function BlogPostContent({
                         </li>
                       ))}
                     </ul>
+                  </AnimatedSection>
+                );
+              }
+              if (singleInternalLinkMatch) {
+                return (
+                  <AnimatedSection key={i} delay={0.05}>
+                    <div className="mb-6">
+                      <Link
+                        href={singleInternalLinkMatch[2]}
+                        className="inline-block rounded-lg bg-gold-300 px-8 py-3.5 font-bold text-navy-900 transition-all duration-200 hover:-translate-y-0.5 hover:bg-gold-200 hover:shadow-xl"
+                      >
+                        {singleInternalLinkMatch[1]}
+                      </Link>
+                    </div>
                   </AnimatedSection>
                 );
               }
@@ -257,7 +278,7 @@ export default function BlogPostContent({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {related.map((p, i) => (
               <AnimatedSection key={p.slug} delay={i * 0.1}>
-                <Link href={`/blog/${p.slug}`} className="group block">
+                <Link href={getBlogPostHref(p.slug)} className="group block">
                   <article className="bg-white dark:bg-navy-800 rounded-xl border border-warm-200 dark:border-navy-700 p-5 sm:p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${categoryColors[p.category] || "bg-gray-50 dark:bg-navy-700 text-gray-700 dark:text-navy-200"}`}>

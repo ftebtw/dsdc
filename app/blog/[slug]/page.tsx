@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getBlogPostHref } from "@/lib/blogPostPaths";
 import { getBlogPostsSync } from "@/lib/blogPosts";
 import BlogPostContent from "@/components/BlogPostContent";
 
@@ -8,6 +10,10 @@ interface Props {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
+  const href = getBlogPostHref(slug);
+  if (href !== `/blog/${slug}`) {
+    redirect(href);
+  }
   const posts = getBlogPostsSync();
   const post = posts.find((p) => p.slug === slug);
 

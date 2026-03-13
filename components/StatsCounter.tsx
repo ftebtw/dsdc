@@ -12,7 +12,8 @@ interface CounterProps {
 function Counter({ value, label, delay }: CounterProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [isInView, setIsInView] = useState(false);
-  const [displayValue, setDisplayValue] = useState("0");
+  const hasAnimatedRef = useRef(false);
+  const [displayValue, setDisplayValue] = useState(value);
 
   useEffect(() => {
     const node = ref.current;
@@ -33,7 +34,8 @@ function Counter({ value, label, delay }: CounterProps) {
   }, []);
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!isInView || hasAnimatedRef.current) return;
+    hasAnimatedRef.current = true;
 
     const numericMatch = value.match(/(\d+)/);
     if (!numericMatch) {
@@ -47,6 +49,7 @@ function Counter({ value, label, delay }: CounterProps) {
     const steps = 60;
     const stepDuration = duration / steps;
     let current = 0;
+    setDisplayValue(`0${suffix}`);
 
     const timer = setTimeout(() => {
       const interval = setInterval(() => {
@@ -67,7 +70,7 @@ function Counter({ value, label, delay }: CounterProps) {
   return (
     <div ref={ref} className="text-center">
       <div className="text-4xl md:text-5xl font-bold text-gold-400 font-serif mb-2">
-        {isInView ? displayValue : "0"}
+        {displayValue}
       </div>
       <div className="text-sm md:text-base text-white/80 font-sans uppercase tracking-wider">
         {label}
@@ -76,11 +79,11 @@ function Counter({ value, label, delay }: CounterProps) {
   );
 }
 
-const statKeys = [
-  { valueKey: "stats.studentsValue", labelKey: "stats.students" },
-  { valueKey: "stats.yearsValue", labelKey: "stats.years" },
-  { valueKey: "stats.wscRateValue", labelKey: "stats.wscRate" },
-  { valueKey: "stats.coachesValue", labelKey: "stats.coaches" },
+const statItems = [
+  { value: "5000+", labelKey: "stats.students" },
+  { value: "7+", labelKey: "stats.years" },
+  { value: "100%", labelKey: "stats.wscRate" },
+  { value: "20+", labelKey: "stats.coaches" },
 ];
 
 export default function StatsCounter() {
@@ -102,10 +105,10 @@ export default function StatsCounter() {
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-          {statKeys.map((stat, i) => (
+          {statItems.map((stat, i) => (
             <Counter
-              key={stat.valueKey}
-              value={t(stat.valueKey)}
+              key={stat.labelKey}
+              value={stat.value}
               label={t(stat.labelKey)}
               delay={i * 0.15}
             />
