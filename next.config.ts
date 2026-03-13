@@ -21,6 +21,20 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/registration",
+        destination: "/register",
+        permanent: true,
+      },
+      {
+        source: "/registration/",
+        destination: "/register",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
