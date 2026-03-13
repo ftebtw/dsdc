@@ -42,6 +42,13 @@ export default function DebateClassesCanadaPage() {
             </Link>
             .
           </p>
+          <p className="mt-2 text-sm sm:text-base text-white/85 font-sans">
+            Looking for debate classes in Vancouver specifically? See our{" "}
+            <Link href="/debate-classes-vancouver" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+              Vancouver page
+            </Link>
+            .
+          </p>
         </div>
       </section>
     </>

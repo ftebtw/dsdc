@@ -39,7 +39,11 @@ export default function MissionSection() {
                 <Link href="/debate-classes-canada" className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors">
                   across Canada
                 </Link>{" "}
-                and around the world through live online classes.
+                and around the world through live online classes. Looking for Vancouver-specific programs? Explore our{" "}
+                <Link href="/debate-classes-vancouver" className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors">
+                  Vancouver debate classes page
+                </Link>
+                .
               </p>
               <Link
                 href="/team"
