@@ -17,6 +17,7 @@ import {
 import type { BlogPost, BlogSection } from "@/lib/blogPosts";
 
 const CATEGORIES = [
+  "Parents & Resources",
   "Parents & Pricing",
   "Competitive Debate",
   "World Scholar's Cup",

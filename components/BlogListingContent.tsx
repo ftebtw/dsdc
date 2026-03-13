@@ -8,6 +8,7 @@ import AnimatedSection from "./AnimatedSection";
 import type { BlogPost } from "@/lib/blogPosts";
 
 const categoryColors: Record<string, string> = {
+  "Parents & Resources": "bg-green-50 text-green-700",
   "Parents & Pricing": "bg-green-50 text-green-700",
   "Competitive Debate": "bg-blue-50 text-blue-700",
   "World Scholar's Cup": "bg-purple-50 text-purple-700",

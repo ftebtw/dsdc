@@ -3,17 +3,73 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ArrowLeft, User, ArrowRight } from "lucide-react";
+import type { ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "./AnimatedSection";
 import type { BlogPost } from "@/lib/blogPosts";
 
 const categoryColors: Record<string, string> = {
+  "Parents & Resources": "bg-green-50 text-green-700",
   "Parents & Pricing": "bg-green-50 text-green-700",
   "Competitive Debate": "bg-blue-50 text-blue-700",
   "World Scholar's Cup": "bg-purple-50 text-purple-700",
   "Student Tips": "bg-orange-50 text-orange-700",
   "Public Speaking": "bg-pink-50 text-pink-700",
 };
+
+function renderInlineContent(content: string): ReactNode[] {
+  const parts: ReactNode[] = [];
+  const tokenRegex = /(\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null = tokenRegex.exec(content);
+
+  while (match) {
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index));
+    }
+
+    if (match[2] && match[3]) {
+      const href = match[3];
+      const text = match[2];
+      parts.push(
+        href.startsWith("/") ? (
+          <Link
+            key={`${href}-${match.index}`}
+            href={href}
+            className="text-gold-600 hover:text-gold-500 underline underline-offset-4 transition-colors"
+          >
+            {text}
+          </Link>
+        ) : (
+          <a
+            key={`${href}-${match.index}`}
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            className="text-gold-600 hover:text-gold-500 underline underline-offset-4 transition-colors"
+          >
+            {text}
+          </a>
+        )
+      );
+    } else if (match[4]) {
+      parts.push(
+        <strong key={`strong-${match.index}`} className="font-semibold text-navy-800 dark:text-white">
+          {match[4]}
+        </strong>
+      );
+    }
+
+    lastIndex = tokenRegex.lastIndex;
+    match = tokenRegex.exec(content);
+  }
+
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex));
+  }
+
+  return parts;
+}
 
 export default function BlogPostContent({
   post,
@@ -138,13 +194,15 @@ export default function BlogPostContent({
                 return (
                   <AnimatedSection key={i} delay={0.05}>
                     {section.content && (
-                      <p className="text-charcoal/70 dark:text-navy-200 font-semibold mb-2 font-sans">{section.content}</p>
+                      <p className="text-charcoal/70 dark:text-navy-200 font-semibold mb-2 font-sans">
+                        {renderInlineContent(section.content)}
+                      </p>
                     )}
                     <ul className="space-y-2 mb-6 ml-1">
                       {section.items?.map((item, j) => (
                         <li key={j} className="flex items-start gap-3 text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans">
                           <span className="w-2 h-2 bg-gold-400 rounded-full mt-2 shrink-0" />
-                          <span>{item}</span>
+                          <span>{renderInlineContent(item)}</span>
                         </li>
                       ))}
                     </ul>
@@ -154,7 +212,7 @@ export default function BlogPostContent({
               return (
                 <AnimatedSection key={i} delay={0.05}>
                   <p className="text-charcoal/70 dark:text-navy-200 text-lg leading-relaxed mb-6 font-sans">
-                    {section.content}
+                    {renderInlineContent(section.content)}
                   </p>
                 </AnimatedSection>
               );

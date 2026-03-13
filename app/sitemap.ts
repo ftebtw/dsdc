@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
-import { blogPosts } from "@/lib/blogPosts";
+import { getBlogPostsSync } from "@/lib/blogPosts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://dsdc.ca";
   const now = new Date();
+  const blogPosts = getBlogPostsSync();
 
   const staticEntries: MetadataRoute.Sitemap = [
     {
