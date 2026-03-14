@@ -269,71 +269,80 @@ export default async function AdminDashboardPage() {
   const thisMonthPayrollHours = await payrollHoursPromise;
 
   return (
-    <div className="space-y-6">
-      <SectionCard title="Admin Dashboard" description="Operational snapshot for the active term.">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 auto-rows-fr">
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Active students</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{activeStudentsCount}</p>
+    <div className="portal-ui space-y-8">
+      <SectionCard
+        title="Admin Dashboard"
+        description="Operational snapshot for the active term."
+        titleClassName="portal-display text-[2rem] sm:text-[2.3rem] font-bold"
+        descriptionClassName="text-[0.98rem] text-charcoal/65 dark:text-navy-200/80"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 auto-rows-fr">
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Active students</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{activeStudentsCount}</p>
           </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Active classes</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{activeClasses.length}</p>
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Active classes</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{activeClasses.length}</p>
           </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Today's check-ins</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Today's check-ins</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">
               {checkinsCompletedCount}/{classesToday.length}
             </p>
           </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Payroll this month</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{thisMonthPayrollHours.toFixed(2)}h</p>
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Payroll this month</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{thisMonthPayrollHours.toFixed(2)}h</p>
             <Link href="/portal/admin/payroll?preset=thisMonth" className="text-xs underline text-navy-700 dark:text-navy-200">
               View payroll
             </Link>
           </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Open sub requests</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{openSubRequestsCount}</p>
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Open sub requests</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{openSubRequestsCount}</p>
           </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Open TA requests</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{openTaRequestsCount}</p>
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Open TA requests</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{openTaRequestsCount}</p>
           </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending private sessions</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{pendingPrivateSessionsCount}</p>
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Pending private sessions</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{pendingPrivateSessionsCount}</p>
           </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending E-Transfers</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{pendingEtransfersCount}</p>
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Pending E-Transfers</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{pendingEtransfersCount}</p>
             <Link href="/portal/admin/etransfers" className="text-xs underline text-navy-700 dark:text-navy-200">
               Open queue
             </Link>
           </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending approvals</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{pendingApprovalsCount}</p>
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Pending approvals</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{pendingApprovalsCount}</p>
             <Link href="/portal/admin/pending-approvals" className="text-xs underline text-navy-700 dark:text-navy-200">
               Open queue
             </Link>
           </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending report cards</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{reportCardsCount}</p>
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Pending report cards</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{reportCardsCount}</p>
             <Link href="/portal/admin/report-cards" className="text-xs underline text-navy-700 dark:text-navy-200">
               Open queue
             </Link>
           </div>
-          <div className="rounded-xl bg-warm-50 dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600">
-            <p className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300">Pending legal signatures</p>
-            <p className="text-2xl font-bold text-navy-800 dark:text-white">{pendingLegalSignatures}</p>
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Pending legal signatures</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{pendingLegalSignatures}</p>
           </div>
         </div>
       </SectionCard>
 
-      <SectionCard title="Today's Coach Check-ins" description="Expected coaches and check-in timestamps.">
+      <SectionCard
+        title="Today's Coach Check-ins"
+        description="Expected coaches and check-in timestamps."
+        titleClassName="portal-display text-[1.65rem] font-bold"
+      >
         {classesToday.length === 0 ? (
           <p className="text-sm text-charcoal/70 dark:text-navy-300">No classes scheduled today in the active term.</p>
         ) : (
@@ -377,8 +386,12 @@ export default async function AdminDashboardPage() {
         )}
       </SectionCard>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <SectionCard title="Recent Check-ins" description="Last 10 check-in events.">
+      <div className="grid lg:grid-cols-2 gap-7">
+        <SectionCard
+          title="Recent Check-ins"
+          description="Last 10 check-in events."
+          titleClassName="portal-display text-[1.5rem] font-bold"
+        >
           <div className="space-y-2 text-sm">
             {checkinRows.length === 0 ? <p className="text-charcoal/70 dark:text-navy-300">No check-ins yet.</p> : null}
             {checkinRows.map((row) => (
@@ -389,7 +402,11 @@ export default async function AdminDashboardPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Recent Attendance Updates" description="Last 10 attendance records submitted by coaches.">
+        <SectionCard
+          title="Recent Attendance Updates"
+          description="Last 10 attendance records submitted by coaches."
+          titleClassName="portal-display text-[1.5rem] font-bold"
+        >
           <div className="space-y-2 text-sm">
             {attendanceRows.length === 0 ? (
               <p className="text-charcoal/70 dark:text-navy-300">No attendance updates yet.</p>
@@ -411,7 +428,11 @@ export default async function AdminDashboardPage() {
         </SectionCard>
       </div>
 
-      <SectionCard title="Admin Test Tools" description="Send test notification emails without changing student records.">
+      <SectionCard
+        title="Admin Test Tools"
+        description="Send test notification emails without changing student records."
+        titleClassName="portal-display text-[1.5rem] font-bold"
+      >
         <AdminNotificationTestTools defaultRecipient={session.profile.email} />
       </SectionCard>
     </div>

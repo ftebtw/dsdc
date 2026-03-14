@@ -3,7 +3,7 @@ import { draftMode } from "next/headers";
 import Script from "next/script";
 
 import { getCmsMessageOverrides } from "@/lib/sanity/content";
-import { Inter, Playfair_Display } from "next/font/google";
+import { DM_Sans, Inter, Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
@@ -14,6 +14,13 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 const playfair = Playfair_Display({
@@ -117,7 +124,7 @@ export default async function RootLayout({
   const cmsResult = await getCmsMessageOverrides({ draft: isEnabled });
   const initialCmsOverrides = cmsResult.source === "live" ? cmsResult.overrides : undefined;
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+    <html lang="en" className={`${inter.variable} ${playfair.variable} ${dmSans.variable}`}>
       <head>
         <link rel="alternate" hrefLang="en" href="https://dsdc.ca" />
         <link rel="alternate" hrefLang="x-default" href="https://dsdc.ca" />
