@@ -42,13 +42,8 @@ export default function Footer() {
             </h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/" className="text-navy-200 hover:text-white text-sm transition-colors">
-                  {t("nav.home")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/team" className="text-navy-200 hover:text-white text-sm transition-colors">
-                  {t("nav.team")}
+                <Link href="/about" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {t("footer.about")}
                 </Link>
               </li>
               <li>
@@ -57,8 +52,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/awards" className="text-navy-200 hover:text-white text-sm transition-colors">
-                  {t("nav.awards")}
+                <Link href="/compare" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {t("footer.compare")}
                 </Link>
               </li>
               <li>
@@ -72,6 +67,16 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/faq" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {t("footer.faq")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {t("footer.contactPage")}
+                </Link>
+              </li>
+              <li>
                 <Link href="/book" className="text-navy-200 hover:text-white text-sm transition-colors">
                   {t("nav.book")}
                 </Link>
@@ -79,11 +84,6 @@ export default function Footer() {
               <li>
                 <Link href={registerHref} className="text-navy-200 hover:text-white text-sm transition-colors">
                   {t("nav.register")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/portal/login" className="text-navy-200 hover:text-white text-sm transition-colors">
-                  {t("nav.portalLogin")}
                 </Link>
               </li>
             </ul>
@@ -160,7 +160,17 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-navy-700 mt-12 pt-8 text-center">
+        <div className="border-t border-navy-700 mt-12 pt-8 pb-4 text-center">
+          <p className="text-navy-200 mb-4 text-sm">{t("footer.ctaText")}</p>
+          <Link
+            href="/book"
+            className="inline-block bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-6 py-3 rounded-lg transition-colors"
+          >
+            {t("footer.ctaButton")}
+          </Link>
+        </div>
+
+        <div className="pt-4 text-center">
           <p className="text-navy-300 text-xs">
             {footerCopyright}
           </p>

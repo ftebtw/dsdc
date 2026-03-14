@@ -94,6 +94,27 @@ export default function ClassesPage() {
           >
             DSDC offers online debate and public speaking classes for students of all ages and experience levels - no experience needed.
           </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="mt-8 flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <Link
+              href="/compare"
+              className="px-8 py-3.5 bg-gold-300 text-navy-900 font-semibold rounded-lg
+                         hover:bg-gold-200 transition-all duration-200 shadow-md text-center"
+            >
+              {t("classesPage.compareCta")}
+            </Link>
+            <Link
+              href="/book"
+              className="px-8 py-3.5 border border-white text-white font-semibold rounded-lg
+                         hover:bg-white hover:text-navy-800 transition-all duration-200 text-center"
+            >
+              {t("classesPage.bookCta")}
+            </Link>
+          </motion.div>
         </div>
       </section>
 
@@ -287,12 +308,23 @@ export default function ClassesPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <AnimatedSection>
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-8">{t("classesPage.unsure")}</h2>
-            <Link
-              href="/book"
-              className="inline-block px-10 py-4 bg-gold-400 text-navy-900 font-semibold text-lg rounded-lg hover:bg-gold-300 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-            >
-              {t("classesPage.bookCta")}
-            </Link>
+            <p className="text-white/75 font-sans mb-8">
+              {t("classesPage.comparePrompt")}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/book"
+                className="inline-block px-10 py-4 bg-gold-400 text-navy-900 font-semibold text-lg rounded-lg hover:bg-gold-300 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              >
+                {t("classesPage.bookCta")}
+              </Link>
+              <Link
+                href="/compare"
+                className="inline-block px-10 py-4 border border-white text-white font-semibold text-lg rounded-lg hover:bg-white hover:text-navy-800 transition-all duration-200"
+              >
+                {t("classesPage.compareCta")}
+              </Link>
+            </div>
           </AnimatedSection>
         </div>
       </section>

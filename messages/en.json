@@ -19,11 +19,12 @@
     "actions": "Actions"
   },
   "hero": {
-    "headline": "Breaking Barriers, Building Confidence",
+    "headline": "Online Debate & Public Speaking Classes",
     "subheadline": "Award-winning coaches. Personalized feedback every class. 5,000+ students coached worldwide.",
     "cta": "Book a Free Consultation",
     "ctaSecondary": "Explore Our Classes",
-    "scrollHint": "Scroll to explore"
+    "scrollHint": "Scroll to explore",
+    "tagline": "Breaking Barriers, Building Confidence"
   },
   "difference": {
     "title": "The DSDC Difference",
@@ -84,7 +85,8 @@
       "description": "Full WSC preparation with a 100% qualification rate since 2020 — from regionals to Yale."
     },
     "viewAll": "View All Classes",
-    "bookCta": "Book a Free Consultation"
+    "bookCta": "Book a Free Consultation",
+    "compareCta": "Compare Classes"
   },
   "stats": {
     "students": "Students Coached",
@@ -184,7 +186,11 @@
         "q": "How do I register or get started?",
         "a": "The easiest way to start is to book a free 15-minute consultation. We'll discuss your child's interests, recommend the right class, and walk you through enrollment — no commitment required."
       }
-    ]
+    ],
+    "beginnersLinkLead": "Learn more about our",
+    "beginnersLinkText": "beginner-friendly classes",
+    "guideLinkLead": "For a complete overview of how debate works in Canada, see our",
+    "guideLinkText": "Complete Guide to High School Debate in Canada"
   },
   "finalCta": {
     "title": "Ready to Unlock Your Child's Potential?",
@@ -199,8 +205,14 @@
     "companyEmail": "education.dsdc@gmail.com",
     "instagramUrl": "https://instagram.com/debate_education",
     "linkedinUrl": "https://www.linkedin.com/company/debate-and-speech-development-community/",
-    "copyright": "? {year} Debate & Speech Development Community (DSDC) Incorporated. All rights reserved.",
-    "social": "Follow Us"
+    "copyright": "© {year} Debate & Speech Development Community (DSDC) Incorporated. All rights reserved.",
+    "social": "Follow Us",
+    "about": "About",
+    "contactPage": "Contact Us",
+    "faq": "FAQ",
+    "compare": "Compare Classes",
+    "ctaText": "Ready to build confidence through debate?",
+    "ctaButton": "Book a Free Consultation"
   },
   "teamPage": {
     "title": "Our Team",
@@ -352,7 +364,9 @@
         "category": "other",
         "description": "Comprehensive training in impromptu, persuasive, interpretive, and parliamentary debate formats. Designed to prepare students for BC speech provincials with the confidence, technique, and adaptability needed to excel on stage."
       }
-    ]
+    ],
+    "compareCta": "Compare Classes",
+    "comparePrompt": "Not sure which class is the best fit? Compare all class levels side by side."
   },
   "bookPage": {
     "title": "Book a Free Consultation",
@@ -1580,6 +1594,68 @@
           "body": "If you have questions about this Cancellation & Refund Policy, please contact us at:"
         }
       }
+    }
+  },
+  "aboutPage": {
+    "title": "About DSDC",
+    "subtitle": "Learn about our mission, coaching philosophy, and the story behind DSDC.",
+    "factsTitle": "At a Glance",
+    "teamCta": "Meet Our Team",
+    "bookCta": "Book a Consultation",
+    "highlights": {
+      "founded": {
+        "title": "Founded in Vancouver",
+        "body": "DSDC was founded in 2017 in Vancouver, BC, with a mission to make high-level debate coaching more accessible."
+      },
+      "students": {
+        "title": "5,000+ Students Coached",
+        "body": "Students across Canada and around the world have trained with DSDC through live online classes and coaching."
+      },
+      "programs": {
+        "title": "Programs for Every Level",
+        "body": "We offer beginner, intermediate, advanced, public speaking, private coaching, and World Scholar's Cup programs."
+      },
+      "results": {
+        "title": "Proven Competitive Results",
+        "body": "DSDC students compete at provincial, national, and international tournaments, including Yale, Stanford, Oxford, and more."
+      }
+    }
+  },
+  "contactPage": {
+    "title": "Contact DSDC",
+    "subtitle": "Get in touch with our team about classes, consultations, scheduling, or enrollment.",
+    "cardTitle": "We would love to hear from you",
+    "cardBody": "Tell us about your child, your goals, or the kind of program you are exploring. We will help you find the right next step.",
+    "emailTitle": "Email",
+    "responseTitle": "Response Time",
+    "responseBody": "We aim to respond to most inquiries within 1-2 business days."
+  },
+  "faqPage": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Answers to common questions about DSDC classes, scheduling, pricing, and getting started."
+  },
+  "comparePage": {
+    "title": "Compare DSDC Classes",
+    "subtitle": "See the main differences between our debate and public speaking programs at a glance.",
+    "note": "Pricing reflects DSDC's currently published group-term rates. Senior and Advanced Competitive placements are shown using the advanced debate term rate.",
+    "bookCta": "Book Consultation",
+    "perTermSuffix": "/term",
+    "fallbackSchedule": "Schedule varies by section",
+    "badges": {
+      "mostPopular": "Most Popular"
+    },
+    "categories": {
+      "debate": "Debate",
+      "other": "Other Programs"
+    },
+    "fields": {
+      "course": "Course",
+      "grades": "Grade Range",
+      "category": "Category",
+      "schedule": "Schedule",
+      "price": "Price",
+      "description": "Description",
+      "action": "Action"
     }
   }
 }

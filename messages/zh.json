@@ -19,11 +19,12 @@
     "actions": "操作"
   },
   "hero": {
-    "headline": "打破壁垒，建立自信",
+    "headline": "在线辩论与公共演讲课程",
     "subheadline": "为4至12年级学生提供世界一流的辩论与演讲培训",
     "cta": "预约免费咨询",
     "ctaSecondary": "浏览我们的课程",
-    "scrollHint": "向下滚动探索"
+    "scrollHint": "向下滚动探索",
+    "tagline": "打破障碍，建立信心"
   },
   "difference": {
     "title": "DSDC 的独特优势",
@@ -67,7 +68,7 @@
     "title": "我们的使命",
     "text": "DSDC 成立于2017年温哥华，是一家全球性在线辩论培训机构。我们致力于以透明、实惠的价格提供世界级教练指导，打破参与壁垒。我们的使命是培养学生的自信、批判性思维和终身受益的沟通能力。",
     "cta": "认识我们的团队",
-    "geoFacts": "DSDC?Debate & Speech Development Community??????? 2017 ???????????????????????DSDC ?? Zoom ? 4 ??? 12 ???????????????? 8 ? 12 ???????????????????????????????? UBC ? SFU ???????DSDC ?? CNDF???????World Schools ? Cross-Examination ????????????????? 30 ? 50 ???? 2020 ????DSDC ? World Scholar's Cup ??????????????????? 100%?"
+    "geoFacts": "“DSDC（Debate & Speech Development Community）”是一所于 2017 年在加拿大温哥华成立的线上辩论与公众演讲学院。DSDC 通过 Zoom 为 4 年级至 12 年级学生以及大学生提供实时课程，每班人数通常为 8 至 12 人。教练团队包括加拿大国家辩论队选手、世界大学辩论锦标赛选手，以及来自 UBC 和 SFU 等高校的辩手。DSDC 教授 CNDF、英国议会制、World Schools 以及 Cross-Examination 等辩论格式。小组课程费用为每小时 30 至 50 加元。自 2020 年起，DSDC 在 World Scholar's Cup 地区赛、全球赛及耶鲁大学锦标赛阶段保持 100% 晋级率。"
   },
   "classesOverview": {
     "title": "我们的课程",
@@ -84,7 +85,8 @@
       "description": "从地区赛到耶鲁锦标赛的全面备赛指导，自2020年以来保持100%晋级率。"
     },
     "viewAll": "查看所有课程",
-    "bookCta": "预约免费咨询"
+    "bookCta": "预约免费咨询",
+    "compareCta": "比较课程"
   },
   "stats": {
     "students": "已培训学生",
@@ -184,7 +186,11 @@
         "q": "如何注册或开始？",
         "a": "最简单的方式是预约一次免费的15分钟咨询。我们将了解您孩子的兴趣，推荐合适的课程，并引导您完成注册流程——完全没有任何承诺压力。"
       }
-    ]
+    ],
+    "beginnersLinkLead": "进一步了解我们的",
+    "beginnersLinkText": "初学者友好课程",
+    "guideLinkLead": "如果您想全面了解加拿大的辩论体系，请阅读我们的",
+    "guideLinkText": "《加拿大高中辩论完整指南》"
   },
   "finalCta": {
     "title": "准备好释放孩子的潜力了吗？",
@@ -193,14 +199,20 @@
     "phone": "或发送邮件至：education.dsdc@gmail.com"
   },
   "footer": {
-    "tagline": "????????????????????",
+    "tagline": "为各年龄段学生提供在线辩论与公众演讲课程",
     "quickLinks": "快速链接",
     "contact": "联系我们",
     "companyEmail": "education.dsdc@gmail.com",
     "instagramUrl": "https://instagram.com/debate_education",
     "linkedinUrl": "https://www.linkedin.com/company/debate-and-speech-development-community/",
-    "copyright": "? {year} Debate & Speech Development Community?DSDC?Incorporated ?????",
-    "social": "关注我们"
+    "copyright": "© {year} Debate & Speech Development Community（DSDC）Incorporated 版权所有。",
+    "social": "关注我们",
+    "about": "关于我们",
+    "contactPage": "联系我们",
+    "faq": "常见问题",
+    "compare": "比较课程",
+    "ctaText": "准备好通过辩论建立信心了吗？",
+    "ctaButton": "预约免费咨询"
   },
   "teamPage": {
     "title": "我们的团队",
@@ -352,7 +364,9 @@
         "category": "other",
         "description": "涵盖即兴演讲、说服性演讲、表演性朗读和议会制辩论的综合训练。旨在帮助学生以自信、技巧和应变能力在BC省演讲比赛中出色发挥。"
       }
-    ]
+    ],
+    "compareCta": "????",
+    "comparePrompt": "????????????????????????????????????"
   },
   "bookPage": {
     "title": "预约免费咨询",
@@ -1599,6 +1613,68 @@
           "body": "?????????????????????????"
         }
       }
+    }
+  },
+  "aboutPage": {
+    "title": "关于 DSDC",
+    "subtitle": "了解 DSDC 的使命、教学理念，以及我们创立这所线上辩论与演讲学院的初衷。",
+    "factsTitle": "快速了解 DSDC",
+    "teamCta": "认识我们的团队",
+    "bookCta": "预约咨询",
+    "highlights": {
+      "founded": {
+        "title": "创立于温哥华",
+        "body": "DSDC 于 2017 年创立于加拿大温哥华，致力于让高水平辩论训练更加普及、更加易于接触。"
+      },
+      "students": {
+        "title": "已辅导 5,000+ 名学生",
+        "body": "来自加拿大各地及世界各地的学生，已通过 DSDC 的线上课程与辅导提升了辩论与演讲能力。"
+      },
+      "programs": {
+        "title": "覆盖不同阶段的课程",
+        "body": "我们提供初学者、中级、高阶、公众演讲、私人辅导以及世界学者杯备赛等多种课程。"
+      },
+      "results": {
+        "title": "稳定且突出的竞赛成果",
+        "body": "DSDC 学生活跃于省赛、全国赛和国际赛事，包括耶鲁、斯坦福、牛津等高水平平台。"
+      }
+    }
+  },
+  "contactPage": {
+    "title": "联系 DSDC",
+    "subtitle": "欢迎联系我们，咨询课程安排、免费咨询、时间选择或报名相关问题。",
+    "cardTitle": "我们很乐意了解您的需求",
+    "cardBody": "您可以告诉我们孩子的情况、学习目标，以及您正在考虑的课程类型。我们会帮助您找到合适的下一步。",
+    "emailTitle": "电子邮箱",
+    "responseTitle": "回复时间",
+    "responseBody": "我们通常会在 1 至 2 个工作日内回复大多数咨询。"
+  },
+  "faqPage": {
+    "title": "常见问题",
+    "subtitle": "了解关于 DSDC 课程、时间安排、收费以及如何开始的常见问题解答。"
+  },
+  "comparePage": {
+    "title": "比较 DSDC 课程",
+    "subtitle": "一目了然地查看我们不同辩论与公众演讲课程之间的主要差异。",
+    "note": "价格依据 DSDC 当前公开的小组课程学期收费标准。Senior 与 Advanced Competitive 在此按高级辩论学期价格显示。",
+    "bookCta": "预约咨询",
+    "perTermSuffix": "/学期",
+    "fallbackSchedule": "具体时间因班级而异",
+    "badges": {
+      "mostPopular": "最受欢迎"
+    },
+    "categories": {
+      "debate": "辩论课程",
+      "other": "其他项目"
+    },
+    "fields": {
+      "course": "课程",
+      "grades": "适合年级",
+      "category": "类别",
+      "schedule": "上课时间",
+      "price": "价格",
+      "description": "课程说明",
+      "action": "操作"
     }
   }
 }
