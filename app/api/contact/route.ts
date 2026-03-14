@@ -16,7 +16,10 @@ export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const { allowed } = rateLimit(`contact:${ip}`, 5, 15 * 60 * 1000);
   if (!allowed) {
-    return NextResponse.json({ ok: true }); // silent rate limit
+    return NextResponse.json(
+      { ok: false, error: "Too many requests. Please try again later." },
+      { status: 429 }
+    );
   }
 
   const body = schema.safeParse(await request.json());

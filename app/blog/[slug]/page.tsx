@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getBlogPostHref } from "@/lib/blogPostPaths";
 import { getBlogPostsSync } from "@/lib/blogPosts";
 import BlogPostContent from "@/components/BlogPostContent";
@@ -18,17 +17,35 @@ export default async function BlogPostPage({ params }: Props) {
   const post = posts.find((p) => p.slug === slug);
 
   if (!post) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-navy-800 mb-4">Post Not Found</h1>
-          <Link href="/blog" className="text-gold-500 hover:text-gold-600 font-semibold">
-            &larr; Back to Blog
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
+
+  const datePublished = post.publishedAt ?? post.date;
+  const dateModified = post.updatedAt ?? datePublished;
+  const articleImage = post.mainImage
+    ? post.mainImage.startsWith("http")
+      ? post.mainImage
+      : `https://dsdc.ca${post.mainImage}`
+    : undefined;
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    datePublished,
+    dateModified,
+    author: {
+      "@type": "Organization",
+      name: "DSDC",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "DSDC",
+      url: "https://dsdc.ca",
+    },
+    description: post.excerpt,
+    ...(articleImage ? { image: articleImage } : {}),
+  };
 
   const comparisonSchema =
     slug === "best-debate-programs-vancouver"
@@ -78,6 +95,10 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       {comparisonSchema ? (
         <script
           type="application/ld+json"

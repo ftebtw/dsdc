@@ -64,7 +64,7 @@ export const metadata: Metadata = {
   alternates: {
     languages: {
       en: "https://dsdc.ca",
-      zh: "https://dsdc.ca",
+      "x-default": "https://dsdc.ca",
     },
   },
   robots: {
@@ -120,7 +120,6 @@ export default async function RootLayout({
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
         <link rel="alternate" hrefLang="en" href="https://dsdc.ca" />
-        <link rel="alternate" hrefLang="zh" href="https://dsdc.ca" />
         <link rel="alternate" hrefLang="x-default" href="https://dsdc.ca" />
         <link rel="preconnect" href="https://9rjkctzpxtq3g6gf.public.blob.vercel-storage.com" crossOrigin="" />
         <script
@@ -133,6 +132,12 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:bg-white focus:text-navy-800 focus:px-4 focus:py-2 focus:rounded focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
         <Script
           id="google-ads-script"
           src="https://www.googletagmanager.com/gtag/js?id=AW-390603959"

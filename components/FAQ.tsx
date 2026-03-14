@@ -50,24 +50,24 @@ export default function FAQ() {
                       </p>
                       {shouldShowBeginnersLink ? (
                         <p className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-3 text-sm font-medium text-navy-700 dark:text-gold-300">
-                          Learn more about our{" "}
+                          {t("faq.beginnersLinkLead")}{" "}
                           <Link
                             href="/debate-classes-for-beginners"
                             className="underline underline-offset-4 hover:text-gold-400 transition-colors"
                           >
-                            beginner-friendly classes
+                            {t("faq.beginnersLinkText")}
                           </Link>
                           .
                         </p>
                       ) : null}
                       {shouldShowCanadaGuideLink ? (
                         <p className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-3 text-sm font-medium text-navy-700 dark:text-gold-300">
-                          For a complete overview of how debate works in Canada, see our{" "}
+                          {t("faq.guideLinkLead")}{" "}
                           <Link
                             href="/guide-to-debate-in-canada"
                             className="underline underline-offset-4 hover:text-gold-400 transition-colors"
                           >
-                            Complete Guide to High School Debate in Canada
+                            {t("faq.guideLinkText")}
                           </Link>
                           .
                         </p>

@@ -100,6 +100,13 @@ export default function ClassesOverview() {
             >
               {t("classesOverview.bookCta")}
             </Link>
+            <Link
+              href="/compare"
+              className="px-8 py-3.5 border border-navy-800 text-navy-800 dark:border-navy-400 dark:text-white font-semibold rounded-lg
+                         hover:bg-white dark:hover:bg-navy-800 transition-all duration-200 text-center"
+            >
+              {t("classesOverview.compareCta")}
+            </Link>
           </div>
         </AnimatedSection>
       </div>

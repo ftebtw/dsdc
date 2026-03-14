@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { trackEvent } from "@/lib/analytics";
 
 const HERO_DESKTOP_VIDEO_SRC =
   "https://9rjkctzpxtq3g6gf.public.blob.vercel-storage.com/dsdc-cover-video-shorter_2.mp4";
@@ -73,11 +74,11 @@ export default function Hero() {
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <p className="text-base sm:text-lg md:text-xl text-white/90 mb-3 font-semibold">
-          Breaking Barriers, Building Confidence
+          {t("hero.tagline")}
         </p>
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-6">
-          Online Debate & Public Speaking Classes
+          {t("hero.headline")}
         </h1>
 
         <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-10 max-w-2xl mx-auto font-sans">
@@ -87,6 +88,7 @@ export default function Hero() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/book"
+            onClick={() => trackEvent("cta_click", { cta: "book_consultation" })}
             className="px-8 py-4 bg-gold-300 text-navy-900 font-bold text-lg rounded-lg
                        hover:bg-gold-200 transition-all duration-200 shadow-lg hover:shadow-xl
                        hover:-translate-y-0.5"
@@ -95,6 +97,7 @@ export default function Hero() {
           </Link>
           <Link
             href="/classes"
+            onClick={() => trackEvent("cta_click", { cta: "explore_classes" })}
             className="px-8 py-4 border-2 border-white text-white font-semibold text-lg rounded-lg
                        hover:bg-white hover:text-navy-800 transition-all duration-200"
           >

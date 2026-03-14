@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Check, Users, Mic, Globe, Trophy, User, MessageCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "@/components/AnimatedSection";
+import { trackEvent } from "@/lib/analytics";
 import {
   BASE_FX_FALLBACK,
   GROUP_TIERS,
@@ -83,6 +84,10 @@ export default function PricingPageClient() {
       tier: tierKey,
     });
     window.location.assign(`/register?${query.toString()}`);
+  }
+
+  function trackPricingConsultationClick() {
+    trackEvent("cta_click", { cta: "book_consultation_pricing" });
   }
 
   return (
@@ -249,6 +254,7 @@ export default function PricingPageClient() {
               </p>
               <Link
                 href="/book"
+                onClick={trackPricingConsultationClick}
                 className="inline-block mt-6 px-6 py-3 rounded-lg bg-navy-800 text-white font-semibold hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors"
               >
                 {t("pricingPage.contactUs")}
@@ -273,6 +279,7 @@ export default function PricingPageClient() {
             </p>
             <Link
               href="/book"
+              onClick={trackPricingConsultationClick}
               className="inline-block px-10 py-4 bg-gold-300 text-navy-900 font-bold text-lg rounded-lg hover:bg-gold-200 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               {t("pricingPage.cta")}

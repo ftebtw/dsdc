@@ -42,9 +42,13 @@ export default function TestimonialCarousel() {
           </h2>
         </AnimatedSection>
 
-        <div className="relative">
+        <div
+          className="relative"
+          role="region"
+          aria-label="Student testimonials"
+        >
           <div className="min-h-[340px] md:min-h-[250px] flex items-center">
-            <div className="w-full">
+            <div className="w-full" aria-live="polite">
               <div className="text-center max-w-3xl mx-auto px-8 md:px-20 lg:px-24">
                 <Quote className="w-10 h-10 text-gold-400 dark:text-gold-500 mx-auto mb-6" />
                 <blockquote className="text-lg md:text-xl text-charcoal/80 dark:text-navy-200 leading-relaxed mb-8 font-sans italic">

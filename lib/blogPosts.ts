@@ -9,6 +9,9 @@ export interface BlogPost {
   title: string;
   excerpt: string;
   date: string;
+  publishedAt?: string;
+  updatedAt?: string;
+  mainImage?: string;
   author: string;
   category: string;
   readTime: string;

@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, CheckCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { trackEvent } from "@/lib/analytics";
 
 export default function ContactForm() {
   const { t, messages } = useI18n();
@@ -37,11 +38,17 @@ export default function ContactForm() {
       });
 
       if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
+        let data: { error?: string } = {};
+        try {
+          data = (await response.json()) as { error?: string };
+        } catch {
+          data = {};
+        }
         throw new Error(data.error || "Failed to send message.");
       }
 
       setSubmitted(true);
+      trackEvent("form_submission", { form: "contact" });
       setFormData({ name: "", email: "", phone: "", grade: "", heardAbout: "", message: "" });
       setTimeout(() => setSubmitted(false), 5000);
     } catch (err) {

@@ -8,6 +8,28 @@ const CALENDLY_SCRIPT_SRC = "https://assets.calendly.com/assets/external/widget.
 export default function CalendlyEmbed() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
+  const [calendlyUrl, setCalendlyUrl] = useState("https://calendly.com/rebecca-dsdc");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const utmKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+    const calendlyParams = new URLSearchParams();
+
+    for (const key of utmKeys) {
+      const value = params.get(key);
+      if (value) {
+        calendlyParams.set(key, value);
+      }
+    }
+
+    const nextUrl = calendlyParams.toString()
+      ? `https://calendly.com/rebecca-dsdc?${calendlyParams.toString()}`
+      : "https://calendly.com/rebecca-dsdc";
+
+    setCalendlyUrl(nextUrl);
+  }, []);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -67,7 +89,7 @@ export default function CalendlyEmbed() {
       ) : null}
       <div
         className="calendly-inline-widget"
-        data-url="https://calendly.com/rebecca-dsdc"
+        data-url={calendlyUrl}
         style={{ minWidth: "320px", height: "700px" }}
       />
     </div>
