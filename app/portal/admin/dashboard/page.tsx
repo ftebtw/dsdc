@@ -39,6 +39,17 @@ type TodayCheckinRow = Pick<
   Database['public']['Tables']['coach_checkins']['Row'],
   'class_id' | 'coach_id' | 'session_date' | 'checked_in_at'
 >;
+type AcceptedSubRow = Pick<
+  Database['public']['Tables']['sub_requests']['Row'],
+  'id' | 'class_id' | 'session_date' | 'accepting_coach_id' | 'accepted_at' | 'created_at'
+>;
+
+function subPriorityTimestamp(row: AcceptedSubRow): number {
+  const accepted = row.accepted_at ? Date.parse(row.accepted_at) : Number.NaN;
+  if (Number.isFinite(accepted)) return accepted;
+  const created = row.created_at ? Date.parse(row.created_at) : Number.NaN;
+  return Number.isFinite(created) ? created : Number.NEGATIVE_INFINITY;
+}
 
 export default async function AdminDashboardPage() {
   const session = await requireRole(['admin']);
@@ -67,12 +78,11 @@ export default async function AdminDashboardPage() {
   const todayExpectations = classesToday.map((classRow) => ({
     classId: classRow.id,
     className: classRow.name,
-    coachId: classRow.coach_id,
+    originalCoachId: classRow.coach_id,
     sessionDate: getSessionDateForClassTimezone(classRow.timezone, now),
   }));
 
   const todayClassIds = [...new Set(todayExpectations.map((row) => row.classId))];
-  const todayCoachIds = [...new Set(todayExpectations.map((row) => row.coachId))];
   const todaySessionDates = [...new Set(todayExpectations.map((row) => row.sessionDate))];
 
   const [
@@ -89,7 +99,7 @@ export default async function AdminDashboardPage() {
     pendingApprovalsCountResponse,
     { data: checkinRowsData },
     { data: attendanceRowsData },
-    { data: todayCheckinsData },
+    { data: acceptedSubRowsData },
   ] = await Promise.all([
     supabase.from('enrollments').select('student_id').eq('status', 'active'),
     supabase.from('legal_documents').select('id,required_for'),
@@ -112,14 +122,14 @@ export default async function AdminDashboardPage() {
       .select('id,class_id,student_id,status,marked_at,marked_by,session_date')
       .order('marked_at', { ascending: false })
       .limit(10),
-    todayClassIds.length > 0 && todayCoachIds.length > 0 && todaySessionDates.length > 0
+    todayClassIds.length > 0 && todaySessionDates.length > 0
       ? supabase
-          .from('coach_checkins')
-          .select('class_id,coach_id,session_date,checked_in_at')
+          .from('sub_requests')
+          .select('id,class_id,session_date,accepting_coach_id,accepted_at,created_at')
+          .eq('status', 'accepted')
           .in('class_id', todayClassIds)
-          .in('coach_id', todayCoachIds)
           .in('session_date', todaySessionDates)
-      : Promise.resolve({ data: [] as TodayCheckinRow[] }),
+      : Promise.resolve({ data: [] as AcceptedSubRow[] }),
   ]);
 
   const activeEnrollments = (activeEnrollmentsData ?? []) as EnrollmentStudentRow[];
@@ -127,6 +137,59 @@ export default async function AdminDashboardPage() {
   const legalSignatures = (legalSignaturesData ?? []) as LegalSignatureRow[];
   const checkinRows = (checkinRowsData ?? []) as CheckinActivityRow[];
   const attendanceRows = (attendanceRowsData ?? []) as AttendanceActivityRow[];
+  const acceptedSubRows = (acceptedSubRowsData ?? []) as AcceptedSubRow[];
+
+  const acceptedSubByClassDate = new Map<string, AcceptedSubRow>();
+  for (const row of acceptedSubRows) {
+    if (!row.accepting_coach_id) continue;
+    const key = `${row.class_id}|${row.session_date}`;
+    const current = acceptedSubByClassDate.get(key);
+    if (!current) {
+      acceptedSubByClassDate.set(key, row);
+      continue;
+    }
+
+    const currentPriority = subPriorityTimestamp(current);
+    const nextPriority = subPriorityTimestamp(row);
+    if (nextPriority > currentPriority) {
+      acceptedSubByClassDate.set(key, row);
+      continue;
+    }
+    if (nextPriority === currentPriority && row.id > current.id) {
+      acceptedSubByClassDate.set(key, row);
+    }
+  }
+
+  const resolvedTodayExpectations = todayExpectations.map((row) => {
+    const acceptedSub = acceptedSubByClassDate.get(`${row.classId}|${row.sessionDate}`);
+    const expectedCoachId = acceptedSub?.accepting_coach_id ?? row.originalCoachId;
+    return {
+      classId: row.classId,
+      className: row.className,
+      sessionDate: row.sessionDate,
+      originalCoachId: row.originalCoachId,
+      expectedCoachId,
+      isCovered: Boolean(acceptedSub?.accepting_coach_id),
+    };
+  });
+
+  const expectedCoachIds = [
+    ...new Set(
+      resolvedTodayExpectations
+        .map((row) => row.expectedCoachId)
+        .filter((id): id is string => Boolean(id))
+    ),
+  ];
+
+  const { data: todayCheckinsData } =
+    todayClassIds.length > 0 && expectedCoachIds.length > 0 && todaySessionDates.length > 0
+      ? await supabase
+          .from('coach_checkins')
+          .select('class_id,coach_id,session_date,checked_in_at')
+          .in('class_id', todayClassIds)
+          .in('coach_id', expectedCoachIds)
+          .in('session_date', todaySessionDates)
+      : { data: [] as TodayCheckinRow[] };
   const todayCheckins = (todayCheckinsData ?? []) as TodayCheckinRow[];
 
   const classMap: Record<string, { id: string; name: string }> = Object.fromEntries(
@@ -136,7 +199,8 @@ export default async function AdminDashboardPage() {
   const allProfileIds = [
     ...new Set(
       [
-        ...todayExpectations.map((row) => row.coachId),
+        ...resolvedTodayExpectations.map((row) => row.originalCoachId),
+        ...resolvedTodayExpectations.map((row) => row.expectedCoachId),
         ...attendanceRows.map((row) => row.student_id),
         ...attendanceRows.map((row) => row.marked_by),
       ].filter((id): id is string => Boolean(id))
@@ -151,11 +215,13 @@ export default async function AdminDashboardPage() {
     });
   }
 
-  const checkinsToday = todayExpectations.map((row) => ({
+  const checkinsToday = resolvedTodayExpectations.map((row) => ({
     classId: row.classId,
     className: row.className,
-    coachId: row.coachId,
-    checkedInAt: todayCheckinMap.get(`${row.classId}|${row.coachId}|${row.sessionDate}`)?.checked_in_at ?? null,
+    originalCoachId: row.originalCoachId,
+    expectedCoachId: row.expectedCoachId,
+    isCovered: row.isCovered,
+    checkedInAt: todayCheckinMap.get(`${row.classId}|${row.expectedCoachId}|${row.sessionDate}`)?.checked_in_at ?? null,
   }));
 
   const reportCardsCount = reportCardsCountResponse.count ?? 0;
@@ -274,8 +340,21 @@ export default async function AdminDashboardPage() {
           <div className="space-y-2">
             {checkinsToday.map((row) => (
               (() => {
-                const coachProfile = row.coachId ? profileMap[row.coachId] : null;
-                const coachLabel = coachProfile?.display_name || coachProfile?.email || row.coachId || 'Unassigned';
+                const originalCoachProfile = row.originalCoachId ? profileMap[row.originalCoachId] : null;
+                const expectedCoachProfile = row.expectedCoachId ? profileMap[row.expectedCoachId] : null;
+                const originalCoachLabel =
+                  originalCoachProfile?.display_name ||
+                  originalCoachProfile?.email ||
+                  row.originalCoachId ||
+                  'Unassigned';
+                const expectedCoachLabel =
+                  expectedCoachProfile?.display_name ||
+                  expectedCoachProfile?.email ||
+                  row.expectedCoachId ||
+                  'Unassigned';
+                const coachLabel = row.isCovered
+                  ? `${expectedCoachLabel} covering for ${originalCoachLabel}`
+                  : expectedCoachLabel;
                 return (
               <div
                 key={row.classId}
