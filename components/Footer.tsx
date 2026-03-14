@@ -10,19 +10,16 @@ export default function Footer() {
   const { t, locale } = useI18n();
   const registerHref = `/register?lang=${locale === "zh" ? "zh" : "en"}`;
   const currentYear = new Date().getFullYear();
-  const footerTagline =
-    locale === "zh"
-      ? "为所有年龄段学生提供在线辩论与公共演讲课程"
-      : "Online debate and public speaking classes for students of all ages";
-  const footerCopyright =
-    locale === "zh"
-      ? `© ${currentYear} 辩论与演讲发展社区 (DSDC) 版权所有。`
-      : `© ${currentYear} Debate & Speech Development Community (DSDC) Incorporated. All rights reserved.`;
+  const footerTagline = t("footer.tagline");
+  const footerCopyright = t("footer.copyright").replace(
+    "{year}",
+    String(currentYear)
+  );
 
   return (
     <footer className="bg-navy-800 dark:bg-navy-900 text-white border-t border-navy-700 dark:border-navy-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
           <div className="lg:col-span-1">
             <Image
@@ -106,6 +103,30 @@ export default function Footer() {
                   <Mail className="w-4 h-4" />
                   {t("footer.companyEmail")}
                 </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h3 className="text-gold-400 font-semibold text-sm uppercase tracking-wider mb-4">
+              {t("legal.footerTitle")}
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/privacy" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {t("legal.links.privacy")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {t("legal.links.terms")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/cancellation" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {t("legal.links.cancellation")}
+                </Link>
               </li>
             </ul>
           </div>

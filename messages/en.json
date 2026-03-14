@@ -193,13 +193,13 @@
     "phone": "Or email us: education.dsdc@gmail.com"
   },
   "footer": {
-    "tagline": "Online debate and public speaking classes for students in Grades 4–12",
+    "tagline": "Online debate and public speaking classes for students of all ages",
     "quickLinks": "Quick Links",
     "contact": "Contact",
     "companyEmail": "education.dsdc@gmail.com",
     "instagramUrl": "https://instagram.com/debate_education",
     "linkedinUrl": "https://www.linkedin.com/company/debate-and-speech-development-community/",
-    "copyright": "© 2026 Debate & Speech Development Community (DSDC) Incorporated. All rights reserved.",
+    "copyright": "? {year} Debate & Speech Development Community (DSDC) Incorporated. All rights reserved.",
     "social": "Follow Us"
   },
   "teamPage": {
@@ -1415,6 +1415,171 @@
     "locale": {
       "english": "English",
       "chinese": "Chinese"
+    }
+  },
+  "legal": {
+    "lastUpdated": "Last updated: March 2026",
+    "contactEmail": "education.dsdc@gmail.com",
+    "footerTitle": "Legal",
+    "footerNote": "If you have any questions about these policies, please contact us or",
+    "links": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "cancellation": "Cancellation Policy"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "subtitle": "Learn how DSDC collects, uses, stores, and protects personal information for parents, students, coaches, and site visitors.",
+      "sections": {
+        "collection": {
+          "title": "What We Collect",
+          "body": "We collect information directly from families, students, coaches, and site visitors, as well as limited technical information automatically when you use our website and portal.",
+          "item1": "Parent or guardian contact details, including name, email address, and phone number.",
+          "item2": "Student details such as name, grade, age, school, schedule preferences, and other information needed to place a student in the right class.",
+          "item3": "Payment and billing information required to process enrollment and coaching fees. Full card details are processed by Stripe and are not stored by DSDC.",
+          "item4": "Account credentials, profile details, and portal activity associated with parent, student, coach, or staff access.",
+          "item5": "Booking and communication information submitted through Calendly, contact forms, registration forms, email, and account settings.",
+          "item6": "Usage data such as browser type, device information, pages visited, cookies, analytics events, and conversion data."
+        },
+        "thirdParties": {
+          "title": "Third-Party Services",
+          "body": "We rely on trusted service providers to operate the website, process payments, schedule consultations, send emails, and understand how families use the site.",
+          "stripeTitle": "Stripe",
+          "stripeBody": "Stripe processes payment details, billing data, and transaction metadata when you pay for classes or coaching.",
+          "calendlyTitle": "Calendly",
+          "calendlyBody": "Calendly receives booking details such as name, email address, phone number, and appointment preferences when families schedule consultations.",
+          "supabaseTitle": "Supabase",
+          "supabaseBody": "Supabase stores authentication records, portal account data, class records, and related operational information needed to provide our services.",
+          "sanityTitle": "Sanity",
+          "sanityBody": "Sanity is used to manage public website content. It does not store sensitive payment data, but it may store editorial content and related publishing information.",
+          "resendTitle": "Resend",
+          "resendBody": "Resend receives email addresses and message-delivery metadata so we can send transactional and support emails.",
+          "googleTitle": "Google Ads / gtag",
+          "googleBody": "Google receives browsing behavior, cookie data, conversion signals, and remarketing-related information to help us measure advertising performance.",
+          "metaTitle": "Meta Pixel",
+          "metaBody": "Meta receives browsing behavior and ad measurement data to help us understand visits, conversions, and audiences for advertising purposes.",
+          "vercelTitle": "Vercel Analytics & Speed Insights",
+          "vercelBody": "Vercel receives anonymized website analytics and performance information so we can improve site speed, reliability, and user experience."
+        },
+        "usage": {
+          "title": "How We Use Information",
+          "body": "We use personal information only for legitimate business and educational purposes connected to delivering DSDC services.",
+          "item1": "To create and manage accounts, enroll students, and deliver classes, feedback, scheduling, and portal access.",
+          "item2": "To communicate with parents, guardians, students, coaches, and staff about bookings, class updates, billing, and support.",
+          "item3": "To process payments, refunds, and administrative records related to enrollment and private coaching.",
+          "item4": "To analyze website performance, improve the user experience, and understand how visitors use our site and marketing channels.",
+          "item5": "To run marketing and remarketing campaigns, measure conversions, and share updates about DSDC programs where permitted by law."
+        },
+        "retention": {
+          "title": "Data Retention and Storage",
+          "body1": "We retain personal information for as long as reasonably necessary to provide services, maintain records, comply with legal, accounting, and tax obligations, resolve disputes, and support families over time.",
+          "body2": "Information is stored through our third-party providers using industry-standard safeguards. While we take reasonable steps to protect personal information, no online system can guarantee absolute security."
+        },
+        "cookies": {
+          "title": "Cookies and Tracking Technologies",
+          "body1": "We use cookies, local storage, analytics tools, and advertising pixels to remember preferences, keep the site functioning, measure performance, and understand how visitors interact with our pages.",
+          "body2": "You can control cookies through your browser settings. Disabling certain cookies may affect how parts of the site or portal function."
+        },
+        "children": {
+          "title": "Children?s Privacy",
+          "body": "DSDC serves students generally between ages 10 and 18. Parents or guardians are the primary account holders, and parental or guardian consent is required before we collect or process a minor?s personal information through registration, booking, or class participation."
+        },
+        "rights": {
+          "title": "Your Rights Under PIPEDA",
+          "body": "Families in Canada may request access to, correction of, or deletion of personal information, subject to legal, operational, and record-keeping requirements.",
+          "item1": "Request access to the personal information we hold about you or your child.",
+          "item2": "Request correction of inaccurate or incomplete information.",
+          "item3": "Request deletion or withdrawal of consent where appropriate, subject to legal or operational obligations."
+        },
+        "contact": {
+          "title": "Contact Us",
+          "body": "If you have questions about this Privacy Policy or want to make a privacy request, please email us at:"
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "subtitle": "Review the terms that govern the use of DSDC?s website, booking tools, online classes, and portal accounts.",
+      "sections": {
+        "acceptance": {
+          "title": "Acceptance of Terms",
+          "body": "By using the DSDC website, booking consultations, enrolling in classes, or accessing the portal, you agree to these Terms of Service and any related policies referenced on this site."
+        },
+        "services": {
+          "title": "Services",
+          "body": "DSDC provides online debate and public speaking classes conducted primarily via Zoom for students in Grades 4 through 12, along with selected services for university students, private coaching, and educational support resources."
+        },
+        "accounts": {
+          "title": "Accounts and Portal Access",
+          "body": "Portal access may be provided to parents, students, coaches, teaching assistants, and staff. You are responsible for maintaining accurate account information, safeguarding credentials, and ensuring that access is used only by the authorized account holder."
+        },
+        "payments": {
+          "title": "Payment Terms",
+          "body": "All payments are processed through Stripe. Prices are listed in Canadian dollars, and multi-currency display or checkout support may be offered for convenience. Applicable taxes, fees, and billing terms will be shown during checkout or invoicing."
+        },
+        "enrollment": {
+          "title": "Enrollment",
+          "body": "Most group programs are offered on a semester or term basis, with typical class sizes of 8 to 12 students. DSDC may adjust class placement, scheduling, or staffing when reasonably necessary to support educational quality or operations."
+        },
+        "conduct": {
+          "title": "Acceptable Use and Conduct",
+          "body": "Users must interact with the site, portal, staff, and class community respectfully and lawfully.",
+          "item1": "Do not disrupt classes, meetings, portal access, or other users? ability to participate.",
+          "item2": "Do not share account credentials, private Zoom links, or restricted materials without authorization.",
+          "item3": "Do not use DSDC systems for unlawful, abusive, defamatory, or harmful conduct.",
+          "item4": "Do not reproduce, resell, or distribute curriculum or proprietary materials except as expressly permitted by DSDC."
+        },
+        "ip": {
+          "title": "Intellectual Property",
+          "body": "All curriculum, lesson materials, recordings, site content, branding, and educational resources created by DSDC remain the property of DSDC unless otherwise stated. Families and students receive a limited right to use materials for personal educational purposes only."
+        },
+        "liability": {
+          "title": "Limitation of Liability",
+          "body": "To the fullest extent permitted by law, DSDC is not liable for indirect, incidental, special, or consequential damages arising from the use of the website, portal, or services. DSDC does not guarantee uninterrupted or error-free service, although we take reasonable steps to maintain reliability."
+        },
+        "termination": {
+          "title": "Termination",
+          "body": "DSDC may suspend or terminate accounts or access for violations of these terms, misuse of the platform, safety concerns, non-payment, or other conduct that materially interferes with our services or community."
+        },
+        "law": {
+          "title": "Governing Law",
+          "body": "These terms are governed by the laws of the Province of British Columbia and the applicable laws of Canada."
+        },
+        "contact": {
+          "title": "Contact Us",
+          "body": "If you have questions about these Terms of Service, please contact us at:"
+        }
+      }
+    },
+    "cancellation": {
+      "title": "Cancellation & Refund Policy",
+      "subtitle": "Understand DSDC?s enrollment cancellation window, refund rules, and how refund requests are processed.",
+      "sections": {
+        "window": {
+          "title": "7-Day Cancellation Window",
+          "body": "Families may cancel an enrollment within 7 days of the original enrollment date and receive a full refund, provided classes have not progressed beyond the first-class exception described below."
+        },
+        "noMidSemester": {
+          "title": "No Mid-Semester Cancellations",
+          "body": "Once a semester or term has begun, enrollments cannot be cancelled partway through the program. DSDC reserves places in small-group classes based on enrollment commitments."
+        },
+        "firstClass": {
+          "title": "Refunds After Classes Start",
+          "body": "No refunds are issued after classes begin, except for one limited exception: a full refund may be provided if the student attended only the very first class and the family contacts us promptly afterward. After the first class has been attended, no refunds will be issued for any reason."
+        },
+        "request": {
+          "title": "How to Request a Cancellation",
+          "body": "To request a cancellation or refund, email education.dsdc@gmail.com and include the student?s name, the parent or guardian?s name, and the class or program enrolled in."
+        },
+        "processing": {
+          "title": "Refund Processing",
+          "body": "Approved refunds are issued to the original payment method through Stripe and may take 5 to 10 business days to appear, depending on the payment provider and financial institution."
+        },
+        "contact": {
+          "title": "Contact Us",
+          "body": "If you have questions about this Cancellation & Refund Policy, please contact us at:"
+        }
+      }
     }
   }
 }
