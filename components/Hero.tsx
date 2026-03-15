@@ -5,14 +5,35 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { trackEvent } from "@/lib/analytics";
+import enMessages from "@/messages/en.json";
+import zhMessages from "@/messages/zh.json";
 
 const HERO_DESKTOP_VIDEO_SRC =
   "https://9rjkctzpxtq3g6gf.public.blob.vercel-storage.com/dsdc-cover-video-shorter_2.mp4";
 const HERO_MOBILE_VIDEO_SRC = "/videos/hero-mobile.mp4";
 
 export default function Hero() {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const fallbackHero = locale === "zh" ? zhMessages.hero : enMessages.hero;
+  const tagline = t("hero.tagline");
+  const headline = t("hero.headline");
+  const subheadline = t("hero.subheadline");
+
+  const hasExpectedHeadlineKeywords =
+    locale === "zh"
+      ? /辩论|演讲|公共演讲/.test(headline)
+      : /debate|public speaking/i.test(headline);
+
+  const resolvedHeadline =
+    !headline || headline === "hero.headline" || headline.trim() === tagline.trim() || !hasExpectedHeadlineKeywords
+      ? fallbackHero.headline
+      : headline;
+
+  const resolvedSubheadline =
+    !subheadline || subheadline === "hero.subheadline"
+      ? fallbackHero.subheadline
+      : subheadline;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -74,15 +95,15 @@ export default function Hero() {
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <p className="text-base sm:text-lg md:text-xl text-white/90 mb-3 font-semibold">
-          {t("hero.tagline")}
+          {tagline}
         </p>
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-6">
-          {t("hero.headline")}
+          {resolvedHeadline}
         </h1>
 
         <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-10 max-w-2xl mx-auto font-sans">
-          {t("hero.subheadline")}
+          {resolvedSubheadline}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

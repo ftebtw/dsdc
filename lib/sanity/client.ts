@@ -5,7 +5,7 @@ const studioUrl =
   process.env.NEXT_PUBLIC_SANITY_STUDIO_URL ||
   (typeof window !== "undefined" ? `${window.location.origin}/studio` : "/studio");
 
-export function getSanityClient(opts?: { draft?: boolean; stega?: boolean }) {
+export function getSanityClient(opts?: { draft?: boolean; stega?: boolean; useCdn?: boolean }) {
   if (!hasSanityConfig()) {
     throw new Error("Sanity env vars are missing.");
   }
@@ -14,7 +14,7 @@ export function getSanityClient(opts?: { draft?: boolean; stega?: boolean }) {
     projectId: sanityEnv.projectId,
     dataset: sanityEnv.dataset,
     apiVersion: sanityEnv.apiVersion,
-    useCdn: !opts?.draft,
+    useCdn: opts?.useCdn ?? !opts?.draft,
     token: sanityEnv.token || undefined,
     perspective: opts?.draft ? "previewDrafts" : "published",
     stega: opts?.stega

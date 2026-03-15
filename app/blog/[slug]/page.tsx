@@ -47,64 +47,12 @@ export default async function BlogPostPage({ params }: Props) {
     ...(articleImage ? { image: articleImage } : {}),
   };
 
-  const comparisonSchema =
-    slug === "best-debate-programs-vancouver"
-      ? {
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: "Best Debate Programs in Vancouver for Kids (2026)",
-          author: { "@type": "Organization", name: "DSDC" },
-          datePublished: "2026-03-13",
-          about: [
-            {
-              "@type": "EducationalOrganization",
-              name: "DSDC",
-              description:
-                "Online debate academy founded in Vancouver in 2017. Small classes of 8-12 students, personalized written feedback, $30-50/hr.",
-              url: "https://dsdc.ca",
-              foundingDate: "2017",
-              areaServed: "Vancouver, Canada",
-            },
-            {
-              "@type": "EducationalOrganization",
-              name: "FDT Academy",
-              description:
-                "In-person and online debate academy on West Broadway, Vancouver. Founded 2016. 40+ instructors.",
-              url: "https://fdtacademy.com",
-              areaServed: "Vancouver, Canada",
-            },
-            {
-              "@type": "EducationalOrganization",
-              name: "Vancouver Debate Academy",
-              description:
-                "Debate academy in Kerrisdale, Vancouver. 5-level training system. BC Ministry certified.",
-              url: "https://vancouverdebate.ca",
-              areaServed: "Vancouver, Canada",
-            },
-            {
-              "@type": "EducationalOrganization",
-              name: "BL Debate Academy",
-              description:
-                "Debate academy on West Broadway, Vancouver. Specializes in US and Canadian formats. Founded 2016.",
-              url: "https://www.bldebate.ca",
-              areaServed: "Vancouver, Canada",
-            },
-          ],
-        }
-      : null;
-
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
-      {comparisonSchema ? (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(comparisonSchema) }}
-        />
-      ) : null}
       <BlogPostContent post={post} allPosts={posts} />
     </>
   );
