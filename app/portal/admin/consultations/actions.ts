@@ -119,3 +119,32 @@ export async function updateConsultation(formData: FormData) {
   revalidatePath(`/portal/admin/consultations/${consultationId}`);
   redirect(`/portal/admin/consultations/${consultationId}?updated=1`);
 }
+
+export async function updateConsultationStatus(id: string, status: string) {
+  await requireRole(['admin']);
+  const supabase = await getSupabaseServerClient();
+  const consultationId = String(id || '').trim();
+  const normalizedStatus = normalizeConsultationStatus(status);
+
+  if (!consultationId) {
+    return { ok: false, error: 'Missing consultation record.' };
+  }
+
+  const { error } = await (supabase as any)
+    .from('consultations')
+    .update({
+      status: normalizedStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', consultationId);
+
+  if (error) {
+    console.error('[consultations] quick status update failed', error);
+    return { ok: false, error: 'Could not update consultation status.' };
+  }
+
+  revalidatePath('/portal/admin/consultations');
+  revalidatePath(`/portal/admin/consultations/${consultationId}`);
+
+  return { ok: true };
+}
