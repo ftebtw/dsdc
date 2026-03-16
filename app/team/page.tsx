@@ -3,30 +3,37 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
+import enMessages from "@/messages/en.json";
+import zhMessages from "@/messages/zh.json";
 import CoachCard from "@/components/CoachCard";
 import { Award, coachAwards } from "@/lib/coachAwards";
 import { coachImages } from "@/lib/coachImages";
 import AnimatedSection from "@/components/AnimatedSection";
 import { teamPageDataSanity } from "@/lib/sanity/presentation";
 
+type CoachProfile = {
+  name: string;
+  title: string;
+  bio: string;
+  image?: string;
+  imageUrl?: string;
+  awards?: Award[];
+};
+
 export default function TeamPage() {
-  const { t, messages } = useI18n();
+  const { t, messages, locale } = useI18n();
   const [showSanityAttr, setShowSanityAttr] = useState(false);
-  const coaches = ((messages.coaches as Array<{
-    name: string;
-    title: string;
-    bio: string;
-    image?: string;
-    imageUrl?: string;
-    awards?: Award[];
-  }> | undefined) ?? []) as Array<{
-    name: string;
-    title: string;
-    bio: string;
-    image?: string;
-    imageUrl?: string;
-    awards?: Award[];
-  }>;
+  const cmsCoaches = ((messages.coaches as CoachProfile[] | undefined) ?? []) as CoachProfile[];
+  const fallbackCoaches = (((locale === "zh" ? zhMessages : enMessages) as typeof enMessages).coaches ??
+    []) as CoachProfile[];
+  const coachMap = new Map<string, CoachProfile>();
+  for (const coach of fallbackCoaches) {
+    coachMap.set(coach.name, coach);
+  }
+  for (const coach of cmsCoaches) {
+    coachMap.set(coach.name, { ...(coachMap.get(coach.name) ?? {}), ...coach });
+  }
+  const coaches = Array.from(coachMap.values());
 
   const teamPageMessages =
     ((messages.teamPage as {
