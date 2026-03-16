@@ -111,9 +111,18 @@ const debateStudents: StudentData[] = [
   {
     name: "Lucas X.",
     awards: [
-      { result: "Senior Grand Finalist", tournament: "Lower Mainland East Regionals", year: "2026" },
-      { result: "2nd Place Senior Speaker", tournament: "Lower Mainland East Regionals", year: "2026" },
-      { result: "Provincial Qualifier", tournament: "Lower Mainland East Regionals", year: "2026" },
+      { result: "Top 20 Team", tournament: "BP Provincials", year: "2024" },
+      { result: "6th Place Speaker", tournament: "BP Provincials", year: "2024" },
+      { result: "3rd Place Team", tournament: "Lower Mainland East Regionals (Junior)", year: "2025" },
+      { result: "2nd Place Speaker", tournament: "Lower Mainland East Regionals (Junior)", year: "2025" },
+      { result: "Top 10 Team", tournament: "BC Provincials (Junior)", year: "2025" },
+      { result: "Top 15 Speaker", tournament: "BC Provincials (Junior)", year: "2025" },
+      { result: "Top 20 Junior Team", tournament: "Canadian Nationals", year: "2025" },
+      { result: "Top 20 Junior Speaker", tournament: "Canadian Nationals", year: "2025" },
+      { result: "Grand Champion Team", tournament: "Greater Vancouver Junior Debating Tournament (Club - TBA, Senior)", year: "2025" },
+      { result: "Top Speaker", tournament: "Greater Vancouver Junior Debating Tournament (Club - TBA, Senior)", year: "2025" },
+      { result: "Grand Finalist", tournament: "Fraser Heights (School Tournament, Senior)", year: "2025" },
+      { result: "Top Speaker", tournament: "Fraser Heights (School Tournament, Senior)", year: "2025" },
     ],
   },
   {
@@ -226,11 +235,11 @@ function StudentCard({ student }: { student: StudentData }) {
         </div>
         <h3 className="text-lg font-bold text-navy-800 dark:text-white font-serif">{student.name}</h3>
       </div>
-      <ul className="space-y-2">
+      <ul className="space-y-2.5">
         {shown.map((award, i) => (
-          <li key={i} className="flex items-start gap-1.5 sm:gap-2 text-xs sm:text-sm font-sans">
+          <li key={i} className="flex items-start gap-2 sm:gap-2.5 text-xs sm:text-sm font-sans leading-snug">
             <span
-              className={`shrink-0 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold ${
+              className={`shrink-0 mt-0.5 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold ${
                 award.result.includes("Champion") || award.result === "1st Place" || award.result.includes("Top Speaker") || award.result.includes("Best Delegate")
                   ? "bg-gold-50 dark:bg-gold-900/40 text-gold-700 dark:text-gold-300"
                   : "bg-navy-50 dark:bg-navy-700 text-navy-600 dark:text-navy-200"

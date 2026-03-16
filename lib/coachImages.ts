@@ -1,5 +1,5 @@
 export const coachImages: Record<string, string> = {
-  "Rebecca Amisano": "/images/coaches/rebecca-amisano.jpg",
+  "Rebecca Amisano": "/images/coaches/rebecca-amisano_new.jpg",
   "Archie Wolifson": "/images/coaches/archie-wolifson.jpg",
   "Timothy Hanna": "/images/coaches/timothy-hanna.jpg",
   "Gabrielle Wong": "/images/coaches/gabrielle-wong.jpg",
@@ -10,4 +10,7 @@ export const coachImages: Record<string, string> = {
   "Catherine Wong": "/images/coaches/catherine-wong.jpg",
   "Anisha Biswas": "/images/coaches/anisha-biswas.jpg",
   "Akash Krishnamurthy": "/images/coaches/akash-krishnamurthy.jpg",
+  "Annika Wang": "/images/coaches/wang_annika.jpg",
+  "Ming Su": "/images/coaches/su_ming.jpg",
+  "Angela Meng": "/images/coaches/meng_angela.jpg",
 };

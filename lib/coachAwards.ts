@@ -119,4 +119,19 @@ export const coachAwards: CoachAwards = {
     { tournament: "UBC Fall Tournament (Senior)", year: "2024", award: "3rd Place (Ind.)" },
     { tournament: "BP BC Provincials (Senior)", year: "2024", award: "5th Place (Ind.)" },
   ],
+  "Annika Wang": [
+    { tournament: "Australia-Asia Intervarsity Debating Championship", year: "2024", award: "Overall Best Speaker" },
+    { tournament: "World Universities Debating Championship", year: "2025", award: "Masters Grand Finalist" },
+  ],
+  "Angela Meng": [
+    { tournament: "Team Canada Fall World Schools Debate Championships", year: "2026", award: "Junior Champion" },
+    { tournament: "Team Canada Fall World Schools Debate Championships", year: "2026", award: "2nd Place Junior Speaker" },
+    { tournament: "Hart House Winter Open", year: "2026", award: "Junior Champion" },
+    { tournament: "University of British Columbia Fall High School Tournament", year: "2026", award: "Junior Grand Finalist" },
+    { tournament: "University of British Columbia Fall High School Tournament", year: "2026", award: "Champion Junior Speaker" },
+    { tournament: "Lower Mainland East Regionals", year: "2026", award: "Junior Champion" },
+    { tournament: "Pacific Cup (Open)", year: "2025", award: "Champion" },
+    { tournament: "Dragon's Bowl Tournament (Junior)", year: "2024", award: "Champion" },
+    { tournament: "Dragon's Bowl Tournament (Junior)", year: "2024", award: "Top Speaker" },
+  ],
 };
