@@ -30,7 +30,7 @@ const aboutOrgSchema = {
     addressRegion: "BC",
     addressCountry: "CA",
   },
-  email: "education.dsdc@gmail.com",
+  email: "education@dsdc.ca",
   description:
     "Online debate and public speaking academy founded in Vancouver, Canada, serving students through live Zoom classes.",
 };

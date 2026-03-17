@@ -81,7 +81,7 @@ export async function POST(
   const coachName = nameOrEmail(participants.coach, 'Coach');
   const studentName = nameOrEmail(participants.student, 'Student');
   const amountCad = Number(updatedRow.price_cad || 0);
-  const etransferEmail = process.env.NEXT_PUBLIC_ETRANSFER_EMAIL || 'education.dsdc@gmail.com';
+  const etransferEmail = process.env.NEXT_PUBLIC_ETRANSFER_EMAIL || 'education@dsdc.ca';
 
   await sendToStudentAndParents({
     participants,

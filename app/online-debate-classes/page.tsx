@@ -499,8 +499,8 @@ export default function OnlineDebateClassesPage() {
               Explore Our Classes
             </Link>
           </div>
-          <a href="mailto:education.dsdc@gmail.com" className="text-gold-300 hover:text-gold-200 transition-colors">
-            education.dsdc@gmail.com
+          <a href="mailto:education@dsdc.ca" className="text-gold-300 hover:text-gold-200 transition-colors">
+            education@dsdc.ca
           </a>
         </div>
       </section>

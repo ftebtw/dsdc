@@ -237,7 +237,7 @@ export async function POST(request: NextRequest) {
         )
       : [];
 
-  const etransferEmail = process.env.NEXT_PUBLIC_ETRANSFER_EMAIL?.trim() || "education.dsdc@gmail.com";
+  const etransferEmail = process.env.NEXT_PUBLIC_ETRANSFER_EMAIL?.trim() || "education@dsdc.ca";
   const classItems = classRows.map((classRow) => ({
     name: classRow.name,
     type: classTypeLabel[classRow.type] || classRow.type,

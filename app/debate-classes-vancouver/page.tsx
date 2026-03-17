@@ -56,7 +56,7 @@ const localBusinessSchema = {
     latitude: 49.2827,
     longitude: -123.1207,
   },
-  email: "education.dsdc@gmail.com",
+  email: "education@dsdc.ca",
   foundingDate: "2017",
   areaServed: [
     "Vancouver",

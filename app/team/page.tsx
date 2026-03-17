@@ -10,6 +10,7 @@ import { Award, coachAwards } from "@/lib/coachAwards";
 import { coachImages } from "@/lib/coachImages";
 import AnimatedSection from "@/components/AnimatedSection";
 import { teamPageDataSanity } from "@/lib/sanity/presentation";
+import { buildPersonSchema, founderAuthorProfile } from "@/lib/structuredData";
 
 type CoachProfile = {
   name: string;
@@ -64,6 +65,11 @@ export default function TeamPage() {
       transition={{ duration: 0.5 }}
       data-sanity={showSanityAttr ? teamPageDataSanity() : undefined}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildPersonSchema(founderAuthorProfile)) }}
+      />
+
       {/* Hero */}
       <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-navy-800 overflow-hidden">
         <div
@@ -95,7 +101,7 @@ export default function TeamPage() {
       </section>
 
       {/* Founder Section */}
-      <section className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
+      <section id="rebecca-amisano" className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection>
             <h2 className="text-3xl font-serif font-bold text-navy-800 dark:text-white mb-10 text-center">

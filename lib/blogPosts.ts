@@ -1,7 +1,27 @@
+import { enrichBlogPosts } from "@/lib/articleMetadata";
+
 export interface BlogSection {
   type: "heading" | "subheading" | "paragraph" | "list";
   content: string;
   items?: string[];
+}
+
+export interface ArticleCitation {
+  title: string;
+  url: string;
+  publisher?: string;
+  datePublished?: string;
+}
+
+export interface ArticleAuthorProfile {
+  name: string;
+  slug: string;
+  url: string;
+  affiliation: string;
+  title: string;
+  credential: string;
+  description: string;
+  image?: string;
 }
 
 export interface BlogPost {
@@ -16,6 +36,9 @@ export interface BlogPost {
   category: string;
   readTime: string;
   sections: BlogSection[];
+  authorProfile?: ArticleAuthorProfile;
+  citationSources?: ArticleCitation[];
+  schemaType?: "Article" | "BlogPosting";
 }
 
 export const blogPosts: BlogPost[] = [
@@ -481,24 +504,24 @@ export const blogPosts: BlogPost[] = [
 ];
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
-  return blogPosts.find((p) => p.slug === slug);
+  return enrichBlogPosts(blogPosts).find((p) => p.slug === slug);
 }
 
 /** Reads from content/blog-posts.json if it exists (e.g. after admin save); otherwise returns static blogPosts. Use in server components or API routes. */
 export function getBlogPostsSync(): BlogPost[] {
-  if (typeof window !== "undefined") return blogPosts;
+  if (typeof window !== "undefined") return enrichBlogPosts(blogPosts);
   try {
     const path = require("path");
     const fs = require("fs");
     const p = path.join(process.cwd(), "content", "blog-posts.json");
     if (fs.existsSync(p)) {
       const data = JSON.parse(fs.readFileSync(p, "utf-8"));
-      return Array.isArray(data) ? data : blogPosts;
+      return enrichBlogPosts(Array.isArray(data) ? data : blogPosts);
     }
   } catch (error) {
 
     console.error("[blog-posts] error:", error);
     // ignore
   }
-  return blogPosts;
+  return enrichBlogPosts(blogPosts);
 }

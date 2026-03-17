@@ -22,5 +22,5 @@ export function getPortalAppUrl(): string {
 }
 
 export function getContactEmail(): string {
-  return process.env.PORTAL_CONTACT_EMAIL?.trim() || "education.dsdc@gmail.com";
+  return process.env.PORTAL_CONTACT_EMAIL?.trim() || "education@dsdc.ca";
 }

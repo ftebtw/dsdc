@@ -20,7 +20,7 @@ const categoryColors: Record<string, string> = {
 
 function renderInlineContent(content: string): ReactNode[] {
   const parts: ReactNode[] = [];
-  const tokenRegex = /(\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*)/g;
+  const tokenRegex = /(<cite href="([^"]+)">([^<]+)<\/cite>|\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null = tokenRegex.exec(content);
 
@@ -30,8 +30,23 @@ function renderInlineContent(content: string): ReactNode[] {
     }
 
     if (match[2] && match[3]) {
-      const href = match[3];
-      const text = match[2];
+      const href = match[2];
+      const text = match[3];
+      parts.push(
+        <cite key={`cite-${href}-${match.index}`} className="not-italic">
+          <a
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-navy-700 underline underline-offset-4 transition-colors hover:text-gold-500 dark:text-gold-300 dark:hover:text-gold-200"
+          >
+            {text}
+          </a>
+        </cite>,
+      );
+    } else if (match[4] && match[5]) {
+      const href = match[5];
+      const text = match[4];
       parts.push(
         href.startsWith("/") ? (
           <Link
@@ -51,13 +66,13 @@ function renderInlineContent(content: string): ReactNode[] {
           >
             {text}
           </a>
-        )
+        ),
       );
-    } else if (match[4]) {
+    } else if (match[6]) {
       parts.push(
         <strong key={`strong-${match.index}`} className="font-semibold text-navy-800 dark:text-white">
-          {match[4]}
-        </strong>
+          {match[6]}
+        </strong>,
       );
     }
 
@@ -80,7 +95,6 @@ export default function BlogPostContent({
   allPosts: BlogPost[];
 }) {
   const { t } = useI18n();
-  const postHref = getBlogPostHref(post.slug);
   const related = allPosts
     .filter((p) => p.slug !== post.slug)
     .sort((a, b) => (a.category === post.category ? -1 : 1))
@@ -88,27 +102,6 @@ export default function BlogPostContent({
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BlogPosting",
-            headline: post.title,
-            description: post.excerpt,
-            datePublished: post.date,
-            author: { "@type": "Organization", name: "DSDC", url: "https://dsdc.ca" },
-            publisher: {
-              "@type": "Organization",
-              name: "DSDC",
-              url: "https://dsdc.ca",
-              logo: { "@type": "ImageObject", url: "https://dsdc.ca/images/logos/logo-full.png" },
-            },
-            mainEntityOfPage: { "@type": "WebPage", "@id": `https://dsdc.ca${postHref}` },
-          }),
-        }}
-      />
-
       <section className="relative pt-32 pb-12 md:pt-40 md:pb-16 bg-gradient-to-br from-navy-800 via-navy-700 to-navy-900 overflow-hidden">
         <div
           className="absolute inset-0 opacity-10"
@@ -158,9 +151,15 @@ export default function BlogPostContent({
               <User className="w-4 h-4" />
               {post.author}
             </span>
+            {post.authorProfile?.title ? <span className="text-white/40 hidden sm:inline" aria-hidden="true">|</span> : null}
+            {post.authorProfile?.title ? <span>{post.authorProfile.title}</span> : null}
             <span className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4" />
-              {new Date(post.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+              {new Date(post.date).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
             </span>
             <span className="flex items-center gap-1.5">
               <Clock className="w-4 h-4" />
@@ -172,6 +171,30 @@ export default function BlogPostContent({
 
       <article className="py-12 md:py-16 bg-white dark:bg-navy-900/30">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          {post.authorProfile ? (
+            <AnimatedSection delay={0.05}>
+              <aside className="mb-10 rounded-2xl border border-warm-200 bg-warm-50 p-5 dark:border-navy-700 dark:bg-navy-800/80">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-charcoal/50 dark:text-navy-300">
+                  Written by
+                </p>
+                <div className="mt-2">
+                  <Link
+                    href={post.authorProfile.url.replace("https://dsdc.ca", "")}
+                    className="text-xl font-bold text-navy-800 transition-colors hover:text-gold-500 dark:text-white dark:hover:text-gold-300"
+                  >
+                    {post.authorProfile.name}
+                  </Link>
+                  <p className="mt-1 text-sm font-medium text-gold-600 dark:text-gold-300">
+                    {post.authorProfile.title} | {post.authorProfile.credential}
+                  </p>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-charcoal/70 dark:text-navy-200">
+                  {post.authorProfile.description}
+                </p>
+              </aside>
+            </AnimatedSection>
+          ) : null}
+
           <div className="prose-custom">
             {post.sections.map((section, i) => {
               const singleInternalLinkMatch =
@@ -188,6 +211,7 @@ export default function BlogPostContent({
                   </AnimatedSection>
                 );
               }
+
               if (section.type === "subheading") {
                 return (
                   <AnimatedSection key={i} delay={0.05}>
@@ -197,14 +221,15 @@ export default function BlogPostContent({
                   </AnimatedSection>
                 );
               }
+
               if (section.type === "list") {
                 return (
                   <AnimatedSection key={i} delay={0.05}>
-                    {section.content && (
+                    {section.content ? (
                       <p className="text-charcoal/70 dark:text-navy-200 font-semibold mb-2 font-sans">
                         {renderInlineContent(section.content)}
                       </p>
-                    )}
+                    ) : null}
                     <ul className="space-y-2 mb-6 ml-1">
                       {section.items?.map((item, j) => (
                         <li key={j} className="flex items-start gap-3 text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans">
@@ -216,6 +241,7 @@ export default function BlogPostContent({
                   </AnimatedSection>
                 );
               }
+
               if (singleInternalLinkMatch) {
                 return (
                   <AnimatedSection key={i} delay={0.05}>
@@ -230,6 +256,7 @@ export default function BlogPostContent({
                   </AnimatedSection>
                 );
               }
+
               return (
                 <AnimatedSection key={i} delay={0.05}>
                   <p className="text-charcoal/70 dark:text-navy-200 text-lg leading-relaxed mb-6 font-sans">
@@ -267,6 +294,33 @@ export default function BlogPostContent({
               </p>
             </div>
           </AnimatedSection>
+
+          {post.citationSources?.length ? (
+            <AnimatedSection delay={0.12}>
+              <section className="mt-10 rounded-2xl border border-warm-200 bg-white p-6 dark:border-navy-700 dark:bg-navy-800">
+                <h2 className="text-xl font-bold text-navy-800 dark:text-white font-serif">
+                  Sources Cited
+                </h2>
+                <ul className="mt-4 space-y-3">
+                  {post.citationSources.map((citation) => (
+                    <li key={citation.url} className="text-sm leading-relaxed text-charcoal/70 dark:text-navy-200">
+                      <cite className="not-italic">
+                        <a
+                          href={citation.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-medium text-navy-700 underline underline-offset-4 transition-colors hover:text-gold-500 dark:text-gold-300 dark:hover:text-gold-200"
+                        >
+                          {citation.title}
+                        </a>
+                      </cite>
+                      {citation.publisher ? ` - ${citation.publisher}` : ""}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </AnimatedSection>
+          ) : null}
         </div>
       </article>
 

@@ -53,10 +53,10 @@ export default function ContactPageContent() {
                         {t("contactPage.emailTitle")}
                       </h3>
                       <a
-                        href="mailto:education.dsdc@gmail.com"
+                        href="mailto:education@dsdc.ca"
                         className="text-charcoal/75 underline underline-offset-4 hover:text-navy-800 dark:text-navy-200 dark:hover:text-gold-300"
                       >
-                        education.dsdc@gmail.com
+                        education@dsdc.ca
                       </a>
                     </div>
                   </div>

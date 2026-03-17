@@ -47,7 +47,7 @@ export default async function EtransferPendingPage({
             studentId={requestedStudentId}
             classes={[]}
             totalAmountCad={0}
-            etransferEmail={process.env.NEXT_PUBLIC_ETRANSFER_EMAIL?.trim() || "education.dsdc@gmail.com"}
+            etransferEmail={process.env.NEXT_PUBLIC_ETRANSFER_EMAIL?.trim() || "education@dsdc.ca"}
             expiresAt={null}
             sentAt={null}
           />
@@ -73,7 +73,7 @@ export default async function EtransferPendingPage({
             studentId={requestedStudentId}
             classes={[]}
             totalAmountCad={0}
-            etransferEmail={process.env.NEXT_PUBLIC_ETRANSFER_EMAIL?.trim() || "education.dsdc@gmail.com"}
+            etransferEmail={process.env.NEXT_PUBLIC_ETRANSFER_EMAIL?.trim() || "education@dsdc.ca"}
             expiresAt={null}
             sentAt={null}
           />
@@ -104,7 +104,7 @@ export default async function EtransferPendingPage({
             studentId={requestedStudentId}
             classes={[]}
             totalAmountCad={0}
-            etransferEmail={process.env.NEXT_PUBLIC_ETRANSFER_EMAIL?.trim() || "education.dsdc@gmail.com"}
+            etransferEmail={process.env.NEXT_PUBLIC_ETRANSFER_EMAIL?.trim() || "education@dsdc.ca"}
             expiresAt={null}
             sentAt={null}
           />
@@ -179,7 +179,7 @@ export default async function EtransferPendingPage({
           studentId={studentId}
           classes={classes}
           totalAmountCad={totalAmountCad}
-          etransferEmail={process.env.NEXT_PUBLIC_ETRANSFER_EMAIL?.trim() || "education.dsdc@gmail.com"}
+          etransferEmail={process.env.NEXT_PUBLIC_ETRANSFER_EMAIL?.trim() || "education@dsdc.ca"}
           expiresAt={expiresAtValues.length ? expiresAtValues[expiresAtValues.length - 1] : null}
           sentAt={sentAtValues.length ? sentAtValues[sentAtValues.length - 1] : null}
         />

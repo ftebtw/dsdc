@@ -1,10 +1,54 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import JsonLd from "@/components/JsonLd";
+import BlogPostContent from "@/components/BlogPostContent";
 import { getBlogPostHref } from "@/lib/blogPostPaths";
 import { getBlogPostsSync } from "@/lib/blogPosts";
-import BlogPostContent from "@/components/BlogPostContent";
+import { SITE_NAME, SITE_OG_IMAGE_URL, SITE_URL, absoluteUrl, buildArticleSchema } from "@/lib/structuredData";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const posts = getBlogPostsSync();
+  const post = posts.find((item) => item.slug === slug);
+
+  if (!post) {
+    return {};
+  }
+
+  const href = getBlogPostHref(slug);
+  const canonical = `${SITE_URL}${href}`;
+  const image = post.mainImage ? absoluteUrl(post.mainImage) : SITE_OG_IMAGE_URL;
+  const title = `${post.title} | ${SITE_NAME}`;
+
+  return {
+    title,
+    description: post.excerpt,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title,
+      description: post.excerpt,
+      url: canonical,
+      siteName: SITE_NAME,
+      type: "article",
+      images: [
+        {
+          url: image,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: post.excerpt,
+      images: [image],
+    },
+  };
 }
 
 export default async function BlogPostPage({ params }: Props) {
@@ -13,6 +57,7 @@ export default async function BlogPostPage({ params }: Props) {
   if (href !== `/blog/${slug}`) {
     redirect(href);
   }
+
   const posts = getBlogPostsSync();
   const post = posts.find((p) => p.slug === slug);
 
@@ -20,39 +65,9 @@ export default async function BlogPostPage({ params }: Props) {
     notFound();
   }
 
-  const datePublished = post.publishedAt ?? post.date;
-  const dateModified = post.updatedAt ?? datePublished;
-  const articleImage = post.mainImage
-    ? post.mainImage.startsWith("http")
-      ? post.mainImage
-      : `https://dsdc.ca${post.mainImage}`
-    : undefined;
-
-  const articleSchema = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    datePublished,
-    dateModified,
-    author: {
-      "@type": "Organization",
-      name: "DSDC",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "DSDC",
-      url: "https://dsdc.ca",
-    },
-    description: post.excerpt,
-    ...(articleImage ? { image: articleImage } : {}),
-  };
-
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
-      />
+      <JsonLd id={`article-schema-${post.slug}`} data={buildArticleSchema(post, href)} />
       <BlogPostContent post={post} allPosts={posts} />
     </>
   );

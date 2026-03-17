@@ -3,6 +3,8 @@ import { draftMode } from "next/headers";
 import Script from "next/script";
 
 import { getCmsMessageOverrides } from "@/lib/sanity/content";
+import JsonLd from "@/components/JsonLd";
+import { localBusinessSchema, websiteSchema } from "@/lib/structuredData";
 import { DM_Sans, Inter, Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -85,36 +87,6 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://dsdc.ca"),
 };
 
-const orgSchema = {
-  "@context": "https://schema.org",
-  "@type": "EducationalOrganization",
-  name: "DSDC - Debate & Speech Development Community",
-  url: "https://dsdc.ca",
-  logo: "https://dsdc.ca/images/logos/logo-full.png",
-  foundingDate: "2017",
-  description:
-    "Online debate and public speaking classes for kids, teens, and university students. Founded in Vancouver, Canada.",
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: "Vancouver",
-    addressRegion: "BC",
-    addressCountry: "CA",
-  },
-  email: "education.dsdc@gmail.com",
-  sameAs: [
-    "https://instagram.com/debate_education/",
-    "https://www.linkedin.com/company/debate-and-speech-development-community/",
-  ],
-};
-
-const websiteSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Debate & Speech Development Community",
-  alternateName: ["DSDC", "DSDC Debate Academy"],
-  url: "https://dsdc.ca",
-};
-
 export default async function RootLayout({
   children,
 }: {
@@ -129,14 +101,8 @@ export default async function RootLayout({
         <link rel="alternate" hrefLang="en" href="https://dsdc.ca" />
         <link rel="alternate" hrefLang="x-default" href="https://dsdc.ca" />
         <link rel="preconnect" href="https://9rjkctzpxtq3g6gf.public.blob.vercel-storage.com" crossOrigin="" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-        />
+        <JsonLd id="site-local-business-schema" data={localBusinessSchema} />
+        <JsonLd id="site-website-schema" data={websiteSchema} />
       </head>
       <body className="font-sans antialiased">
         <a

@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     .filter(Boolean)
     .join("\n\n");
 
-  const contactEmail = process.env.PORTAL_CONTACT_EMAIL?.trim() || "education.dsdc@gmail.com";
+  const contactEmail = process.env.PORTAL_CONTACT_EMAIL?.trim() || "education@dsdc.ca";
 
   const result = await sendPortalEmail({
     to: contactEmail,
