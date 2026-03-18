@@ -36,7 +36,7 @@ export default function TestimonialCarousel() {
   return (
     <section className="py-20 md:py-28 bg-white dark:bg-navy-900/30 overflow-hidden">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-[2rem] border border-warm-200/70 bg-white px-6 py-14 shadow-sm sm:px-10 md:py-16 dark:border-navy-700/80 dark:bg-[radial-gradient(circle_at_top,_rgba(229,179,58,0.12),_rgba(18,28,49,0.98)_38%,_rgba(10,16,31,1)_100%)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
+        <div className="rounded-[2rem] border border-warm-200/70 bg-white px-6 py-14 shadow-sm sm:px-10 md:py-16 dark:border-navy-700/80 dark:[background:linear-gradient(180deg,_rgba(23,35,61,0.98)_0%,_rgba(14,23,42,0.98)_44%,_rgba(10,16,31,1)_100%)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
           <AnimatedSection>
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-14 text-navy-800 dark:text-white">
               {t("testimonials.title")}

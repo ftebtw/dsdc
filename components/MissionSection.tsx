@@ -23,7 +23,7 @@ export default function MissionSection() {
   return (
     <section className="py-20 md:py-28 bg-white dark:bg-navy-900/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-[2rem] border border-warm-200/70 bg-white px-6 py-14 shadow-sm sm:px-10 md:py-16 dark:border-navy-700/80 dark:bg-[radial-gradient(circle_at_top_left,_rgba(229,179,58,0.12),_rgba(18,28,49,0.98)_40%,_rgba(10,16,31,1)_100%)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
+        <div className="rounded-[2rem] border border-warm-200/70 bg-white px-6 py-14 shadow-sm sm:px-10 md:py-16 dark:border-navy-700/80 dark:[background:linear-gradient(135deg,_rgba(23,35,61,0.98)_0%,_rgba(16,26,46,0.98)_38%,_rgba(10,16,31,1)_100%)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.32)]">
           <div className="grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-12 lg:gap-16 items-center">
             <AnimatedSection>
               <div className="relative overflow-hidden rounded-[1.75rem] border border-white/60 shadow-xl dark:border-navy-700/70">
