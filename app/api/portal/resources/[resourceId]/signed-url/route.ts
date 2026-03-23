@@ -30,7 +30,12 @@ export async function GET(
     return mergeCookies(supabaseResponse, NextResponse.json({ url: resource.url }));
   }
 
-  if (!resource.file_path) return mergeCookies(supabaseResponse, jsonError('Resource file path missing.', 400));
+  if (!resource.file_path) {
+    return mergeCookies(
+      supabaseResponse,
+      jsonError('This resource does not include a file or link to open.', 400)
+    );
+  }
 
   const bucket = process.env.PORTAL_BUCKET_RESOURCES || 'portal-resources';
   const { data, error } = await supabase.storage

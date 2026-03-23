@@ -99,7 +99,6 @@ export async function POST(request: NextRequest) {
   const fileValue = formData.get('file');
   const file = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
   const hasUrl = Boolean(parsed.data.url);
-  if (!file && !hasUrl) return mergeCookies(supabaseResponse, jsonError('Provide a file or URL.'));
   if (file && file.size > RESOURCE_MAX_FILE_BYTES) {
     return mergeCookies(
       supabaseResponse,
@@ -190,6 +189,9 @@ export async function POST(request: NextRequest) {
 
   if (hasUrl) {
     rowPayload.url = parsed.data.url!;
+  }
+
+  if (!file) {
     const { data: insertedData, error } = await supabase
       .from('resources')
       .insert(rowPayload)
@@ -230,4 +232,3 @@ export async function POST(request: NextRequest) {
 
   return mergeCookies(supabaseResponse, NextResponse.json({ resource: inserted }));
 }
-

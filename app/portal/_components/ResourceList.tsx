@@ -80,10 +80,20 @@ export default function ResourceList({
     });
   }
 
-  async function openResource(resource: Resource) {
+  async function openResource(resource: Resource, target: 'auto' | 'url' | 'file' = 'auto') {
     setError(null);
-    if (resource.url) {
+    if ((target === 'auto' || target === 'url') && resource.url) {
       window.open(resource.url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    if (!resource.file_path) {
+      setError(
+        t(
+          'portal.resourceList.noteOnlyError',
+          'This resource is a note only, so there is nothing to open.'
+        )
+      );
       return;
     }
 
@@ -135,48 +145,75 @@ export default function ResourceList({
                         {resourceTypeLabel[typeName] || typeName}
                       </h4>
                       <div className="space-y-2 pl-1">
-                        {items.map((resource) => (
-                          <div
-                            key={resource.id}
-                            className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 hover:bg-warm-50 dark:hover:bg-navy-800 transition-colors"
-                          >
-                            <div className="min-w-0">
-                              <p className="font-medium text-navy-800 dark:text-white truncate">
-                                {resource.title}
-                              </p>
-                              {resource.description ? (
-                                <p className="text-xs text-charcoal/65 dark:text-navy-300 mt-0.5 whitespace-pre-wrap break-words">
-                                  {resource.description}
+                        {items.map((resource) => {
+                          const hasUrl = Boolean(resource.url);
+                          const hasFile = Boolean(resource.file_path);
+                          const hasOpenableTarget = hasUrl || hasFile;
+                          return (
+                            <div
+                              key={resource.id}
+                              className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 hover:bg-warm-50 dark:hover:bg-navy-800 transition-colors"
+                            >
+                              <div className="min-w-0">
+                                <p className="font-medium text-navy-800 dark:text-white truncate">
+                                  {resource.title}
                                 </p>
-                              ) : null}
-                              <p className="text-xs text-charcoal/50 dark:text-navy-400">
-                                {resource.className ? `${resource.className} - ` : ''}
-                                Posted{' '}
-                                {new Date(resource.created_at).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric',
-                                })}
-                              </p>
+                                {resource.description ? (
+                                  <p className="text-xs text-charcoal/65 dark:text-navy-300 mt-0.5 whitespace-pre-wrap break-words">
+                                    {resource.description}
+                                  </p>
+                                ) : null}
+                                {!hasOpenableTarget ? (
+                                  <p className="text-xs text-charcoal/50 dark:text-navy-400 mt-0.5">
+                                    {t('portal.resourceList.noteOnly', 'Note only')}
+                                  </p>
+                                ) : null}
+                                <p className="text-xs text-charcoal/50 dark:text-navy-400">
+                                  {resource.className ? `${resource.className} - ` : ''}
+                                  Posted{' '}
+                                  {new Date(resource.created_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                  })}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                {hasUrl && hasFile ? (
+                                  <>
+                                    <button
+                                      onClick={() => openResource(resource, 'url')}
+                                      className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
+                                    >
+                                      {t('portal.resourceList.openLink', 'Open link')}
+                                    </button>
+                                    <button
+                                      onClick={() => openResource(resource, 'file')}
+                                      className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
+                                    >
+                                      {t('portal.resourceList.openFile', 'Open file')}
+                                    </button>
+                                  </>
+                                ) : hasOpenableTarget ? (
+                                  <button
+                                    onClick={() => openResource(resource)}
+                                    className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
+                                  >
+                                    {labels?.open || t('portal.resourceList.open', 'Open')}
+                                  </button>
+                                ) : null}
+                                {showDelete && onDelete ? (
+                                  <button
+                                    onClick={() => onDelete(resource.id)}
+                                    className="px-3 py-1 rounded-md bg-red-600 text-white text-sm"
+                                  >
+                                    {labels?.delete || t('portal.resourceList.delete', 'Delete')}
+                                  </button>
+                                ) : null}
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <button
-                                onClick={() => openResource(resource)}
-                                className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
-                              >
-                                {labels?.open || t('portal.resourceList.open', 'Open')}
-                              </button>
-                              {showDelete && onDelete ? (
-                                <button
-                                  onClick={() => onDelete(resource.id)}
-                                  className="px-3 py-1 rounded-md bg-red-600 text-white text-sm"
-                                >
-                                  {labels?.delete || t('portal.resourceList.delete', 'Delete')}
-                                </button>
-                              ) : null}
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -194,43 +231,70 @@ export default function ResourceList({
   return (
     <div className="space-y-3">
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      {sorted.map((resource) => (
-        <article
-          key={resource.id}
-          className="rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900 p-4"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p className="font-medium text-navy-800 dark:text-white">{resource.title}</p>
-              {resource.description ? (
-                <p className="text-xs text-charcoal/65 dark:text-navy-300 mt-0.5 whitespace-pre-wrap break-words">
-                  {resource.description}
+      {sorted.map((resource) => {
+        const hasUrl = Boolean(resource.url);
+        const hasFile = Boolean(resource.file_path);
+        const hasOpenableTarget = hasUrl || hasFile;
+        return (
+          <article
+            key={resource.id}
+            className="rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900 p-4"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="font-medium text-navy-800 dark:text-white">{resource.title}</p>
+                {resource.description ? (
+                  <p className="text-xs text-charcoal/65 dark:text-navy-300 mt-0.5 whitespace-pre-wrap break-words">
+                    {resource.description}
+                  </p>
+                ) : null}
+                {!hasOpenableTarget ? (
+                  <p className="text-xs text-charcoal/50 dark:text-navy-400 mt-0.5">
+                    {t('portal.resourceList.noteOnly', 'Note only')}
+                  </p>
+                ) : null}
+                <p className="text-xs text-charcoal/65 dark:text-navy-300">
+                  {resource.className ? `${resource.className} - ` : ''}
+                  {resource.type.replace('_', ' ')} - {new Date(resource.created_at).toLocaleString()}
                 </p>
-              ) : null}
-              <p className="text-xs text-charcoal/65 dark:text-navy-300">
-                {resource.className ? `${resource.className} - ` : ''}
-                {resource.type.replace('_', ' ')} - {new Date(resource.created_at).toLocaleString()}
-              </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {hasUrl && hasFile ? (
+                  <>
+                    <button
+                      onClick={() => openResource(resource, 'url')}
+                      className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                    >
+                      {t('portal.resourceList.openLink', 'Open link')}
+                    </button>
+                    <button
+                      onClick={() => openResource(resource, 'file')}
+                      className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                    >
+                      {t('portal.resourceList.openFile', 'Open file')}
+                    </button>
+                  </>
+                ) : hasOpenableTarget ? (
+                  <button
+                    onClick={() => openResource(resource)}
+                    className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                  >
+                    {labels?.open || t('portal.resourceList.open', 'Open')}
+                  </button>
+                ) : null}
+                {showDelete && onDelete ? (
+                  <button
+                    onClick={() => onDelete(resource.id)}
+                    className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm"
+                  >
+                    {labels?.delete || t('portal.resourceList.delete', 'Delete')}
+                  </button>
+                ) : null}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => openResource(resource)}
-                className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
-              >
-                {labels?.open || t('portal.resourceList.open', 'Open')}
-              </button>
-              {showDelete && onDelete ? (
-                <button
-                  onClick={() => onDelete(resource.id)}
-                  className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm"
-                >
-                  {labels?.delete || t('portal.resourceList.delete', 'Delete')}
-                </button>
-              ) : null}
-            </div>
-          </div>
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </div>
   );
 }

@@ -1223,13 +1223,13 @@
     },
     "coachHours": {
       "apply": "Apply",
-      "description": "Hours are credited by class schedule duration when checked in.",
+      "description": "Hours are credited by class schedule duration when checked in. Manual adjustments are included in the totals below.",
       "empty": "No sessions found in this range.",
       "endDate": "End date",
       "group": "Group",
       "onTime": "On time",
       "private": "Private",
-      "sessionDetailDescription": "Group check-ins and completed private sessions in selected date range.",
+      "sessionDetailDescription": "Group check-ins and completed private sessions in selected date range. Manual adjustments appear in the summary above.",
       "sessionDetailTitle": "Session Detail",
       "startDate": "Start date",
       "table": {
@@ -1267,7 +1267,7 @@
       "createError": "Failed to create resource.",
       "empty": "No resources posted for this class yet.",
       "externalUrl": "External URL (optional)",
-      "fileOrUrl": "Provide a file, a URL, or both.",
+      "fileOrUrl": "Add a file, a URL, or both. Leave both blank to post a note only.",
       "postResource": "Post Resource",
       "resourceTitle": "Resource title"
     },
@@ -1328,10 +1328,12 @@
       "opening": "Opening..."
     },
     "payrollTable": {
+      "adjustment": "Manual +/-",
       "calculatedPay": "Calculated pay",
       "coach": "Coach",
       "email": "Email",
       "empty": "No payroll data for this range.",
+      "finalHours": "Final Hours",
       "hourlyRate": "Hourly rate",
       "hours": "Hours",
       "late": "Late",
@@ -1391,6 +1393,10 @@
     "resourceList": {
       "delete": "Delete",
       "empty": "No resources available.",
+      "noteOnly": "Note only",
+      "noteOnlyError": "This resource is a note only, so there is nothing to open.",
+      "openFile": "Open file",
+      "openLink": "Open link",
       "open": "Open",
       "openError": "Could not open resource."
     },

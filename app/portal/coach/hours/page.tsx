@@ -32,6 +32,7 @@ export default async function CoachHoursPage({
     start: range.start,
     end: range.end,
     coachId: session.userId,
+    includeManualAdjustments: true,
   });
   const summary = dataset.summary[0] ?? null;
 
@@ -39,7 +40,10 @@ export default async function CoachHoursPage({
     <div className="space-y-6">
       <SectionCard
         title={t('portal.coachHours.title', 'My Hours')}
-        description={t('portal.coachHours.description', 'Hours are credited by class schedule duration when checked in.')}
+        description={t(
+          'portal.coachHours.description',
+          'Hours are credited by class schedule duration when checked in. Manual adjustments are included in the totals below.'
+        )}
       >
         <form method="get" className="mb-4 flex flex-wrap items-end gap-3">
           <label className="text-sm">
@@ -67,10 +71,13 @@ export default async function CoachHoursPage({
 
         <PayrollTable
           rows={summary ? [summary] : []}
+          showAdjustmentColumns
           showPayColumns={false}
           totals={{
             sessions: summary?.sessions ?? 0,
             totalHours: summary?.totalHours ?? 0,
+            manualAdjustmentHours: summary?.manualAdjustmentHours ?? 0,
+            adjustedHours: summary?.adjustedHours ?? summary?.totalHours ?? 0,
             lateCount: summary?.lateCount ?? 0,
           }}
         />
@@ -78,7 +85,10 @@ export default async function CoachHoursPage({
 
       <SectionCard
         title={t('portal.coachHours.sessionDetailTitle', 'Session Detail')}
-        description={t('portal.coachHours.sessionDetailDescription', 'Group check-ins and completed private sessions in selected date range.')}
+        description={t(
+          'portal.coachHours.sessionDetailDescription',
+          'Group check-ins and completed private sessions in selected date range. Manual adjustments appear in the summary above.'
+        )}
       >
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-sm">

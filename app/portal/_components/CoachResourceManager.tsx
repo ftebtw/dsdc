@@ -192,9 +192,19 @@ export default function CoachResourceManager({
     setResources((prev) => prev.filter((resource) => resource.id !== resourceId));
   }
 
-  async function onOpen(resource: Resource) {
-    if (resource.url) {
+  async function onOpen(resource: Resource, target: 'auto' | 'url' | 'file' = 'auto') {
+    if ((target === 'auto' || target === 'url') && resource.url) {
       window.open(resource.url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    if (!resource.file_path) {
+      setError(
+        t(
+          'portal.resourceList.noteOnlyError',
+          'This resource is a note only, so there is nothing to open.'
+        )
+      );
       return;
     }
 
@@ -285,6 +295,12 @@ export default function CoachResourceManager({
           onChange={(event) => setFile(event.target.files?.[0] || null)}
           className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 file:mr-3 file:rounded file:border-0 file:bg-gold-300 file:px-3 file:py-1"
         />
+        <p className="text-xs text-charcoal/60 dark:text-navy-400 -mt-1">
+          {t(
+            'portal.coachResource.fileOrUrl',
+            'Add a file, a URL, or both. Leave both blank to post a note only.'
+          )}
+        </p>
         {file ? (
           <div className="flex items-center gap-3 text-sm">
             <span className="text-charcoal/70 dark:text-navy-300 truncate">
@@ -400,54 +416,79 @@ export default function CoachResourceManager({
                           {items.map((resource) => {
                             const publishAt = resource.publish_at || resource.created_at;
                             const isScheduled = new Date(publishAt).getTime() > Date.now();
+                            const hasUrl = Boolean(resource.url);
+                            const hasFile = Boolean(resource.file_path);
+                            const hasOpenableTarget = hasUrl || hasFile;
                             return (
-                            <div
-                              key={resource.id}
-                              className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 hover:bg-warm-50 dark:hover:bg-navy-800 transition-colors"
-                            >
-                              <div className="min-w-0">
-                                <p className="font-medium text-navy-800 dark:text-white truncate">
-                                  {resource.title}
-                                </p>
-                                {isScheduled ? (
-                                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-                                    Scheduled for{' '}
-                                    {new Date(publishAt).toLocaleDateString('en-US', {
+                              <div
+                                key={resource.id}
+                                className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 hover:bg-warm-50 dark:hover:bg-navy-800 transition-colors"
+                              >
+                                <div className="min-w-0">
+                                  <p className="font-medium text-navy-800 dark:text-white truncate">
+                                    {resource.title}
+                                  </p>
+                                  {isScheduled ? (
+                                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                                      Scheduled for{' '}
+                                      {new Date(publishAt).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                      })}
+                                    </p>
+                                  ) : null}
+                                  {resource.description ? (
+                                    <p className="text-xs text-charcoal/65 dark:text-navy-300 mt-0.5 whitespace-pre-wrap break-words">
+                                      {resource.description}
+                                    </p>
+                                  ) : null}
+                                  {!hasOpenableTarget ? (
+                                    <p className="text-xs text-charcoal/50 dark:text-navy-400 mt-0.5">
+                                      {t('portal.resourceList.noteOnly', 'Note only')}
+                                    </p>
+                                  ) : null}
+                                  <p className="text-xs text-charcoal/50 dark:text-navy-400">
+                                    Posted{' '}
+                                    {new Date(resource.created_at).toLocaleDateString('en-US', {
                                       month: 'short',
                                       day: 'numeric',
                                       year: 'numeric',
                                     })}
                                   </p>
-                                ) : null}
-                                {resource.description ? (
-                                  <p className="text-xs text-charcoal/65 dark:text-navy-300 mt-0.5 whitespace-pre-wrap break-words">
-                                    {resource.description}
-                                  </p>
-                                ) : null}
-                                <p className="text-xs text-charcoal/50 dark:text-navy-400">
-                                  Posted{' '}
-                                  {new Date(resource.created_at).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric',
-                                  })}
-                                </p>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {hasUrl && hasFile ? (
+                                    <>
+                                      <button
+                                        onClick={() => onOpen(resource, 'url')}
+                                        className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
+                                      >
+                                        {t('portal.resourceList.openLink', 'Open link')}
+                                      </button>
+                                      <button
+                                        onClick={() => onOpen(resource, 'file')}
+                                        className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
+                                      >
+                                        {t('portal.resourceList.openFile', 'Open file')}
+                                      </button>
+                                    </>
+                                  ) : hasOpenableTarget ? (
+                                    <button
+                                      onClick={() => onOpen(resource)}
+                                      className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
+                                    >
+                                      {t('portal.resourceList.open', 'Open')}
+                                    </button>
+                                  ) : null}
+                                  <button
+                                    onClick={() => onDelete(resource.id)}
+                                    className="px-3 py-1 rounded-md bg-red-600 text-white text-sm"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <button
-                                  onClick={() => onOpen(resource)}
-                                  className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
-                                >
-                                  Open
-                                </button>
-                                <button
-                                  onClick={() => onDelete(resource.id)}
-                                  className="px-3 py-1 rounded-md bg-red-600 text-white text-sm"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </div>
                             );
                           })}
                         </div>

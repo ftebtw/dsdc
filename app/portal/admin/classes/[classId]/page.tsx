@@ -408,7 +408,7 @@ export default async function AdminClassDetailPage({
         })()}
       </SectionCard>
 
-      <SectionCard title="Resources" description="Upload files or post links for students in this class.">
+      <SectionCard title="Resources" description="Upload files, post links, or share notes for students in this class.">
         <CoachResourceManager
           classId={classId}
           initialResources={resources ?? []}

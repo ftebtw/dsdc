@@ -78,7 +78,7 @@ export default async function CoachResourcesPage({
   return (
     <SectionCard
       title={`Class Resources - ${classRow.name}`}
-      description="Upload files or post external links for students."
+      description="Upload files, post links, or share notes for students."
     >
       <CoachResourceManager
         classId={classId}

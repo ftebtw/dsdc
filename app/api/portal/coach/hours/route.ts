@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
       start: range.start,
       end: range.end,
       coachId: session.userId,
+      includeManualAdjustments: true,
     });
 
     return mergeCookies(supabaseResponse, NextResponse.json({
@@ -41,4 +42,3 @@ export async function GET(request: NextRequest) {
     return mergeCookies(supabaseResponse, jsonError(error instanceof Error ? error.message : 'Unable to load hours.', 500));
   }
 }
-
