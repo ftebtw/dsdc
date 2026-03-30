@@ -18,6 +18,14 @@ type AttendanceRow = Pick<
 type AbsenceStudentRow = Pick<Database['public']['Tables']['student_absences']['Row'], 'student_id'>;
 type AttendanceStudentProfile = Pick<Database['public']['Tables']['profiles']['Row'], 'id' | 'display_name' | 'email'>;
 
+function pickInitialSessionDate(today: string, allowedDates: string[]): string {
+  const uniqueSorted = [...new Set(allowedDates)].sort();
+  if (uniqueSorted.length === 0) return today;
+
+  const firstUpcomingOrToday = uniqueSorted.find((date) => date >= today);
+  return firstUpcomingOrToday ?? uniqueSorted[uniqueSorted.length - 1];
+}
+
 export default async function CoachAttendancePage({
   params,
 }: {
@@ -34,9 +42,12 @@ export default async function CoachAttendancePage({
     .maybeSingle();
 
   if (!classRow) notFound();
+  const todaySessionDate = getSessionDateForClassTimezone(classRow.timezone);
+  let restrictedSessionDates: string[] = [];
+
   // Allow primary coach, co-coaches, accepted subs, and accepted TAs.
   if (classRow.coach_id !== session.userId) {
-    const [{ data: coCoach }, { data: subReq }, { data: taReq }] = await Promise.all([
+    const [{ data: coCoach }, { data: subReqs }, { data: taReqs }] = await Promise.all([
       supabase
         .from('class_coaches')
         .select('id')
@@ -45,23 +56,33 @@ export default async function CoachAttendancePage({
         .maybeSingle(),
       supabase
         .from('sub_requests')
-        .select('id')
+        .select('session_date')
         .eq('class_id', classId)
         .eq('accepting_coach_id', session.userId)
-        .eq('status', 'accepted')
-        .maybeSingle(),
+        .eq('status', 'accepted'),
       supabase
         .from('ta_requests')
-        .select('id')
+        .select('session_date')
         .eq('class_id', classId)
         .eq('accepting_ta_id', session.userId)
-        .eq('status', 'accepted')
-        .maybeSingle(),
+        .eq('status', 'accepted'),
     ]);
-    if (!coCoach && !subReq && !taReq) notFound();
+
+    const acceptedDates = [
+      ...((subReqs ?? []) as Array<{ session_date: string }>).map((row) => row.session_date),
+      ...((taReqs ?? []) as Array<{ session_date: string }>).map((row) => row.session_date),
+    ];
+
+    if (!coCoach && acceptedDates.length === 0) notFound();
+    if (!coCoach) {
+      restrictedSessionDates = [...new Set(acceptedDates)].sort();
+    }
   }
 
-  const sessionDate = getSessionDateForClassTimezone(classRow.timezone);
+  const sessionDate =
+    restrictedSessionDates.length > 0
+      ? pickInitialSessionDate(todaySessionDate, restrictedSessionDates)
+      : todaySessionDate;
 
   const [{ data: enrollmentsData }, { data: attendanceRowsData }, { data: absencesData }] = await Promise.all([
     supabase.from('enrollments').select('student_id').eq('class_id', classId),
@@ -121,6 +142,7 @@ export default async function CoachAttendancePage({
         students={profiles}
         initialAttendance={attendanceByStudent}
         initialAbsenceStudentIds={absences.map((row) => row.student_id)}
+        restrictedSessionDates={restrictedSessionDates}
       />
     </SectionCard>
   );

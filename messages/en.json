@@ -1071,9 +1071,11 @@
       "cancelEdit": "Cancel Edit"
     },
     "coachAttendanceEditor": {
+      "assignedDates": "You can mark attendance only for your assigned class dates.",
       "sessionDate": "Session date",
       "loadingDate": "Loading date...",
       "absenceReported": "Absence Reported",
+      "restrictedDateError": "You can only manage attendance for dates you were assigned to this class.",
       "saveState": "Save State",
       "reported": "Reported"
     },

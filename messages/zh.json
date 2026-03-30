@@ -1136,10 +1136,12 @@
       "cancelEdit": "取消编辑"
     },
     "coachAttendanceEditor": {
+      "assignedDates": "你只能为自己被分配的上课日期记录考勤。",
       "sessionDate": "课程日期",
       "absenceReported": "已报告缺席",
       "saveState": "保存状态",
       "reported": "已报告",
+      "restrictedDateError": "你只能管理自己被分配到这门课的日期的考勤。",
       "loadingDate": "正在加载 {date} 的出勤记录..."
     },
     "signature": {

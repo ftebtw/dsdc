@@ -30,6 +30,7 @@ type Props = {
   students: Student[];
   initialAttendance: Record<string, AttendanceRow>;
   initialAbsenceStudentIds: string[];
+  restrictedSessionDates?: string[];
   allowDelete?: boolean;
 };
 
@@ -44,6 +45,7 @@ export default function CoachAttendanceEditor({
   students,
   initialAttendance,
   initialAbsenceStudentIds,
+  restrictedSessionDates = [],
   allowDelete = false,
 }: Props) {
   const { locale } = useI18n();
@@ -57,6 +59,12 @@ export default function CoachAttendanceEditor({
   const [submittingAll, setSubmittingAll] = useState(false);
   const [submitAllResult, setSubmitAllResult] = useState<string | null>(null);
   const timerRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const restrictedDates = useMemo(
+    () => [...new Set(restrictedSessionDates)].sort(),
+    [restrictedSessionDates]
+  );
+  const restrictedDateSet = useMemo(() => new Set(restrictedDates), [restrictedDates]);
+  const hasRestrictedDates = restrictedDates.length > 0;
 
   const studentRows = useMemo(() => {
     return students.map((student) => {
@@ -64,6 +72,17 @@ export default function CoachAttendanceEditor({
       return { student, record };
     });
   }, [students, attendance]);
+
+  function canManageDate(date: string): boolean {
+    return !hasRestrictedDates || restrictedDateSet.has(date);
+  }
+
+  function restrictedDateError() {
+    return t(
+      'portal.coachAttendanceEditor.restrictedDateError',
+      'You can only manage attendance for dates you were assigned to this class.'
+    );
+  }
 
   useEffect(() => {
     return () => {
@@ -74,7 +93,16 @@ export default function CoachAttendanceEditor({
   }, []);
 
   async function refreshForDate(date: string) {
+    if (!canManageDate(date)) {
+      setAttendance({});
+      setAbsenceStudentIds(new Set());
+      setSubmitAllResult(restrictedDateError());
+      setLoadingDate(false);
+      return;
+    }
+
     setLoadingDate(true);
+    setSubmitAllResult(null);
     const supabase = getSupabaseBrowserClient();
 
     const [attendanceResult, absenceResult] = await Promise.all([
@@ -107,6 +135,17 @@ export default function CoachAttendanceEditor({
 
   async function persist(studentId: string, nextRecord: AttendanceRow, date: string) {
     if (!nextRecord.status) return;
+    if (!canManageDate(date)) {
+      setAttendance((prev) => ({
+        ...prev,
+        [studentId]: {
+          ...nextRecord,
+          saving: false,
+          saveError: restrictedDateError(),
+        },
+      }));
+      return;
+    }
 
     const supabase = getSupabaseBrowserClient();
     const { error } = await supabase.from('attendance_records').upsert(
@@ -163,6 +202,12 @@ export default function CoachAttendanceEditor({
     setSubmittingAll(true);
     setSubmitAllResult(null);
 
+    if (!canManageDate(sessionDate)) {
+      setSubmitAllResult(restrictedDateError());
+      setSubmittingAll(false);
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     const rows = students
       .map((student) => {
@@ -215,6 +260,18 @@ export default function CoachAttendanceEditor({
 
   async function deleteAttendanceLog(studentId: string) {
     setSubmitAllResult(null);
+
+    if (!canManageDate(sessionDate)) {
+      setAttendance((prev) => ({
+        ...prev,
+        [studentId]: {
+          ...(prev[studentId] ?? blankRow()),
+          saving: false,
+          saveError: restrictedDateError(),
+        },
+      }));
+      return;
+    }
 
     if (timerRef.current[studentId]) {
       clearTimeout(timerRef.current[studentId]);
@@ -281,6 +338,15 @@ export default function CoachAttendanceEditor({
           </span>
         ) : null}
       </div>
+      {hasRestrictedDates ? (
+        <p className="text-xs text-charcoal/60 dark:text-navy-300">
+          {t(
+            'portal.coachAttendanceEditor.assignedDates',
+            'You can mark attendance only for your assigned class dates.'
+          )}{' '}
+          {restrictedDates.join(', ')}
+        </p>
+      ) : null}
 
       <div className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-x-auto">
         <table className="w-full min-w-[760px] text-sm">

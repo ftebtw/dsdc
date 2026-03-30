@@ -243,15 +243,15 @@ export default function ClassesPage() {
             </h2>
           </AnimatedSection>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:auto-rows-fr">
             {otherClasses.map((cls, i) => {
               const Icon = classIcons[(i + 4) % classIcons.length];
               const image = classImages[(i + 4) % classImages.length];
               const isWscClass = /world scholar|wsc/i.test(`${cls.name} ${cls.description}`);
               return (
-                <AnimatedSection key={cls.name} delay={i * 0.15}>
-                  <div className="bg-warm-50 dark:bg-navy-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <div className="aspect-[16/9] overflow-hidden">
+                <AnimatedSection key={cls.name} delay={i * 0.15} className="h-full">
+                  <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-warm-50 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:bg-navy-800">
+                    <div className="aspect-[16/9] shrink-0 overflow-hidden">
                       <Image
                         src={image}
                         alt={classImageAlt(cls.name)}
@@ -262,7 +262,7 @@ export default function ClassesPage() {
                         sizes="(max-width: 768px) 100vw, 50vw"
                       />
                     </div>
-                    <div className="p-5 sm:p-8">
+                    <div className="flex flex-1 flex-col p-5 sm:p-8">
                       <div className="flex flex-wrap items-center gap-2 mb-3">
                         <div className="w-10 h-10 bg-gold-400/10 rounded-xl flex items-center justify-center">
                           <Icon className="w-5 h-5 text-gold-500" />
@@ -284,7 +284,7 @@ export default function ClassesPage() {
                         </p>
                       )}
                       <h3 className="text-xl font-bold text-navy-800 dark:text-white mb-3 font-serif">{cls.name}</h3>
-                      <p className="text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans">{cls.description}</p>
+                      <p className="flex-1 text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans">{cls.description}</p>
                       {isWscClass ? (
                         <p className="mt-3 text-sm font-medium text-navy-700 dark:text-gold-300">
                           {" "}
