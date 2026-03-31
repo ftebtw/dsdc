@@ -33,10 +33,11 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "DSDC | Online Debate & Public Speaking Classes",
+    default: "DSDC | Debate & Public Speaking Classes for Kids",
     template: "%s",
   },
-  description: "Online debate and public speaking classes from beginner to advanced levels.",
+  description:
+    "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaching and personalized feedback.",
   keywords: [
     "debate classes Vancouver",
     "public speaking for kids BC",
@@ -49,8 +50,9 @@ export const metadata: Metadata = {
     "youth debate training",
   ],
   openGraph: {
-    title: "DSDC | Online Debate & Public Speaking Classes",
-    description: "Online debate and public speaking classes from beginner to advanced levels.",
+    title: "DSDC | Debate & Public Speaking Classes for Kids",
+    description:
+      "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaching and personalized feedback.",
     url: "https://dsdc.ca",
     siteName: "DSDC",
     type: "website",
@@ -66,8 +68,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "DSDC | Online Debate & Public Speaking Classes",
-    description: "Online debate and public speaking classes from beginner to advanced levels.",
+    title: "DSDC | Debate & Public Speaking Classes for Kids",
+    description:
+      "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaching and personalized feedback.",
     images: ["https://dsdc.ca/images/photos/wsc-group-2.jpg"],
   },
   alternates: {

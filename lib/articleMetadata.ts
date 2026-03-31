@@ -41,6 +41,14 @@ const articleEnhancements: Record<string, ArticleEnhancement> = {
             'Families can verify the national pathway directly through <cite href="https://www.csdf-fcde.ca/">the Canadian Student Debating Federation</cite> and <cite href="https://www.bcdebate.ca/aboutus/join">the Debate and Speech Association of British Columbia</cite>, both of which outline how local participation connects to provincial and national competition.',
         },
       },
+      {
+        afterSectionIndex: 2,
+        section: {
+          type: "paragraph",
+          content:
+            "If you're exploring options alongside this guide, you can compare our [online debate classes](/classes), read about our [debate classes in Vancouver](/debate-classes-vancouver), or go straight to [registration](/register) once you're ready to choose a program.",
+        },
+      },
     ],
   },
   "debate-classes-cost": {

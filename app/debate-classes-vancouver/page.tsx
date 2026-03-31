@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import JsonLd from "@/components/JsonLd";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 
 const faqItems = [
   {
@@ -23,20 +25,19 @@ const faqItems = [
     answer:
       "Yes. Book a free 15-minute consultation and we'll recommend the right class for your child.",
   },
+  {
+    question: "Do you offer speech and debate classes or public speaking classes?",
+    answer:
+      "Yes. Families come to DSDC for debate classes, speech and debate classes, debate coaching, and public speaking classes. We also offer public speaking for kids who want to build confidence before moving into full debate.",
+  },
+  {
+    question: "What is the best age to start debate classes for kids in Vancouver?",
+    answer:
+      "Many students start in Grades 4 through 6, but we also work with middle school and high school students. We place each child into the right level based on age, confidence, and experience.",
+  },
 ];
 
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: faqItems.map((item) => ({
-    "@type": "Question",
-    name: item.question,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: item.answer,
-    },
-  })),
-};
+const faqSchema = buildFaqSchema(faqItems);
 
 const localBusinessSchema = {
   "@context": "https://schema.org",
@@ -75,35 +76,107 @@ const localBusinessSchema = {
   ],
 };
 
+const courseSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  itemListElement: [
+    {
+      "@type": "Course",
+      position: 1,
+      name: "Vancouver Debate Classes for Kids",
+      description:
+        "Foundational and competitive debate classes for kids in Vancouver and the Lower Mainland, delivered live online by DSDC.",
+      provider: {
+        "@type": "EducationalOrganization",
+        name: "DSDC",
+        url: "https://dsdc.ca",
+      },
+    },
+    {
+      "@type": "Course",
+      position: 2,
+      name: "Public Speaking Classes in Vancouver",
+      description:
+        "Public speaking classes for kids in Vancouver focused on confidence, delivery, and structured speaking practice.",
+      provider: {
+        "@type": "EducationalOrganization",
+        name: "DSDC",
+        url: "https://dsdc.ca",
+      },
+    },
+    {
+      "@type": "Course",
+      position: 3,
+      name: "World Scholar's Cup Coaching in Vancouver",
+      description:
+        "Vancouver-founded World Scholar's Cup coaching with a 100% qualification rate since 2020.",
+      provider: {
+        "@type": "EducationalOrganization",
+        name: "DSDC",
+        url: "https://dsdc.ca",
+      },
+    },
+  ],
+};
+
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { name: "Home", path: "/" },
+  { name: "Debate Classes Vancouver", path: "/debate-classes-vancouver" },
+]);
+
+const testimonials = [
+  {
+    name: "Angela M.",
+    role: "Student, Grade 8",
+    quote:
+      "DSDC has been my home for debate ever since I started three years ago. I've seen myself visibly improve in confidence and critical thinking.",
+  },
+  {
+    name: "Ryland C.",
+    role: "Student, Grade 9",
+    quote:
+      "The coaches always provide thoughtful feedback and put real effort into developing lessons with student growth in mind.",
+  },
+  {
+    name: "Daniel W.",
+    role: "Student, Grade 9",
+    quote:
+      "The environment at DSDC is simply wonderful. The teachers are supportive of every individual student and are passionate about developing young minds.",
+  },
+];
+
 export const metadata: Metadata = {
-  title: "Debate Classes in Vancouver & the Lower Mainland | Online | DSDC",
+  title: "DSDC | Debate Classes Vancouver for Kids",
   description:
-    "Vancouver-founded online debate and public speaking classes for kids and teens. Serving Burnaby, Surrey, Richmond, Coquitlam, North Vancouver, and all of BC. Expert coaching from $30/hr. Book a free consultation.",
+    "DSDC offers debate classes Vancouver families can join online, including debate classes for kids, public speaking classes, and expert debate coaching.",
   alternates: {
     canonical: "https://dsdc.ca/debate-classes-vancouver",
   },
   openGraph: {
-    title: "Debate Classes in Vancouver & the Lower Mainland | Online | DSDC",
+    title: "DSDC | Debate Classes Vancouver for Kids",
     description:
-      "Vancouver-founded online debate and public speaking classes for kids and teens. Serving Burnaby, Surrey, Richmond, Coquitlam, North Vancouver, and all of BC. Expert coaching from $30/hr. Book a free consultation.",
+      "DSDC offers debate classes Vancouver families can join online, including debate classes for kids, public speaking classes, and expert debate coaching.",
     url: "https://dsdc.ca/debate-classes-vancouver",
     siteName: "DSDC",
     type: "website",
     images: [{ url: "/images/photos/wsc-group-2.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DSDC | Debate Classes Vancouver for Kids",
+    description:
+      "DSDC offers debate classes Vancouver families can join online, including debate classes for kids, public speaking classes, and expert debate coaching.",
+    images: ["/images/photos/wsc-group-2.jpg"],
   },
 };
 
 export default function DebateClassesVancouverPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
-      />
+      <JsonLd id="vancouver-faq-schema" data={faqSchema} />
+      <JsonLd id="vancouver-local-business-schema" data={localBusinessSchema} />
+      <JsonLd id="vancouver-course-schema" data={courseSchema} />
+      <JsonLd id="vancouver-breadcrumb-schema" data={breadcrumbSchema} />
 
       <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-gradient-to-br from-navy-800 via-navy-700 to-navy-900 overflow-hidden">
         <div
@@ -177,6 +250,12 @@ export default function DebateClassesVancouverPage() {
               Championships, UBC, SFU, and other top universities. We prepare students for BC Provincial
               Championships, Canadian Nationals, and international tournaments including the World Scholar's Cup at
               Yale.
+            </p>
+            <p>
+              Families searching for speech and debate classes in Vancouver usually want more than one format. They
+              want debate classes, public speaking classes, and public speaking for kids that can grow into advanced
+              debate coaching over time. DSDC offers that full pathway, starting with beginner-friendly programs and
+              continuing into high-level competitive training.
             </p>
             <p>
               No commute. No traffic. Just world-class debate coaching from Vancouver's own. New to debate? Explore
@@ -383,6 +462,28 @@ export default function DebateClassesVancouverPage() {
             </Link>{" "}
             and internationally.
           </p>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-navy-800 dark:text-white mb-12">
+            Testimonials from Vancouver Families
+          </h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {testimonials.map((item) => (
+              <article
+                key={item.name}
+                className="rounded-2xl border border-warm-200 dark:border-navy-700 bg-white dark:bg-navy-800 p-6 shadow-sm"
+              >
+                <p className="text-base leading-relaxed text-charcoal/75 dark:text-navy-200 font-sans">&ldquo;{item.quote}&rdquo;</p>
+                <div className="mt-5 border-t border-warm-200 dark:border-navy-700 pt-4">
+                  <p className="font-bold text-navy-800 dark:text-white">{item.name}</p>
+                  <p className="text-sm text-charcoal/55 dark:text-navy-300">{item.role}</p>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 

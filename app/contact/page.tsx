@@ -1,20 +1,28 @@
 import type { Metadata } from "next";
+import JsonLd from "@/components/JsonLd";
 import ContactPageContent from "@/components/ContactPageContent";
+import { buildBreadcrumbSchema } from "@/lib/structuredData";
 
 export const metadata: Metadata = {
-  title: "Contact DSDC | Get in Touch",
+  title: "Contact DSDC | Debate & Public Speaking",
   description:
-    "Contact DSDC to ask questions about classes, scheduling, pricing, or enrollment. Reach our team online or through the contact form.",
+    "DSDC can help with debate classes, public speaking programs, scheduling, pricing, and enrollment questions. Contact our team online today.",
   alternates: {
     canonical: "https://dsdc.ca/contact",
   },
   openGraph: {
-    title: "Contact DSDC | Get in Touch",
+    title: "Contact DSDC | Debate & Public Speaking",
     description:
-      "Contact DSDC to ask questions about classes, scheduling, pricing, or enrollment. Reach our team online or through the contact form.",
+      "DSDC can help with debate classes, public speaking programs, scheduling, pricing, and enrollment questions. Contact our team online today.",
     url: "https://dsdc.ca/contact",
     siteName: "DSDC",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Contact DSDC | Debate & Public Speaking",
+    description:
+      "DSDC can help with debate classes, public speaking programs, scheduling, pricing, and enrollment questions. Contact our team online today.",
   },
 };
 
@@ -27,13 +35,16 @@ const contactSchema = {
     "Get in touch with DSDC about debate classes, public speaking programs, consultations, and enrollment.",
 };
 
+const contactBreadcrumbSchema = buildBreadcrumbSchema([
+  { name: "Home", path: "/" },
+  { name: "Contact", path: "/contact" },
+]);
+
 export default function ContactPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
-      />
+      <JsonLd id="contact-page-schema" data={contactSchema} />
+      <JsonLd id="contact-breadcrumb-schema" data={contactBreadcrumbSchema} />
       <ContactPageContent />
     </>
   );

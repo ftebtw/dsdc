@@ -22,14 +22,17 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Image
-              src="/images/logos/logo-full.png"
-              alt="DSDC - Online Debate and Public Speaking Classes"
-              width={120}
-              height={40}
-              loading="lazy"
-              className="h-10 w-auto brightness-0 invert mb-4"
-            />
+            <Link href="/" className="mb-4 inline-flex items-center gap-3">
+              <Image
+                src="/images/logos/logo-full.png"
+                alt="DSDC"
+                width={120}
+                height={40}
+                loading="lazy"
+                className="h-10 w-auto brightness-0 invert"
+              />
+              <span className="text-lg font-bold tracking-wide text-white">DSDC</span>
+            </Link>
             <p className="text-navy-200 text-sm leading-relaxed">
               {footerTagline}
             </p>

@@ -94,11 +94,57 @@ export default function BlogPostContent({
   post: BlogPost;
   allPosts: BlogPost[];
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const related = allPosts
     .filter((p) => p.slug !== post.slug)
     .sort((a, b) => (a.category === post.category ? -1 : 1))
     .slice(0, 2);
+  const recommendedPrograms =
+    locale === "zh"
+      ? [
+          {
+            href: "/classes",
+            title: "浏览全部课程",
+            description: "比较 DSDC 的辩论、公共演讲和竞赛课程层级。",
+          },
+          {
+            href: "/debate-classes-vancouver",
+            title: "查看温哥华辩论课程",
+            description: "了解我们面向温哥华和大温地区学生的辩论课程。",
+          },
+          {
+            href: "/online-debate-classes",
+            title: "了解在线辩论课程",
+            description: "查看在线课程如何运作，以及孩子将如何逐步成长。",
+          },
+          {
+            href: "/register",
+            title: "开始报名",
+            description: "准备好后可以直接进入报名流程。",
+          },
+        ]
+      : [
+          {
+            href: "/classes",
+            title: "Compare all classes",
+            description: "See every DSDC debate, public speaking, and competitive program in one place.",
+          },
+          {
+            href: "/debate-classes-vancouver",
+            title: "Explore Vancouver debate classes",
+            description: "Visit our Vancouver landing page for debate classes, public speaking classes, and local FAQs.",
+          },
+          {
+            href: "/online-debate-classes",
+            title: "See how online debate classes work",
+            description: "Learn how weekly live Zoom coaching, feedback, and progression work at DSDC.",
+          },
+          {
+            href: "/register",
+            title: "Start registration",
+            description: "Ready to move forward? Begin the DSDC registration flow here.",
+          },
+        ];
 
   return (
     <>
@@ -266,6 +312,33 @@ export default function BlogPostContent({
               );
             })}
           </div>
+
+          <AnimatedSection delay={0.08}>
+            <section className="mt-10 rounded-2xl border border-warm-200 bg-warm-50 p-6 dark:border-navy-700 dark:bg-navy-800/80">
+              <h2 className="text-xl font-bold text-navy-800 dark:text-white font-serif">
+                {locale === "zh" ? "继续了解 DSDC 课程" : "Explore DSDC Programs"}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-charcoal/70 dark:text-navy-200">
+                {locale === "zh"
+                  ? "如果这篇文章对您有帮助，下面这些页面可以继续帮助您了解课程、地点和报名方式。"
+                  : "If this article was helpful, these next steps make it easier to compare classes, learn about locations, and get started."}
+              </p>
+              <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+                {recommendedPrograms.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="rounded-xl border border-warm-200 bg-white p-4 transition-colors hover:border-gold-300 hover:bg-gold-50 dark:border-navy-700 dark:bg-navy-900 dark:hover:border-gold-400 dark:hover:bg-navy-800"
+                  >
+                    <p className="font-semibold text-navy-800 dark:text-white">{item.title}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-charcoal/65 dark:text-navy-300">
+                      {item.description}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          </AnimatedSection>
 
           <AnimatedSection delay={0.1}>
             <div className="mt-12 p-6 sm:p-8 bg-navy-800 dark:bg-navy-700 rounded-2xl text-center">

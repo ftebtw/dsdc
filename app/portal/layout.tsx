@@ -1,6 +1,14 @@
+import type { Metadata } from 'next';
 import { Suspense, type ReactNode } from 'react';
 import PortalShell from './_components/PortalShell';
 import { getCurrentSessionProfile } from '@/lib/portal/auth';
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 function PortalSkeleton() {
   return (

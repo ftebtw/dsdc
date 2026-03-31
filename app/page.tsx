@@ -21,16 +21,16 @@ const FAQ = dynamic(() => import("@/components/FAQ"), { ssr: true });
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Online Debate & Public Speaking Classes | DSDC",
+  title: "DSDC | Debate & Public Speaking Classes for Kids",
   description:
-    "Award-winning online debate and public speaking classes for kids, teens, and university students. Expert coaching, personalized feedback every class, and proven results at national and international tournaments. Book a free consultation.",
+    "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaches, personalized feedback, and proven tournament results.",
   alternates: {
     canonical: "https://dsdc.ca",
   },
   openGraph: {
-    title: "Online Debate & Public Speaking Classes | DSDC",
+    title: "DSDC | Debate & Public Speaking Classes for Kids",
     description:
-      "Award-winning online debate and public speaking classes for kids, teens, and university students. Expert coaching, personalized feedback every class, and proven results at national and international tournaments. Book a free consultation.",
+      "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaches, personalized feedback, and proven tournament results.",
     url: "https://dsdc.ca",
     siteName: "DSDC",
     type: "website",
@@ -45,9 +45,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Online Debate & Public Speaking Classes | DSDC",
+    title: "DSDC | Debate & Public Speaking Classes for Kids",
     description:
-      "Award-winning online debate and public speaking classes for kids, teens, and university students. Expert coaching, personalized feedback every class, and proven results at national and international tournaments. Book a free consultation.",
+      "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaches, personalized feedback, and proven tournament results.",
     images: ["https://dsdc.ca/images/photos/wsc-group-2.jpg"],
   },
 };

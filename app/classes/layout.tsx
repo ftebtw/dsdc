@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Debate & Public Speaking Classes Online | Novice to Advanced | DSDC",
+  title: "DSDC | Online Debate & Public Speaking Classes",
   description:
-    "Explore DSDC's online debate classes from Novice to Advanced Competitive. World Scholar's Cup prep with 100% qualification rate since 2020. Personalized coaching via Zoom.",
+    "Explore DSDC online debate classes for kids, public speaking courses, and competitive training. Compare levels, schedules, and coaching online.",
   alternates: {
     canonical: "https://dsdc.ca/classes",
   },
   openGraph: {
-    title: "Debate & Public Speaking Classes Online | Novice to Advanced | DSDC",
+    title: "DSDC | Online Debate & Public Speaking Classes",
     description:
-      "Explore DSDC's online debate classes from Novice to Advanced Competitive. World Scholar's Cup prep with 100% qualification rate since 2020. Personalized coaching via Zoom.",
+      "Explore DSDC online debate classes for kids, public speaking courses, and competitive training. Compare levels, schedules, and coaching online.",
     url: "https://dsdc.ca/classes",
     siteName: "DSDC",
     type: "website",
@@ -25,9 +25,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Debate & Public Speaking Classes Online | Novice to Advanced | DSDC",
+    title: "DSDC | Online Debate & Public Speaking Classes",
     description:
-      "Explore DSDC's online debate classes from Novice to Advanced Competitive. World Scholar's Cup prep with 100% qualification rate since 2020. Personalized coaching via Zoom.",
+      "Explore DSDC online debate classes for kids, public speaking courses, and competitive training. Compare levels, schedules, and coaching online.",
     images: ["https://dsdc.ca/images/photos/wsc-group-2.jpg"],
   },
 };

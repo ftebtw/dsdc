@@ -1,6 +1,41 @@
+import JsonLd from "@/components/JsonLd";
+import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 import ClassesPageClient from "./ClassesPageClient";
 
 export const revalidate = 60;
+
+const classesFaqItems = [
+  {
+    question: "What ages are your debate classes for kids designed for?",
+    answer:
+      "DSDC offers debate classes for kids in Grades 4 through 12, plus advanced options for competitive high school students and university students who want high-level coaching.",
+  },
+  {
+    question: "Do you offer both online debate classes and public speaking classes?",
+    answer:
+      "Yes. Families can choose from online debate classes, public speaking classes, World Scholar's Cup coaching, and advanced competitive debate programs depending on age and experience.",
+  },
+  {
+    question: "What does a typical public speaking course or debate class include?",
+    answer:
+      "Most classes include a warm-up, a lesson on a current topic or communication skill, structured speaking or debate practice, and personalized written feedback from the coach after class.",
+  },
+  {
+    question: "Are these classes good for shy beginners?",
+    answer:
+      "Absolutely. Many students start with no experience. Our beginner-friendly classes are designed to help shy students build confidence gradually through guided practice and supportive feedback.",
+  },
+  {
+    question: "How is DSDC different from a short debate camp?",
+    answer:
+      "A debate camp can be a great introduction, but weekly classes usually create stronger long-term growth because students practice consistently, receive feedback over time, and progress through clear levels.",
+  },
+  {
+    question: "How do we choose the right class and get started?",
+    answer:
+      "The best first step is to compare the class levels or book a free consultation. We recommend the right class based on your child's grade, confidence level, and academic goals.",
+  },
+];
 
 const classesCourseSchema = {
   "@context": "https://schema.org",
@@ -87,13 +122,18 @@ const classesCourseSchema = {
   ],
 };
 
+const classesFaqSchema = buildFaqSchema(classesFaqItems);
+const classesBreadcrumbSchema = buildBreadcrumbSchema([
+  { name: "Home", path: "/" },
+  { name: "Classes", path: "/classes" },
+]);
+
 export default function ClassesPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(classesCourseSchema) }}
-      />
+      <JsonLd id="classes-course-schema" data={classesCourseSchema} />
+      <JsonLd id="classes-faq-schema" data={classesFaqSchema} />
+      <JsonLd id="classes-breadcrumb-schema" data={classesBreadcrumbSchema} />
       <ClassesPageClient />
     </>
   );
