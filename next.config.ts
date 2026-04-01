@@ -21,60 +21,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  async redirects() {
-    return [
-      {
-        source: "/book-meeting",
-        destination: "/book",
-        permanent: true,
-      },
-      {
-        source: "/book-meeting/",
-        destination: "/book",
-        permanent: true,
-      },
-      {
-        source: "/our-team",
-        destination: "/team",
-        permanent: true,
-      },
-      {
-        source: "/our-team/",
-        destination: "/team",
-        permanent: true,
-      },
-      {
-        source: "/registration",
-        destination: "/register",
-        permanent: true,
-      },
-      {
-        source: "/registration/",
-        destination: "/register",
-        permanent: true,
-      },
-      {
-        source: "/student-awards",
-        destination: "/awards",
-        permanent: true,
-      },
-      {
-        source: "/student-awards/",
-        destination: "/awards",
-        permanent: true,
-      },
-      {
-        source: "/blog/guide-to-debate-in-canada",
-        destination: "/guide-to-debate-in-canada",
-        permanent: true,
-      },
-      {
-        source: "/blog/guide-to-debate-in-canada/",
-        destination: "/guide-to-debate-in-canada",
-        permanent: true,
-      },
-    ];
-  },
   async headers() {
     return [
       {

@@ -86,6 +86,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/register`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/compare`,
       lastModified: now,
       changeFrequency: "monthly",
@@ -110,6 +116,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/debate-classes-toronto`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.85,
+    },
+    {
       url: `${baseUrl}/world-scholars-cup-coaching`,
       lastModified: now,
       changeFrequency: "monthly",
@@ -120,6 +132,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/public-speaking-classes-for-kids`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.85,
     },
     {
       url: `${baseUrl}/guide-to-debate-in-canada`,
@@ -138,5 +156,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     }));
 
-  return [...staticEntries, ...blogEntries];
+  const zhEntries: MetadataRoute.Sitemap = staticEntries.map((entry) => ({
+    ...entry,
+    url: `${entry.url}?lang=zh`,
+  }));
+
+  const zhBlogEntries: MetadataRoute.Sitemap = blogEntries.map((entry) => ({
+    ...entry,
+    url: `${entry.url}?lang=zh`,
+  }));
+
+  return [...staticEntries, ...zhEntries, ...blogEntries, ...zhBlogEntries];
 }

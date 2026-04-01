@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { draftMode } from "next/headers";
+import { draftMode, headers } from "next/headers";
 import Script from "next/script";
 
 import { getCmsMessageOverrides } from "@/lib/sanity/content";
 import JsonLd from "@/components/JsonLd";
-import { localBusinessSchema, websiteSchema } from "@/lib/structuredData";
+import { buildBreadcrumbSchema, localBusinessSchema, websiteSchema } from "@/lib/structuredData";
+import { getBlogPostsSync } from "@/lib/blogPosts";
 import { DM_Sans, Inter, Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -76,6 +77,7 @@ export const metadata: Metadata = {
   alternates: {
     languages: {
       en: "https://dsdc.ca",
+      zh: "https://dsdc.ca?lang=zh",
       "x-default": "https://dsdc.ca",
     },
   },
@@ -90,22 +92,99 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://dsdc.ca"),
 };
 
+const breadcrumbLabelMap: Record<string, string> = {
+  about: "About",
+  awards: "Awards",
+  blog: "Blog",
+  book: "Book a Free Consultation",
+  cancellation: "Cancellation Policy",
+  classes: "Classes",
+  compare: "Compare",
+  contact: "Contact",
+  faq: "FAQ",
+  pricing: "Pricing",
+  privacy: "Privacy Policy",
+  register: "Register",
+  team: "Team",
+  terms: "Terms",
+  "online-debate-classes": "Online Debate Classes",
+  "debate-classes-canada": "Debate Classes Canada",
+  "debate-classes-vancouver": "Debate Classes Vancouver",
+  "debate-classes-toronto": "Debate Classes Toronto",
+  "world-scholars-cup-coaching": "World Scholar's Cup Coaching",
+  "debate-classes-for-beginners": "Debate Classes for Beginners",
+  "public-speaking-classes-for-kids": "Public Speaking Classes for Kids",
+  "guide-to-debate-in-canada": "Guide to Debate in Canada",
+};
+
+function formatSegment(segment: string) {
+  return segment
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function getBreadcrumbItems(pathname: string) {
+  const cleanPath = pathname === "/" ? "/" : pathname.replace(/\/+$/, "");
+
+  if (cleanPath === "/") {
+    return [{ name: "Home", path: "/" }];
+  }
+
+  if (cleanPath.startsWith("/blog/")) {
+    const slug = cleanPath.slice("/blog/".length);
+    const post = getBlogPostsSync().find((item) => item.slug === slug);
+    return [
+      { name: "Home", path: "/" },
+      { name: "Blog", path: "/blog" },
+      { name: post?.title ?? formatSegment(slug), path: cleanPath },
+    ];
+  }
+
+  const parts = cleanPath.split("/").filter(Boolean);
+  const items = [{ name: "Home", path: "/" }];
+
+  for (let index = 0; index < parts.length; index += 1) {
+    const slug = parts[index];
+    const path = `/${parts.slice(0, index + 1).join("/")}`;
+    items.push({
+      name: breadcrumbLabelMap[slug] ?? formatSegment(slug),
+      path,
+    });
+  }
+
+  return items;
+}
+
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { isEnabled } = await draftMode();
+  const requestHeaders = await headers();
+  const pathname = requestHeaders.get("x-dsdc-pathname") ?? "/";
   const cmsResult = await getCmsMessageOverrides({ draft: isEnabled });
   const initialCmsOverrides = cmsResult.source === "live" ? cmsResult.overrides : undefined;
+  const isSeoPublicPath =
+    !pathname.startsWith("/portal") &&
+    !pathname.startsWith("/auth") &&
+    !pathname.startsWith("/payment") &&
+    !pathname.startsWith("/_");
+  const englishHref = `https://dsdc.ca${pathname === "/" ? "" : pathname}`;
+  const chineseHref = `${englishHref}?lang=zh`;
+  const breadcrumbSchema = isSeoPublicPath ? buildBreadcrumbSchema(getBreadcrumbItems(pathname)) : null;
+
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} ${dmSans.variable}`}>
       <head>
-        <link rel="alternate" hrefLang="en" href="https://dsdc.ca" />
-        <link rel="alternate" hrefLang="x-default" href="https://dsdc.ca" />
+        {isSeoPublicPath ? <link rel="alternate" hrefLang="en" href={englishHref} /> : null}
+        {isSeoPublicPath ? <link rel="alternate" hrefLang="zh" href={chineseHref} /> : null}
+        {isSeoPublicPath ? <link rel="alternate" hrefLang="x-default" href={englishHref} /> : null}
         <link rel="preconnect" href="https://9rjkctzpxtq3g6gf.public.blob.vercel-storage.com" crossOrigin="" />
         <JsonLd id="site-local-business-schema" data={localBusinessSchema} />
         <JsonLd id="site-website-schema" data={websiteSchema} />
+        {breadcrumbSchema ? <JsonLd id="site-breadcrumb-schema" data={breadcrumbSchema} /> : null}
       </head>
       <body className="font-sans antialiased">
         <a

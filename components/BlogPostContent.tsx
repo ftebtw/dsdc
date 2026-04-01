@@ -122,6 +122,11 @@ export default function BlogPostContent({
             title: "开始报名",
             description: "准备好后可以直接进入报名流程。",
           },
+          {
+            href: "/pricing",
+            title: "查看课程价格",
+            description: "了解公开透明的课程定价与不同项目的费用范围。",
+          },
         ]
       : [
           {
@@ -143,6 +148,11 @@ export default function BlogPostContent({
             href: "/register",
             title: "Start registration",
             description: "Ready to move forward? Begin the DSDC registration flow here.",
+          },
+          {
+            href: "/pricing",
+            title: "See pricing",
+            description: "Review transparent DSDC pricing before choosing the right program.",
           },
         ];
 
@@ -313,6 +323,36 @@ export default function BlogPostContent({
             })}
           </div>
 
+          {post.faqItems?.length ? (
+            <AnimatedSection delay={0.07}>
+              <section className="mt-10 rounded-2xl border border-warm-200 bg-white p-6 dark:border-navy-700 dark:bg-navy-800">
+                <h2 className="text-2xl font-bold text-navy-800 dark:text-white font-serif">
+                  Frequently Asked Questions About Choosing a Debate Program
+                </h2>
+                <div className="mt-5 space-y-3">
+                  {post.faqItems.map((item) => (
+                    <details
+                      key={item.question}
+                      className="group overflow-hidden rounded-xl border border-warm-200 bg-warm-50 shadow-sm dark:border-navy-700 dark:bg-navy-900"
+                    >
+                      <summary className="flex cursor-pointer list-none items-center justify-between p-4 transition-colors hover:bg-white dark:hover:bg-navy-800">
+                        <span className="pr-4 text-sm sm:text-base font-semibold text-navy-800 dark:text-navy-100 font-sans">
+                          {item.question}
+                        </span>
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy-800 text-white dark:bg-navy-600">
+                          +
+                        </span>
+                      </summary>
+                      <p className="px-4 pb-4 text-sm leading-relaxed text-charcoal/70 dark:text-navy-200 sm:text-base font-sans">
+                        {item.answer}
+                      </p>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            </AnimatedSection>
+          ) : null}
+
           <AnimatedSection delay={0.08}>
             <section className="mt-10 rounded-2xl border border-warm-200 bg-warm-50 p-6 dark:border-navy-700 dark:bg-navy-800/80">
               <h2 className="text-xl font-bold text-navy-800 dark:text-white font-serif">
@@ -359,9 +399,13 @@ export default function BlogPostContent({
                 <Link href="/book" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
                   Book a free consultation
                 </Link>{" "}
-                or{" "}
+                ,{" "}
                 <Link href="/classes" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
                   explore our classes
+                </Link>
+                , or{" "}
+                <Link href="/pricing" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+                  see our pricing
                 </Link>
                 .
               </p>

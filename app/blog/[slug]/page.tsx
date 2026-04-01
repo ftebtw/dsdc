@@ -4,7 +4,7 @@ import JsonLd from "@/components/JsonLd";
 import BlogPostContent from "@/components/BlogPostContent";
 import { getBlogPostHref } from "@/lib/blogPostPaths";
 import { getBlogPostsSync } from "@/lib/blogPosts";
-import { SITE_NAME, SITE_OG_IMAGE_URL, SITE_URL, absoluteUrl, buildArticleSchema } from "@/lib/structuredData";
+import { SITE_NAME, SITE_OG_IMAGE_URL, SITE_URL, absoluteUrl, buildArticleSchema, buildFaqSchema } from "@/lib/structuredData";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -68,6 +68,7 @@ export default async function BlogPostPage({ params }: Props) {
   return (
     <>
       <JsonLd id={`article-schema-${post.slug}`} data={buildArticleSchema(post, href)} />
+      {post.faqItems?.length ? <JsonLd id={`faq-schema-${post.slug}`} data={buildFaqSchema(post.faqItems)} /> : null}
       <BlogPostContent post={post} allPosts={posts} />
     </>
   );

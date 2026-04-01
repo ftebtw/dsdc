@@ -35,6 +35,26 @@ const faqItems = [
     answer:
       "Many students start in Grades 4 through 6, but we also work with middle school and high school students. We place each child into the right level based on age, confidence, and experience.",
   },
+  {
+    question: "What does my child need to join a Zoom debate class?",
+    answer:
+      "Students only need a laptop or desktop computer, a stable internet connection, a webcam, and a quiet place to speak. We provide the curriculum, structure, and coaching.",
+  },
+  {
+    question: "How much homework do students get each week?",
+    answer:
+      "Homework is usually short and purposeful: speech outlines, research notes, or brief prep for the next practice round. The goal is to reinforce class learning without overwhelming students.",
+  },
+  {
+    question: "Do you only serve families in Vancouver proper?",
+    answer:
+      "No. We work with students across Burnaby, Richmond, Surrey, Coquitlam, North Vancouver, West Vancouver, New Westminster, Langley, Delta, White Rock, and the rest of BC.",
+  },
+  {
+    question: "Can my child join if their school does not have a debate club?",
+    answer:
+      "Yes. Many students join DSDC specifically because their school does not offer a debate club or because the school program is not enough on its own. We support both complete beginners and experienced competitors.",
+  },
 ];
 
 const faqSchema = buildFaqSchema(faqItems);
@@ -146,16 +166,16 @@ const testimonials = [
 ];
 
 export const metadata: Metadata = {
-  title: "DSDC | Debate Classes Vancouver for Kids",
+  title: "Debate Classes Vancouver | DSDC Debate School",
   description:
-    "DSDC offers debate classes Vancouver families can join online, including debate classes for kids, public speaking classes, and expert debate coaching.",
+    "DSDC offers debate classes Vancouver families can join online, with debate coaching, public speaking, and BC tournament prep across the Lower Mainland.",
   alternates: {
     canonical: "https://dsdc.ca/debate-classes-vancouver",
   },
   openGraph: {
-    title: "DSDC | Debate Classes Vancouver for Kids",
+    title: "Debate Classes Vancouver | DSDC Debate School",
     description:
-      "DSDC offers debate classes Vancouver families can join online, including debate classes for kids, public speaking classes, and expert debate coaching.",
+      "DSDC offers debate classes Vancouver families can join online, with debate coaching, public speaking, and BC tournament prep across the Lower Mainland.",
     url: "https://dsdc.ca/debate-classes-vancouver",
     siteName: "DSDC",
     type: "website",
@@ -163,9 +183,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "DSDC | Debate Classes Vancouver for Kids",
+    title: "Debate Classes Vancouver | DSDC Debate School",
     description:
-      "DSDC offers debate classes Vancouver families can join online, including debate classes for kids, public speaking classes, and expert debate coaching.",
+      "DSDC offers debate classes Vancouver families can join online, with debate coaching, public speaking, and BC tournament prep across the Lower Mainland.",
     images: ["/images/photos/wsc-group-2.jpg"],
   },
 };
@@ -188,11 +208,11 @@ export default function DebateClassesVancouverPage() {
         />
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-            Debate & Public Speaking Classes in Vancouver
+            Debate Classes Vancouver Families Can Join Online
           </h1>
           <p className="text-xl text-white/90 font-sans mb-10 max-w-3xl mx-auto">
-            Founded in Vancouver, BC. Serving students across the Lower Mainland and beyond through live online
-            coaching.
+            A Vancouver-founded debate school offering live online debate classes, public speaking, and debate club
+            style training for students across the Lower Mainland.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -258,8 +278,29 @@ export default function DebateClassesVancouverPage() {
               continuing into high-level competitive training.
             </p>
             <p>
-              No commute. No traffic. Just world-class debate coaching from Vancouver's own. New to debate? Explore
-              our{" "}
+              Parents comparing the best fit often review our{" "}
+              <Link
+                href="/pricing"
+                className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors"
+              >
+                pricing
+              </Link>{" "}
+              first, then meet our{" "}
+              <Link
+                href="/team"
+                className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors"
+              >
+                coaching team
+              </Link>{" "}
+              and read our{" "}
+              <Link
+                href="/blog/best-debate-programs-vancouver"
+                className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors"
+              >
+                guide to choosing a debate program
+              </Link>
+              . No commute. No traffic. Just world-class debate coaching from Vancouver's own debate academy. New to
+              debate? Explore our{" "}
               <Link
                 href="/debate-classes-for-beginners"
                 className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors"
@@ -282,25 +323,29 @@ export default function DebateClassesVancouverPage() {
       <section className="py-16 md:py-24 bg-warm-100 dark:bg-navy-900/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-navy-800 dark:text-white mb-12">
-            Debate Formats for BC Competitions
+            Debate Formats Vancouver Students Learn at DSDC
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {[
               {
                 title: "CNDF (Canadian National Debate Format)",
-                text: "The official format for Canadian Nationals. We prepare Vancouver-area students from regionals through to the national stage.",
+                text: "CNDF is the flagship high school format used at Canadian Nationals and many BC tournaments. Students learn how to build structured cases, field Points of Information, and deliver sharp summary speeches that reward logic, organization, and calm rebuttal.",
               },
               {
                 title: "British Parliamentary",
-                text: "The dominant format at BC Provincials and university-level tournaments at UBC and SFU.",
+                text: "British Parliamentary is the dominant format at many senior-level tournaments in BC and at university circuits like UBC and SFU. It teaches students to think quickly, compare nuanced arguments, and speak persuasively in four-team debates where strategic ranking matters as much as raw content.",
               },
               {
                 title: "World Schools",
-                text: "Used for international competition. DSDC alumni have represented Canada at the World Schools Debating Championships.",
+                text: "World Schools combines prepared and impromptu debating, making it excellent for students who want a balance of research, teamwork, and flexible speaking. It is widely used for international competition, and DSDC alumni have gone on to represent Canada at the World Schools Debating Championships.",
               },
               {
-                title: "Public Speaking",
-                text: "Impromptu, persuasive, and interpretive speaking - preparing students for BC Speech Provincials.",
+                title: "Cross-Examination",
+                text: "Cross-Examination debate emphasizes direct engagement, evidence comparison, and quick strategic responses under pressure. It is especially useful for students who want to become more precise researchers and stronger refuters rather than only polished speech-givers.",
+              },
+              {
+                title: "Public Speaking and Speech Events",
+                text: "Many Vancouver families want a program that blends debate with core speaking skills, so we also coach impromptu, persuasive, and interpretive speaking. That helps students who are preparing for BC speech competitions or who want stronger confidence before moving into full debate rounds.",
               },
             ].map((item) => (
               <article
@@ -382,6 +427,66 @@ export default function DebateClassesVancouverPage() {
       <section className="py-16 md:py-24 bg-warm-100 dark:bg-navy-900/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-navy-800 dark:text-white mb-12">
+            What Parents Should Know Before Joining
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            {[
+              {
+                title: "Weekly Schedule",
+                text: "Most classes run once or twice per week in two-hour blocks, which gives students enough time for instruction, speaking practice, and feedback. Families usually find that the weekly rhythm is structured enough to build momentum without overloading the school week.",
+              },
+              {
+                title: "Zoom Setup",
+                text: "Students join from home on Zoom with a camera and microphone. Coaches use live instruction, breakout rooms, shared documents, and speaking drills, so the experience feels interactive rather than passive.",
+              },
+              {
+                title: "Homework and Preparation",
+                text: "Homework is designed to be manageable and relevant: short research tasks, case outlines, speech prep, or reflection on coach feedback. It supports growth between classes without turning debate into an extra full-time subject.",
+              },
+              {
+                title: "Placement and Progress",
+                text: "Students are placed based on age, prior experience, and confidence level rather than a one-size-fits-all model. If a student grows quickly or needs a different level, we help families adjust into the right class pathway.",
+              },
+            ].map((item) => (
+              <article
+                key={item.title}
+                className="rounded-2xl border border-warm-200 dark:border-navy-700 bg-white dark:bg-navy-800 p-6"
+              >
+                <h3 className="text-lg font-bold text-navy-800 dark:text-white mb-3">{item.title}</h3>
+                <p className="text-charcoal/75 dark:text-navy-200 font-sans leading-relaxed">{item.text}</p>
+              </article>
+            ))}
+          </div>
+          <p className="mt-8 text-center text-lg text-charcoal/80 dark:text-navy-200 font-sans leading-relaxed">
+            Families who want to understand the full weekly commitment can compare class options on our{" "}
+            <Link
+              href="/classes"
+              className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors"
+            >
+              classes page
+            </Link>
+            , review{" "}
+            <Link
+              href="/pricing"
+              className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors"
+            >
+              pricing
+            </Link>
+            , or{" "}
+            <Link
+              href="/book"
+              className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors"
+            >
+              book a free consultation
+            </Link>{" "}
+            to talk through placement.
+          </p>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-24 bg-warm-100 dark:bg-navy-900/50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-navy-800 dark:text-white mb-12">
             Where Vancouver Students Compete
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
@@ -441,26 +546,87 @@ export default function DebateClassesVancouverPage() {
               </article>
             ))}
           </div>
+          <p className="mt-8 text-center text-lg text-charcoal/80 dark:text-navy-200 font-sans leading-relaxed">
+            Families often begin by searching terms like &quot;debate classes near me&quot; or &quot;debate club
+            Vancouver,&quot; but what matters most is not the postal code of the classroom. It is the quality of the
+            coaching, the amount of speaking time, and whether the program can move with your child from beginner
+            practice to competitive debate.
+          </p>
         </div>
       </section>
 
       <section className="py-16 md:py-20 bg-warm-100 dark:bg-navy-900/50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-center text-navy-800 dark:text-white mb-8">
-            Serving the Entire Lower Mainland
+            How DSDC Compares to In-Person Debate Programs
           </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[
+              {
+                title: "Convenience Without Giving Up Quality",
+                text: "In-person programs can be valuable, but many Vancouver families lose hours every month to traffic, parking, and long drives across the Lower Mainland. DSDC keeps the live coaching and small-group interaction while removing the commute.",
+              },
+              {
+                title: "Stronger Price Transparency",
+                text: "Some in-person academies ask families to book calls before they can even see pricing. DSDC publishes clear group pricing online so parents can compare options honestly before making a decision.",
+              },
+              {
+                title: "Access to More Specialized Coaches",
+                text: "Because classes are online, students are not limited to whichever instructor happens to live nearby. DSDC can match Vancouver-area students with coaches from top university and national debate backgrounds across our network.",
+              },
+              {
+                title: "A Better Fit for Busy Families",
+                text: "Families balancing school, music, sports, and sibling schedules often find online debate far easier to sustain over an entire term. That consistency matters because steady attendance is one of the biggest drivers of improvement.",
+              },
+            ].map((item) => (
+              <article
+                key={item.title}
+                className="rounded-2xl border border-warm-200 dark:border-navy-700 bg-white dark:bg-navy-800 p-6"
+              >
+                <h3 className="text-lg font-bold text-navy-800 dark:text-white mb-3">{item.title}</h3>
+                <p className="text-charcoal/75 dark:text-navy-200 font-sans leading-relaxed">{item.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-20 bg-white dark:bg-navy-900/30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-navy-800 dark:text-white mb-8">
+            Neighborhoods We Serve Across Vancouver and the Lower Mainland
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {[
+              "Vancouver West Side and Downtown",
+              "East Vancouver and South Vancouver",
+              "Burnaby and New Westminster",
+              "Richmond",
+              "Surrey and White Rock",
+              "Coquitlam, Port Coquitlam, and Port Moody",
+              "North Vancouver and West Vancouver",
+              "Langley, Delta, Maple Ridge, and the Fraser Valley",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-xl border border-warm-200 dark:border-navy-700 bg-warm-50 dark:bg-navy-800 px-4 py-4 text-sm sm:text-base text-navy-800 dark:text-navy-100 font-medium"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
           <p className="text-lg text-charcoal/80 dark:text-navy-200 font-sans leading-relaxed text-center">
-            DSDC serves students throughout the Greater Vancouver area and beyond. Whether you're in Vancouver,
-            Burnaby, Surrey, Richmond, Coquitlam, Port Coquitlam, New Westminster, North Vancouver, West Vancouver,
-            Langley, Delta, White Rock, Abbotsford, Maple Ridge, or anywhere else in British Columbia - our online
-            classes mean geography is never a barrier. We also serve students across{" "}
+            DSDC serves students throughout the Greater Vancouver area and beyond. Whether you live in Burnaby,
+            Richmond, Surrey, Coquitlam, North Vancouver, West Vancouver, New Westminster, Langley, Delta, White
+            Rock, Abbotsford, Maple Ridge, or anywhere else in British Columbia, our online classes make expert debate
+            coaching accessible from home. We also work with families across{" "}
             <Link
               href="/debate-classes-canada"
               className="underline underline-offset-4 hover:text-navy-800 dark:hover:text-gold-300 transition-colors"
             >
               Canada
-            </Link>{" "}
-            and internationally.
+            </Link>
+            .
           </p>
         </div>
       </section>
@@ -518,6 +684,32 @@ export default function DebateClassesVancouverPage() {
       <section className="py-16 md:py-20 bg-navy-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-5">Ready to start your debate journey in Vancouver?</h2>
+          <p className="text-lg text-white/75 font-sans leading-relaxed max-w-3xl mx-auto mb-8">
+            Explore our{" "}
+            <Link href="/classes" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+              class lineup
+            </Link>
+            , review{" "}
+            <Link href="/pricing" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+              pricing
+            </Link>
+            , meet the{" "}
+            <Link href="/team" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+              DSDC team
+            </Link>
+            , and then{" "}
+            <Link href="/book" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+              book a free consultation
+            </Link>
+            . If you are still comparing options, our{" "}
+            <Link
+              href="/blog/best-debate-programs-vancouver"
+              className="underline underline-offset-4 hover:text-gold-300 transition-colors"
+            >
+              Vancouver program guide
+            </Link>{" "}
+            is a helpful next read.
+          </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/book"

@@ -24,6 +24,11 @@ export interface ArticleAuthorProfile {
   image?: string;
 }
 
+export interface BlogFaqItem {
+  question: string;
+  answer: string;
+}
+
 export interface BlogPost {
   slug: string;
   title: string;
@@ -38,6 +43,7 @@ export interface BlogPost {
   sections: BlogSection[];
   authorProfile?: ArticleAuthorProfile;
   citationSources?: ArticleCitation[];
+  faqItems?: BlogFaqItem[];
   schemaType?: "Article" | "BlogPosting";
 }
 

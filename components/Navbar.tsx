@@ -19,6 +19,7 @@ const NavbarMobilePanel = dynamic(() => import("./NavbarMobilePanel"), {
 
 const navLinks = [
   { href: "/", key: "nav.home" },
+  { href: "/about", key: "nav.about" },
   { href: "/pricing", key: "nav.pricing" },
   { href: "/team", key: "nav.team" },
   { href: "/classes", key: "nav.classes" },

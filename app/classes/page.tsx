@@ -35,6 +35,16 @@ const classesFaqItems = [
     answer:
       "The best first step is to compare the class levels or book a free consultation. We recommend the right class based on your child's grade, confidence level, and academic goals.",
   },
+  {
+    question: "How much homework should families expect each week?",
+    answer:
+      "Homework is usually short and focused, such as a case outline, research notes, or a speaking exercise that reinforces the week's lesson. It is designed to support progress without overwhelming students.",
+  },
+  {
+    question: "How do you measure progress in an online debate class?",
+    answer:
+      "We track progress through live class performance, written feedback, coach observation, and longer-term growth in confidence, structure, and argument quality. Families usually notice meaningful improvement over the course of a term.",
+  },
 ];
 
 const classesCourseSchema = {
