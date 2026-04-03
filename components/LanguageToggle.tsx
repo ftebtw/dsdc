@@ -1,21 +1,38 @@
 "use client";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Globe } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { addZhPrefix, stripZhPrefix } from "@/lib/localeRouting";
 
 interface LanguageToggleProps {
   variant?: "light" | "dark";
 }
 
 export default function LanguageToggle({ variant = "dark" }: LanguageToggleProps) {
-  const { locale, toggleLocale } = useI18n();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { locale, setLocale } = useI18n();
 
   const isLight = variant === "light";
   const isEn = locale === "en";
 
+  function handleToggle() {
+    const nextLocale = locale === "en" ? "zh" : "en";
+    const currentPath = pathname || "/";
+    const nextPath =
+      nextLocale === "zh" ? addZhPrefix(stripZhPrefix(currentPath)) : stripZhPrefix(currentPath);
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    params.delete("lang");
+
+    setLocale(nextLocale);
+    router.push(`${nextPath}${params.toString() ? `?${params.toString()}` : ""}`);
+  }
+
   return (
     <button
-      onClick={toggleLocale}
+      onClick={handleToggle}
       className={`relative inline-flex items-center gap-2 pl-3.5 pr-1 py-2 min-h-[44px] text-sm font-medium rounded-full border
                   transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gold-400
                   ${

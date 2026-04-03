@@ -17,16 +17,18 @@ const FloatingLanguagePill = dynamic(() => import("@/components/FloatingLanguage
 export default function ClientProviders({
   children,
   initialCmsOverrides,
+  initialLocale,
 }: {
   children: ReactNode;
   initialCmsOverrides?: CmsOverrides;
+  initialLocale: "en" | "zh";
 }) {
   const pathname = usePathname();
   const hideShell = pathname?.startsWith("/studio") || pathname?.startsWith("/portal");
 
   return (
     <ThemeProvider>
-      <I18nProvider initialCmsOverrides={initialCmsOverrides}>
+      <I18nProvider initialCmsOverrides={initialCmsOverrides} initialLocale={initialLocale}>
         <HtmlLangUpdater />
         {!hideShell && <Navbar />}
         <main id="main-content">{children}</main>

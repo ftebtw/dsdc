@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 
 const faqItems = [
@@ -165,30 +166,16 @@ const testimonials = [
   },
 ];
 
-export const metadata: Metadata = {
-  title: "Debate Classes Vancouver | DSDC Debate School",
-  description:
-    "DSDC offers debate classes Vancouver families can join online, with debate coaching, public speaking, and BC tournament prep across the Lower Mainland.",
-  alternates: {
-    canonical: "https://dsdc.ca/debate-classes-vancouver",
-  },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedPageMetadata({
+    path: "/debate-classes-vancouver",
     title: "Debate Classes Vancouver | DSDC Debate School",
     description:
       "DSDC offers debate classes Vancouver families can join online, with debate coaching, public speaking, and BC tournament prep across the Lower Mainland.",
-    url: "https://dsdc.ca/debate-classes-vancouver",
-    siteName: "DSDC",
-    type: "website",
     images: [{ url: "/images/photos/wsc-group-2.jpg" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Debate Classes Vancouver | DSDC Debate School",
-    description:
-      "DSDC offers debate classes Vancouver families can join online, with debate coaching, public speaking, and BC tournament prep across the Lower Mainland.",
-    images: ["/images/photos/wsc-group-2.jpg"],
-  },
-};
+    hasChineseVersion: false,
+  });
+}
 
 export default function DebateClassesVancouverPage() {
   return (

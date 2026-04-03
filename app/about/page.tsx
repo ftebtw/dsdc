@@ -1,22 +1,15 @@
 import type { Metadata } from "next";
 import AboutPageContent from "@/components/AboutPageContent";
+import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 
-export const metadata: Metadata = {
-  title: "About DSDC | Our Mission & Story",
-  description:
-    "Learn about DSDC’s mission, story, coaching philosophy, and debate programs for students in Canada and around the world.",
-  alternates: {
-    canonical: "https://dsdc.ca/about",
-  },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedPageMetadata({
+    path: "/about",
     title: "About DSDC | Our Mission & Story",
     description:
       "Learn about DSDC’s mission, story, coaching philosophy, and debate programs for students in Canada and around the world.",
-    url: "https://dsdc.ca/about",
-    siteName: "DSDC",
-    type: "website",
-  },
-};
+  });
+}
 
 const aboutOrgSchema = {
   "@context": "https://schema.org",

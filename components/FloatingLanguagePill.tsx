@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { Globe } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
+import { addZhPrefix, stripZhPrefix } from "@/lib/localeRouting";
 
 export default function FloatingLanguagePill() {
-  const { locale, toggleLocale } = useI18n();
+  const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { locale, setLocale } = useI18n();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
@@ -36,7 +39,15 @@ export default function FloatingLanguagePill() {
     // Safety net: do not use public locale toggle on portal routes.
     if (window.location.pathname.startsWith("/portal")) return;
 
-    toggleLocale();
+    const nextLocale = locale === "en" ? "zh" : "en";
+    const currentPath = pathname || "/";
+    const nextPath =
+      nextLocale === "zh" ? addZhPrefix(stripZhPrefix(currentPath)) : stripZhPrefix(currentPath);
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    params.delete("lang");
+
+    setLocale(nextLocale);
+    router.push(`${nextPath}${params.toString() ? `?${params.toString()}` : ""}`);
     localStorage.setItem("dsdc-lang-pill-seen", "1");
     setTimeout(() => setDismissed(true), 2000);
   };

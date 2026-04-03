@@ -4,6 +4,7 @@ import Script from "next/script";
 
 import { getCmsMessageOverrides } from "@/lib/sanity/content";
 import JsonLd from "@/components/JsonLd";
+import { addZhPrefix, hasChineseVersion } from "@/lib/localeRouting";
 import { buildBreadcrumbSchema, localBusinessSchema, websiteSchema } from "@/lib/structuredData";
 import { getBlogPostsSync } from "@/lib/blogPosts";
 import { DM_Sans, Inter, Playfair_Display } from "next/font/google";
@@ -73,13 +74,6 @@ export const metadata: Metadata = {
     description:
       "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaching and personalized feedback.",
     images: ["https://dsdc.ca/images/photos/wsc-group-2.jpg"],
-  },
-  alternates: {
-    languages: {
-      en: "https://dsdc.ca",
-      zh: "https://dsdc.ca?lang=zh",
-      "x-default": "https://dsdc.ca",
-    },
   },
   robots: {
     index: true,
@@ -163,6 +157,7 @@ export default async function RootLayout({
 }) {
   const { isEnabled } = await draftMode();
   const requestHeaders = await headers();
+  const locale = requestHeaders.get("x-dsdc-locale") === "zh" ? "zh" : "en";
   const pathname = requestHeaders.get("x-dsdc-pathname") ?? "/";
   const cmsResult = await getCmsMessageOverrides({ draft: isEnabled });
   const initialCmsOverrides = cmsResult.source === "live" ? cmsResult.overrides : undefined;
@@ -172,14 +167,15 @@ export default async function RootLayout({
     !pathname.startsWith("/payment") &&
     !pathname.startsWith("/_");
   const englishHref = `https://dsdc.ca${pathname === "/" ? "" : pathname}`;
-  const chineseHref = `${englishHref}?lang=zh`;
+  const chineseHref = `https://dsdc.ca${addZhPrefix(pathname)}`;
   const breadcrumbSchema = isSeoPublicPath ? buildBreadcrumbSchema(getBreadcrumbItems(pathname)) : null;
+  const showChineseAlternate = isSeoPublicPath && hasChineseVersion(pathname);
 
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable} ${dmSans.variable}`}>
+    <html lang={locale} className={`${inter.variable} ${playfair.variable} ${dmSans.variable}`}>
       <head>
         {isSeoPublicPath ? <link rel="alternate" hrefLang="en" href={englishHref} /> : null}
-        {isSeoPublicPath ? <link rel="alternate" hrefLang="zh" href={chineseHref} /> : null}
+        {showChineseAlternate ? <link rel="alternate" hrefLang="zh" href={chineseHref} /> : null}
         {isSeoPublicPath ? <link rel="alternate" hrefLang="x-default" href={englishHref} /> : null}
         <link rel="preconnect" href="https://9rjkctzpxtq3g6gf.public.blob.vercel-storage.com" crossOrigin="" />
         <JsonLd id="site-local-business-schema" data={localBusinessSchema} />
@@ -231,7 +227,7 @@ fbq('track', 'PageView');`}
             __html: 'try{var t=localStorage.getItem("dsdc-theme");var e=document.documentElement;if(t==="dark")e.classList.add("dark");else if(t==="light")e.classList.remove("dark");}catch(n){}',
           }}
         />
-        <ClientProviders initialCmsOverrides={initialCmsOverrides}>
+        <ClientProviders initialCmsOverrides={initialCmsOverrides} initialLocale={locale}>
           {children}
         </ClientProviders>
         <VisualEditingWrapper enabled={isEnabled} />

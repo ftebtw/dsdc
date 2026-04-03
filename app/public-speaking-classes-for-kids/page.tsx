@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 
 const faqItems = [
@@ -57,30 +58,16 @@ const courseSchema = {
   url: "https://dsdc.ca/public-speaking-classes-for-kids",
 };
 
-export const metadata: Metadata = {
-  title: "Public Speaking Classes for Kids | DSDC",
-  description:
-    "DSDC offers public speaking classes for kids that build confidence, leadership, and academic communication skills through live online coaching.",
-  alternates: {
-    canonical: "https://dsdc.ca/public-speaking-classes-for-kids",
-  },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedPageMetadata({
+    path: "/public-speaking-classes-for-kids",
     title: "Public Speaking Classes for Kids | DSDC",
     description:
       "DSDC offers public speaking classes for kids that build confidence, leadership, and academic communication skills through live online coaching.",
-    url: "https://dsdc.ca/public-speaking-classes-for-kids",
-    siteName: "DSDC",
-    type: "website",
     images: [{ url: "/images/photos/dsdc-class-photo.jpg" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Public Speaking Classes for Kids | DSDC",
-    description:
-      "DSDC offers public speaking classes for kids that build confidence, leadership, and academic communication skills through live online coaching.",
-    images: ["/images/photos/dsdc-class-photo.jpg"],
-  },
-};
+    hasChineseVersion: false,
+  });
+}
 
 export default function PublicSpeakingClassesForKidsPage() {
   return (

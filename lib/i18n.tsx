@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import { useEffect, useMemo } from "react";
 import en from "@/messages/en.json";
+import zh from "@/messages/zh.json";
 
 type Locale = "en" | "zh";
 type Messages = typeof en;
@@ -16,6 +17,7 @@ interface I18nContextType {
   contentSource: "static" | "live" | "fallback";
 }
 const defaultMessages = en as unknown as Record<string, unknown>;
+const zhDefaultMessages = zh as unknown as Record<string, unknown>;
 
 const I18nContext = createContext<I18nContextType | null>(null);
 
@@ -58,32 +60,14 @@ type CmsOverridesPayload = { en: Record<string, unknown>; zh: Record<string, unk
 export function I18nProvider({
   children,
   initialCmsOverrides,
+  initialLocale,
 }: {
   children: ReactNode;
   initialCmsOverrides?: CmsOverridesPayload;
+  initialLocale: Locale;
 }) {
-  const [locale, setLocale] = useState<Locale>(() => {
-    if (typeof window === "undefined") return "en";
-
-    // 1) URL param takes highest priority (?lang=zh)
-    const urlParams = new URLSearchParams(window.location.search);
-    const langParam = urlParams.get("lang");
-    if (langParam === "zh") return "zh";
-    if (langParam === "en") return "en";
-
-    // 2) Previously saved choice
-    const saved = localStorage.getItem("dsdc-locale");
-    if (saved === "zh" || saved === "en") return saved as Locale;
-
-    // 3) Auto-detect browser language
-    const nav = window.navigator as Navigator & { userLanguage?: string };
-    const browserLang = nav.language || nav.userLanguage || "";
-    if (browserLang.startsWith("zh")) return "zh";
-
-    return "en";
-  });
+  const [locale, setLocale] = useState<Locale>(initialLocale);
   const [cmsOverrides, setCmsOverrides] = useState<CmsOverridesPayload>(initialCmsOverrides ?? null);
-  const [zhMessages, setZhMessages] = useState<Record<string, unknown> | null>(null);
   const [contentSource, setContentSource] = useState<"static" | "live" | "fallback">(
     initialCmsOverrides ? "live" : "static"
   );
@@ -95,27 +79,13 @@ export function I18nProvider({
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("dsdc-locale", locale);
+      document.cookie = `dsdc-locale=${locale}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
     }
   }, [locale]);
 
   useEffect(() => {
-    if (locale !== "zh" || zhMessages) return;
-
-    let cancelled = false;
-
-    async function loadZhMessages() {
-      const module = await import("@/messages/zh.json");
-      if (!cancelled) {
-        setZhMessages(module.default as Record<string, unknown>);
-      }
-    }
-
-    void loadZhMessages();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [locale, zhMessages]);
+    setLocale(initialLocale);
+  }, [initialLocale]);
 
   useEffect(() => {
     if (initialCmsOverrides) return;
@@ -146,11 +116,11 @@ export function I18nProvider({
   }, [initialCmsOverrides]);
 
   const currentMessages = useMemo(() => {
-    const base = locale === "zh" ? zhMessages ?? defaultMessages : defaultMessages;
+    const base = locale === "zh" ? zhDefaultMessages : defaultMessages;
     if (!cmsOverrides) return base;
     const override = cmsOverrides[locale] || {};
     return deepMerge(base, override);
-  }, [locale, cmsOverrides, zhMessages]);
+  }, [locale, cmsOverrides]);
 
   const t = useCallback(
     (key: string) => getNestedValue(currentMessages, key),

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 
 const faqItems = [
   {
@@ -63,27 +64,20 @@ const faqSchema = {
   })),
 };
 
-export const metadata: Metadata = {
-  title: "Online Debate Classes for Kids & Teens | Grades 4–12 | DSDC",
-  description:
-    "Join DSDC's online debate classes for students in Grades 4–12. Live Zoom sessions with award-winning coaches, personalized feedback every class, and proven results at national and international tournaments. Book a free consultation.",
-  alternates: {
-    canonical: "https://dsdc.ca/online-debate-classes",
-  },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedPageMetadata({
+    path: "/online-debate-classes",
     title: "Online Debate Classes for Kids & Teens | Grades 4–12 | DSDC",
     description:
       "Join DSDC's online debate classes for students in Grades 4–12. Live Zoom sessions with award-winning coaches, personalized feedback every class, and proven results at national and international tournaments. Book a free consultation.",
-    url: "https://dsdc.ca/online-debate-classes",
-    siteName: "DSDC",
-    type: "website",
     images: [
       {
         url: "/images/photos/wsc-group-2.jpg",
       },
     ],
-  },
-};
+    hasChineseVersion: false,
+  });
+}
 
 export default function OnlineDebateClassesPage() {
   return (

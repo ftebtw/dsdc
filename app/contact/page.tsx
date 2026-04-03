@@ -1,30 +1,17 @@
 import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
 import ContactPageContent from "@/components/ContactPageContent";
+import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 import { buildBreadcrumbSchema } from "@/lib/structuredData";
 
-export const metadata: Metadata = {
-  title: "Contact DSDC | Debate & Public Speaking",
-  description:
-    "DSDC can help with debate classes, public speaking programs, scheduling, pricing, and enrollment questions. Contact our team online today.",
-  alternates: {
-    canonical: "https://dsdc.ca/contact",
-  },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedPageMetadata({
+    path: "/contact",
     title: "Contact DSDC | Debate & Public Speaking",
     description:
       "DSDC can help with debate classes, public speaking programs, scheduling, pricing, and enrollment questions. Contact our team online today.",
-    url: "https://dsdc.ca/contact",
-    siteName: "DSDC",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Contact DSDC | Debate & Public Speaking",
-    description:
-      "DSDC can help with debate classes, public speaking programs, scheduling, pricing, and enrollment questions. Contact our team online today.",
-  },
-};
+  });
+}
 
 const contactSchema = {
   "@context": "https://schema.org",

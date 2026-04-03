@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 
 const faqItems = [
   {
@@ -42,27 +43,20 @@ const faqSchema = {
   })),
 };
 
-export const metadata: Metadata = {
-  title: "Debate Classes for Beginners | No Experience Needed | DSDC",
-  description:
-    "DSDC's beginner debate classes are perfect for kids with no experience - even shy and introverted children thrive. Online classes for Grades 4-12 with personalized coaching. Try a free consultation.",
-  alternates: {
-    canonical: "https://dsdc.ca/debate-classes-for-beginners",
-  },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedPageMetadata({
+    path: "/debate-classes-for-beginners",
     title: "Debate Classes for Beginners | No Experience Needed | DSDC",
     description:
       "DSDC's beginner debate classes are perfect for kids with no experience - even shy and introverted children thrive. Online classes for Grades 4-12 with personalized coaching. Try a free consultation.",
-    url: "https://dsdc.ca/debate-classes-for-beginners",
-    siteName: "DSDC",
-    type: "website",
     images: [
       {
         url: "/images/photos/dsdc-class-photo.jpg",
       },
     ],
-  },
-};
+    hasChineseVersion: false,
+  });
+}
 
 export default function DebateClassesForBeginnersPage() {
   return (

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 
 const faqItems = [
   {
@@ -53,27 +54,20 @@ const courseSchema = {
   url: "https://dsdc.ca/world-scholars-cup-coaching",
 };
 
-export const metadata: Metadata = {
-  title: "World Scholar's Cup Coaching | 100% Qualification Rate Since 2020 | DSDC",
-  description:
-    "Prepare for the World Scholar's Cup with DSDC's expert coaching. 100% qualification rate from regionals to the Tournament of Champions at Yale since 2020. Online classes for Grades 4-12.",
-  alternates: {
-    canonical: "https://dsdc.ca/world-scholars-cup-coaching",
-  },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedPageMetadata({
+    path: "/world-scholars-cup-coaching",
     title: "World Scholar's Cup Coaching | 100% Qualification Rate Since 2020 | DSDC",
     description:
       "Prepare for the World Scholar's Cup with DSDC's expert coaching. 100% qualification rate from regionals to the Tournament of Champions at Yale since 2020. Online classes for Grades 4-12.",
-    url: "https://dsdc.ca/world-scholars-cup-coaching",
-    siteName: "DSDC",
-    type: "website",
     images: [
       {
         url: "/images/photos/wsc-students-1.jpg",
       },
     ],
-  },
-};
+    hasChineseVersion: false,
+  });
+}
 
 export default function WorldScholarsCupCoachingPage() {
   return (

@@ -9,6 +9,7 @@ import MissionSection from "@/components/MissionSection";
 import ClassesOverview from "@/components/ClassesOverview";
 import AuthHashRedirect from "@/components/AuthHashRedirect";
 import FinalCTA from "@/components/FinalCTA";
+import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 import { homePageDataSanity } from "@/lib/sanity/presentation";
 import { buildFaqSchema, heroVideoSchema } from "@/lib/structuredData";
 import { siteFaqItems } from "@/lib/siteFaq";
@@ -20,37 +21,33 @@ const FAQ = dynamic(() => import("@/components/FAQ"), { ssr: true });
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: "DSDC | Debate & Public Speaking Classes for Kids",
-  description:
-    "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaches, personalized feedback, and proven tournament results.",
-  alternates: {
-    canonical: "https://dsdc.ca",
-  },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedPageMetadata({
+    path: "/",
     title: "DSDC | Debate & Public Speaking Classes for Kids",
     description:
       "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaches, personalized feedback, and proven tournament results.",
-    url: "https://dsdc.ca",
-    siteName: "DSDC",
-    type: "website",
+    keywords: [
+      "debate classes Vancouver",
+      "public speaking for kids BC",
+      "online debate coaching Canada",
+      "debate school Surrey",
+      "World Scholar's Cup preparation",
+      "debate classes for kids",
+      "public speaking classes online",
+      "DSDC",
+      "youth debate training",
+    ],
     images: [
       {
-        url: "https://dsdc.ca/images/photos/wsc-group-2.jpg",
+        url: "/images/photos/wsc-group-2.jpg",
         width: 1200,
         height: 630,
         alt: "DSDC Online Debate Classes",
       },
     ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "DSDC | Debate & Public Speaking Classes for Kids",
-    description:
-      "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaches, personalized feedback, and proven tournament results.",
-    images: ["https://dsdc.ca/images/photos/wsc-group-2.jpg"],
-  },
-};
+  });
+}
 
 const faqSchema = buildFaqSchema(siteFaqItems);
 

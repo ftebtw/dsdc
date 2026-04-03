@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 
 const faqItems = [
@@ -74,30 +75,16 @@ const breadcrumbSchema = buildBreadcrumbSchema([
   { name: "Debate Classes Toronto", path: "/debate-classes-toronto" },
 ]);
 
-export const metadata: Metadata = {
-  title: "Debate Classes Toronto & GTA | DSDC",
-  description:
-    "DSDC offers online debate classes Toronto and GTA families can join from home, including students in Brampton, Mississauga, Scarborough, and North York.",
-  alternates: {
-    canonical: "https://dsdc.ca/debate-classes-toronto",
-  },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedPageMetadata({
+    path: "/debate-classes-toronto",
     title: "Debate Classes Toronto & GTA | DSDC",
     description:
       "DSDC offers online debate classes Toronto and GTA families can join from home, including students in Brampton, Mississauga, Scarborough, and North York.",
-    url: "https://dsdc.ca/debate-classes-toronto",
-    siteName: "DSDC",
-    type: "website",
     images: [{ url: "/images/photos/wsc-group-2.jpg" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Debate Classes Toronto & GTA | DSDC",
-    description:
-      "DSDC offers online debate classes Toronto and GTA families can join from home, including students in Brampton, Mississauga, Scarborough, and North York.",
-    images: ["/images/photos/wsc-group-2.jpg"],
-  },
-};
+    hasChineseVersion: false,
+  });
+}
 
 export default function DebateClassesTorontoPage() {
   return (

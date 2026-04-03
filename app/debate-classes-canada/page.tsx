@@ -1,24 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 
-export const metadata: Metadata = {
-  title: "Debate Classes in Canada | Online Programs for Grades 4-12 | DSDC",
-  description:
-    "DSDC offers online debate and public speaking classes for students across Canada in Grades 4-12. Learn with award-winning coaches from anywhere.",
-  alternates: {
-    canonical: "https://dsdc.ca/debate-classes-canada",
-  },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return buildLocalizedPageMetadata({
+    path: "/debate-classes-canada",
     title: "Debate Classes in Canada | Online Programs for Grades 4-12 | DSDC",
     description:
       "DSDC offers online debate and public speaking classes for students across Canada in Grades 4-12. Learn with award-winning coaches from anywhere.",
-    url: "https://dsdc.ca/debate-classes-canada",
-    siteName: "DSDC",
-    type: "website",
     images: [{ url: "/images/photos/wsc-students-2.jpg" }],
-  },
-};
+    hasChineseVersion: false,
+  });
+}
 
 export default function DebateClassesCanadaPage() {
   return (
