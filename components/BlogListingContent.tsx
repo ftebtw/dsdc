@@ -17,9 +17,16 @@ const categoryColors: Record<string, string> = {
   "Public Speaking": "bg-pink-50 text-pink-700",
 };
 
+const PINNED_BLOG_SLUG = "guide-to-debate-in-canada";
+
 export default function BlogListingContent({ initialPosts }: { initialPosts: BlogPost[] }) {
   const { t } = useI18n();
-  const [featured, ...rest] = initialPosts;
+  const sortedPosts = [...initialPosts].sort((a, b) => {
+    if (a.slug === PINNED_BLOG_SLUG) return -1;
+    if (b.slug === PINNED_BLOG_SLUG) return 1;
+    return 0;
+  });
+  const [featured, ...rest] = sortedPosts;
 
   if (initialPosts.length === 0) {
     return (
