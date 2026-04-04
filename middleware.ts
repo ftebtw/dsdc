@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { addZhPrefix, hasChineseVersion, normalizePathname, stripZhPrefix } from "@/lib/localeRouting";
 
 const LOCALE_COOKIE = "dsdc-locale";
+const CANONICAL_HOST = "dsdc.ca";
+const LEGACY_HOSTNAMES = new Set(["www.dsdc.ca", "k.dsdc.ca", "ki.dsdc.ca"]);
 
 const LEGACY_REDIRECTS = new Map<string, string>([
   ["/contact-form", "/contact"],
@@ -20,8 +22,14 @@ function isLocalHostname(hostname: string) {
 
 export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
-  const { hostname } = url;
+  const hostname = url.hostname.toLowerCase();
   const forwardedProto = request.headers.get("x-forwarded-proto");
+
+  if (LEGACY_HOSTNAMES.has(hostname)) {
+    url.protocol = "https:";
+    url.hostname = CANONICAL_HOST;
+    return NextResponse.redirect(url, 301);
+  }
 
   if (forwardedProto === "http" && !isLocalHostname(hostname)) {
     url.protocol = "https:";

@@ -7,6 +7,7 @@ import FeatureCards from "@/components/FeatureCards";
 import HowItWorks from "@/components/HowItWorks";
 import MissionSection from "@/components/MissionSection";
 import ClassesOverview from "@/components/ClassesOverview";
+import HomepageExploreLinks from "@/components/HomepageExploreLinks";
 import AuthHashRedirect from "@/components/AuthHashRedirect";
 import FinalCTA from "@/components/FinalCTA";
 import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
@@ -73,6 +74,7 @@ export default async function HomePage() {
       <HowItWorks />
       <MissionSection />
       <ClassesOverview />
+      <HomepageExploreLinks />
       <StatsCounter />
       <CompetitionLogos />
       <TestimonialCarousel />
