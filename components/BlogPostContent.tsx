@@ -6,6 +6,7 @@ import { Calendar, Clock, ArrowLeft, User, ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
 import { getBlogPostHref } from "@/lib/blogPostPaths";
+import { addZhPrefix, hasChineseVersion } from "@/lib/localeRouting";
 import AnimatedSection from "./AnimatedSection";
 import type { BlogPost } from "@/lib/blogPosts";
 
@@ -95,6 +96,7 @@ export default function BlogPostContent({
   allPosts: BlogPost[];
 }) {
   const { t, locale } = useI18n();
+  const localizeHref = (href: string) => (locale === "zh" && hasChineseVersion(href) ? addZhPrefix(href) : href);
   const related = allPosts
     .filter((p) => p.slug !== post.slug)
     .sort((a, b) => (a.category === post.category ? -1 : 1))
@@ -103,27 +105,32 @@ export default function BlogPostContent({
     locale === "zh"
       ? [
           {
-            href: "/classes",
+            href: localizeHref("/classes"),
             title: "浏览全部课程",
             description: "比较 DSDC 的辩论、公共演讲和竞赛课程层级。",
           },
           {
-            href: "/debate-classes-vancouver",
+            href: localizeHref("/debate-classes-vancouver"),
             title: "查看温哥华辩论课程",
             description: "了解我们面向温哥华和大温地区学生的辩论课程。",
           },
           {
-            href: "/online-debate-classes",
+            href: localizeHref("/debate-classes-toronto"),
+            title: "查看多伦多辩论课程",
+            description: "看看 GTA 家庭如何通过 DSDC 参加在线辩论与公共演讲课程。",
+          },
+          {
+            href: localizeHref("/online-debate-classes"),
             title: "了解在线辩论课程",
             description: "查看在线课程如何运作，以及孩子将如何逐步成长。",
           },
           {
-            href: "/register",
+            href: localizeHref("/register"),
             title: "开始报名",
             description: "准备好后可以直接进入报名流程。",
           },
           {
-            href: "/pricing",
+            href: localizeHref("/pricing"),
             title: "查看课程价格",
             description: "了解公开透明的课程定价与不同项目的费用范围。",
           },
@@ -138,6 +145,11 @@ export default function BlogPostContent({
             href: "/debate-classes-vancouver",
             title: "Explore Vancouver debate classes",
             description: "Visit our Vancouver landing page for debate classes, public speaking classes, and local FAQs.",
+          },
+          {
+            href: "/debate-classes-toronto",
+            title: "Explore Toronto debate classes",
+            description: "See how Toronto and GTA families use DSDC for online debate and public speaking coaching.",
           },
           {
             href: "/online-debate-classes",
@@ -389,22 +401,22 @@ export default function BlogPostContent({
                 {t("blog.readySubtitle")}
               </p>
               <Link
-                href="/book"
+                href={localizeHref("/book")}
                 className="inline-block px-8 py-3.5 bg-gold-300 text-navy-900 font-bold rounded-lg hover:bg-gold-200 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
               >
                 {t("hero.cta")}
               </Link>
               <p className="mt-4 text-sm text-white/80 font-sans">
                 Ready to start?{" "}
-                <Link href="/book" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+                <Link href={localizeHref("/book")} className="underline underline-offset-4 hover:text-gold-300 transition-colors">
                   Book a free consultation
                 </Link>{" "}
                 ,{" "}
-                <Link href="/classes" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+                <Link href={localizeHref("/classes")} className="underline underline-offset-4 hover:text-gold-300 transition-colors">
                   explore our classes
                 </Link>
                 , or{" "}
-                <Link href="/pricing" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+                <Link href={localizeHref("/pricing")} className="underline underline-offset-4 hover:text-gold-300 transition-colors">
                   see our pricing
                 </Link>
                 .

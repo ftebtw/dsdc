@@ -159,6 +159,36 @@ export function buildPersonSchema(author: ArticleAuthorProfile) {
   };
 }
 
+function slugifyFragment(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function buildCoachPersonSchema(coach: {
+  name: string;
+  title: string;
+  bio: string;
+  image?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: coach.name,
+    url: `${SITE_URL}/team#${slugifyFragment(coach.name)}`,
+    ...(coach.image ? { image: absoluteUrl(coach.image) } : {}),
+    jobTitle: coach.title,
+    description: coach.bio,
+    affiliation: {
+      "@id": `${SITE_URL}/#organization`,
+    },
+    worksFor: {
+      "@id": `${SITE_URL}/#organization`,
+    },
+  };
+}
+
 function buildCitationSchema(citation: ArticleCitation) {
   return {
     "@type": "CreativeWork",

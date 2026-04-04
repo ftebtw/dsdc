@@ -45,6 +45,28 @@ export default function DebateClassesCanadaPage() {
             .
           </p>
           <p className="mt-2 text-sm sm:text-base text-white/85 font-sans">
+            Families in Ontario can compare our{" "}
+            <Link href="/debate-classes-toronto" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+              Toronto & GTA page
+            </Link>{" "}
+            and our{" "}
+            <Link href="/debate-classes-ontario" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+              Ontario page
+            </Link>
+            .
+          </p>
+          <p className="mt-2 text-sm sm:text-base text-white/85 font-sans">
+            Families in Alberta can explore our{" "}
+            <Link href="/debate-classes-calgary" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+              Calgary page
+            </Link>{" "}
+            and our{" "}
+            <Link href="/debate-classes-alberta" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+              Alberta page
+            </Link>
+            .
+          </p>
+          <p className="mt-2 text-sm sm:text-base text-white/85 font-sans">
             Want to learn more about how competitive debate works across the country? Read our{" "}
             <Link
               href="/guide-to-debate-in-canada"

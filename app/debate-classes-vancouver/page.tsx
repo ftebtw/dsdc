@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import VancouverLandingPageZh from "@/components/VancouverLandingPageZh";
 import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
+import { getRequestLocale } from "@/lib/requestLocale";
 import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 
 const faqItems = [
@@ -167,17 +169,26 @@ const testimonials = [
 ];
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
   return buildLocalizedPageMetadata({
     path: "/debate-classes-vancouver",
-    title: "Debate Classes Vancouver | DSDC Debate School",
+    title: locale === "zh" ? "温哥华辩论课程 | DSDC 在线辩论与演讲训练" : "Debate Classes Vancouver | DSDC Debate School",
     description:
-      "DSDC offers debate classes Vancouver families can join online, with debate coaching, public speaking, and BC tournament prep across the Lower Mainland.",
+      locale === "zh"
+        ? "DSDC 为温哥华和大温家庭提供可在线参加的辩论与公共演讲课程，帮助孩子提升表达、自信与比赛能力。"
+        : "DSDC offers debate classes Vancouver families can join online, with debate coaching, public speaking, and BC tournament prep across the Lower Mainland.",
     images: [{ url: "/images/photos/wsc-group-2.jpg" }],
-    hasChineseVersion: false,
+    hasChineseVersion: true,
   });
 }
 
-export default function DebateClassesVancouverPage() {
+export default async function DebateClassesVancouverPage() {
+  const locale = await getRequestLocale();
+
+  if (locale === "zh") {
+    return <VancouverLandingPageZh />;
+  }
+
   return (
     <>
       <JsonLd id="vancouver-faq-schema" data={faqSchema} />

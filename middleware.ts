@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { addZhPrefix, normalizePathname, stripZhPrefix } from "@/lib/localeRouting";
+import { addZhPrefix, hasChineseVersion, normalizePathname, stripZhPrefix } from "@/lib/localeRouting";
 
 const LOCALE_COOKIE = "dsdc-locale";
 
@@ -29,37 +29,34 @@ export function middleware(request: NextRequest) {
   }
 
   const requestedPathname = normalizePathname(url.pathname);
+  const normalizedContentPath = stripZhPrefix(requestedPathname);
+  const requestedHasZhPrefix = requestedPathname === "/zh" || requestedPathname.startsWith("/zh/");
   const langParam = url.searchParams.get("lang");
+  const requestedLocale = requestedHasZhPrefix ? "zh" : "en";
+  const targetLocale = langParam === "zh" ? "zh" : langParam === "en" ? "en" : requestedLocale;
+  const legacyDestination = LEGACY_REDIRECTS.get(normalizedContentPath);
 
-  if (langParam === "zh") {
+  if (langParam === "zh" || langParam === "en" || requestedPathname !== url.pathname || legacyDestination) {
     url.searchParams.delete("lang");
-    url.pathname = addZhPrefix(stripZhPrefix(requestedPathname));
+    const destinationPath = legacyDestination ?? normalizedContentPath;
+    url.pathname =
+      targetLocale === "zh" && hasChineseVersion(destinationPath) ? addZhPrefix(destinationPath) : destinationPath;
     return NextResponse.redirect(url, 301);
   }
 
-  if (langParam === "en") {
-    url.searchParams.delete("lang");
-    url.pathname = stripZhPrefix(requestedPathname);
+  const hasZhPrefix = requestedHasZhPrefix;
+  const contentPathname = normalizedContentPath;
+  const supportsChineseVersion = hasChineseVersion(contentPathname);
+
+  if (hasZhPrefix && !supportsChineseVersion) {
+    url.pathname = contentPathname;
     return NextResponse.redirect(url, 301);
   }
 
-  if (requestedPathname !== url.pathname) {
-    url.pathname = requestedPathname;
-    return NextResponse.redirect(url, 301);
-  }
-
-  const hasZhPrefix = requestedPathname === "/zh" || requestedPathname.startsWith("/zh/");
-  const contentPathname = stripZhPrefix(requestedPathname);
   const locale = hasZhPrefix ? "zh" : "en";
-  const legacyDestination = LEGACY_REDIRECTS.get(contentPathname);
-
-  if (legacyDestination) {
-    url.pathname = locale === "zh" ? addZhPrefix(legacyDestination) : legacyDestination;
-    return NextResponse.redirect(url, 301);
-  }
 
   const preferredLocale = request.cookies.get(LOCALE_COOKIE)?.value;
-  if (!hasZhPrefix && preferredLocale === "zh" && !contentPathname.startsWith("/portal")) {
+  if (!hasZhPrefix && preferredLocale === "zh" && supportsChineseVersion && !contentPathname.startsWith("/portal")) {
     url.pathname = addZhPrefix(contentPathname);
     return NextResponse.redirect(url, 307);
   }

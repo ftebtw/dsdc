@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { BookOpen, Trophy, Globe, Mic, Swords, GraduationCap, Clock, Users, MessageSquare, CheckCircle, ClipboardList } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { addZhPrefix, hasChineseVersion } from "@/lib/localeRouting";
 import AnimatedSection from "@/components/AnimatedSection";
 
 const classIcons = [BookOpen, Swords, GraduationCap, Trophy, Globe, Mic];
@@ -77,6 +78,7 @@ function getExpandedClassDescription(className: string, locale: string): string 
 
 export default function ClassesPage() {
   const { t, messages, locale } = useI18n();
+  const localizeHref = (href: string) => (locale === "zh" && hasChineseVersion(href) ? addZhPrefix(href) : href);
   const classes = ((messages.classesPage as { classes?: Array<{
     name: string;
     grades: string;
@@ -362,14 +364,14 @@ export default function ClassesPage() {
             className="mt-8 flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link
-              href="/compare"
+              href={localizeHref("/compare")}
               className="px-8 py-3.5 bg-gold-300 text-navy-900 font-semibold rounded-lg
                          hover:bg-gold-200 transition-all duration-200 shadow-md text-center"
             >
               {t("classesPage.compareCta")}
             </Link>
             <Link
-              href="/book"
+              href={localizeHref("/book")}
               className="px-8 py-3.5 border border-white text-white font-semibold rounded-lg
                          hover:bg-white hover:text-navy-800 transition-all duration-200 text-center"
             >
@@ -400,15 +402,15 @@ export default function ClassesPage() {
                 </p>
                 <p>
                   如果您正在比较不同选择，可以查看我们的{" "}
-                  <Link href="/online-debate-classes" className="underline underline-offset-4 hover:text-gold-500 transition-colors">
+                  <Link href={localizeHref("/online-debate-classes")} className="underline underline-offset-4 hover:text-gold-500 transition-colors">
                     在线辩论课程页面
                   </Link>
                   、了解{" "}
-                  <Link href="/debate-classes-vancouver" className="underline underline-offset-4 hover:text-gold-500 transition-colors">
+                  <Link href={localizeHref("/debate-classes-vancouver")} className="underline underline-offset-4 hover:text-gold-500 transition-colors">
                     温哥华辩论课程
                   </Link>
                   ，或者直接{" "}
-                  <Link href="/book" className="underline underline-offset-4 hover:text-gold-500 transition-colors">
+                  <Link href={localizeHref("/book")} className="underline underline-offset-4 hover:text-gold-500 transition-colors">
                     预约免费咨询
                   </Link>
                   ，我们会帮助您找到最适合孩子的项目。
@@ -434,15 +436,15 @@ export default function ClassesPage() {
                 </p>
                 <p>
                   If you&apos;re comparing options, explore our{" "}
-                  <Link href="/online-debate-classes" className="underline underline-offset-4 hover:text-gold-500 transition-colors">
+                  <Link href={localizeHref("/online-debate-classes")} className="underline underline-offset-4 hover:text-gold-500 transition-colors">
                     online debate classes
                   </Link>
                   , learn about our{" "}
-                  <Link href="/debate-classes-vancouver" className="underline underline-offset-4 hover:text-gold-500 transition-colors">
+                  <Link href={localizeHref("/debate-classes-vancouver")} className="underline underline-offset-4 hover:text-gold-500 transition-colors">
                     Vancouver debate classes
                   </Link>
                   , or{" "}
-                  <Link href="/book" className="underline underline-offset-4 hover:text-gold-500 transition-colors">
+                  <Link href={localizeHref("/book")} className="underline underline-offset-4 hover:text-gold-500 transition-colors">
                     book a free consultation
                   </Link>
                   {" "}and we&apos;ll recommend the right fit.
@@ -475,11 +477,11 @@ export default function ClassesPage() {
               {locale === "zh" ? (
                 <>
                   如果您正在比较不同级别，可以先查看{" "}
-                  <Link href="/pricing" className="underline underline-offset-4 hover:text-gold-500 transition-colors">
+                  <Link href={localizeHref("/pricing")} className="underline underline-offset-4 hover:text-gold-500 transition-colors">
                     课程价格
                   </Link>
                   、了解{" "}
-                  <Link href="/team" className="underline underline-offset-4 hover:text-gold-500 transition-colors">
+                  <Link href={localizeHref("/team")} className="underline underline-offset-4 hover:text-gold-500 transition-colors">
                     教练团队
                   </Link>
                   ，或者阅读我们的{" "}
@@ -491,11 +493,11 @@ export default function ClassesPage() {
               ) : (
                 <>
                   If you&apos;re comparing levels, it helps to review our{" "}
-                  <Link href="/pricing" className="underline underline-offset-4 hover:text-gold-500 transition-colors">
+                  <Link href={localizeHref("/pricing")} className="underline underline-offset-4 hover:text-gold-500 transition-colors">
                     pricing
                   </Link>
                   , meet the coaches on our{" "}
-                  <Link href="/team" className="underline underline-offset-4 hover:text-gold-500 transition-colors">
+                  <Link href={localizeHref("/team")} className="underline underline-offset-4 hover:text-gold-500 transition-colors">
                     team page
                   </Link>
                   , and read our{" "}
@@ -834,8 +836,82 @@ export default function ClassesPage() {
             ].map((item, index) => (
               <AnimatedSection key={item.href} delay={index * 0.08}>
                 <Link
-                  href={item.href}
+                  href={localizeHref(item.href)}
                   className="block h-full rounded-2xl border border-warm-200 bg-warm-50 p-6 shadow-sm transition-colors hover:border-gold-300 hover:bg-white dark:border-navy-700 dark:bg-navy-800 dark:hover:border-gold-400 dark:hover:bg-navy-700"
+                >
+                  <h3 className="text-xl font-bold text-navy-800 dark:text-white mb-3 font-serif">
+                    {item.title}
+                  </h3>
+                  <p className="leading-relaxed text-charcoal/75 dark:text-navy-200 font-sans">{item.text}</p>
+                </Link>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-24 bg-warm-100 dark:bg-navy-900/50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <AnimatedSection>
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-navy-800 dark:text-white">
+              {locale === "zh" ? "按地区了解 DSDC 辩论课程" : "Explore DSDC by Region"}
+            </h2>
+          </AnimatedSection>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[
+              {
+                href: "/debate-classes-vancouver",
+                title: locale === "zh" ? "温哥华与大温地区" : "Vancouver & Lower Mainland",
+                text:
+                  locale === "zh"
+                    ? "查看我们面向温哥华、本拿比、列治文、素里等地区家庭的辩论课程页面。"
+                    : "See our Vancouver-founded debate and public speaking page for families across the Lower Mainland.",
+              },
+              {
+                href: "/debate-classes-toronto",
+                title: locale === "zh" ? "多伦多与 GTA" : "Toronto & GTA",
+                text:
+                  locale === "zh"
+                    ? "查看面向多伦多、Brampton、Mississauga、Markham 等地区学生的专门页面。"
+                    : "Explore our Toronto and GTA landing page for families in Brampton, Mississauga, Markham, and beyond.",
+              },
+              {
+                href: "/debate-classes-calgary",
+                title: locale === "zh" ? "卡尔加里" : "Calgary",
+                text:
+                  locale === "zh"
+                    ? "了解阿省家庭如何通过线上课程获得更稳定的辩论训练。"
+                    : "See how Calgary families use DSDC for consistent debate coaching without commute-heavy schedules.",
+              },
+              {
+                href: "/debate-classes-ottawa",
+                title: locale === "zh" ? "渥太华" : "Ottawa",
+                text:
+                  locale === "zh"
+                    ? "查看渥太华学生如何通过在线课程提升表达、自信和辩论能力。"
+                    : "Read how Ottawa students use online debate training to build stronger communication and reasoning.",
+              },
+              {
+                href: "/debate-classes-ontario",
+                title: locale === "zh" ? "安大略省" : "Ontario",
+                text:
+                  locale === "zh"
+                    ? "如果你在 GTA 之外，也可以查看我们面向全安省家庭的页面。"
+                    : "If you're outside the GTA, our Ontario page gives a broader province-wide view of the program.",
+              },
+              {
+                href: "/debate-classes-alberta",
+                title: locale === "zh" ? "阿尔伯塔省" : "Alberta",
+                text:
+                  locale === "zh"
+                    ? "了解阿省不同城市家庭如何使用 DSDC 的线上辩论与公共演讲课程。"
+                    : "Explore how Alberta families in Calgary, Edmonton, and beyond use DSDC's online debate pathway.",
+              },
+            ].map((item, index) => (
+              <AnimatedSection key={item.href} delay={index * 0.06}>
+                <Link
+                  href={localizeHref(item.href)}
+                  className="block h-full rounded-2xl border border-warm-200 bg-white p-6 shadow-sm transition-colors hover:border-gold-300 hover:bg-warm-50 dark:border-navy-700 dark:bg-navy-800 dark:hover:border-gold-400 dark:hover:bg-navy-700"
                 >
                   <h3 className="text-xl font-bold text-navy-800 dark:text-white mb-3 font-serif">
                     {item.title}
@@ -889,11 +965,11 @@ export default function ClassesPage() {
               {locale === "zh" ? (
                 <>
                   也可以先查看{" "}
-                  <Link href="/pricing" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+                  <Link href={localizeHref("/pricing")} className="underline underline-offset-4 hover:text-gold-300 transition-colors">
                     课程价格
                   </Link>
                   、了解{" "}
-                  <Link href="/team" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+                  <Link href={localizeHref("/team")} className="underline underline-offset-4 hover:text-gold-300 transition-colors">
                     教练团队
                   </Link>
                   ，或者阅读我们关于{" "}
@@ -908,11 +984,11 @@ export default function ClassesPage() {
               ) : (
                 <>
                   You can also review our{" "}
-                  <Link href="/pricing" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+                  <Link href={localizeHref("/pricing")} className="underline underline-offset-4 hover:text-gold-300 transition-colors">
                     pricing
                   </Link>
                   , meet the coaches on our{" "}
-                  <Link href="/team" className="underline underline-offset-4 hover:text-gold-300 transition-colors">
+                  <Link href={localizeHref("/team")} className="underline underline-offset-4 hover:text-gold-300 transition-colors">
                     team page
                   </Link>
                   , or read our article on{" "}
@@ -928,19 +1004,19 @@ export default function ClassesPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/book"
+                href={localizeHref("/book")}
                 className="inline-block px-10 py-4 bg-gold-400 text-navy-900 font-semibold text-lg rounded-lg hover:bg-gold-300 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
               >
                 {t("classesPage.bookCta")}
               </Link>
               <Link
-                href="/register"
+                href={localizeHref("/register")}
                 className="inline-block px-10 py-4 bg-white text-navy-800 font-semibold text-lg rounded-lg hover:bg-warm-50 transition-all duration-200"
               >
                 {t("nav.register")}
               </Link>
               <Link
-                href="/compare"
+                href={localizeHref("/compare")}
                 className="inline-block px-10 py-4 border border-white text-white font-semibold text-lg rounded-lg hover:bg-white hover:text-navy-800 transition-all duration-200"
               >
                 {t("classesPage.compareCta")}

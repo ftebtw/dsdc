@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import TorontoLandingPageZh from "@/components/TorontoLandingPageZh";
 import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
+import { getRequestLocale } from "@/lib/requestLocale";
 import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 
 const faqItems = [
@@ -76,17 +78,26 @@ const breadcrumbSchema = buildBreadcrumbSchema([
 ]);
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
   return buildLocalizedPageMetadata({
     path: "/debate-classes-toronto",
-    title: "Debate Classes Toronto & GTA | DSDC",
+    title: locale === "zh" ? "多伦多辩论课程 | GTA 在线辩论与公共演讲 | DSDC" : "Debate Classes Toronto & GTA | DSDC",
     description:
-      "DSDC offers online debate classes Toronto and GTA families can join from home, including students in Brampton, Mississauga, Scarborough, and North York.",
+      locale === "zh"
+        ? "DSDC 为多伦多与 GTA 家庭提供可在线参加的辩论和公共演讲课程，覆盖 Brampton、Mississauga、Scarborough、North York 等地区。"
+        : "DSDC offers online debate classes Toronto and GTA families can join from home, including students in Brampton, Mississauga, Scarborough, and North York.",
     images: [{ url: "/images/photos/wsc-group-2.jpg" }],
-    hasChineseVersion: false,
+    hasChineseVersion: true,
   });
 }
 
-export default function DebateClassesTorontoPage() {
+export default async function DebateClassesTorontoPage() {
+  const locale = await getRequestLocale();
+
+  if (locale === "zh") {
+    return <TorontoLandingPageZh />;
+  }
+
   return (
     <>
       <JsonLd id="toronto-course-schema" data={courseSchema} />

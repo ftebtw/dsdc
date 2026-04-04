@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Globe } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
-import { addZhPrefix, stripZhPrefix } from "@/lib/localeRouting";
+import { addZhPrefix, hasChineseVersion, stripZhPrefix } from "@/lib/localeRouting";
 
 export default function FloatingLanguagePill() {
   const router = useRouter();
@@ -41,8 +41,13 @@ export default function FloatingLanguagePill() {
 
     const nextLocale = locale === "en" ? "zh" : "en";
     const currentPath = pathname || "/";
+    const normalizedPath = stripZhPrefix(currentPath);
     const nextPath =
-      nextLocale === "zh" ? addZhPrefix(stripZhPrefix(currentPath)) : stripZhPrefix(currentPath);
+      nextLocale === "zh"
+        ? hasChineseVersion(normalizedPath)
+          ? addZhPrefix(normalizedPath)
+          : "/zh"
+        : normalizedPath;
     const params = new URLSearchParams(searchParams?.toString() ?? "");
     params.delete("lang");
 

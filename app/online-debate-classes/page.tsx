@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import OnlineDebateClassesPageZh from "@/components/OnlineDebateClassesPageZh";
 import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
+import { getRequestLocale } from "@/lib/requestLocale";
 
 const faqItems = [
   {
@@ -65,21 +67,33 @@ const faqSchema = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
   return buildLocalizedPageMetadata({
     path: "/online-debate-classes",
-    title: "Online Debate Classes for Kids & Teens | Grades 4–12 | DSDC",
+    title:
+      locale === "zh"
+        ? "在线辩论课程 | 适合 4-12 年级学生的直播辩论训练 | DSDC"
+        : "Online Debate Classes for Kids & Teens | Grades 4–12 | DSDC",
     description:
-      "Join DSDC's online debate classes for students in Grades 4–12. Live Zoom sessions with award-winning coaches, personalized feedback every class, and proven results at national and international tournaments. Book a free consultation.",
+      locale === "zh"
+        ? "DSDC 提供面向 4-12 年级学生的在线辩论课程，通过直播教学、实战练习和个性化反馈帮助孩子持续成长。"
+        : "Join DSDC's online debate classes for students in Grades 4–12. Live Zoom sessions with award-winning coaches, personalized feedback every class, and proven results at national and international tournaments. Book a free consultation.",
     images: [
       {
         url: "/images/photos/wsc-group-2.jpg",
       },
     ],
-    hasChineseVersion: false,
+    hasChineseVersion: true,
   });
 }
 
-export default function OnlineDebateClassesPage() {
+export default async function OnlineDebateClassesPage() {
+  const locale = await getRequestLocale();
+
+  if (locale === "zh") {
+    return <OnlineDebateClassesPageZh />;
+  }
+
   return (
     <>
       <script
@@ -441,6 +455,57 @@ export default function OnlineDebateClassesPage() {
           >
             View Full Pricing
           </Link>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-navy-800 dark:text-white">
+            Explore DSDC by Region
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[
+              {
+                href: "/debate-classes-vancouver",
+                title: "Vancouver & Lower Mainland",
+                text: "See our Vancouver-founded program for families across Burnaby, Richmond, Surrey, Coquitlam, and more.",
+              },
+              {
+                href: "/debate-classes-toronto",
+                title: "Toronto & GTA",
+                text: "Explore our Toronto page for students in Brampton, Mississauga, Scarborough, North York, Vaughan, and Markham.",
+              },
+              {
+                href: "/debate-classes-calgary",
+                title: "Calgary",
+                text: "Learn how Calgary families use live online debate training to stay consistent without commute-heavy schedules.",
+              },
+              {
+                href: "/debate-classes-ottawa",
+                title: "Ottawa",
+                text: "See why Ottawa families use DSDC for a more structured path into speech and debate.",
+              },
+              {
+                href: "/debate-classes-ontario",
+                title: "Ontario",
+                text: "View the province-wide page for families outside the GTA who still want serious debate coaching.",
+              },
+              {
+                href: "/debate-classes-alberta",
+                title: "Alberta",
+                text: "Explore how students across Alberta use DSDC for public speaking, debate, and long-term skill growth.",
+              },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="block h-full rounded-2xl border border-warm-200 bg-warm-50 p-6 shadow-sm transition-colors hover:border-gold-300 hover:bg-white dark:border-navy-700 dark:bg-navy-800 dark:hover:border-gold-400 dark:hover:bg-navy-700"
+              >
+                <h3 className="text-xl font-bold text-navy-800 dark:text-white mb-3">{item.title}</h3>
+                <p className="leading-relaxed text-charcoal/75 dark:text-navy-200 font-sans">{item.text}</p>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

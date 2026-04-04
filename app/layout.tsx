@@ -103,12 +103,36 @@ const breadcrumbLabelMap: Record<string, string> = {
   terms: "Terms",
   "online-debate-classes": "Online Debate Classes",
   "debate-classes-canada": "Debate Classes Canada",
+  "debate-classes-calgary": "Debate Classes Calgary",
+  "debate-classes-ontario": "Debate Classes Ontario",
+  "debate-classes-ottawa": "Debate Classes Ottawa",
   "debate-classes-vancouver": "Debate Classes Vancouver",
   "debate-classes-toronto": "Debate Classes Toronto",
+  "debate-classes-alberta": "Debate Classes Alberta",
   "world-scholars-cup-coaching": "World Scholar's Cup Coaching",
   "debate-classes-for-beginners": "Debate Classes for Beginners",
   "public-speaking-classes-for-kids": "Public Speaking Classes for Kids",
   "guide-to-debate-in-canada": "Guide to Debate in Canada",
+};
+
+const breadcrumbLabelMapZh: Record<string, string> = {
+  about: "关于我们",
+  awards: "学生成绩",
+  blog: "博客",
+  book: "预约咨询",
+  cancellation: "退款与取消政策",
+  classes: "课程",
+  compare: "课程对比",
+  contact: "联系我们",
+  "debate-classes-toronto": "多伦多辩论课程",
+  "debate-classes-vancouver": "温哥华辩论课程",
+  faq: "常见问题",
+  "online-debate-classes": "在线辩论课程",
+  pricing: "课程价格",
+  privacy: "隐私政策",
+  register: "报名",
+  team: "教练团队",
+  terms: "服务条款",
 };
 
 function formatSegment(segment: string) {
@@ -118,32 +142,34 @@ function formatSegment(segment: string) {
     .join(" ");
 }
 
-function getBreadcrumbItems(pathname: string) {
+function getBreadcrumbItems(pathname: string, locale: "en" | "zh") {
   const cleanPath = pathname === "/" ? "/" : pathname.replace(/\/+$/, "");
+  const homeName = locale === "zh" ? "首页" : "Home";
+  const localizePath = (path: string) => (locale === "zh" && hasChineseVersion(path) ? addZhPrefix(path) : path);
 
   if (cleanPath === "/") {
-    return [{ name: "Home", path: "/" }];
+    return [{ name: homeName, path: localizePath("/") }];
   }
 
   if (cleanPath.startsWith("/blog/")) {
     const slug = cleanPath.slice("/blog/".length);
     const post = getBlogPostsSync().find((item) => item.slug === slug);
     return [
-      { name: "Home", path: "/" },
-      { name: "Blog", path: "/blog" },
-      { name: post?.title ?? formatSegment(slug), path: cleanPath },
+      { name: homeName, path: localizePath("/") },
+      { name: locale === "zh" ? "博客" : "Blog", path: localizePath("/blog") },
+      { name: post?.title ?? formatSegment(slug), path: localizePath(cleanPath) },
     ];
   }
 
   const parts = cleanPath.split("/").filter(Boolean);
-  const items = [{ name: "Home", path: "/" }];
+  const items = [{ name: homeName, path: localizePath("/") }];
 
   for (let index = 0; index < parts.length; index += 1) {
     const slug = parts[index];
     const path = `/${parts.slice(0, index + 1).join("/")}`;
     items.push({
-      name: breadcrumbLabelMap[slug] ?? formatSegment(slug),
-      path,
+      name: locale === "zh" ? breadcrumbLabelMapZh[slug] ?? formatSegment(slug) : breadcrumbLabelMap[slug] ?? formatSegment(slug),
+      path: localizePath(path),
     });
   }
 
@@ -168,7 +194,7 @@ export default async function RootLayout({
     !pathname.startsWith("/_");
   const englishHref = `https://dsdc.ca${pathname === "/" ? "" : pathname}`;
   const chineseHref = `https://dsdc.ca${addZhPrefix(pathname)}`;
-  const breadcrumbSchema = isSeoPublicPath ? buildBreadcrumbSchema(getBreadcrumbItems(pathname)) : null;
+  const breadcrumbSchema = isSeoPublicPath ? buildBreadcrumbSchema(getBreadcrumbItems(pathname, locale)) : null;
   const showChineseAlternate = isSeoPublicPath && hasChineseVersion(pathname);
 
   return (
