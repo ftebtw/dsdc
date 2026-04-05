@@ -35,6 +35,26 @@ export default function TeamPage() {
     coachMap.set(coach.name, { ...(coachMap.get(coach.name) ?? {}), ...coach });
   }
   const coaches = Array.from(coachMap.values());
+  const orderedCoaches = (() => {
+    const reordered = [...coaches];
+    const timName = "Timothy Hanna";
+    const annikaName = "Annika Wang";
+    const timIndex = reordered.findIndex((coach) => coach.name === timName);
+    const annikaIndex = reordered.findIndex((coach) => coach.name === annikaName);
+
+    if (timIndex === -1 || annikaIndex === -1) {
+      return reordered;
+    }
+
+    const [annika] = reordered.splice(annikaIndex, 1);
+    const adjustedTimIndex = reordered.findIndex((coach) => coach.name === timName);
+    const [tim] = reordered.splice(adjustedTimIndex, 1);
+
+    reordered.splice(adjustedTimIndex, 0, annika);
+    reordered.splice(Math.min(adjustedTimIndex + 3, reordered.length), 0, tim);
+
+    return reordered;
+  })();
 
   const teamPageMessages =
     ((messages.teamPage as {
@@ -54,7 +74,7 @@ export default function TeamPage() {
       : coachAwards[founderName] || coachAwards["Rebecca Amisano"] || [];
   const teamPersonSchema = [
     buildPersonSchema(founderAuthorProfile),
-    ...coaches.map((coach) =>
+    ...orderedCoaches.map((coach) =>
       buildCoachPersonSchema({
         name: coach.name,
         title: coach.title,
@@ -135,7 +155,7 @@ export default function TeamPage() {
       <section className="py-16 md:py-24 bg-warm-100 dark:bg-navy-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {coaches.map((coach, i) => (
+            {orderedCoaches.map((coach, i) => (
               <CoachCard
                 key={coach.name}
                 name={coach.name}
