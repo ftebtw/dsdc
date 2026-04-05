@@ -11,6 +11,22 @@ import { formatClassScheduleForViewer } from '@/lib/portal/time';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
+const scheduleDayOrder: Record<string, number> = {
+  mon: 1,
+  tue: 2,
+  wed: 3,
+  thu: 4,
+  fri: 5,
+  sat: 6,
+  sun: 7,
+};
+
+function compareBySchedule(left: Record<string, any>, right: Record<string, any>) {
+  const dayDiff = (scheduleDayOrder[left.schedule_day] ?? 99) - (scheduleDayOrder[right.schedule_day] ?? 99);
+  if (dayDiff !== 0) return dayDiff;
+  return String(left.schedule_start_time ?? '').localeCompare(String(right.schedule_start_time ?? ''));
+}
+
 export default async function ParentClassesPage({
   searchParams,
 }: {
@@ -42,30 +58,22 @@ export default async function ParentClassesPage({
   }
 
   const activeTerm = await getActiveTerm(supabase);
-  if (!activeTerm) {
-    return (
-      <SectionCard title={parentT(locale, 'portal.parent.classes.title', "My Student's Classes")}>
-        <p className="text-sm text-charcoal/70 dark:text-navy-300">
-          {parentT(locale, 'portal.parent.common.noActiveTerm', 'No active term is configured.')}
-        </p>
-      </SectionCard>
-    );
-  }
 
   const enrollments = ((await supabase
     .from('enrollments')
     .select('class_id,status')
     .eq('student_id', selectedStudentId)
-    .eq('status', 'active')).data ?? []) as Array<Record<string, any>>;
+    .in('status', ['active', 'completed'])).data ?? []) as Array<Record<string, any>>;
   const classIds = enrollments.map((row: any) => row.class_id);
   const classes = classIds.length
-    ? (((await supabase
-        .from('classes')
-        .select('*')
-        .in('id', classIds)
-        .eq('term_id', activeTerm.id)
-        .order('schedule_day')).data ?? []) as Array<Record<string, any>>)
+    ? (((await supabase.from('classes').select('*').in('id', classIds).order('schedule_day')).data ?? []) as Array<Record<string, any>>)
     : ([] as Array<Record<string, any>>);
+
+  const termIds = [...new Set(classes.map((classRow: any) => classRow.term_id).filter(Boolean))];
+  const terms = termIds.length
+    ? (((await supabase.from('terms').select('id,name,start_date,end_date,is_active').in('id', termIds)).data ?? []) as Array<Record<string, any>>)
+    : ([] as Array<Record<string, any>>);
+  const termMap = Object.fromEntries(terms.map((term) => [term.id, term]));
 
   const classCoachIds = [...new Set(classes.map((classRow: any) => classRow.coach_id).filter(Boolean))];
   const today = new Date().toISOString().slice(0, 10);
@@ -113,75 +121,144 @@ export default async function ParentClassesPage({
     }
   }
 
+  const enrollmentStatusByClass = new Map<string, string>();
+  for (const enrollment of enrollments) {
+    enrollmentStatusByClass.set(enrollment.class_id, enrollment.status);
+  }
+
+  const classRows = classes.map((classRow: any) => ({
+    ...classRow,
+    enrollment_status: enrollmentStatusByClass.get(classRow.id) ?? 'active',
+    term: termMap[classRow.term_id] ?? null,
+  }));
+
+  const currentClasses = classRows
+    .filter((classRow: any) => classRow.term?.is_active && classRow.enrollment_status === 'active')
+    .sort(compareBySchedule);
+
+  const pastClasses = classRows
+    .filter((classRow: any) => classRow.term && !classRow.term.is_active)
+    .sort((left: any, right: any) => {
+      const termDiff =
+        new Date(right.term.start_date || right.term.end_date || 0).getTime() -
+        new Date(left.term.start_date || left.term.end_date || 0).getTime();
+      if (termDiff !== 0) return termDiff;
+      return compareBySchedule(left, right);
+    });
+
+  const renderClassCard = (classRow: any, isPast: boolean) => (
+    <article
+      key={classRow.id}
+      className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4"
+    >
+      <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
+      <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
+        {classTypeLabel[classRow.type as keyof typeof classTypeLabel] || classRow.type} -{' '}
+        {formatClassScheduleForViewer(
+          classRow.schedule_day,
+          classRow.schedule_start_time,
+          classRow.schedule_end_time,
+          classRow.timezone,
+          session.profile.timezone
+        )}
+      </p>
+      <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
+        {parentT(locale, 'portal.parent.classes.termLabel', 'Term')}:{' '}
+        {classRow.term?.name || parentT(locale, 'portal.parent.classes.noTermLabel', 'Unassigned term')}
+      </p>
+      <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
+        {parentT(locale, 'portal.parent.common.coachLabel', 'Coach')}:{' '}
+        {subPeople[classRow.coach_id]?.display_name ||
+          subPeople[classRow.coach_id]?.email ||
+          parentT(locale, 'portal.parent.common.coachFallback', 'DSDC Coach')}
+      </p>
+      {!isPast && nextSubByClass.get(classRow.id) ? (
+        <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
+          Sub:{' '}
+          {subPeople[nextSubByClass.get(classRow.id).accepting_coach_id]?.display_name ||
+            subPeople[nextSubByClass.get(classRow.id).accepting_coach_id]?.email ||
+            parentT(locale, 'portal.parent.common.subFallback', 'Coach')}{' '}
+          on {nextSubByClass.get(classRow.id).session_date}
+        </p>
+      ) : null}
+      {!isPast && nextTaByClass.get(classRow.id) ? (
+        <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
+          TA:{' '}
+          {subPeople[nextTaByClass.get(classRow.id).accepting_ta_id]?.display_name ||
+            subPeople[nextTaByClass.get(classRow.id).accepting_ta_id]?.email ||
+            parentT(locale, 'portal.parent.common.taFallback', 'TA')}{' '}
+          on {nextTaByClass.get(classRow.id).session_date}
+        </p>
+      ) : null}
+      <p className="text-sm mt-1">
+        {classRow.zoom_link ? (
+          <>
+            {parentT(locale, 'portal.parent.common.zoomLabel', 'Zoom')}:{' '}
+            <a href={classRow.zoom_link} target="_blank" rel="noopener noreferrer" className="underline text-navy-700 dark:text-navy-200">
+              {parentT(locale, 'portal.parent.common.joinClass', 'Join Class')}
+            </a>
+          </>
+        ) : (
+          <span className="text-charcoal/50 dark:text-navy-400 italic">
+            {parentT(locale, 'portal.parent.common.zoomUnavailable', 'Zoom link not yet available')}
+          </span>
+        )}
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <a
+          href={`/portal/parent/attendance?student=${encodeURIComponent(selectedStudentId)}&term=${encodeURIComponent(classRow.term_id)}&classId=${encodeURIComponent(classRow.id)}`}
+          className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+        >
+          {parentT(locale, 'portal.parent.classes.viewAttendance', 'View Attendance')}
+        </a>
+        <a
+          href={`/portal/parent/resources?student=${encodeURIComponent(selectedStudentId)}&classId=${encodeURIComponent(classRow.id)}`}
+          className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+        >
+          {parentT(locale, 'portal.parent.classes.viewResources', 'View Resources')}
+        </a>
+      </div>
+    </article>
+  );
+
   return (
     <SectionCard
       title={parentT(locale, 'portal.parent.classes.title', "My Student's Classes")}
-      description={`${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
-        selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
-      }`}
+      description={
+        activeTerm
+          ? `${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
+              selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
+            } - ${activeTerm.name}`
+          : `${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
+              selectedStudent?.display_name || selectedStudent?.email || selectedStudentId
+            }`
+      }
     >
-      {classes.length === 0 ? (
+      {currentClasses.length === 0 && pastClasses.length === 0 ? (
         <p className="text-sm text-charcoal/70 dark:text-navy-300">
           {parentT(locale, 'portal.parent.common.noActiveEnrollments', 'No active enrollments.')}
         </p>
       ) : (
         <div className="space-y-4">
-          {classes.map((classRow: any) => (
-            <article
-              key={classRow.id}
-              className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4"
-            >
-              <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
-              <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
-                {classTypeLabel[classRow.type as keyof typeof classTypeLabel] || classRow.type} -{' '}
-                {formatClassScheduleForViewer(
-                  classRow.schedule_day,
-                  classRow.schedule_start_time,
-                  classRow.schedule_end_time,
-                  classRow.timezone,
-                  session.profile.timezone
-                )}
-              </p>
-              <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
-                {parentT(locale, 'portal.parent.common.coachLabel', 'Coach')}:{' '}
-                {subPeople[classRow.coach_id]?.display_name ||
-                  subPeople[classRow.coach_id]?.email ||
-                  parentT(locale, 'portal.parent.common.coachFallback', 'DSDC Coach')}
-              </p>
-              {nextSubByClass.get(classRow.id) ? (
-                <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
-                  Sub:{' '}
-                  {subPeople[nextSubByClass.get(classRow.id).accepting_coach_id]?.display_name ||
-                    subPeople[nextSubByClass.get(classRow.id).accepting_coach_id]?.email ||
-                    parentT(locale, 'portal.parent.common.subFallback', 'Coach')}{' '}
-                  on {nextSubByClass.get(classRow.id).session_date}
-                </p>
-              ) : null}
-              {nextTaByClass.get(classRow.id) ? (
-                <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
-                  TA:{' '}
-                  {subPeople[nextTaByClass.get(classRow.id).accepting_ta_id]?.display_name ||
-                    subPeople[nextTaByClass.get(classRow.id).accepting_ta_id]?.email ||
-                    parentT(locale, 'portal.parent.common.taFallback', 'TA')}{' '}
-                  on {nextTaByClass.get(classRow.id).session_date}
-                </p>
-              ) : null}
-              <p className="text-sm mt-1">
-                {classRow.zoom_link ? (
-                  <>
-                    {parentT(locale, 'portal.parent.common.zoomLabel', 'Zoom')}:{' '}
-                    <a href={classRow.zoom_link} target="_blank" rel="noopener noreferrer" className="underline text-navy-700 dark:text-navy-200">
-                      {parentT(locale, 'portal.parent.common.joinClass', 'Join Class')}
-                    </a>
-                  </>
-                ) : (
-                  <span className="text-charcoal/50 dark:text-navy-400 italic">
-                    {parentT(locale, 'portal.parent.common.zoomUnavailable', 'Zoom link not yet available')}
-                  </span>
-                )}
-              </p>
-            </article>
-          ))}
+          <h3 className="font-semibold text-navy-800 dark:text-white">
+            {parentT(locale, 'portal.parent.classes.currentEnrollments', 'Current Enrollments')}
+          </h3>
+          {currentClasses.length === 0 ? (
+            <p className="text-sm text-charcoal/70 dark:text-navy-300">
+              {parentT(locale, 'portal.parent.classes.noCurrentEnrollments', 'No active enrollments in the current term.')}
+            </p>
+          ) : (
+            <div className="space-y-4">{currentClasses.map((classRow: any) => renderClassCard(classRow, false))}</div>
+          )}
+
+          {pastClasses.length > 0 ? (
+            <div className="pt-4 border-t border-warm-200 dark:border-navy-700 space-y-4">
+              <h3 className="font-semibold text-navy-800 dark:text-white">
+                {parentT(locale, 'portal.parent.classes.pastEnrollments', 'Past Enrollments')}
+              </h3>
+              <div className="space-y-4">{pastClasses.map((classRow: any) => renderClassCard(classRow, true))}</div>
+            </div>
+          ) : null}
         </div>
       )}
     </SectionCard>

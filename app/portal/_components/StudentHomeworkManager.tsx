@@ -94,77 +94,88 @@ export default function StudentHomeworkManager({
 
   return (
     <div className="space-y-6">
-      <form
-        onSubmit={submitHomework}
-        className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4 space-y-3"
-      >
-        <h3 className="font-semibold text-navy-800 dark:text-white">
-          {t('portal.studentHomework.submitTitle', 'Submit Homework')}
-        </h3>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <label className="block">
-            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
-              {t('portal.studentHomework.class', 'Class')}
-            </span>
-            <select
-              required
-              value={classId}
-              onChange={(event) => setClassId(event.target.value)}
-              className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
-            >
-              {classes.map((classRow) => (
-                <option key={classRow.id} value={classRow.id}>
-                  {classRow.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
-              {t('portal.studentHomework.assignmentTitle', 'Assignment title')}
-            </span>
-            <input
-              required
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
-              placeholder={t('portal.studentHomework.assignmentPlaceholder', 'Week 3 Homework')}
-            />
-          </label>
-        </div>
-        <textarea
-          rows={3}
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
-          className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
-          placeholder={t('portal.studentHomework.notesOptional', 'Notes for your coach (optional)')}
-        />
-        <input
-          value={externalUrl}
-          onChange={(event) => setExternalUrl(event.target.value)}
-          className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
-          placeholder={t('portal.studentHomework.externalUrl', 'External URL (optional)')}
-        />
-        <input
-          ref={fileInputRef}
-          type="file"
-          onChange={(event) => setFile(event.target.files?.[0] || null)}
-          className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-gold-300 file:px-3 file:py-1"
-        />
-        <p className="text-xs text-charcoal/60 dark:text-navy-400">
-          {t('portal.studentHomework.fileOrUrlHint', 'Attach a file or provide an external URL.')}
-        </p>
-        {error ? <p className="text-sm text-red-700">{error}</p> : null}
-        <button
-          type="submit"
-          disabled={loading || !classId || !title.trim()}
-          className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-60"
+      {classes.length > 0 ? (
+        <form
+          onSubmit={submitHomework}
+          className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4 space-y-3"
         >
-          {loading
-            ? t('portal.studentHomework.submitting', 'Submitting...')
-            : t('portal.studentHomework.submitButton', 'Submit Homework')}
-        </button>
-      </form>
+          <h3 className="font-semibold text-navy-800 dark:text-white">
+            {t('portal.studentHomework.submitTitle', 'Submit Homework')}
+          </h3>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <label className="block">
+              <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+                {t('portal.studentHomework.class', 'Class')}
+              </span>
+              <select
+                required
+                value={classId}
+                onChange={(event) => setClassId(event.target.value)}
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+              >
+                {classes.map((classRow) => (
+                  <option key={classRow.id} value={classRow.id}>
+                    {classRow.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+                {t('portal.studentHomework.assignmentTitle', 'Assignment title')}
+              </span>
+              <input
+                required
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+                placeholder={t('portal.studentHomework.assignmentPlaceholder', 'Week 3 Homework')}
+              />
+            </label>
+          </div>
+          <textarea
+            rows={3}
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+            placeholder={t('portal.studentHomework.notesOptional', 'Notes for your coach (optional)')}
+          />
+          <input
+            value={externalUrl}
+            onChange={(event) => setExternalUrl(event.target.value)}
+            className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+            placeholder={t('portal.studentHomework.externalUrl', 'External URL (optional)')}
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={(event) => setFile(event.target.files?.[0] || null)}
+            className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-gold-300 file:px-3 file:py-1"
+          />
+          <p className="text-xs text-charcoal/60 dark:text-navy-400">
+            {t('portal.studentHomework.fileOrUrlHint', 'Attach a file or provide an external URL.')}
+          </p>
+          {error ? <p className="text-sm text-red-700">{error}</p> : null}
+          <button
+            type="submit"
+            disabled={loading || !classId || !title.trim()}
+            className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-60"
+          >
+            {loading
+              ? t('portal.studentHomework.submitting', 'Submitting...')
+              : t('portal.studentHomework.submitButton', 'Submit Homework')}
+          </button>
+        </form>
+      ) : (
+        <div className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4">
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            {t(
+              'portal.studentHomework.noActiveSubmissionClasses',
+              'No active classes available for new homework submissions. You can still review your previous submissions below.'
+            )}
+          </p>
+        </div>
+      )}
 
       <div className="space-y-3">
         <h3 className="font-semibold text-navy-800 dark:text-white">

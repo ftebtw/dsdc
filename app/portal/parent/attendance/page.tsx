@@ -6,7 +6,6 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import AttendanceSummary, { attendanceStatusClass } from '@/app/portal/_components/AttendanceSummary';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
-import { parentHasEnrolledStudent } from '@/lib/portal/enrollment-status';
 import { getParentSelection } from '@/lib/portal/parent';
 import { parentT } from '@/lib/portal/parent-i18n';
 import type { Database } from '@/lib/supabase/database.types';
@@ -20,7 +19,7 @@ type AttendanceRow = Database['public']['Tables']['attendance_records']['Row'];
 export default async function ParentAttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ student?: string; term?: string }>;
+  searchParams: Promise<{ student?: string; term?: string; classId?: string }>;
 }) {
   const session = await requireRole(['parent']);
   const params = await searchParams;
@@ -45,10 +44,18 @@ export default async function ParentAttendancePage({
 
   if (!selectedStudentId || params.student !== selectedStudentId) {
     const termQuery = params.term ? `&term=${encodeURIComponent(params.term)}` : '';
-    redirect(`/portal/parent/attendance?student=${selectedStudentId}${termQuery}`);
+    const classQuery = params.classId ? `&classId=${encodeURIComponent(params.classId)}` : '';
+    redirect(`/portal/parent/attendance?student=${selectedStudentId}${termQuery}${classQuery}`);
   }
-  const enrollmentState = await parentHasEnrolledStudent(supabase as any, session.userId);
-  if (!enrollmentState.hasEnrolled) {
+
+  const enrollments = ((await supabase
+    .from('enrollments')
+    .select('class_id,status')
+    .eq('student_id', selectedStudentId)
+    .in('status', ['active', 'completed'])).data ?? []) as EnrollmentRow[];
+  const classIds = enrollments.map((row) => row.class_id);
+
+  if (classIds.length === 0) {
     return (
       <SectionCard
         title={parentT(locale, 'portal.parent.attendance.title', 'Attendance')}
@@ -67,13 +74,6 @@ export default async function ParentAttendancePage({
   ]);
   const terms = (termsData.data ?? []) as TermRow[];
   const selectedTermId = params.term || activeTerm?.id || terms[0]?.id || '';
-
-  const enrollments = ((await supabase
-    .from('enrollments')
-    .select('class_id,status')
-    .eq('student_id', selectedStudentId)
-    .eq('status', 'active')).data ?? []) as EnrollmentRow[];
-  const classIds = enrollments.map((row) => row.class_id);
   const classes = classIds.length
     ? (((await supabase
         .from('classes')
@@ -81,7 +81,12 @@ export default async function ParentAttendancePage({
         .in('id', classIds)
         .eq('term_id', selectedTermId)).data ?? []) as ClassRow[])
     : ([] as ClassRow[]);
-  const selectedClassIds = classes.map((classRow) => classRow.id);
+
+  const selectedClassId = params.classId || '';
+  const selectedClassIds =
+    selectedClassId && classes.some((classRow) => classRow.id === selectedClassId)
+      ? [selectedClassId]
+      : classes.map((classRow) => classRow.id);
 
   const attendanceRows = selectedClassIds.length
     ? (((await supabase
@@ -117,6 +122,18 @@ export default async function ParentAttendancePage({
             {terms.map((term) => (
               <option key={term.id} value={term.id}>
                 {term.name} {term.is_active ? `(${parentT(locale, 'portal.student.attendance.activeLabel', 'Active')})` : ''}
+              </option>
+            ))}
+          </select>
+          <select
+            name="classId"
+            defaultValue={selectedClassId}
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          >
+            <option value="">{parentT(locale, 'portal.parent.common.allClasses', 'All classes')}</option>
+            {classes.map((classRow) => (
+              <option key={classRow.id} value={classRow.id}>
+                {classRow.name}
               </option>
             ))}
           </select>

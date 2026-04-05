@@ -595,7 +595,14 @@
         "absentCount": "缺席次数"
       },
       "classes": {
-        "title": "我孩子的课程"
+        "title": "我孩子的课程",
+        "currentEnrollments": "当前报名",
+        "noCurrentEnrollments": "当前学期暂无活跃报名。",
+        "pastEnrollments": "过往报名",
+        "termLabel": "学期",
+        "noTermLabel": "未分配学期",
+        "viewAttendance": "查看出勤",
+        "viewResources": "查看资料"
       },
       "attendance": {
         "title": "出勤",
@@ -748,8 +755,19 @@
         "classCredits": "课时积分",
         "joinClass": "进入课堂",
         "zoomUnavailable": "Zoom链接尚未提供",
-        "substituteCoachOn": "代课教练（",
-        "taOn": "TA（"
+        "substituteCoachOn": "代课教练",
+        "taOn": "助教",
+        "termLabel": "学期",
+        "noTermLabel": "未分配学期",
+        "coachFallback": "DSDC 教练",
+        "subFallback": "教练",
+        "taFallback": "助教",
+        "currentEnrollments": "当前报名",
+        "noCurrentEnrollments": "当前学期暂无活跃报名。",
+        "pastEnrollments": "过往报名",
+        "viewAttendance": "查看出勤",
+        "viewResources": "查看资料",
+        "viewHomework": "查看作业"
       },
       "attendance": {
         "title": "出勤记录",

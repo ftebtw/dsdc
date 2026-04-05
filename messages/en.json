@@ -595,7 +595,14 @@
         "absentCount": "Absent sessions"
       },
       "classes": {
-        "title": "My Student's Classes"
+        "title": "My Student's Classes",
+        "currentEnrollments": "Current Enrollments",
+        "noCurrentEnrollments": "No active enrollments in the current term.",
+        "pastEnrollments": "Past Enrollments",
+        "termLabel": "Term",
+        "noTermLabel": "Unassigned term",
+        "viewAttendance": "View Attendance",
+        "viewResources": "View Resources"
       },
       "attendance": {
         "title": "Attendance",
@@ -748,7 +755,18 @@
         "classCredits": "Class Credits",
         "zoomUnavailable": "Zoom link not yet available",
         "substituteCoachOn": "Substitute coach on",
-        "taOn": "TA on"
+        "taOn": "TA on",
+        "termLabel": "Term",
+        "noTermLabel": "Unassigned term",
+        "coachFallback": "DSDC Coach",
+        "subFallback": "Coach",
+        "taFallback": "TA",
+        "currentEnrollments": "Current Enrollments",
+        "noCurrentEnrollments": "No active enrollments in the current term.",
+        "pastEnrollments": "Past Enrollments",
+        "viewAttendance": "View Attendance",
+        "viewResources": "View Resources",
+        "viewHomework": "View Homework"
       },
       "attendance": {
         "title": "Attendance Record",

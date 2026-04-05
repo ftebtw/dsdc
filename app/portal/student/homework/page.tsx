@@ -4,7 +4,6 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import StudentHomeworkManager from '@/app/portal/_components/StudentHomeworkManager';
 import { requireRole } from '@/lib/portal/auth';
-import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
 import { getProfileMap } from '@/lib/portal/data';
 import { portalT } from '@/lib/portal/parent-i18n';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -25,14 +24,25 @@ type HomeworkRow = {
   created_at: string;
 };
 
-export default async function StudentHomeworkPage() {
+export default async function StudentHomeworkPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ classId?: string }>;
+}) {
   const session = await requireRole(['student']);
   const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
+  const params = await searchParams;
   const supabase = await getSupabaseServerClient();
 
-  const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
-  if (!enrolled) {
+  const enrollmentRows = ((await supabase
+    .from('enrollments')
+    .select('class_id,status')
+    .eq('student_id', session.userId)
+    .in('status', ['active', 'completed'])).data ?? []) as Array<{ class_id: string; status: string }>;
+  const classIds = enrollmentRows.map((row) => row.class_id);
+
+  if (classIds.length === 0) {
     return (
       <SectionCard
         title={t('portal.studentHomework.pageTitle', 'Homework')}
@@ -43,23 +53,30 @@ export default async function StudentHomeworkPage() {
     );
   }
 
-  const { data: enrollmentsData } = await supabase
-    .from('enrollments')
-    .select('class_id')
-    .eq('student_id', session.userId)
-    .eq('status', 'active');
-  const classIds = ((enrollmentsData ?? []) as Array<{ class_id: string }>).map((row) => row.class_id);
   const { data: classesData } = classIds.length
     ? await supabase.from('classes').select('id,name').in('id', classIds).order('name', { ascending: true })
     : { data: [] as Array<{ id: string; name: string }> };
-  const classes = (classesData ?? []) as Array<{ id: string; name: string }>;
-  const classMap = Object.fromEntries(classes.map((classRow) => [classRow.id, classRow.name]));
+  const allClasses = (classesData ?? []) as Array<{ id: string; name: string }>;
+  const classMap = Object.fromEntries(allClasses.map((classRow) => [classRow.id, classRow.name]));
+  const activeClassIdSet = new Set(
+    enrollmentRows
+      .filter((row) => row.status === 'active')
+      .map((row) => row.class_id)
+  );
+  const submissionClasses = allClasses.filter((classRow) => activeClassIdSet.has(classRow.id));
+  const selectedClassId =
+    params.classId && allClasses.some((classRow) => classRow.id === params.classId) ? params.classId : '';
 
-  const submissionsResult = await (supabase as any)
+  let submissionsQuery = (supabase as any)
     .from('homework_submissions')
     .select('*')
     .eq('student_id', session.userId)
     .order('created_at', { ascending: false });
+  if (selectedClassId) {
+    submissionsQuery = submissionsQuery.eq('class_id', selectedClassId);
+  }
+
+  const submissionsResult = await submissionsQuery;
 
   if (submissionsResult.error?.code === '42P01') {
     return (
@@ -103,7 +120,25 @@ export default async function StudentHomeworkPage() {
       title={t('portal.studentHomework.pageTitle', 'Homework')}
       description={t('portal.studentHomework.pageDescription', 'Submit homework and receive coach feedback.')}
     >
-      <StudentHomeworkManager classes={classes} initialSubmissions={mapped} />
+      <form method="get" className="grid sm:grid-cols-3 gap-3 mb-4">
+        <select
+          name="classId"
+          defaultValue={selectedClassId}
+          className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+        >
+          <option value="">{t('portal.student.attendance.allClasses', 'All classes')}</option>
+          {allClasses.map((classRow) => (
+            <option key={classRow.id} value={classRow.id}>
+              {classRow.name}
+            </option>
+          ))}
+        </select>
+        <button className="justify-self-start px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+          {t('portal.student.attendance.load', 'Load')}
+        </button>
+      </form>
+
+      <StudentHomeworkManager classes={submissionClasses} initialSubmissions={mapped} />
     </SectionCard>
   );
 }

@@ -5,7 +5,6 @@ import AttendanceSummary, { attendanceStatusClass } from '@/app/portal/_componen
 import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm } from '@/lib/portal/data';
-import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
 import { portalT } from '@/lib/portal/parent-i18n';
 import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -18,15 +17,22 @@ type AttendanceRow = Database['public']['Tables']['attendance_records']['Row'];
 export default async function StudentAttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ term?: string }>;
+  searchParams: Promise<{ term?: string; classId?: string }>;
 }) {
   const session = await requireRole(['student']);
   const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
-  const enrolled = await hasActiveEnrollment(supabase as any, session.userId);
-  if (!enrolled) {
+
+  const studentEnrollmentRows = ((await supabase
+    .from('enrollments')
+    .select('class_id,status')
+    .eq('student_id', session.userId)
+    .in('status', ['active', 'completed'])).data ?? []) as EnrollmentClassRow[];
+  const studentClassIds = studentEnrollmentRows.map((row) => row.class_id);
+
+  if (studentClassIds.length === 0) {
     return (
       <SectionCard
         title={t('portal.student.attendance.title', 'Attendance Record')}
@@ -44,13 +50,6 @@ export default async function StudentAttendancePage({
   const terms = (termsData ?? []) as TermRow[];
   const selectedTermId = params.term || activeTerm?.id || terms[0]?.id || '';
 
-  const studentEnrollmentRows = ((await supabase
-    .from('enrollments')
-    .select('class_id,status')
-    .eq('student_id', session.userId)
-    .eq('status', 'active')).data ?? []) as EnrollmentClassRow[];
-  const studentClassIds = studentEnrollmentRows.map((row) => row.class_id);
-
   const classes = studentClassIds.length
     ? (((await supabase
         .from('classes')
@@ -59,7 +58,12 @@ export default async function StudentAttendancePage({
         .eq('term_id', selectedTermId)).data ?? []) as StudentClassRow[])
     : ([] as StudentClassRow[]);
 
-  const classIds = classes.map((classRow) => classRow.id);
+  const selectedClassId = params.classId || '';
+  const classIds =
+    selectedClassId && classes.some((classRow) => classRow.id === selectedClassId)
+      ? [selectedClassId]
+      : classes.map((classRow) => classRow.id);
+
   const attendanceRows = classIds.length
     ? (((await supabase
         .from('attendance_records')
@@ -89,6 +93,18 @@ export default async function StudentAttendancePage({
             {terms.map((term) => (
               <option key={term.id} value={term.id}>
                 {term.name} {term.is_active ? `(${t('portal.student.attendance.activeLabel', 'Active')})` : ''}
+              </option>
+            ))}
+          </select>
+          <select
+            name="classId"
+            defaultValue={selectedClassId}
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          >
+            <option value="">{t('portal.student.attendance.allClasses', 'All classes')}</option>
+            {classes.map((classRow) => (
+              <option key={classRow.id} value={classRow.id}>
+                {classRow.name}
               </option>
             ))}
           </select>
