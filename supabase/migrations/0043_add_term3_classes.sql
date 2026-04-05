@@ -5,7 +5,7 @@ declare
   coach_emily_id uuid;
   coach_rebecca_id uuid;
   coach_archie_id uuid;
-  class_id uuid;
+  class_row_id uuid;
 begin
   -- Ensure Term 3 exists and is the active term.
   select t.id
@@ -83,7 +83,7 @@ begin
     raise notice 'Skipping Monday Debate Class: Akash Krishnamurthy coach profile not found.';
   else
     select c.id
-    into class_id
+    into class_row_id
     from public.classes c
     where c.term_id = term3_id
       and c.name = 'Monday Debate Class'
@@ -92,7 +92,7 @@ begin
       and c.schedule_end_time = time '20:45'
     limit 1;
 
-    if class_id is null then
+    if class_row_id is null then
       insert into public.classes (
         term_id,
         name,
@@ -114,18 +114,18 @@ begin
         'America/Vancouver',
         'junior'
       )
-      returning id into class_id;
+      returning id into class_row_id;
     else
       update public.classes
       set type = 'novice_debate',
           coach_id = coach_akash_id,
           timezone = 'America/Vancouver',
           eligible_sub_tier = 'junior'
-      where id = class_id;
+      where id = class_row_id;
     end if;
 
     insert into public.class_coaches (class_id, coach_id)
-    values (class_id, coach_akash_id)
+    values (class_row_id, coach_akash_id)
     on conflict (class_id, coach_id) do nothing;
   end if;
 
@@ -134,7 +134,7 @@ begin
     raise notice 'Skipping Tuesday Debate Class: Akash Krishnamurthy coach profile not found.';
   else
     select c.id
-    into class_id
+    into class_row_id
     from public.classes c
     where c.term_id = term3_id
       and c.name = 'Tuesday Debate Class'
@@ -143,7 +143,7 @@ begin
       and c.schedule_end_time = time '21:00'
     limit 1;
 
-    if class_id is null then
+    if class_row_id is null then
       insert into public.classes (
         term_id,
         name,
@@ -165,18 +165,18 @@ begin
         'America/Vancouver',
         'junior'
       )
-      returning id into class_id;
+      returning id into class_row_id;
     else
       update public.classes
       set type = 'novice_debate',
           coach_id = coach_akash_id,
           timezone = 'America/Vancouver',
           eligible_sub_tier = 'junior'
-      where id = class_id;
+      where id = class_row_id;
     end if;
 
     insert into public.class_coaches (class_id, coach_id)
-    values (class_id, coach_akash_id)
+    values (class_row_id, coach_akash_id)
     on conflict (class_id, coach_id) do nothing;
   end if;
 
@@ -185,7 +185,7 @@ begin
     raise notice 'Skipping Wednesday WSC Class: Emily Cui coach profile not found.';
   else
     select c.id
-    into class_id
+    into class_row_id
     from public.classes c
     where c.term_id = term3_id
       and c.name = 'Wednesday WSC Class'
@@ -194,7 +194,7 @@ begin
       and c.schedule_end_time = time '21:00'
     limit 1;
 
-    if class_id is null then
+    if class_row_id is null then
       insert into public.classes (
         term_id,
         name,
@@ -216,18 +216,18 @@ begin
         'America/Vancouver',
         'wsc'
       )
-      returning id into class_id;
+      returning id into class_row_id;
     else
       update public.classes
       set type = 'wsc',
           coach_id = coach_emily_id,
           timezone = 'America/Vancouver',
           eligible_sub_tier = 'wsc'
-      where id = class_id;
+      where id = class_row_id;
     end if;
 
     insert into public.class_coaches (class_id, coach_id)
-    values (class_id, coach_emily_id)
+    values (class_row_id, coach_emily_id)
     on conflict (class_id, coach_id) do nothing;
   end if;
 
@@ -236,7 +236,7 @@ begin
     raise notice 'Skipping Friday 5:30 PM Debate Class: Akash Krishnamurthy coach profile not found.';
   else
     select c.id
-    into class_id
+    into class_row_id
     from public.classes c
     where c.term_id = term3_id
       and c.name = 'Friday Debate Class'
@@ -245,7 +245,7 @@ begin
       and c.schedule_end_time = time '19:30'
     limit 1;
 
-    if class_id is null then
+    if class_row_id is null then
       insert into public.classes (
         term_id,
         name,
@@ -267,18 +267,18 @@ begin
         'America/Vancouver',
         'junior'
       )
-      returning id into class_id;
+      returning id into class_row_id;
     else
       update public.classes
       set type = 'novice_debate',
           coach_id = coach_akash_id,
           timezone = 'America/Vancouver',
           eligible_sub_tier = 'junior'
-      where id = class_id;
+      where id = class_row_id;
     end if;
 
     insert into public.class_coaches (class_id, coach_id)
-    values (class_id, coach_akash_id)
+    values (class_row_id, coach_akash_id)
     on conflict (class_id, coach_id) do nothing;
   end if;
 
@@ -287,7 +287,7 @@ begin
     raise notice 'Skipping Friday 7:30 PM Debate Class: Rebecca Amisano coach profile not found.';
   else
     select c.id
-    into class_id
+    into class_row_id
     from public.classes c
     where c.term_id = term3_id
       and c.name = 'Friday Debate Class'
@@ -296,7 +296,7 @@ begin
       and c.schedule_end_time = time '21:30'
     limit 1;
 
-    if class_id is null then
+    if class_row_id is null then
       insert into public.classes (
         term_id,
         name,
@@ -318,18 +318,18 @@ begin
         'America/Vancouver',
         'junior'
       )
-      returning id into class_id;
+      returning id into class_row_id;
     else
       update public.classes
       set type = 'novice_debate',
           coach_id = coach_rebecca_id,
           timezone = 'America/Vancouver',
           eligible_sub_tier = 'junior'
-      where id = class_id;
+      where id = class_row_id;
     end if;
 
     insert into public.class_coaches (class_id, coach_id)
-    values (class_id, coach_rebecca_id)
+    values (class_row_id, coach_rebecca_id)
     on conflict (class_id, coach_id) do nothing;
   end if;
 
@@ -338,7 +338,7 @@ begin
     raise notice 'Skipping Advanced Debate Class (BP): Archie coach profile not found.';
   else
     select c.id
-    into class_id
+    into class_row_id
     from public.classes c
     where c.term_id = term3_id
       and c.name = 'Advanced Debate Class (BP)'
@@ -347,7 +347,7 @@ begin
       and c.schedule_end_time = time '20:35'
     limit 1;
 
-    if class_id is null then
+    if class_row_id is null then
       insert into public.classes (
         term_id,
         name,
@@ -369,18 +369,18 @@ begin
         'America/Vancouver',
         'senior'
       )
-      returning id into class_id;
+      returning id into class_row_id;
     else
       update public.classes
       set type = 'advanced_debate',
           coach_id = coach_archie_id,
           timezone = 'America/Vancouver',
           eligible_sub_tier = 'senior'
-      where id = class_id;
+      where id = class_row_id;
     end if;
 
     insert into public.class_coaches (class_id, coach_id)
-    values (class_id, coach_archie_id)
+    values (class_row_id, coach_archie_id)
     on conflict (class_id, coach_id) do nothing;
   end if;
 end

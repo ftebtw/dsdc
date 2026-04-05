@@ -60,14 +60,16 @@ export default async function StudentResourcesPage({
   const classMap = Object.fromEntries(classes.map((classRow) => [classRow.id, classRow.name]));
 
   const selectedClass = params.classId ? classes.find((classRow) => classRow.id === params.classId) : undefined;
-  const termStartDateById = classes.length
-    ? Object.fromEntries(
-        (((await supabase
-          .from('terms')
-          .select('id,start_date,is_active')
-          .in('id', [...new Set(classes.map((classRow) => classRow.term_id))]).data ?? []) as Array<Record<string, any>>).map((term) => [term.id, term.start_date])
-      )
-    : {};
+  const classTermIds = [...new Set(classes.map((classRow) => classRow.term_id).filter(Boolean))];
+  const termRows = classTermIds.length
+    ? (((await supabase
+        .from('terms')
+        .select('id,start_date')
+        .in('id', classTermIds)).data ?? []) as Array<Record<string, any>>)
+    : [];
+  const termStartDateById = Object.fromEntries(
+    termRows.map((term) => [term.id, term.start_date])
+  );
   const activeTermStartDate = classes.length
     ? (((await supabase
         .from('terms')
@@ -79,7 +81,7 @@ export default async function StudentResourcesPage({
   let query = supabase
     .from('resources')
     .select('*')
-    .in('class_id', classIds.length ? classIds : ['00000000-0000-0000-0000-000000000000'])
+    .in('class_id', classIds)
     .order('created_at', { ascending: false });
 
   if (params.classId) query = query.eq('class_id', params.classId);

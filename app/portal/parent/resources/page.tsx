@@ -84,14 +84,16 @@ export default async function ParentResourcesPage({
     : ([] as ClassNameRow[]);
   const classMap = Object.fromEntries(classes.map((classRow) => [classRow.id, classRow.name]));
   const selectedClass = params.classId ? classes.find((classRow) => classRow.id === params.classId) : undefined;
-  const termStartDateById = classes.length
-    ? Object.fromEntries(
-        (((await supabase
-          .from('terms')
-          .select('id,start_date')
-          .in('id', [...new Set(classes.map((classRow) => classRow.term_id))]).data ?? []) as Array<Record<string, any>>).map((term) => [term.id, term.start_date])
-      )
-    : {};
+  const classTermIds = [...new Set(classes.map((classRow) => classRow.term_id).filter(Boolean))];
+  const termRows = classTermIds.length
+    ? (((await supabase
+        .from('terms')
+        .select('id,start_date')
+        .in('id', classTermIds)).data ?? []) as Array<Record<string, any>>)
+    : [];
+  const termStartDateById = Object.fromEntries(
+    termRows.map((term) => [term.id, term.start_date])
+  );
   const activeTermStartDate = classes.length
     ? (((await supabase
         .from('terms')
