@@ -7,6 +7,7 @@ import JsonLd from "@/components/JsonLd";
 import { addZhPrefix, hasChineseVersion } from "@/lib/localeRouting";
 import { buildBreadcrumbSchema, localBusinessSchema, websiteSchema } from "@/lib/structuredData";
 import { getBlogPostsSync } from "@/lib/blogPosts";
+import { getLocalizedBlogPost } from "@/lib/blogLocalizations";
 import { DM_Sans, Inter, Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -127,6 +128,7 @@ const breadcrumbLabelMapZh: Record<string, string> = {
   "debate-classes-toronto": "多伦多辩论课程",
   "debate-classes-vancouver": "温哥华辩论课程",
   faq: "常见问题",
+  "guide-to-debate-in-canada": "加拿大中学生辩论完整指南",
   "online-debate-classes": "在线辩论课程",
   pricing: "课程价格",
   privacy: "隐私政策",
@@ -153,7 +155,7 @@ function getBreadcrumbItems(pathname: string, locale: "en" | "zh") {
 
   if (cleanPath.startsWith("/blog/")) {
     const slug = cleanPath.slice("/blog/".length);
-    const post = getBlogPostsSync().find((item) => item.slug === slug);
+    const post = getLocalizedBlogPost(getBlogPostsSync(), slug, locale) ?? getBlogPostsSync().find((item) => item.slug === slug);
     return [
       { name: homeName, path: localizePath("/") },
       { name: locale === "zh" ? "博客" : "Blog", path: localizePath("/blog") },

@@ -1,3 +1,5 @@
+import { translatedChineseBlogSlugs } from "@/lib/blogChineseSlugs";
+
 export type SiteLocale = "en" | "zh";
 
 const CHINESE_VERSION_PATHS = new Set<string>([
@@ -5,6 +7,7 @@ const CHINESE_VERSION_PATHS = new Set<string>([
   "/about",
   "/awards",
   "/book",
+  "/blog",
   "/cancellation",
   "/classes",
   "/compare",
@@ -19,6 +22,8 @@ const CHINESE_VERSION_PATHS = new Set<string>([
   "/team",
   "/terms",
 ]);
+
+const CHINESE_BLOG_SLUGS = new Set<string>(translatedChineseBlogSlugs);
 
 export function normalizePathname(pathname: string) {
   if (!pathname) return "/";
@@ -40,5 +45,20 @@ export function addZhPrefix(pathname: string) {
 }
 
 export function hasChineseVersion(pathname: string) {
-  return CHINESE_VERSION_PATHS.has(stripZhPrefix(pathname));
+  const normalizedPath = stripZhPrefix(pathname);
+
+  if (CHINESE_VERSION_PATHS.has(normalizedPath)) {
+    return true;
+  }
+
+  if (normalizedPath === "/guide-to-debate-in-canada") {
+    return CHINESE_BLOG_SLUGS.has("guide-to-debate-in-canada");
+  }
+
+  if (normalizedPath.startsWith("/blog/")) {
+    const slug = normalizedPath.slice("/blog/".length);
+    return CHINESE_BLOG_SLUGS.has(slug);
+  }
+
+  return false;
 }

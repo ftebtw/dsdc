@@ -13,13 +13,19 @@ import type { BlogPost } from "@/lib/blogPosts";
 const categoryColors: Record<string, string> = {
   "Parents & Resources": "bg-green-50 text-green-700",
   "Parents & Pricing": "bg-green-50 text-green-700",
+  "家长指南": "bg-green-50 text-green-700",
+  "家长与价格": "bg-green-50 text-green-700",
   "Competitive Debate": "bg-blue-50 text-blue-700",
+  "竞赛辩论": "bg-blue-50 text-blue-700",
   "World Scholar's Cup": "bg-purple-50 text-purple-700",
+  "世界学者杯": "bg-purple-50 text-purple-700",
   "Student Tips": "bg-orange-50 text-orange-700",
+  "学生技巧": "bg-orange-50 text-orange-700",
   "Public Speaking": "bg-pink-50 text-pink-700",
+  "公共演讲": "bg-pink-50 text-pink-700",
 };
 
-function renderInlineContent(content: string): ReactNode[] {
+function renderInlineContent(content: string, localizeHref: (href: string) => string): ReactNode[] {
   const parts: ReactNode[] = [];
   const tokenRegex = /(<cite href="([^"]+)">([^<]+)<\/cite>|\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*)/g;
   let lastIndex = 0;
@@ -52,7 +58,7 @@ function renderInlineContent(content: string): ReactNode[] {
         href.startsWith("/") ? (
           <Link
             key={`${href}-${match.index}`}
-            href={href}
+            href={localizeHref(href)}
             className="text-gold-600 hover:text-gold-500 underline underline-offset-4 transition-colors"
           >
             {text}
@@ -97,6 +103,7 @@ export default function BlogPostContent({
 }) {
   const { t, locale } = useI18n();
   const localizeHref = (href: string) => (locale === "zh" && hasChineseVersion(href) ? addZhPrefix(href) : href);
+  const dateLocale = locale === "zh" ? "zh-CN" : "en-US";
   const related = allPosts
     .filter((p) => p.slug !== post.slug)
     .sort((a, b) => (a.category === post.category ? -1 : 1))
@@ -181,7 +188,7 @@ export default function BlogPostContent({
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <Link
-              href="/blog"
+              href={localizeHref("/blog")}
               className="inline-flex items-center gap-1.5 text-white/60 hover:text-white text-sm font-sans mb-6 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -223,7 +230,7 @@ export default function BlogPostContent({
             {post.authorProfile?.title ? <span>{post.authorProfile.title}</span> : null}
             <span className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4" />
-              {new Date(post.date).toLocaleDateString("en-US", {
+              {new Date(post.date).toLocaleDateString(dateLocale, {
                 month: "long",
                 day: "numeric",
                 year: "numeric",
@@ -243,11 +250,11 @@ export default function BlogPostContent({
             <AnimatedSection delay={0.05}>
               <aside className="mb-10 rounded-2xl border border-warm-200 bg-warm-50 p-5 dark:border-navy-700 dark:bg-navy-800/80">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-charcoal/50 dark:text-navy-300">
-                  Written by
+                  {locale === "zh" ? "作者" : "Written by"}
                 </p>
                 <div className="mt-2">
                   <Link
-                    href={post.authorProfile.url.replace("https://dsdc.ca", "")}
+                    href={localizeHref(post.authorProfile.url.replace("https://dsdc.ca", ""))}
                     className="text-xl font-bold text-navy-800 transition-colors hover:text-gold-500 dark:text-white dark:hover:text-gold-300"
                   >
                     {post.authorProfile.name}
@@ -295,14 +302,14 @@ export default function BlogPostContent({
                   <AnimatedSection key={i} delay={0.05}>
                     {section.content ? (
                       <p className="text-charcoal/70 dark:text-navy-200 font-semibold mb-2 font-sans">
-                        {renderInlineContent(section.content)}
+                        {renderInlineContent(section.content, localizeHref)}
                       </p>
                     ) : null}
                     <ul className="space-y-2 mb-6 ml-1">
                       {section.items?.map((item, j) => (
                         <li key={j} className="flex items-start gap-3 text-charcoal/70 dark:text-navy-200 leading-relaxed font-sans">
                           <span className="w-2 h-2 bg-gold-400 rounded-full mt-2 shrink-0" />
-                          <span>{renderInlineContent(item)}</span>
+                          <span>{renderInlineContent(item, localizeHref)}</span>
                         </li>
                       ))}
                     </ul>
@@ -315,7 +322,7 @@ export default function BlogPostContent({
                   <AnimatedSection key={i} delay={0.05}>
                     <div className="mb-6">
                       <Link
-                        href={singleInternalLinkMatch[2]}
+                        href={localizeHref(singleInternalLinkMatch[2])}
                         className="inline-block rounded-lg bg-gold-300 px-8 py-3.5 font-bold text-navy-900 transition-all duration-200 hover:-translate-y-0.5 hover:bg-gold-200 hover:shadow-xl"
                       >
                         {singleInternalLinkMatch[1]}
@@ -328,7 +335,7 @@ export default function BlogPostContent({
               return (
                 <AnimatedSection key={i} delay={0.05}>
                   <p className="text-charcoal/70 dark:text-navy-200 text-lg leading-relaxed mb-6 font-sans">
-                    {renderInlineContent(section.content)}
+                    {renderInlineContent(section.content, localizeHref)}
                   </p>
                 </AnimatedSection>
               );
@@ -339,7 +346,7 @@ export default function BlogPostContent({
             <AnimatedSection delay={0.07}>
               <section className="mt-10 rounded-2xl border border-warm-200 bg-white p-6 dark:border-navy-700 dark:bg-navy-800">
                 <h2 className="text-2xl font-bold text-navy-800 dark:text-white font-serif">
-                  Frequently Asked Questions About Choosing a Debate Program
+                  {locale === "zh" ? "关于选择辩论课程的常见问题" : "Frequently Asked Questions About Choosing a Debate Program"}
                 </h2>
                 <div className="mt-5 space-y-3">
                   {post.faqItems.map((item) => (
@@ -407,19 +414,19 @@ export default function BlogPostContent({
                 {t("hero.cta")}
               </Link>
               <p className="mt-4 text-sm text-white/80 font-sans">
-                Ready to start?{" "}
+                {locale === "zh" ? "准备好开始了吗？" : "Ready to start?"}{" "}
                 <Link href={localizeHref("/book")} className="underline underline-offset-4 hover:text-gold-300 transition-colors">
-                  Book a free consultation
+                  {locale === "zh" ? "预约免费咨询" : "Book a free consultation"}
                 </Link>{" "}
-                ,{" "}
+                {locale === "zh" ? "，" : ", "}
                 <Link href={localizeHref("/classes")} className="underline underline-offset-4 hover:text-gold-300 transition-colors">
-                  explore our classes
+                  {locale === "zh" ? "浏览全部课程" : "explore our classes"}
                 </Link>
-                , or{" "}
+                {locale === "zh" ? "，或" : ", or"}{" "}
                 <Link href={localizeHref("/pricing")} className="underline underline-offset-4 hover:text-gold-300 transition-colors">
-                  see our pricing
+                  {locale === "zh" ? "查看价格" : "see our pricing"}
                 </Link>
-                .
+                {locale === "zh" ? "。" : "."}
               </p>
             </div>
           </AnimatedSection>
@@ -428,7 +435,7 @@ export default function BlogPostContent({
             <AnimatedSection delay={0.12}>
               <section className="mt-10 rounded-2xl border border-warm-200 bg-white p-6 dark:border-navy-700 dark:bg-navy-800">
                 <h2 className="text-xl font-bold text-navy-800 dark:text-white font-serif">
-                  Sources Cited
+                  {locale === "zh" ? "参考来源" : "Sources Cited"}
                 </h2>
                 <ul className="mt-4 space-y-3">
                   {post.citationSources.map((citation) => (
@@ -461,7 +468,7 @@ export default function BlogPostContent({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {related.map((p, i) => (
               <AnimatedSection key={p.slug} delay={i * 0.1}>
-                <Link href={getBlogPostHref(p.slug)} className="group block">
+                <Link href={localizeHref(getBlogPostHref(p.slug))} className="group block">
                   <article className="bg-white dark:bg-navy-800 rounded-xl border border-warm-200 dark:border-navy-700 p-5 sm:p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${categoryColors[p.category] || "bg-gray-50 dark:bg-navy-700 text-gray-700 dark:text-navy-200"}`}>

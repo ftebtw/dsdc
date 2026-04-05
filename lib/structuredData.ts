@@ -206,7 +206,7 @@ function buildCitationSchema(citation: ArticleCitation) {
   };
 }
 
-export function buildArticleSchema(post: BlogPost, path: string) {
+export function buildArticleSchema(post: BlogPost, path: string, locale: "en" | "zh" = "en") {
   const datePublished = post.publishedAt ?? post.date;
   const dateModified = post.updatedAt ?? datePublished;
   const author = post.authorProfile ?? founderAuthorProfile;
@@ -219,7 +219,7 @@ export function buildArticleSchema(post: BlogPost, path: string) {
     description: post.excerpt,
     datePublished,
     dateModified,
-    inLanguage: "en-CA",
+    inLanguage: locale === "zh" ? "zh-Hans" : "en-CA",
     articleSection: post.category,
     author: {
       "@type": "Person",

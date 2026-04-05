@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getBlogPostsSync } from "@/lib/blogPosts";
+import { hasChineseBlogTranslation } from "@/lib/blogLocalizations";
+import { getBlogPostHref } from "@/lib/blogPostPaths";
 import { addZhPrefix, hasChineseVersion } from "@/lib/localeRouting";
 import { getLocalizedLastModified } from "@/lib/pageMetadata";
 
@@ -74,7 +76,8 @@ const staticEntries: StaticSitemapEntry[] = [
     path: "/blog",
     changeFrequency: "weekly",
     priority: 0.8,
-    files: ["app/blog/layout.tsx", "app/blog/page.tsx", "components/BlogListingContent.tsx"],
+    files: ["app/blog/layout.tsx", "app/blog/page.tsx", "components/BlogListingContent.tsx", "lib/blogLocalizations.ts"],
+    includeZh: true,
   },
   {
     path: "/register",
@@ -155,7 +158,8 @@ const staticEntries: StaticSitemapEntry[] = [
     path: "/guide-to-debate-in-canada",
     changeFrequency: "yearly",
     priority: 0.6,
-    files: ["app/guide-to-debate-in-canada/page.tsx", "content/blog-posts.json"],
+    files: ["app/guide-to-debate-in-canada/page.tsx", "lib/blogLocalizations.ts", "content/blog-posts.json"],
+    includeZh: true,
   },
 ];
 
@@ -185,11 +189,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const blogEntries: MetadataRoute.Sitemap = blogPosts
     .filter((post) => post.slug !== "guide-to-debate-in-canada")
     .map((post) => ({
-      url: `${baseUrl}/blog/${post.slug}`,
+      url: `${baseUrl}${getBlogPostHref(post.slug)}`,
       lastModified: new Date(post.updatedAt ?? post.publishedAt ?? post.date),
       changeFrequency: "monthly" as const,
       priority: 0.7,
     }));
 
-  return [...primaryEntries, ...zhEntries, ...blogEntries];
+  const zhBlogEntries: MetadataRoute.Sitemap = blogPosts
+    .filter((post) => post.slug !== "guide-to-debate-in-canada" && hasChineseBlogTranslation(post.slug))
+    .map((post) => ({
+      url: `${baseUrl}${addZhPrefix(getBlogPostHref(post.slug))}`,
+      lastModified: getLocalizedLastModified(["lib/blogLocalizations.ts", "content/blog-posts.json"]),
+      changeFrequency: "monthly" as const,
+      priority: 0.65,
+    }));
+
+  return [...primaryEntries, ...zhEntries, ...blogEntries, ...zhBlogEntries];
 }
