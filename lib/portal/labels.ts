@@ -12,6 +12,18 @@ export const classTypeLabel: Record<ClassType, string> = {
   wsc: "World Scholar's Cup",
 };
 
+const classTypeLabelZh: Record<ClassType, string> = {
+  novice_debate: '初级辩论',
+  intermediate_debate: '中级辩论',
+  advanced_debate: '高级辩论',
+  public_speaking: '公众演讲',
+  wsc: '世界学者杯',
+};
+
+export function getClassTypeLabel(type: ClassType, locale: 'en' | 'zh' = 'en'): string {
+  return locale === 'zh' ? classTypeLabelZh[type] || classTypeLabel[type] || type : classTypeLabel[type] || type;
+}
+
 export const scheduleDayLabel: Record<ScheduleDay, string> = {
   mon: 'Monday',
   tue: 'Tuesday',

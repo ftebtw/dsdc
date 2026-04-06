@@ -57,7 +57,8 @@ export async function POST(request: NextRequest) {
       return jsonError('Invalid timezone.');
     }
 
-    const defaultPassword = process.env.PORTAL_DEFAULT_STUDENT_PASSWORD || 'ChangeMe123!Temp';
+    const defaultPassword = process.env.PORTAL_DEFAULT_STUDENT_PASSWORD;
+    if (!defaultPassword) return jsonError('Server misconfiguration: default student password is not set.', 500);
     const meta = {
       role: 'student',
       display_name: body.newStudent.display_name,

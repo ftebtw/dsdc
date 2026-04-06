@@ -674,7 +674,27 @@
         "cameraOn": "开",
         "cameraOff": "关",
         "joinClass": "加入课程",
-        "zoomUnavailable": "Zoom 链接暂不可用"
+        "zoomUnavailable": "Zoom 链接暂不可用",
+        "subLabel": "代课",
+        "taLabel": "助教",
+        "onDate": "",
+        "approvedLabel": "审核于",
+        "openPdf": "打开 PDF",
+        "everyDay": "每周"
+      },
+      "referrals": {
+        "title": "推荐好友",
+        "description": "分享您的链接，每推荐一个报名全学期课程的家庭，即可获得 50 加元信用奖励。",
+        "enrollRequired": "您需要至少关联一名已报名的学生才能开启推荐功能。",
+        "unavailable": "推荐面板暂时不可用。",
+        "unavailableBody": "暂时无法加载您的推荐数据，请稍后再试。"
+      },
+      "classTypes": {
+        "novice_debate": "初级辩论",
+        "intermediate_debate": "中级辩论",
+        "advanced_debate": "高级辩论",
+        "public_speaking": "公众演讲",
+        "wsc": "世界学者杯"
       },
       "status": {
         "present": "出席",
@@ -1459,6 +1479,13 @@
       "title": "课程学分",
       "totalAvailable": "可用学分总数：",
       "used": "用过的"
+    },
+    "studentReferrals": {
+      "title": "推荐好友",
+      "description": "分享您的链接，每推荐一位报名全学期课程的朋友，即可获得 50 加元信用奖励。",
+      "enrollRequired": "您需要至少报名一门课程才能开启推荐功能。",
+      "unavailable": "推荐面板暂时不可用。",
+      "unavailableBody": "暂时无法加载您的推荐数据，请稍后再试。"
     },
     "studentLegal": {
       "alreadySigned": "该文件已经签署。",

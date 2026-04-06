@@ -30,6 +30,9 @@ export async function POST(request: NextRequest) {
     .update({ timezone: parsed.data.timezone })
     .eq('id', session.userId);
 
-  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+  if (error) {
+    console.error('[profile/timezone] update error', { code: error.code, message: error.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to update timezone. Please try again.', 400));
+  }
   return mergeCookies(supabaseResponse, NextResponse.json({ ok: true }));
 }

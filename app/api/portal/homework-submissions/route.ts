@@ -67,6 +67,22 @@ export async function POST(request: NextRequest) {
   let fileName: string | null = null;
 
   if (file) {
+    if (file.size > 10 * 1024 * 1024) {
+      return mergeCookies(supabaseResponse, jsonError('File must be 10MB or smaller.', 400));
+    }
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain',
+      'image/',
+    ];
+    const fileType = (file.type || '').toLowerCase();
+    if (!allowedTypes.some((t) => fileType.startsWith(t))) {
+      return mergeCookies(supabaseResponse, jsonError('File type not allowed. Please upload a PDF, document, presentation, text, or image file.', 400));
+    }
     const safeName = cleanFilename(file.name || 'homework-upload.bin');
     filePath = `class/${parsed.data.classId}/homework-submissions/${session.userId}/${submissionId}/${safeName}`;
     fileName = file.name || safeName;
@@ -77,7 +93,8 @@ export async function POST(request: NextRequest) {
         upsert: false,
       });
     if (uploadResult.error) {
-      return mergeCookies(supabaseResponse, jsonError(uploadResult.error.message, 400));
+      console.error('[homework-submissions] upload error', { message: uploadResult.error.message });
+      return mergeCookies(supabaseResponse, jsonError('Unable to upload file. Please try again.', 400));
     }
   }
 
@@ -100,7 +117,8 @@ export async function POST(request: NextRequest) {
     if (filePath) {
       await admin.storage.from(bucket).remove([filePath]);
     }
-    return mergeCookies(supabaseResponse, jsonError(insertError.message, 400));
+    console.error('[homework-submissions] insert error', { code: insertError.code, message: insertError.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to save submission. Please try again.', 400));
   }
 
   return mergeCookies(

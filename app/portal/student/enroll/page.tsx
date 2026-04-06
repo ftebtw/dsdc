@@ -5,8 +5,9 @@ import PortalEnrollClient from "@/app/portal/_components/PortalEnrollClient";
 import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";
 import { getActiveTerm } from "@/lib/portal/data";
-import { classTypeLabel } from "@/lib/portal/labels";
+import { getClassTypeLabel } from "@/lib/portal/labels";
 import { SESSIONS_PER_TERM, weeksRemainingInTerm } from "@/lib/pricing";
+import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 type ClassOption = {
@@ -50,7 +51,7 @@ function formatScheduleForViewer(
   const day = formatInTimeZone(startUtc, viewerTimezone, "EEEE");
   const start = formatInTimeZone(startUtc, viewerTimezone, "h:mm a");
   const end = formatInTimeZone(endUtc, viewerTimezone, "h:mm a zzz");
-  return `Every ${day}, ${start} - ${end}`;
+  return `${day}, ${start} - ${end}`;
 }
 
 export default async function StudentEnrollPage() {
@@ -74,9 +75,10 @@ export default async function StudentEnrollPage() {
     );
   }
 
+  const admin = getSupabaseAdminClient();
   const [{ data: classRows }, { data: allEnrollments }, { data: myEnrollments }] = await Promise.all([
     supabase.from("classes").select("*").eq("term_id", activeTerm.id).order("name"),
-    supabase
+    admin
       .from("enrollments")
       .select("class_id,status")
       .in("status", ["active", "pending_etransfer", "etransfer_sent", "pending_approval"]),
@@ -108,7 +110,7 @@ export default async function StudentEnrollPage() {
         id: classRow.id,
         name: classRow.name,
         type: classRow.type,
-        typeLabel: classTypeLabel[classRow.type as keyof typeof classTypeLabel] || classRow.type,
+        typeLabel: getClassTypeLabel(classRow.type, locale as 'en' | 'zh'),
         coachName: coach?.display_name || coach?.email || "DSDC Coach",
         scheduleText: formatScheduleForViewer(
           {

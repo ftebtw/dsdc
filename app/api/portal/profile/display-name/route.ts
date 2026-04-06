@@ -25,6 +25,9 @@ export async function POST(request: NextRequest) {
     .update({ display_name: parsed.data.displayName })
     .eq('id', session.userId);
 
-  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+  if (error) {
+    console.error('[profile/display-name] update error', { code: error.code, message: error.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to update display name. Please try again.', 400));
+  }
   return mergeCookies(supabaseResponse, NextResponse.json({ ok: true }));
 }

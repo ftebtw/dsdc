@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
     .is('claimed_by', null)
     .gt('expires_at', nowIso);
 
-  if (countError) return mergeCookies(supabaseResponse, jsonError(countError.message, 400));
+  if (countError) {
+    console.error('[invite-codes] count error', { code: countError.code, message: countError.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to generate invite code. Please try again.', 400));
+  }
   if ((count ?? 0) >= MAX_ACTIVE_CODES) {
     return mergeCookies(supabaseResponse, jsonError('You already have 5 active codes. Use or wait for one to expire.', 429));
   }
@@ -62,7 +65,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (error?.code !== '23505') {
-      return mergeCookies(supabaseResponse, jsonError(error?.message || 'Could not generate invite code.', 500));
+      console.error('[invite-codes] insert error', { code: error?.code, message: error?.message });
+      return mergeCookies(supabaseResponse, jsonError('Could not generate invite code. Please try again.', 500));
     }
   }
 

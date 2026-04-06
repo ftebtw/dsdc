@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm, getProfileMap } from '@/lib/portal/data';
-import { classTypeLabel } from '@/lib/portal/labels';
+import { classTypeLabel, getClassTypeLabel } from '@/lib/portal/labels';
 import { getParentSelection } from '@/lib/portal/parent';
 import { parentT } from '@/lib/portal/parent-i18n';
 import { formatClassScheduleForViewer } from '@/lib/portal/time';
@@ -153,7 +153,7 @@ export default async function ParentClassesPage({
     >
       <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
       <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
-        {classTypeLabel[classRow.type as keyof typeof classTypeLabel] || classRow.type} -{' '}
+        {getClassTypeLabel(classRow.type, locale)} -{' '}
         {formatClassScheduleForViewer(
           classRow.schedule_day,
           classRow.schedule_start_time,
@@ -174,20 +174,20 @@ export default async function ParentClassesPage({
       </p>
       {!isPast && nextSubByClass.get(classRow.id) ? (
         <p className="mt-2 text-sm rounded-md bg-gold-100 text-navy-900 px-2 py-1 inline-block">
-          Sub:{' '}
+          {parentT(locale, 'portal.parent.common.subLabel', 'Sub')}:{' '}
           {subPeople[nextSubByClass.get(classRow.id).accepting_coach_id]?.display_name ||
             subPeople[nextSubByClass.get(classRow.id).accepting_coach_id]?.email ||
             parentT(locale, 'portal.parent.common.subFallback', 'Coach')}{' '}
-          on {nextSubByClass.get(classRow.id).session_date}
+          {parentT(locale, 'portal.parent.common.onDate', 'on')} {nextSubByClass.get(classRow.id).session_date}
         </p>
       ) : null}
       {!isPast && nextTaByClass.get(classRow.id) ? (
         <p className="mt-2 text-sm rounded-md bg-blue-100 text-navy-900 px-2 py-1 inline-block">
-          TA:{' '}
+          {parentT(locale, 'portal.parent.common.taLabel', 'TA')}:{' '}
           {subPeople[nextTaByClass.get(classRow.id).accepting_ta_id]?.display_name ||
             subPeople[nextTaByClass.get(classRow.id).accepting_ta_id]?.email ||
             parentT(locale, 'portal.parent.common.taFallback', 'TA')}{' '}
-          on {nextTaByClass.get(classRow.id).session_date}
+          {parentT(locale, 'portal.parent.common.onDate', 'on')} {nextTaByClass.get(classRow.id).session_date}
         </p>
       ) : null}
       <p className="text-sm mt-1">

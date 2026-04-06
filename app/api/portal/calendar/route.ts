@@ -61,7 +61,10 @@ export async function GET(request: NextRequest) {
     .order("schedule_day", { ascending: true })
     .order("schedule_start_time", { ascending: true });
 
-  if (classError) return jsonError(classError.message, 500);
+  if (classError) {
+    console.error('[calendar] class fetch error', { code: classError.code, message: classError.message });
+    return jsonError('Unable to load calendar. Please try again.', 500);
+  }
 
   const classRows = (classRowsData ?? []) as Array<{
     id: string;
@@ -207,9 +210,14 @@ export async function GET(request: NextRequest) {
     calendarEventQuery,
   ]);
 
-  if (cancellationsResult.error) return jsonError(cancellationsResult.error.message, 500);
-  if (legacyEventsResult.error) return jsonError(legacyEventsResult.error.message, 500);
-  if (calendarEventsResult.error) return jsonError(calendarEventsResult.error.message, 500);
+  if (cancellationsResult.error || legacyEventsResult.error || calendarEventsResult.error) {
+    console.error('[calendar] data fetch error', {
+      cancellations: cancellationsResult.error?.message,
+      legacyEvents: legacyEventsResult.error?.message,
+      calendarEvents: calendarEventsResult.error?.message,
+    });
+    return jsonError('Unable to load calendar data. Please try again.', 500);
+  }
 
   const cancellations = (cancellationsResult.data ?? []) as Array<{
     class_id: string;

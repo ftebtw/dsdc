@@ -5,6 +5,7 @@ import ReferralDashboard from "@/app/portal/_components/ReferralDashboard";
 import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";
 import { hasActiveEnrollment } from "@/lib/portal/enrollment-status";
+import { portalT } from "@/lib/portal/parent-i18n";
 import { getOrCreateReferralCode } from "@/lib/portal/referral";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -17,17 +18,19 @@ function getAppBaseUrl() {
 export default async function StudentReferralsPage() {
   const session = await requireRole(["student"]);
   const supabase = await getSupabaseServerClient();
+  const locale = (session.profile.locale === "zh" ? "zh" : "en") as "en" | "zh";
+  const t = (key: string, fallback: string) => portalT(locale, key, fallback);
 
   const enrolled = await hasActiveEnrollment(supabase, session.userId);
   if (!enrolled) {
     return (
       <SectionCard
-        title="Refer a Friend"
-        description="You need an active enrollment to unlock referral sharing."
+        title={t("portal.studentReferrals.title", "Refer a Friend")}
+        description={t("portal.studentReferrals.enrollRequired", "You need an active enrollment to unlock referral sharing.")}
       >
         <EnrollmentRequiredBanner
           role="student"
-          locale={session.profile.locale === "zh" ? "zh" : "en"}
+          locale={locale}
         />
       </SectionCard>
     );
@@ -66,8 +69,8 @@ export default async function StudentReferralsPage() {
 
     return (
       <SectionCard
-        title="Refer a Friend"
-        description="Share your link and earn CAD $50 credit for each friend who enrolls in a full-term class."
+        title={t("portal.studentReferrals.title", "Refer a Friend")}
+        description={t("portal.studentReferrals.description", "Share your link and earn CAD $50 credit for each friend who enrolls in a full-term class.")}
       >
         <ReferralDashboard
           referralLink={referralLink}
@@ -82,11 +85,11 @@ export default async function StudentReferralsPage() {
 
   return (
     <SectionCard
-      title="Refer a Friend"
-      description="Referral dashboard is temporarily unavailable."
+      title={t("portal.studentReferrals.title", "Refer a Friend")}
+      description={t("portal.studentReferrals.unavailable", "Referral dashboard is temporarily unavailable.")}
     >
       <p className="text-sm text-charcoal/70 dark:text-navy-300">
-        We could not load your referral data right now. Please try again in a minute.
+        {t("portal.studentReferrals.unavailableBody", "We could not load your referral data right now. Please try again in a minute.")}
       </p>
     </SectionCard>
   );

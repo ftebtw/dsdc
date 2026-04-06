@@ -44,7 +44,10 @@ export async function POST(request: NextRequest) {
     .select('id,parent_id,code,expires_at')
     .maybeSingle();
 
-  if (claimError) return jsonError(claimError.message, 400);
+  if (claimError) {
+    console.error('[invite-codes/claim] claim error', { code: claimError.code, message: claimError.message });
+    return jsonError('Unable to claim invite code. Please try again.', 400);
+  }
   if (!claimedInvite) {
     const { data: existingInvite, error: lookupError } = await admin
       .from('invite_codes')
@@ -52,7 +55,10 @@ export async function POST(request: NextRequest) {
       .eq('code', code)
       .maybeSingle();
 
-    if (lookupError) return jsonError(lookupError.message, 400);
+    if (lookupError) {
+      console.error('[invite-codes/claim] lookup error', { code: lookupError.code, message: lookupError.message });
+      return jsonError('Unable to verify invite code. Please try again.', 400);
+    }
     if (!existingInvite) return jsonError('Invite code not found.', 404);
     if (existingInvite.claimed_by) return jsonError('This invite code was already claimed.', 409);
     if (existingInvite.expires_at <= nowIso) return jsonError('This invite code has expired.', 410);
@@ -69,7 +75,10 @@ export async function POST(request: NextRequest) {
       { onConflict: 'parent_id,student_id' }
     );
 
-  if (linkError) return jsonError(linkError.message, 400);
+  if (linkError) {
+    console.error('[invite-codes/claim] link error', { code: linkError.code, message: linkError.message });
+    return jsonError('Unable to link accounts. Please try again.', 400);
+  }
 
   const [parentProfileResult, studentProfileResult] = await Promise.all([
     admin

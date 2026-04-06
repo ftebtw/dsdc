@@ -5,7 +5,7 @@ import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequire
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm, getProfileMap } from '@/lib/portal/data';
-import { classTypeLabel } from '@/lib/portal/labels';
+import { classTypeLabel, getClassTypeLabel } from '@/lib/portal/labels';
 import { portalT } from '@/lib/portal/parent-i18n';
 import { formatClassScheduleForViewer } from '@/lib/portal/time';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
@@ -186,7 +186,7 @@ export default async function StudentClassesPage() {
       >
         <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
         <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
-          {classTypeLabel[classRow.type as keyof typeof classTypeLabel] || classRow.type} -{' '}
+          {getClassTypeLabel(classRow.type, locale)} -{' '}
           {formatClassScheduleForViewer(
             classRow.schedule_day,
             classRow.schedule_start_time,

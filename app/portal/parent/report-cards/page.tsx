@@ -102,13 +102,13 @@ export default async function ParentReportCardsPage({
                   <div>
                     <p className="font-medium text-navy-800 dark:text-white">{classMap[row.class_id] || row.class_id}</p>
                     <p className="text-xs text-charcoal/65 dark:text-navy-300">
-                      Coach:{' '}
+                      {parentT(locale, 'portal.parent.common.coachLabel', 'Coach')}:{' '}
                       {coachMap[row.written_by]?.display_name || coachMap[row.written_by]?.email || row.written_by}
                       {' - '}
-                      Approved: {formatUtcForUser(row.reviewed_at || row.created_at, session.profile.timezone)}
+                      {parentT(locale, 'portal.parent.common.approvedLabel', 'Approved')}: {formatUtcForUser(row.reviewed_at || row.created_at, session.profile.timezone)}
                     </p>
                   </div>
-                  <OpenSignedUrlButton endpoint={`/api/portal/report-cards/${row.id}/signed-url`} label="Open PDF" />
+                  <OpenSignedUrlButton endpoint={`/api/portal/report-cards/${row.id}/signed-url`} label={parentT(locale, 'portal.parent.common.openPdf', 'Open PDF')} />
                 </div>
               ))}
             </div>

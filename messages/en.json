@@ -674,7 +674,27 @@
         "statusHeader": "Status",
         "cameraHeader": "Camera",
         "cameraOn": "On",
-        "cameraOff": "Off"
+        "cameraOff": "Off",
+        "subLabel": "Sub",
+        "taLabel": "TA",
+        "onDate": "on",
+        "approvedLabel": "Approved",
+        "openPdf": "Open PDF",
+        "everyDay": "Every"
+      },
+      "referrals": {
+        "title": "Refer a Friend",
+        "description": "Share your link and earn CAD $50 credit for each family who enrolls in a full-term class.",
+        "enrollRequired": "You need at least one enrolled linked student to unlock referral sharing.",
+        "unavailable": "Referral dashboard is temporarily unavailable.",
+        "unavailableBody": "We could not load your referral data right now. Please try again in a minute."
+      },
+      "classTypes": {
+        "novice_debate": "Novice Debate",
+        "intermediate_debate": "Intermediate Debate",
+        "advanced_debate": "Advanced Debate",
+        "public_speaking": "Public Speaking",
+        "wsc": "World Scholar's Cup"
       },
       "status": {
         "present": "Present",
@@ -1440,6 +1460,13 @@
       "title": "Class Credits",
       "totalAvailable": "Total available credits:",
       "used": "Used"
+    },
+    "studentReferrals": {
+      "title": "Refer a Friend",
+      "description": "Share your link and earn CAD $50 credit for each friend who enrolls in a full-term class.",
+      "enrollRequired": "You need at least one class enrollment to unlock referral sharing.",
+      "unavailable": "Referral dashboard is temporarily unavailable.",
+      "unavailableBody": "We could not load your referral data right now. Please try again in a minute."
     },
     "studentLegal": {
       "alreadySigned": "This document is already signed.",

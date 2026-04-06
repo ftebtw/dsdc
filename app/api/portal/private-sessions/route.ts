@@ -54,13 +54,33 @@ export async function GET(request: NextRequest) {
 
   let query = supabase.from('private_sessions').select('*').order('requested_date', { ascending: true });
   if (status) query = query.eq('status', status);
-  if (session.profile.role === 'admin') {
+
+  const role = session.profile.role;
+  if (role === 'admin') {
     if (coachId) query = query.eq('coach_id', coachId);
     if (studentId) query = query.eq('student_id', studentId);
+  } else if (role === 'student') {
+    query = query.eq('student_id', session.userId);
+  } else if (role === 'coach' || role === 'ta') {
+    query = query.eq('coach_id', session.userId);
+  } else if (role === 'parent') {
+    const admin = getSupabaseAdminClient();
+    const { data: links } = await admin
+      .from('parent_student_links')
+      .select('student_id')
+      .eq('parent_id', session.userId);
+    const linkedStudentIds = (links ?? []).map((l: { student_id: string }) => l.student_id);
+    if (!linkedStudentIds.length) {
+      return mergeCookies(supabaseResponse, NextResponse.json({ sessions: [] }));
+    }
+    query = query.in('student_id', linkedStudentIds);
   }
 
   const { data, error } = await query;
-  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+  if (error) {
+    console.error('[private-sessions] query error', { code: error.code, message: error.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to load sessions. Please try again.', 400));
+  }
   return mergeCookies(supabaseResponse, NextResponse.json({ sessions: data ?? [] }));
 }
 
@@ -81,7 +101,10 @@ export async function POST(request: NextRequest) {
     .eq('id', body.data.availabilityId)
     .eq('is_private', true)
     .maybeSingle();
-  if (slotError) return mergeCookies(supabaseResponse, jsonError(slotError.message, 400));
+  if (slotError) {
+    console.error('[private-sessions] slot fetch error', { code: slotError.code, message: slotError.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to load availability slot. Please try again.', 400));
+  }
   if (!slot) return mergeCookies(supabaseResponse, jsonError('Availability slot not found.', 404));
   const today = new Date().toISOString().slice(0, 10);
   if (slot.available_date < today) return mergeCookies(supabaseResponse, jsonError('Cannot request past availability slots.', 400));
@@ -163,7 +186,10 @@ export async function POST(request: NextRequest) {
     })
     .select('*')
     .single();
-  if (createError) return mergeCookies(supabaseResponse, jsonError(createError.message, 400));
+  if (createError) {
+    console.error('[private-sessions] create error', { code: createError.code, message: createError.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to create session request. Please try again.', 400));
+  }
 
   const [studentProfile, coachProfile] = await Promise.all([
     admin

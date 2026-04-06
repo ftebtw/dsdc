@@ -47,6 +47,17 @@ export async function POST(request: NextRequest) {
 
   if (!targetStudentId) return mergeCookies(supabaseResponse, jsonError('Student is required.', 400));
 
+  if (session.profile.role === 'parent') {
+    const admin = getSupabaseAdminClient();
+    const { data: link } = await admin
+      .from('parent_student_links')
+      .select('id')
+      .eq('parent_id', session.userId)
+      .eq('student_id', targetStudentId)
+      .maybeSingle();
+    if (!link) return mergeCookies(supabaseResponse, jsonError('Student is not linked to your account.', 403));
+  }
+
   const { data, error } = await supabase
     .from('student_absences')
     .insert({
@@ -59,7 +70,10 @@ export async function POST(request: NextRequest) {
     .select('*')
     .single();
 
-  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+  if (error) {
+    console.error('[absences] insert error', { code: error.code, message: error.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to report absence. Please try again.', 400));
+  }
 
   try {
     const admin = getSupabaseAdminClient();

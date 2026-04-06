@@ -128,7 +128,8 @@ export async function POST(request: NextRequest) {
     if (error) return jsonError(error.message, 400);
     userId = data.user?.id;
   } else {
-    const defaultPassword = process.env.PORTAL_DEFAULT_STUDENT_PASSWORD || 'ChangeMe123!Temp';
+    const defaultPassword = process.env.PORTAL_DEFAULT_STUDENT_PASSWORD;
+    if (!defaultPassword) return jsonError('Server misconfiguration: default student password is not set.', 500);
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email: body.email,
       password: defaultPassword,

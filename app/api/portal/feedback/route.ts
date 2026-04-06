@@ -29,7 +29,10 @@ export async function POST(request: NextRequest) {
     body: parsed.data.body.trim(),
   });
 
-  if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+  if (error) {
+    console.error('[feedback] insert error', { code: error.code, message: error.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to submit feedback. Please try again.', 400));
+  }
   return mergeCookies(supabaseResponse, NextResponse.json({ ok: true }));
 }
 

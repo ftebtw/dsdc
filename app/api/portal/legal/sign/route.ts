@@ -6,7 +6,7 @@ import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 const bodySchema = z.object({
   documentId: z.string().uuid(),
-  dataUrl: z.string().min(30),
+  dataUrl: z.string().min(30).max(700_000),
   signedForStudentId: z.string().uuid().optional(),
 });
 
@@ -43,7 +43,10 @@ export async function POST(request: NextRequest) {
     .eq('id', parsed.data.documentId)
     .maybeSingle();
 
-  if (documentError) return mergeCookies(supabaseResponse, jsonError(documentError.message, 400));
+  if (documentError) {
+    console.error('[legal/sign] document fetch error', { code: documentError.code, message: documentError.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to load document. Please try again.', 400));
+  }
   if (!document) return mergeCookies(supabaseResponse, jsonError('Document not found.', 404));
   if (document.required_for === 'all_coaches') {
     return mergeCookies(supabaseResponse, jsonError('Document is not required for your role.', 403));
@@ -85,7 +88,10 @@ export async function POST(request: NextRequest) {
     contentType: 'image/png',
     upsert: false,
   });
-  if (uploadResult.error) return mergeCookies(supabaseResponse, jsonError(uploadResult.error.message, 400));
+  if (uploadResult.error) {
+    console.error('[legal/sign] upload error', { message: uploadResult.error.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to save signature. Please try again.', 400));
+  }
 
   const forwardedFor = request.headers.get('x-forwarded-for');
   const ipAddress = forwardedFor ? forwardedFor.split(',')[0]?.trim() : null;
@@ -105,7 +111,8 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (signatureError) {
-    return mergeCookies(supabaseResponse, jsonError(signatureError.message, 400));
+    console.error('[legal/sign] signature insert error', { code: signatureError.code, message: signatureError.message });
+    return mergeCookies(supabaseResponse, jsonError('Unable to record signature. Please try again.', 400));
   }
 
   return mergeCookies(supabaseResponse, NextResponse.json({ signature }));
