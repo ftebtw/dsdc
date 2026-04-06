@@ -45,6 +45,7 @@ export default function StudentHomeworkManager({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const sortedSubmissions = useMemo(
     () => [...submissions].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)),
@@ -57,6 +58,7 @@ export default function StudentHomeworkManager({
 
     setLoading(true);
     setError(null);
+    setSuccess(null);
     const formData = new FormData();
     formData.append('classId', classId);
     formData.append('title', title.trim());
@@ -90,6 +92,7 @@ export default function StudentHomeworkManager({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    setSuccess(t('portal.studentHomework.submitSuccess', 'Homework submitted successfully! Your coach will review it.'));
   }
 
   return (
@@ -155,6 +158,7 @@ export default function StudentHomeworkManager({
           <p className="text-xs text-charcoal/60 dark:text-navy-400">
             {t('portal.studentHomework.fileOrUrlHint', 'Attach a file or provide an external URL.')}
           </p>
+          {success ? <p className="text-sm text-green-700 dark:text-green-400">{success}</p> : null}
           {error ? <p className="text-sm text-red-700">{error}</p> : null}
           <button
             type="submit"
