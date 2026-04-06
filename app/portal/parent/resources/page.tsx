@@ -49,6 +49,9 @@ export default async function ParentResourcesPage({
         <p className="text-sm text-charcoal/70 dark:text-navy-300">
           {parentT(locale, 'portal.parent.common.noLinkedStudents', 'No students linked to your account yet.')}
         </p>
+        <a href="/portal/parent/dashboard" className="mt-3 inline-block text-sm font-medium text-navy-700 dark:text-gold-300 underline">
+          {parentT(locale, 'portal.parent.common.goToDashboard', 'Go to Dashboard to link a student')}
+        </a>
       </SectionCard>
     );
   }

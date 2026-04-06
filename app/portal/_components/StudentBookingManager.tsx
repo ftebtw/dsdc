@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import PrivateSessionsManager from "@/app/portal/_components/PrivateSessionsManager";
 import { useI18n } from "@/lib/i18n";
@@ -101,11 +102,13 @@ export default function StudentBookingManager({
 }) {
   const { locale: contextLocale } = useI18n();
   const t = (key: string, fallback: string) => portalT(contextLocale, key, fallback);
+  const router = useRouter();
   const [selectedSlotIds, setSelectedSlotIds] = useState<Set<string>>(new Set());
   const [slotRanges, setSlotRanges] = useState<Record<string, SlotRange>>({});
   const [studentNotes, setStudentNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   function toggleSlot(slot: AvailableSlot) {
     setSelectedSlotIds((prev) => {
@@ -206,11 +209,13 @@ export default function StudentBookingManager({
 
     if (errors.length > 0) {
       setError(errors.join("; "));
-      if (errors.length < slotArray.length) {
-        window.location.reload();
-      }
-    } else {
-      window.location.reload();
+    }
+    if (errors.length < slotArray.length) {
+      setSuccess(t("portal.privateSessions.requestSuccess", "Session requested! Your coach will review and respond."));
+      setSelectedSlotIds(new Set());
+      setSlotRanges({});
+      setStudentNotes("");
+      router.refresh();
     }
   }
 
@@ -367,6 +372,7 @@ export default function StudentBookingManager({
                 )
               : t("portal.common.requestSession", "Request Session")}
         </button>
+        {success ? <p className="text-sm text-green-700 dark:text-green-400">{success}</p> : null}
         {error ? <p className="text-sm text-red-700">{error}</p> : null}
       </div>
 

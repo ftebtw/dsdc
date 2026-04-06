@@ -673,6 +673,7 @@
         "cameraHeader": "摄像头",
         "cameraOn": "开",
         "cameraOff": "关",
+        "goToDashboard": "前往主页关联学生",
         "joinClass": "加入课程",
         "zoomUnavailable": "Zoom 链接暂不可用",
         "subLabel": "代课",

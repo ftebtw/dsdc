@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 
+import AutoSubmitSelect from '@/app/portal/_components/AutoSubmitSelect';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import AttendanceSummary, { attendanceStatusClass } from '@/app/portal/_components/AttendanceSummary';
 import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
@@ -85,7 +86,7 @@ export default async function StudentAttendancePage({
           <label className="text-sm text-navy-700 dark:text-navy-200">
             {t('portal.student.attendance.term', 'Term')}
           </label>
-          <select
+          <AutoSubmitSelect
             name="term"
             defaultValue={selectedTermId}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
@@ -95,8 +96,8 @@ export default async function StudentAttendancePage({
                 {term.name} {term.is_active ? `(${t('portal.student.attendance.activeLabel', 'Active')})` : ''}
               </option>
             ))}
-          </select>
-          <select
+          </AutoSubmitSelect>
+          <AutoSubmitSelect
             name="classId"
             defaultValue={selectedClassId}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
@@ -107,51 +108,54 @@ export default async function StudentAttendancePage({
                 {classRow.name}
               </option>
             ))}
-          </select>
-          <button className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-            {t('portal.student.attendance.load', 'Load')}
-          </button>
+          </AutoSubmitSelect>
+          <noscript>
+            <button className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+              {t('portal.student.attendance.load', 'Load')}
+            </button>
+          </noscript>
         </form>
 
         <AttendanceSummary records={attendanceRows} locale={locale} />
       </SectionCard>
 
       <SectionCard title={t('portal.student.attendance.sessionLog', 'Session Log')}>
-        <div className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-x-auto">
-          <table className="w-full min-w-[760px] text-sm">
-            <thead className="bg-warm-100 dark:bg-navy-900/60">
-              <tr>
-                <th className="text-left px-4 py-3">{t('portal.student.attendance.date', 'Date')}</th>
-                <th className="text-left px-4 py-3">{t('portal.student.attendance.class', 'Class')}</th>
-                <th className="text-left px-4 py-3">{t('portal.student.attendance.status', 'Status')}</th>
-                <th className="text-left px-4 py-3">{t('portal.student.attendance.camera', 'Camera')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendanceRows.map((row) => (
-                <tr key={row.id} className="border-t border-warm-200 dark:border-navy-700">
-                  <td className="px-4 py-3">{row.session_date}</td>
-                  <td className="px-4 py-3">{classMap[row.class_id]?.name || row.class_id}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs uppercase ${attendanceStatusClass(row.status)}`}>
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {row.camera_on
-                      ? t('portal.student.attendance.cameraOn', 'On')
-                      : t('portal.student.attendance.cameraOff', 'Off')}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
         {attendanceRows.length === 0 ? (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-4">
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
             {t('portal.student.attendance.noTermRecords', 'No attendance records for this term.')}
           </p>
-        ) : null}
+        ) : (
+          <div className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead className="bg-warm-100 dark:bg-navy-900/60">
+                <tr>
+                  <th className="text-left px-4 py-3">{t('portal.student.attendance.date', 'Date')}</th>
+                  <th className="text-left px-4 py-3">{t('portal.student.attendance.class', 'Class')}</th>
+                  <th className="text-left px-4 py-3">{t('portal.student.attendance.status', 'Status')}</th>
+                  <th className="text-left px-4 py-3">{t('portal.student.attendance.camera', 'Camera')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendanceRows.map((row) => (
+                  <tr key={row.id} className="border-t border-warm-200 dark:border-navy-700">
+                    <td className="px-4 py-3">{row.session_date}</td>
+                    <td className="px-4 py-3">{classMap[row.class_id]?.name || row.class_id}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-xs uppercase ${attendanceStatusClass(row.status)}`}>
+                        {row.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {row.camera_on
+                        ? t('portal.student.attendance.cameraOn', 'On')
+                        : t('portal.student.attendance.cameraOff', 'Off')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </SectionCard>
     </div>
   );

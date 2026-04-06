@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { redirect } from 'next/navigation';
+import AutoSubmitSelect from '@/app/portal/_components/AutoSubmitSelect';
 import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import AttendanceSummary, { attendanceStatusClass } from '@/app/portal/_components/AttendanceSummary';
@@ -38,6 +39,9 @@ export default async function ParentAttendancePage({
         <p className="text-sm text-charcoal/70 dark:text-navy-300">
           {parentT(locale, 'portal.parent.common.noLinkedStudents', 'No students linked to your account yet.')}
         </p>
+        <a href="/portal/parent/dashboard" className="mt-3 inline-block text-sm font-medium text-navy-700 dark:text-gold-300 underline">
+          {parentT(locale, 'portal.parent.common.goToDashboard', 'Go to Dashboard to link a student')}
+        </a>
       </SectionCard>
     );
   }
@@ -114,7 +118,7 @@ export default async function ParentAttendancePage({
           <label className="text-sm text-navy-700 dark:text-navy-200">
             {parentT(locale, 'portal.parent.common.termLabel', 'Term')}
           </label>
-          <select
+          <AutoSubmitSelect
             name="term"
             defaultValue={selectedTermId}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
@@ -124,8 +128,8 @@ export default async function ParentAttendancePage({
                 {term.name} {term.is_active ? `(${parentT(locale, 'portal.student.attendance.activeLabel', 'Active')})` : ''}
               </option>
             ))}
-          </select>
-          <select
+          </AutoSubmitSelect>
+          <AutoSubmitSelect
             name="classId"
             defaultValue={selectedClassId}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
@@ -136,50 +140,53 @@ export default async function ParentAttendancePage({
                 {classRow.name}
               </option>
             ))}
-          </select>
-          <button className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
-            {parentT(locale, 'portal.parent.common.loadButton', 'Load')}
-          </button>
+          </AutoSubmitSelect>
+          <noscript>
+            <button className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+              {parentT(locale, 'portal.parent.common.loadButton', 'Load')}
+            </button>
+          </noscript>
         </form>
         <AttendanceSummary records={attendanceRows} locale={locale} />
       </SectionCard>
 
       <SectionCard title={parentT(locale, 'portal.parent.attendance.sessionLog', 'Session Log')}>
-        <div className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-x-auto">
-          <table className="w-full min-w-[760px] text-sm">
-            <thead className="bg-warm-100 dark:bg-navy-900/60">
-              <tr>
-                <th className="text-left px-4 py-3">{parentT(locale, 'portal.parent.common.dateHeader', 'Date')}</th>
-                <th className="text-left px-4 py-3">{parentT(locale, 'portal.parent.common.classHeader', 'Class')}</th>
-                <th className="text-left px-4 py-3">{parentT(locale, 'portal.parent.common.statusHeader', 'Status')}</th>
-                <th className="text-left px-4 py-3">{parentT(locale, 'portal.parent.common.cameraHeader', 'Camera')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendanceRows.map((row) => (
-                <tr key={row.id} className="border-t border-warm-200 dark:border-navy-700">
-                  <td className="px-4 py-3">{row.session_date}</td>
-                  <td className="px-4 py-3">{classMap[row.class_id] || row.class_id}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs uppercase ${attendanceStatusClass(row.status)}`}>
-                      {statusLabel(row.status)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {row.camera_on
-                      ? parentT(locale, 'portal.parent.common.cameraOn', 'On')
-                      : parentT(locale, 'portal.parent.common.cameraOff', 'Off')}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
         {attendanceRows.length === 0 ? (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-4">
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
             {parentT(locale, 'portal.parent.common.noAttendanceForTerm', 'No attendance records for this term.')}
           </p>
-        ) : null}
+        ) : (
+          <div className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead className="bg-warm-100 dark:bg-navy-900/60">
+                <tr>
+                  <th className="text-left px-4 py-3">{parentT(locale, 'portal.parent.common.dateHeader', 'Date')}</th>
+                  <th className="text-left px-4 py-3">{parentT(locale, 'portal.parent.common.classHeader', 'Class')}</th>
+                  <th className="text-left px-4 py-3">{parentT(locale, 'portal.parent.common.statusHeader', 'Status')}</th>
+                  <th className="text-left px-4 py-3">{parentT(locale, 'portal.parent.common.cameraHeader', 'Camera')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendanceRows.map((row) => (
+                  <tr key={row.id} className="border-t border-warm-200 dark:border-navy-700">
+                    <td className="px-4 py-3">{row.session_date}</td>
+                    <td className="px-4 py-3">{classMap[row.class_id] || row.class_id}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-xs uppercase ${attendanceStatusClass(row.status)}`}>
+                        {statusLabel(row.status)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {row.camera_on
+                        ? parentT(locale, 'portal.parent.common.cameraOn', 'On')
+                        : parentT(locale, 'portal.parent.common.cameraOff', 'Off')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </SectionCard>
     </div>
   );

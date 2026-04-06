@@ -675,6 +675,7 @@
         "cameraHeader": "Camera",
         "cameraOn": "On",
         "cameraOff": "Off",
+        "goToDashboard": "Go to Dashboard to link a student",
         "subLabel": "Sub",
         "taLabel": "TA",
         "onDate": "on",

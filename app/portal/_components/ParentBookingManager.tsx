@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import PrivateSessionsManager from "@/app/portal/_components/PrivateSessionsManager";
 import { useI18n } from "@/lib/i18n";
@@ -103,12 +104,13 @@ export default function ParentBookingManager({
 }) {
   const { locale: contextLocale } = useI18n();
   const t = (key: string, fallback: string) => portalT(contextLocale, key, fallback);
+  const router = useRouter();
   const [selectedSlotIds, setSelectedSlotIds] = useState<Set<string>>(new Set());
   const [slotRanges, setSlotRanges] = useState<Record<string, SlotRange>>({});
   const [notes, setNotes] = useState("");
   const [requesting, setRequesting] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
-  const [requestSuccess, setRequestSuccess] = useState(false);
+  const [requestSuccess, setRequestSuccess] = useState<string | null>(null);
 
   function toggleSlot(slot: AvailableSlot) {
     setSelectedSlotIds((prev) => {
@@ -160,7 +162,7 @@ export default function ParentBookingManager({
     if (selectedSlotIds.size === 0) return;
     setRequesting(true);
     setRequestError(null);
-    setRequestSuccess(false);
+    setRequestSuccess(null);
 
     const slotArray = [...selectedSlotIds];
     const errors: string[] = [];
@@ -211,15 +213,13 @@ export default function ParentBookingManager({
 
     if (errors.length > 0) {
       setRequestError(errors.join("; "));
-      if (errors.length < slotArray.length) {
-        setRequestSuccess(true);
-        window.location.reload();
-      }
-    } else {
-      setRequestSuccess(true);
+    }
+    if (errors.length < slotArray.length) {
+      setRequestSuccess(t("portal.privateSessions.requestSuccess", "Session requested! The coach will review and respond."));
       setSelectedSlotIds(new Set());
+      setSlotRanges({});
       setNotes("");
-      window.location.reload();
+      router.refresh();
     }
   }
 
@@ -374,7 +374,7 @@ export default function ParentBookingManager({
         {requestError ? <p className="mt-2 text-sm text-red-600 dark:text-red-400">{requestError}</p> : null}
         {requestSuccess ? (
           <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-            {t("portal.common.sessionRequested", "Session requested! The coach will review and respond.")}
+            {requestSuccess}
           </p>
         ) : null}
       </div>
