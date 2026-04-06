@@ -19,7 +19,7 @@ export default function Footer() {
   return (
     <footer className="bg-navy-800 dark:bg-navy-900 text-white border-t border-navy-700 dark:border-navy-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-6">
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="mb-4 inline-flex items-center gap-3">
@@ -87,6 +87,40 @@ export default function Footer() {
               <li>
                 <Link href={registerHref} className="text-navy-200 hover:text-white text-sm transition-colors">
                   {t("nav.register")}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Programs */}
+          <div>
+            <h3 className="text-gold-400 font-semibold text-sm uppercase tracking-wider mb-4">
+              {locale === "zh" ? "课程项目" : "Programs"}
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/online-debate-classes" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {locale === "zh" ? "在线辩论课程" : "Online Debate Classes"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/public-speaking-classes-for-kids" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {locale === "zh" ? "青少年演讲课" : "Public Speaking for Kids"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/world-scholars-cup-coaching" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {locale === "zh" ? "世界学者杯辅导" : "World Scholar's Cup"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/debate-classes-for-beginners" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {locale === "zh" ? "初学者辩论课" : "Debate for Beginners"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/debate-classes-canada" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {locale === "zh" ? "加拿大辩论课程" : "Debate Classes Canada"}
                 </Link>
               </li>
             </ul>

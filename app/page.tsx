@@ -25,7 +25,7 @@ export const revalidate = 60;
 export async function generateMetadata(): Promise<Metadata> {
   return buildLocalizedPageMetadata({
     path: "/",
-    title: "DSDC | Debate & Public Speaking Classes for Kids",
+    title: "Debate & Public Speaking Classes for Kids in Canada | DSDC",
     description:
       "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaches, personalized feedback, and proven tournament results.",
     keywords: [

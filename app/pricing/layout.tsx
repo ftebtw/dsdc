@@ -4,7 +4,7 @@ import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 export async function generateMetadata(): Promise<Metadata> {
   return buildLocalizedPageMetadata({
     path: "/pricing",
-    title: "Debate Class Pricing | Online Group & Private Coaching from $30/hr | DSDC",
+    title: "Debate Class Pricing | From $30/hr Online | DSDC",
     description:
       "Transparent pricing for DSDC's online debate and public speaking classes. Group classes from $30-50/hr. Private coaching available with flexible scheduling.",
     images: [

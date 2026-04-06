@@ -55,6 +55,21 @@ export default function HomepageExploreLinks() {
             title: "加拿大辩论指南",
             description: "阅读最受欢迎的入门文章，了解加拿大辩论生态和比赛路径。",
           },
+          {
+            href: "/public-speaking-classes-for-kids",
+            title: "青少年公共演讲课",
+            description: "通过在线公共演讲课帮助孩子建立自信和领导力，适合4-9年级学生。",
+          },
+          {
+            href: "/world-scholars-cup-coaching",
+            title: "世界学者杯辅导",
+            description: "加拿大顶尖 WSC 辅导项目，资格赛通过率 100%。",
+          },
+          {
+            href: "/debate-classes-for-beginners",
+            title: "初学者辩论课",
+            description: "无需经验。我们的入门辩论课专为腼腆和初次接触辩论的学生设计。",
+          },
         ]
       : [
           {
@@ -96,6 +111,21 @@ export default function HomepageExploreLinks() {
             href: "/guide-to-debate-in-canada",
             title: "Guide to Debate in Canada",
             description: "Read our top-performing guide on formats, tournaments, and the Canadian debate pathway.",
+          },
+          {
+            href: "/public-speaking-classes-for-kids",
+            title: "Public Speaking for Kids",
+            description: "Build confidence and leadership skills with live online public speaking classes for Grades 4-9.",
+          },
+          {
+            href: "/world-scholars-cup-coaching",
+            title: "World Scholar's Cup Coaching",
+            description: "Prepare for the World Scholar's Cup with Canada's top WSC coaching program. 100% qualification rate.",
+          },
+          {
+            href: "/debate-classes-for-beginners",
+            title: "Debate for Beginners",
+            description: "No experience needed. Our beginner debate classes are designed for shy and first-time students.",
           },
         ];
 

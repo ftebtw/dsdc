@@ -57,7 +57,7 @@ const courseSchema = {
 export async function generateMetadata(): Promise<Metadata> {
   return buildLocalizedPageMetadata({
     path: "/world-scholars-cup-coaching",
-    title: "World Scholar's Cup Coaching | 100% Qualification Rate Since 2020 | DSDC",
+    title: "World Scholar's Cup Coaching Canada | 100% Qual. Rate | DSDC",
     description:
       "Prepare for the World Scholar's Cup with DSDC's expert coaching. 100% qualification rate from regionals to the Tournament of Champions at Yale since 2020. Online classes for Grades 4-12.",
     images: [

@@ -78,6 +78,7 @@ export const localBusinessSchema = {
       availableLanguage: ["en", "zh"],
     },
   ],
+  priceRange: "$$",
   sameAs: [
     "https://instagram.com/debate_education/",
     "https://www.linkedin.com/company/debate-and-speech-development-community/",
