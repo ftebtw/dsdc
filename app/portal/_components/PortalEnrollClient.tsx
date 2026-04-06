@@ -11,6 +11,7 @@ type ClassOption = {
   scheduleText: string;
   spotsRemaining: number;
   alreadyEnrolled: boolean;
+  priceCad?: number;
 };
 
 type Props = {
@@ -48,6 +49,8 @@ const copy = {
     selectAtLeast: "Select at least one class to continue.",
     genericError: "Something went wrong. Please try again.",
     coach: "Coach",
+    perClass: "per class",
+    estimatedTotal: "Estimated total",
   },
   zh: {
     selectClasses: "选择课程",
@@ -66,6 +69,8 @@ const copy = {
     selectAtLeast: "请至少选择一门课程后继续。",
     genericError: "发生错误，请重试。",
     coach: "教练",
+    perClass: "每门课",
+    estimatedTotal: "预计总额",
   },
 } as const;
 
@@ -232,6 +237,11 @@ export default function PortalEnrollClient({
               <p className="mt-0.5 text-xs text-charcoal/60 dark:text-navy-300">
                 {c.coach}: {classRow.coachName} - {classRow.spotsRemaining} {c.spots}
               </p>
+              {classRow.priceCad != null ? (
+                <p className="mt-0.5 text-sm font-semibold text-navy-700 dark:text-gold-300">
+                  ${classRow.priceCad} CAD
+                </p>
+              ) : null}
             </button>
           );
         })}
@@ -264,6 +274,22 @@ export default function PortalEnrollClient({
               );
             })}
           </div>
+        </div>
+      ) : null}
+
+      {selected.length > 0 && classes.some((r) => r.priceCad != null) ? (
+        <div className="rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-800 px-4 py-3">
+          <p className="text-base font-bold text-navy-800 dark:text-white">
+            {c.estimatedTotal}:{" "}
+            <span className="text-gold-600 dark:text-gold-300">
+              $
+              {selected.reduce((sum, id) => {
+                const cls = classes.find((r) => r.id === id);
+                return sum + (cls?.priceCad ?? 0);
+              }, 0)}{" "}
+              CAD
+            </span>
+          </p>
         </div>
       ) : null}
 

@@ -6,6 +6,7 @@ import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";
 import { getActiveTerm } from "@/lib/portal/data";
 import { getClassTypeLabel } from "@/lib/portal/labels";
+import { getProratedCadPrice } from "@/lib/portal/class-pricing";
 import { SESSIONS_PER_TERM, weeksRemainingInTerm } from "@/lib/pricing";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -19,6 +20,7 @@ type ClassOption = {
   scheduleText: string;
   spotsRemaining: number;
   alreadyEnrolled: boolean;
+  priceCad?: number;
 };
 
 const weekdayIndex: Record<string, number> = {
@@ -102,6 +104,11 @@ export default async function StudentEnrollPage() {
     : { data: [] };
   const coachMap = Object.fromEntries(((coachProfiles ?? []) as any[]).map((row) => [row.id, row]));
 
+  const termTotalWeeks =
+    typeof activeTerm.weeks === "number" && activeTerm.weeks > 0
+      ? activeTerm.weeks
+      : SESSIONS_PER_TERM;
+
   const classes: ClassOption[] = typedClassRows
     .map((classRow) => {
       const enrolledCount = enrollmentCountByClass.get(classRow.id) ?? 0;
@@ -124,6 +131,7 @@ export default async function StudentEnrollPage() {
         ),
         spotsRemaining: Number(classRow.max_students) - enrolledCount,
         alreadyEnrolled: enrolledClassIds.has(classRow.id),
+        priceCad: getProratedCadPrice(classRow.type, activeTerm.end_date, termTotalWeeks),
       };
     })
     .filter((row) => row.spotsRemaining > 0 || row.alreadyEnrolled);

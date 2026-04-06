@@ -156,6 +156,10 @@ export async function POST(request: NextRequest) {
 
   let bookingStudentId = session.userId;
 
+  if (session.profile.role === 'parent' && !body.data.studentId) {
+    return mergeCookies(supabaseResponse, jsonError('Please select a student for this session.', 400));
+  }
+
   if (body.data.studentId && session.profile.role === 'parent') {
     const { data: link } = await admin
       .from('parent_student_links')

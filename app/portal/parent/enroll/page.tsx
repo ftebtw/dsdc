@@ -8,6 +8,7 @@ import { requireRole } from "@/lib/portal/auth";
 import { getActiveTerm, getProfileMap } from "@/lib/portal/data";
 import { getClassTypeLabel } from "@/lib/portal/labels";
 import { getParentSelection } from "@/lib/portal/parent";
+import { getProratedCadPrice } from "@/lib/portal/class-pricing";
 import { SESSIONS_PER_TERM, weeksRemainingInTerm } from "@/lib/pricing";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -113,6 +114,11 @@ export default async function ParentEnrollPage({
   const coachIds = [...new Set(typedClassRows.map((row) => row.coach_id))];
   const coachMap = await getProfileMap(supabase, coachIds);
 
+  const termTotalWeeks =
+    typeof activeTerm.weeks === "number" && activeTerm.weeks > 0
+      ? activeTerm.weeks
+      : SESSIONS_PER_TERM;
+
   const classes = typedClassRows
     .map((classRow) => ({
       id: classRow.id,
@@ -132,6 +138,7 @@ export default async function ParentEnrollPage({
       ),
       spotsRemaining: Number(classRow.max_students) - (enrollmentCountByClass.get(classRow.id) ?? 0),
       alreadyEnrolled: enrolledClassIds.has(classRow.id),
+      priceCad: getProratedCadPrice(classRow.type, activeTerm.end_date, termTotalWeeks),
     }))
     .filter((row) => row.spotsRemaining > 0 || row.alreadyEnrolled);
 

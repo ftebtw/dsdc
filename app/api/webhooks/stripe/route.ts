@@ -223,13 +223,14 @@ async function handleCheckoutSessionCompleted(
 
     const { data: existingEnrollments } = await supabaseAdmin
       .from("enrollments")
-      .select("class_id")
+      .select("class_id,status")
       .eq("student_id", studentId)
-      .in("class_id", classIds);
-    const existingSet = new Set((existingEnrollments ?? []).map((row: any) => row.class_id as string));
+      .in("class_id", classIds)
+      .in("status", ["active", "pending_etransfer", "etransfer_sent", "pending_approval"]);
+    const existingActiveSet = new Set((existingEnrollments ?? []).map((row: any) => row.class_id as string));
 
-    const rowsToInsert = classIds
-      .filter((classId) => !existingSet.has(classId))
+    const rowsToUpsert = classIds
+      .filter((classId) => !existingActiveSet.has(classId))
       .map((classId) => ({
         student_id: studentId,
         class_id: classId,
@@ -237,10 +238,10 @@ async function handleCheckoutSessionCompleted(
         stripe_checkout_session_id: sessionId,
       }));
 
-    if (rowsToInsert.length > 0) {
+    if (rowsToUpsert.length > 0) {
       const { error: enrollmentInsertError } = await supabaseAdmin
         .from("enrollments")
-        .upsert(rowsToInsert, { onConflict: "student_id,class_id" });
+        .upsert(rowsToUpsert, { onConflict: "student_id,class_id" });
       if (enrollmentInsertError) {
         console.error("[stripe-webhook] enrollment insert failed", enrollmentInsertError);
       }

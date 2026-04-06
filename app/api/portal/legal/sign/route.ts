@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
   const duplicateClause =
     session.profile.role === 'student'
       ? `signer_id.eq.${session.userId},signed_for_student_id.eq.${session.userId}`
-      : `signer_id.eq.${signedForStudentId},signed_for_student_id.eq.${signedForStudentId}`;
+      : `signer_id.eq.${session.userId},signed_for_student_id.eq.${signedForStudentId}`;
 
   const { data: existingSignature } = await supabase
     .from('legal_signatures')

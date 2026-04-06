@@ -30,11 +30,14 @@ export async function POST(request: NextRequest) {
 
   const { data: pendingRows, error: pendingError } = await admin
     .from("enrollments")
-    .select("id,student_id,class_id,status,etransfer_token")
+    .select("id,student_id,class_id,status,etransfer_token,etransfer_expires_at")
     .eq("etransfer_token", token)
     .eq("status", "pending_etransfer");
 
-  if (pendingError) return jsonError(pendingError.message, 500);
+  if (pendingError) {
+    console.error("[etransfer-sent] query error", { code: pendingError.code, message: pendingError.message });
+    return jsonError("Unable to process request. Please try again.", 500);
+  }
   if (!pendingRows || pendingRows.length === 0) {
     return jsonError("Invalid or expired token.", 404);
   }
@@ -45,7 +48,13 @@ export async function POST(request: NextRequest) {
     class_id: string;
     status: string;
     etransfer_token: string | null;
+    etransfer_expires_at: string | null;
   }>;
+
+  const firstExpiry = pendingRowsTyped[0].etransfer_expires_at;
+  if (firstExpiry && new Date(firstExpiry) < new Date()) {
+    return jsonError("This e-transfer link has expired. Please start a new enrollment.", 410);
+  }
   const studentId = pendingRowsTyped[0].student_id;
   const classIds = [...new Set(pendingRowsTyped.map((row) => row.class_id))];
 
@@ -59,7 +68,10 @@ export async function POST(request: NextRequest) {
     .eq("status", "pending_etransfer")
     .select("id,class_id,student_id");
 
-  if (updateError) return jsonError(updateError.message, 500);
+  if (updateError) {
+    console.error("[etransfer-sent] update error", { code: updateError.code, message: updateError.message });
+    return jsonError("Unable to update enrollment status. Please try again.", 500);
+  }
 
   const [{ data: studentProfile }, { data: parentLinks }, { data: classesData }] = await Promise.all([
     admin
