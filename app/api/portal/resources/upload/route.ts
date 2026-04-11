@@ -9,7 +9,7 @@ import type { Database } from '@/lib/supabase/database.types';
 const metadataSchema = z.object({
   classId: z.string().uuid().optional(),
   title: z.string().min(1).max(180),
-  description: z.string().trim().max(4000).optional(),
+  description: z.string().trim().max(12000).optional(),
   type: z.enum(['homework', 'lesson_plan', 'slides', 'document', 'recording', 'other']),
   url: z.string().url().optional(),
   sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
@@ -61,6 +61,46 @@ function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
+function formStringValue(formData: FormData, key: string): string | undefined {
+  const value = formData.get(key);
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length ? trimmed : undefined;
+}
+
+function inferResourceTitle(input: {
+  title?: string;
+  description?: string;
+  url?: string;
+  file?: File | null;
+}): string | undefined {
+  if (input.title) return input.title.slice(0, 180);
+
+  if (input.description) {
+    const firstLine = input.description
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find(Boolean);
+    if (firstLine) return firstLine.slice(0, 180);
+  }
+
+  if (input.file?.name) {
+    return input.file.name.trim().slice(0, 180);
+  }
+
+  if (input.url) {
+    try {
+      const parsedUrl = new URL(input.url);
+      const readablePath = `${parsedUrl.hostname}${parsedUrl.pathname === '/' ? '' : parsedUrl.pathname}`;
+      return readablePath.slice(0, 180);
+    } catch {
+      return input.url.slice(0, 180);
+    }
+  }
+
+  return undefined;
+}
+
 function isLegacyResourceAttachmentConstraint(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
   const code = (error as { code?: string }).code;
@@ -93,19 +133,41 @@ export async function POST(request: NextRequest) {
   const supabaseResponse = NextResponse.next();
   const supabase = getSupabaseRouteClient(request, supabaseResponse);
   const formData = await request.formData();
-  const parsed = metadataSchema.safeParse({
-    classId: formData.get('classId') || undefined,
-    title: formData.get('title'),
-    description: formData.get('description') || undefined,
-    type: formData.get('type'),
-    url: formData.get('url') || undefined,
-    sessionDate: formData.get('sessionDate') || undefined,
-    publishAt: formData.get('publishAt') || undefined,
-  });
-  if (!parsed.success) return mergeCookies(supabaseResponse, jsonError('Invalid upload payload.'));
-
   const fileValue = formData.get('file');
   const file = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
+  const rawDescription = formStringValue(formData, 'description');
+  const rawUrl = formStringValue(formData, 'url');
+  const inferredTitle = inferResourceTitle({
+    title: formStringValue(formData, 'title'),
+    description: rawDescription,
+    url: rawUrl,
+    file,
+  });
+
+  if (!inferredTitle && !rawDescription && !rawUrl && !file) {
+    return mergeCookies(
+      supabaseResponse,
+      jsonError('Add a note, URL, or file before posting this resource.', 400)
+    );
+  }
+
+  const parsed = metadataSchema.safeParse({
+    classId: formStringValue(formData, 'classId'),
+    title: inferredTitle,
+    description: rawDescription,
+    type: formStringValue(formData, 'type') ?? 'other',
+    url: rawUrl,
+    sessionDate: formStringValue(formData, 'sessionDate'),
+    publishAt: formStringValue(formData, 'publishAt'),
+  });
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    return mergeCookies(
+      supabaseResponse,
+      jsonError(firstIssue?.message || 'Invalid upload payload.')
+    );
+  }
+
   const hasUrl = Boolean(parsed.data.url);
   if (file && file.size > RESOURCE_MAX_FILE_BYTES) {
     return mergeCookies(

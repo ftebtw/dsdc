@@ -142,14 +142,43 @@ export default function CoachResourceManager({
     setEditingWeekTitle('');
   }
 
+  function inferredTitleFromForm(): string {
+    const trimmedTitle = title.trim();
+    if (trimmedTitle) return trimmedTitle;
+
+    const firstLine = description
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find(Boolean);
+    if (firstLine) return firstLine.slice(0, 180);
+
+    if (file?.name) return file.name.trim().slice(0, 180);
+
+    const trimmedUrl = url.trim();
+    if (trimmedUrl) return trimmedUrl.slice(0, 180);
+
+    return '';
+  }
+
   async function onCreate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const normalizedTitle = inferredTitleFromForm();
+    if (!normalizedTitle) {
+      setError(
+        t(
+          'portal.coachResource.contentRequired',
+          'Add a note, URL, or file before posting this resource.'
+        )
+      );
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     const formData = new FormData();
     formData.append('classId', classId);
-    formData.append('title', title);
+    formData.append('title', normalizedTitle);
     if (description.trim()) formData.append('description', description.trim());
     formData.append('type', type);
     formData.append('sessionDate', sessionDate);
@@ -231,8 +260,7 @@ export default function CoachResourceManager({
         </h3>
         <div className="grid sm:grid-cols-2 gap-3">
           <input
-            required
-            placeholder={t('portal.coachResource.resourceTitle', 'Resource title')}
+            placeholder={t('portal.coachResource.resourceTitle', 'Resource title (optional for note-only posts)')}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"

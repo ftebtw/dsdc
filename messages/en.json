@@ -1308,14 +1308,15 @@
     },
     "coachResource": {
       "addResource": "Add Resource",
+      "contentRequired": "Add a note, URL, or file before posting this resource.",
       "createError": "Failed to create resource.",
       "empty": "No resources posted for this class yet.",
       "externalUrl": "External URL (optional)",
       "fileOptional": "File (optional)",
-      "fileOrUrl": "File and URL are optional. You can post a text-only note with just a title and description.",
+      "fileOrUrl": "File and URL are optional. You can post a text-only note, and if title is blank we will use the first line of the note.",
       "postResource": "Post Resource",
       "resourceDescription": "Text / note (optional)",
-      "resourceTitle": "Resource title"
+      "resourceTitle": "Resource title (optional for note-only posts)"
     },
     "error": {
       "backToPortal": "Back to Portal",

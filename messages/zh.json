@@ -1309,14 +1309,15 @@
     },
     "coachResource": {
       "addResource": "添加资源",
+      "contentRequired": "发布前请先添加文字备注、URL 或文件。",
       "createError": "创建资源失败。",
       "empty": "尚未发布该课程的资源。",
       "externalUrl": "外部 URL（可选）",
       "fileOptional": "文件（可选）",
-      "fileOrUrl": "文件和 URL 都是可选的。只填写标题和文字说明也可以发布文本备注。",
+      "fileOrUrl": "文件和 URL 都是可选的。你可以直接发布纯文字备注；如果标题留空，系统会自动使用备注第一行。",
       "postResource": "帖子资源",
       "resourceDescription": "文字 / 备注（可选）",
-      "resourceTitle": "资源标题"
+      "resourceTitle": "资源标题（纯文字备注可不填）"
     },
     "error": {
       "backToPortal": "返回门户",
