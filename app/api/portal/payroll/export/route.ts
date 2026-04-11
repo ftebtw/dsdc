@@ -72,18 +72,20 @@ export async function GET(request: NextRequest) {
       const tierLabel = row.coachTiers
         .map((tier) => formatTierLabel(tier))
         .join(', ');
+      const typeLabel =
+        row.kind === 'adjustment' ? 'Manual Adjustment' : row.isPrivateSession ? 'Private' : 'Group';
 
       return [
         row.coachName,
         row.coachEmail,
-        row.isPrivateSession ? 'Private' : 'Group',
+        typeLabel,
         tierLabel,
         row.isTa ? 'true' : 'false',
         row.sessionDate,
-        row.className,
+        row.className || 'Manual hour adjustment',
         row.studentName ?? '',
         row.durationHours.toFixed(2),
-        row.late ? 'true' : 'false',
+        row.kind === 'adjustment' ? '' : row.late ? 'true' : 'false',
         hourlyRate == null ? '' : hourlyRate.toFixed(2),
         calculatedPay == null ? '' : calculatedPay.toFixed(2),
         range.start,
@@ -130,4 +132,3 @@ export async function GET(request: NextRequest) {
     return mergeCookies(supabaseResponse, jsonError(error instanceof Error ? error.message : 'Unable to export payroll data.', 500));
   }
 }
-

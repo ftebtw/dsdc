@@ -87,7 +87,7 @@ export default async function CoachHoursPage({
         title={t('portal.coachHours.sessionDetailTitle', 'Session Detail')}
         description={t(
           'portal.coachHours.sessionDetailDescription',
-          'Group check-ins and completed private sessions in selected date range. Manual adjustments appear in the summary above.'
+          'Group check-ins, completed private sessions, and manual adjustments in the selected date range.'
         )}
       >
         <div className="overflow-x-auto">
@@ -108,18 +108,31 @@ export default async function CoachHoursPage({
                 <tr key={row.id} className="border-t border-warm-200 dark:border-navy-700">
                   <td className="px-3 py-2">{row.sessionDate}</td>
                   <td className="px-3 py-2">
-                    {row.isPrivateSession
-                      ? t('portal.coachHours.private', 'Private')
-                      : t('portal.coachHours.group', 'Group')}
+                    {row.kind === 'adjustment'
+                      ? t('portal.coachHours.adjustment', 'Manual adjustment')
+                      : row.isPrivateSession
+                        ? t('portal.coachHours.private', 'Private')
+                        : t('portal.coachHours.group', 'Group')}
                   </td>
-                  <td className="px-3 py-2">{row.className}</td>
+                  <td className="px-3 py-2">
+                    {row.className || t('portal.coachHours.adjustmentNoteFallback', 'Manual hour adjustment')}
+                  </td>
                   <td className="px-3 py-2">{formatUtcForUser(row.checkedInAt, session.profile.timezone)}</td>
                   <td className="px-3 py-2">
-                    {row.classStartTime.slice(0, 5)}-{row.classEndTime.slice(0, 5)} ({row.classTimezone})
+                    {row.kind === 'adjustment' || !row.classStartTime || !row.classEndTime || !row.classTimezone
+                      ? t('portal.common.notApplicable', '-')
+                      : `${row.classStartTime.slice(0, 5)}-${row.classEndTime.slice(0, 5)} (${row.classTimezone})`}
                   </td>
-                  <td className="px-3 py-2 text-right">{row.durationHours.toFixed(2)}</td>
                   <td className="px-3 py-2 text-right">
-                    {row.late ? (
+                    {row.kind === 'adjustment' && row.durationHours > 0 ? '+' : ''}
+                    {row.durationHours.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    {row.kind === 'adjustment' ? (
+                      <span className="text-charcoal/60 dark:text-navy-300">
+                        {t('portal.common.notApplicable', '-')}
+                      </span>
+                    ) : row.late ? (
                       <span className="text-red-700">{t('portal.common.late', 'Late')}</span>
                     ) : (
                       <span className="text-green-700">{t('portal.coachHours.onTime', 'On time')}</span>

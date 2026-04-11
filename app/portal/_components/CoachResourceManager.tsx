@@ -251,7 +251,7 @@ export default function CoachResourceManager({
         </div>
         <textarea
           rows={3}
-          placeholder={t('portal.coachResource.resourceDescription', 'Description (optional)')}
+          placeholder={t('portal.coachResource.resourceDescription', 'Text / note (optional)')}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
@@ -289,16 +289,21 @@ export default function CoachResourceManager({
         <p className="text-xs text-charcoal/60 dark:text-navy-400 -mt-1">
           Set a future publish date to schedule this resource for students and parents.
         </p>
-        <input
-          ref={fileInputRef}
-          type="file"
-          onChange={(event) => setFile(event.target.files?.[0] || null)}
-          className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 file:mr-3 file:rounded file:border-0 file:bg-gold-300 file:px-3 file:py-1"
-        />
+        <div className="space-y-1">
+          <label className="block text-xs font-medium text-navy-700 dark:text-navy-200">
+            {t('portal.coachResource.fileOptional', 'File (optional)')}
+          </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={(event) => setFile(event.target.files?.[0] || null)}
+            className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 file:mr-3 file:rounded file:border-0 file:bg-gold-300 file:px-3 file:py-1"
+          />
+        </div>
         <p className="text-xs text-charcoal/60 dark:text-navy-400 -mt-1">
           {t(
             'portal.coachResource.fileOrUrl',
-            'Add a file, a URL, or both. Leave both blank to post a note only.'
+            'File and URL are optional. You can post a text-only note with just a title and description.'
           )}
         </p>
         {file ? (

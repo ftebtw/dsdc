@@ -348,7 +348,10 @@ export default async function AdminPayrollPage({
       </SectionCard>
 
       {params.coachId ? (
-        <SectionCard title="Coach Session Detail" description="Group check-ins and completed private sessions in this date range.">
+        <SectionCard
+          title="Coach Session Detail"
+          description="Group check-ins, completed private sessions, and manual adjustments in this date range."
+        >
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-sm">
               <thead className="bg-warm-100 dark:bg-navy-800">
@@ -366,15 +369,28 @@ export default async function AdminPayrollPage({
                 {dataset.sessions.map((row) => (
                   <tr key={row.id} className="border-t border-warm-200 dark:border-navy-700">
                     <td className="px-3 py-2">{row.sessionDate}</td>
-                    <td className="px-3 py-2">{row.isPrivateSession ? 'Private' : 'Group'}</td>
-                    <td className="px-3 py-2">{row.className}</td>
+                    <td className="px-3 py-2">
+                      {row.kind === 'adjustment' ? 'Manual adjustment' : row.isPrivateSession ? 'Private' : 'Group'}
+                    </td>
+                    <td className="px-3 py-2">{row.className || 'Manual hour adjustment'}</td>
                     <td className="px-3 py-2">{formatUtcForUser(row.checkedInAt, session.profile.timezone)}</td>
                     <td className="px-3 py-2">
-                      {row.classStartTime.slice(0, 5)}-{row.classEndTime.slice(0, 5)} ({row.classTimezone})
+                      {row.kind === 'adjustment' || !row.classStartTime || !row.classEndTime || !row.classTimezone
+                        ? '-'
+                        : `${row.classStartTime.slice(0, 5)}-${row.classEndTime.slice(0, 5)} (${row.classTimezone})`}
                     </td>
-                    <td className="px-3 py-2 text-right">{row.durationHours.toFixed(2)}</td>
                     <td className="px-3 py-2 text-right">
-                      {row.late ? <span className="text-red-700">Late</span> : <span className="text-green-700">On time</span>}
+                      {row.kind === 'adjustment' && row.durationHours > 0 ? '+' : ''}
+                      {row.durationHours.toFixed(2)}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      {row.kind === 'adjustment' ? (
+                        <span className="text-charcoal/60 dark:text-navy-300">-</span>
+                      ) : row.late ? (
+                        <span className="text-red-700">Late</span>
+                      ) : (
+                        <span className="text-green-700">On time</span>
+                      )}
                     </td>
                   </tr>
                 ))}

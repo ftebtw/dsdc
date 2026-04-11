@@ -1264,6 +1264,8 @@
       "title": "Coach Dashboard"
     },
     "coachHours": {
+      "adjustment": "Manual adjustment",
+      "adjustmentNoteFallback": "Manual hour adjustment",
       "apply": "Apply",
       "description": "Hours are credited by class schedule duration when checked in. Manual adjustments are included in the totals below.",
       "empty": "No sessions found in this range.",
@@ -1271,7 +1273,7 @@
       "group": "Group",
       "onTime": "On time",
       "private": "Private",
-      "sessionDetailDescription": "Group check-ins and completed private sessions in selected date range. Manual adjustments appear in the summary above.",
+      "sessionDetailDescription": "Group check-ins, completed private sessions, and manual adjustments in the selected date range.",
       "sessionDetailTitle": "Session Detail",
       "startDate": "Start date",
       "table": {
@@ -1309,8 +1311,10 @@
       "createError": "Failed to create resource.",
       "empty": "No resources posted for this class yet.",
       "externalUrl": "External URL (optional)",
-      "fileOrUrl": "Add a file, a URL, or both. Leave both blank to post a note only.",
+      "fileOptional": "File (optional)",
+      "fileOrUrl": "File and URL are optional. You can post a text-only note with just a title and description.",
       "postResource": "Post Resource",
+      "resourceDescription": "Text / note (optional)",
       "resourceTitle": "Resource title"
     },
     "error": {

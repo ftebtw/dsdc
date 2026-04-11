@@ -61,6 +61,14 @@ function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
+function isLegacyResourceAttachmentConstraint(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const code = (error as { code?: string }).code;
+  const message = ((error as { message?: string }).message || '').toLowerCase();
+  if (code !== '23514') return false;
+  return message.includes('resources') && message.includes('url') && message.includes('file_path');
+}
+
 function cleanFilename(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '-');
 }
@@ -198,7 +206,18 @@ export async function POST(request: NextRequest) {
       .select('*')
       .single();
     const inserted = insertedData as any;
-    if (error) return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+    if (error) {
+      if (isLegacyResourceAttachmentConstraint(error)) {
+        return mergeCookies(
+          supabaseResponse,
+          jsonError(
+            'Text-only resources are enabled in the app, but this database still requires a file or URL. Please run the latest resources migration.',
+            400
+          )
+        );
+      }
+      return mergeCookies(supabaseResponse, jsonError(error.message, 400));
+    }
     return mergeCookies(supabaseResponse, NextResponse.json({ resource: inserted }));
   }
 
@@ -227,6 +246,15 @@ export async function POST(request: NextRequest) {
 
   if (insertError) {
     await supabase.storage.from(bucket).remove([objectPath]);
+    if (isLegacyResourceAttachmentConstraint(insertError)) {
+      return mergeCookies(
+        supabaseResponse,
+        jsonError(
+          'Text-only resources are enabled in the app, but this database still requires a file or URL. Please run the latest resources migration.',
+          400
+        )
+      );
+    }
     return mergeCookies(supabaseResponse, jsonError(insertError.message, 400));
   }
 

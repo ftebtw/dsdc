@@ -1265,6 +1265,8 @@
       "title": "教练仪表板"
     },
     "coachHours": {
+      "adjustment": "手动调整",
+      "adjustmentNoteFallback": "手动工时调整",
       "apply": "申请",
       "description": "报到时，时间将按课程表持续时间记入。下方汇总已包含手动调整。",
       "empty": "在此范围内找不到会话。",
@@ -1272,7 +1274,7 @@
       "group": "团体",
       "onTime": "准时",
       "private": "私人的",
-      "sessionDetailDescription": "在选定的日期范围内显示集体签到和已完成的私人课程。手动调整显示在上方汇总中。",
+      "sessionDetailDescription": "在所选日期范围内显示团体签到、已完成的私人课程和手动调整。",
       "sessionDetailTitle": "会议详情",
       "startDate": "开始日期",
       "table": {
@@ -1310,8 +1312,10 @@
       "createError": "创建资源失败。",
       "empty": "尚未发布该课程的资源。",
       "externalUrl": "外部 URL（可选）",
-      "fileOrUrl": "可添加文件、URL 或两者。若两者都留空，则仅发布备注。",
+      "fileOptional": "文件（可选）",
+      "fileOrUrl": "文件和 URL 都是可选的。只填写标题和文字说明也可以发布文本备注。",
       "postResource": "帖子资源",
+      "resourceDescription": "文字 / 备注（可选）",
       "resourceTitle": "资源标题"
     },
     "error": {

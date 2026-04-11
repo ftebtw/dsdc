@@ -34,18 +34,20 @@ export type PayrollSessionRow = {
   coachEmail: string;
   coachTiers: Database['public']['Enums']['coach_tier'][];
   isTa: boolean;
+  kind: 'group' | 'private' | 'adjustment';
   classId: string;
   className: string;
   sessionDate: string;
   checkedInAt: string;
-  classStartTime: string;
-  classEndTime: string;
-  classTimezone: string;
+  classStartTime: string | null;
+  classEndTime: string | null;
+  classTimezone: string | null;
   durationHours: number;
   late: boolean;
   isPrivateSession: boolean;
   studentName: string | null;
   priceCad: number | null;
+  adjustmentNote: string | null;
 };
 
 export type PayrollPrivateSessionRow = {
@@ -62,6 +64,7 @@ export type PayrollPrivateSessionRow = {
   timezone: string;
   durationHours: number;
   priceCad: number | null;
+  kind: 'private';
   isPrivateSession: true;
 };
 
@@ -304,6 +307,7 @@ export async function fetchPayrollDataset(
       coachEmail: profile.email,
       coachTiers: resolveCoachTiers(checkin.coach_id, coachProfile),
       isTa: coachProfile.is_ta,
+      kind: 'group',
       classId: classRow.id,
       className: classRow.name,
       sessionDate: checkin.session_date,
@@ -316,6 +320,7 @@ export async function fetchPayrollDataset(
       isPrivateSession: false,
       studentName: null,
       priceCad: null,
+      adjustmentNote: null,
     });
   }
 
@@ -345,6 +350,7 @@ export async function fetchPayrollDataset(
       coachEmail: profile.email,
       coachTiers: resolveCoachTiers(privateSession.coach_id, coachProfile),
       isTa: coachProfile.is_ta,
+      kind: 'private',
       classId: `private:${privateSession.id}`,
       className: `Private Session - ${studentName}`,
       sessionDate: privateSession.requested_date,
@@ -357,6 +363,7 @@ export async function fetchPayrollDataset(
       isPrivateSession: true,
       studentName,
       priceCad: privateSession.price_cad ?? null,
+      adjustmentNote: null,
     });
   }
 
@@ -391,7 +398,7 @@ export async function fetchPayrollDataset(
   if (input.includeManualAdjustments) {
     let adjustmentsQuery = (supabase as any)
       .from('payroll_adjustments')
-      .select('coach_id,hours_delta')
+      .select('id,coach_id,adjustment_date,hours_delta,note,created_at')
       .in('coach_id', coachIds)
       .gte('adjustment_date', input.start)
       .lte('adjustment_date', input.end);
@@ -402,11 +409,45 @@ export async function fetchPayrollDataset(
       throw new Error(adjustmentsError.message);
     }
 
-    const adjustments = (adjustmentsData ?? []) as Array<{ coach_id: string; hours_delta: number }>;
+    const adjustments = (adjustmentsData ?? []) as Array<{
+      id: string;
+      coach_id: string;
+      adjustment_date: string;
+      hours_delta: number;
+      note: string | null;
+      created_at: string;
+    }>;
     for (const adjustment of adjustments) {
       const item = summaryMap.get(adjustment.coach_id);
       if (!item) continue;
       item.manualAdjustmentHours += Number(adjustment.hours_delta) || 0;
+
+      const coachProfile = coachProfileMap[adjustment.coach_id];
+      const profile = profileMap[adjustment.coach_id];
+      if (!coachProfile || !profile) continue;
+
+      sessions.push({
+        id: `adjustment:${adjustment.id}`,
+        coachId: adjustment.coach_id,
+        coachName: profile.display_name || profile.email,
+        coachEmail: profile.email,
+        coachTiers: resolveCoachTiers(adjustment.coach_id, coachProfile),
+        isTa: coachProfile.is_ta,
+        kind: 'adjustment',
+        classId: `adjustment:${adjustment.id}`,
+        className: adjustment.note?.trim() || '',
+        sessionDate: adjustment.adjustment_date,
+        checkedInAt: adjustment.created_at,
+        classStartTime: null,
+        classEndTime: null,
+        classTimezone: null,
+        durationHours: Number(adjustment.hours_delta) || 0,
+        late: false,
+        isPrivateSession: false,
+        studentName: null,
+        priceCad: null,
+        adjustmentNote: adjustment.note ?? null,
+      });
     }
   }
 
@@ -448,7 +489,12 @@ export async function fetchPayrollDataset(
 
   return {
     sessions: sessions.sort((a, b) => {
-      if (a.sessionDate === b.sessionDate) return a.classStartTime.localeCompare(b.classStartTime);
+      if (a.sessionDate === b.sessionDate) {
+        const aTime = a.classStartTime ?? a.checkedInAt.slice(11, 19);
+        const bTime = b.classStartTime ?? b.checkedInAt.slice(11, 19);
+        if (aTime === bTime) return a.checkedInAt.localeCompare(b.checkedInAt);
+        return aTime.localeCompare(bTime);
+      }
       return a.sessionDate.localeCompare(b.sessionDate);
     }),
     summary,
