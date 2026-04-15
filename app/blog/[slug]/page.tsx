@@ -7,7 +7,7 @@ import { getBlogPostsSync } from "@/lib/blogPosts";
 import { getLocalizedBlogPost, getLocalizedBlogPosts, hasChineseBlogTranslation } from "@/lib/blogLocalizations";
 import { addZhPrefix } from "@/lib/localeRouting";
 import { getRequestLocale } from "@/lib/requestLocale";
-import { SITE_NAME, SITE_OG_IMAGE_URL, SITE_URL, absoluteUrl, buildArticleSchema, buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
+import { SITE_NAME, SITE_OG_IMAGE_URL, SITE_URL, absoluteUrl, buildArticleSchema, buildBreadcrumbSchema, buildFaqSchema, buildHowToSchema } from "@/lib/structuredData";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -90,6 +90,9 @@ export default async function BlogPostPage({ params }: Props) {
         data={buildArticleSchema(post, canonicalPath, locale)}
       />
       <JsonLd id={`breadcrumb-schema-${post.slug}`} data={breadcrumbSchema} />
+      {post.schemaType === "HowTo" ? (
+        <JsonLd id={`howto-schema-${post.slug}`} data={buildHowToSchema(post, canonicalPath)} />
+      ) : null}
       {post.faqItems?.length ? <JsonLd id={`faq-schema-${post.slug}`} data={buildFaqSchema(post.faqItems)} /> : null}
       <BlogPostContent post={post} allPosts={posts} />
     </>

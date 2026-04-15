@@ -74,6 +74,14 @@ export default function Hero() {
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      {/* Preload the hero poster as the LCP candidate before the video loads */}
+      <link
+        rel="preload"
+        as="image"
+        href="/images/photos/wsc-group-2.jpg"
+        // @ts-expect-error fetchPriority is a valid HTML attribute not yet in React types
+        fetchpriority="high"
+      />
       {/* Background video */}
       <video
         ref={videoRef}

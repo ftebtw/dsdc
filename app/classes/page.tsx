@@ -1,6 +1,62 @@
 import JsonLd from "@/components/JsonLd";
-import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
+import { SITE_URL, buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 import ClassesPageClient from "./ClassesPageClient";
+
+const courseProvider = {
+  "@type": "EducationalOrganization",
+  "@id": `${SITE_URL}/#organization`,
+  name: "DSDC",
+  url: SITE_URL,
+} as const;
+
+type ClassCourse = {
+  name: string;
+  description: string;
+  url: string;
+  price: number;
+  suggestedMinAge: number;
+  suggestedMaxAge: number;
+  educationalLevel: string;
+};
+
+function buildCourseSchema(course: ClassCourse, position: number) {
+  return {
+    "@type": "Course",
+    position,
+    name: course.name,
+    description: course.description,
+    url: course.url,
+    provider: courseProvider,
+    inLanguage: "en",
+    availableLanguage: ["en", "zh"],
+    educationalLevel: course.educationalLevel,
+    audience: {
+      "@type": "EducationalAudience",
+      educationalRole: "student",
+      suggestedMinAge: course.suggestedMinAge,
+      suggestedMaxAge: course.suggestedMaxAge,
+    },
+    hasCourseInstance: [
+      {
+        "@type": "CourseInstance",
+        courseMode: "Online",
+        courseWorkload: "PT1H30M",
+        instructor: {
+          "@type": "Organization",
+          "@id": `${SITE_URL}/#organization`,
+        },
+      },
+    ],
+    offers: {
+      "@type": "Offer",
+      category: "Paid",
+      priceCurrency: "CAD",
+      price: course.price.toString(),
+      availability: "https://schema.org/InStock",
+      url: `${SITE_URL}/pricing`,
+    },
+  };
+}
 
 export const revalidate = 60;
 
@@ -47,89 +103,73 @@ const classesFaqItems = [
   },
 ];
 
+const classCourses: ClassCourse[] = [
+  {
+    name: "Novice Debate Class (Grades 4-6)",
+    description:
+      "An introductory debate and public speaking class for younger students. Build confidence through fundamentals of speech and debate.",
+    url: `${SITE_URL}/debate-classes-for-kids`,
+    price: 720,
+    suggestedMinAge: 9,
+    suggestedMaxAge: 12,
+    educationalLevel: "Elementary School",
+  },
+  {
+    name: "Junior Debate Class (Grades 7-9)",
+    description:
+      "Build competitive debate skills with challenging topics in International Relations, Law, Philosophy, and Economics.",
+    url: `${SITE_URL}/classes`,
+    price: 720,
+    suggestedMinAge: 12,
+    suggestedMaxAge: 15,
+    educationalLevel: "Middle School",
+  },
+  {
+    name: "Senior Debate Class (Grades 10-12)",
+    description:
+      "Rigorous practice in British Parliamentary, CNDF, and World Schools debate formats with advanced lectures.",
+    url: `${SITE_URL}/classes`,
+    price: 720,
+    suggestedMinAge: 15,
+    suggestedMaxAge: 18,
+    educationalLevel: "High School",
+  },
+  {
+    name: "Advanced Competitive Debate (Grades 10-12)",
+    description:
+      "Elite program led by world-renowned university debaters for students committed to competitive debate.",
+    url: `${SITE_URL}/classes`,
+    price: 1200,
+    suggestedMinAge: 15,
+    suggestedMaxAge: 18,
+    educationalLevel: "High School",
+  },
+  {
+    name: "World Scholar's Cup Preparation (Grades 4-12)",
+    description:
+      "Full WSC preparation with 100% qualification rate since 2020 - from regionals to the Tournament of Champions at Yale.",
+    url: `${SITE_URL}/world-scholars-cup-coaching`,
+    price: 960,
+    suggestedMinAge: 9,
+    suggestedMaxAge: 18,
+    educationalLevel: "Elementary School, Middle School, High School",
+  },
+  {
+    name: "Public Speaking (Grades 4-9)",
+    description:
+      "Training in impromptu, persuasive, interpretive, and parliamentary formats. Preparation for BC speech provincials.",
+    url: `${SITE_URL}/public-speaking-classes-for-kids`,
+    price: 720,
+    suggestedMinAge: 9,
+    suggestedMaxAge: 15,
+    educationalLevel: "Elementary School, Middle School",
+  },
+];
+
 const classesCourseSchema = {
   "@context": "https://schema.org",
   "@type": "ItemList",
-  itemListElement: [
-    {
-      "@type": "Course",
-      name: "Novice Debate Class (Grades 4-6)",
-      description:
-        "An introductory debate and public speaking class for younger students. Build confidence through fundamentals of speech and debate.",
-      provider: {
-        "@type": "EducationalOrganization",
-        name: "DSDC",
-        url: "https://dsdc.ca",
-      },
-      deliveryMode: "online",
-      position: 1,
-    },
-    {
-      "@type": "Course",
-      name: "Junior Debate Class (Grades 7-9)",
-      description:
-        "Build competitive debate skills with challenging topics in International Relations, Law, Philosophy, and Economics.",
-      provider: {
-        "@type": "EducationalOrganization",
-        name: "DSDC",
-        url: "https://dsdc.ca",
-      },
-      deliveryMode: "online",
-      position: 2,
-    },
-    {
-      "@type": "Course",
-      name: "Senior Debate Class (Grades 10-12)",
-      description:
-        "Rigorous practice in British Parliamentary, CNDF, and World Schools debate formats with advanced lectures.",
-      provider: {
-        "@type": "EducationalOrganization",
-        name: "DSDC",
-        url: "https://dsdc.ca",
-      },
-      deliveryMode: "online",
-      position: 3,
-    },
-    {
-      "@type": "Course",
-      name: "Advanced Competitive Debate (Grades 10-12)",
-      description:
-        "Elite program led by world-renowned university debaters for students committed to competitive debate.",
-      provider: {
-        "@type": "EducationalOrganization",
-        name: "DSDC",
-        url: "https://dsdc.ca",
-      },
-      deliveryMode: "online",
-      position: 4,
-    },
-    {
-      "@type": "Course",
-      name: "World Scholar's Cup Preparation (Grades 4-12)",
-      description:
-        "Full WSC preparation with 100% qualification rate since 2020 - from regionals to the Tournament of Champions at Yale.",
-      provider: {
-        "@type": "EducationalOrganization",
-        name: "DSDC",
-        url: "https://dsdc.ca",
-      },
-      deliveryMode: "online",
-      position: 5,
-    },
-    {
-      "@type": "Course",
-      name: "Public Speaking (Grades 4-9)",
-      description:
-        "Training in impromptu, persuasive, interpretive, and parliamentary formats. Preparation for BC speech provincials.",
-      provider: {
-        "@type": "EducationalOrganization",
-        name: "DSDC",
-        url: "https://dsdc.ca",
-      },
-      deliveryMode: "online",
-      position: 6,
-    },
-  ],
+  itemListElement: classCourses.map((course, index) => buildCourseSchema(course, index + 1)),
 };
 
 const classesFaqSchema = buildFaqSchema(classesFaqItems);

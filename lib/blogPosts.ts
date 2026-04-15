@@ -45,7 +45,8 @@ export interface BlogPost {
   authorProfile?: ArticleAuthorProfile;
   citationSources?: ArticleCitation[];
   faqItems?: BlogFaqItem[];
-  schemaType?: "Article" | "BlogPosting";
+  schemaType?: "Article" | "BlogPosting" | "HowTo";
+  howToTotalTime?: string;
 }
 
 function parseSortableDate(post: Pick<BlogPost, "publishedAt" | "date">): number | null {

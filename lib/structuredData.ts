@@ -237,6 +237,69 @@ function buildCitationSchema(citation: ArticleCitation) {
   };
 }
 
+const HOW_TO_STEP_PATTERN = /^(?:step\s+\d+[:.\-–)\s]|\d+[.)]\s)/i;
+
+function cleanStepName(raw: string): string {
+  return raw.replace(/^step\s+\d+\s*[:.\-–)]\s*/i, "").replace(/^\d+[.)]\s*/, "").trim();
+}
+
+export function buildHowToSchema(post: BlogPost, path: string) {
+  const steps: { name: string; text: string; position: number }[] = [];
+  let current: { name: string; textParts: string[] } | null = null;
+
+  const flush = () => {
+    if (current) {
+      const text = current.textParts.join(" ").trim();
+      if (text) {
+        steps.push({ name: current.name, text, position: steps.length + 1 });
+      }
+      current = null;
+    }
+  };
+
+  for (const section of post.sections) {
+    if (section.type === "heading") {
+      flush();
+      continue;
+    }
+    if (section.type === "subheading") {
+      if (HOW_TO_STEP_PATTERN.test(section.content.trim())) {
+        flush();
+        current = { name: cleanStepName(section.content), textParts: [] };
+      } else {
+        flush();
+      }
+      continue;
+    }
+    if (!current) continue;
+    if (section.type === "paragraph") {
+      current.textParts.push(section.content);
+    } else if (section.type === "list" && section.items?.length) {
+      current.textParts.push(section.items.join(". "));
+    }
+  }
+  flush();
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: post.title,
+    description: post.excerpt,
+    ...(post.howToTotalTime ? { totalTime: post.howToTotalTime } : {}),
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}${path}`,
+    },
+    step: steps.map((s) => ({
+      "@type": "HowToStep",
+      position: s.position,
+      name: s.name,
+      text: s.text,
+      url: `${SITE_URL}${path}#step-${s.position}`,
+    })),
+  };
+}
+
 export function buildArticleSchema(post: BlogPost, path: string, locale: "en" | "zh" = "en") {
   const datePublished = post.publishedAt ?? post.date;
   const dateModified = post.updatedAt ?? datePublished;
@@ -245,7 +308,7 @@ export function buildArticleSchema(post: BlogPost, path: string, locale: "en" | 
 
   return {
     "@context": "https://schema.org",
-    "@type": post.schemaType ?? "BlogPosting",
+    "@type": post.schemaType === "Article" ? "Article" : "BlogPosting",
     headline: post.title,
     description: post.excerpt,
     datePublished,

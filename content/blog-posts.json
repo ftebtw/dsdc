@@ -677,7 +677,8 @@
       }
     ],
     "publishedAt": "2026-03-31T09:00:00-08:00",
-    "updatedAt": "2026-03-31T09:00:00-08:00"
+    "updatedAt": "2026-03-31T09:00:00-08:00",
+    "schemaType": "HowTo"
   },
   {
     "slug": "how-to-write-debate-case",
@@ -874,7 +875,8 @@
       }
     ],
     "publishedAt": "2026-03-27T09:00:00-08:00",
-    "updatedAt": "2026-03-27T09:00:00-08:00"
+    "updatedAt": "2026-03-27T09:00:00-08:00",
+    "schemaType": "HowTo"
   },
   {
     "slug": "win-first-debate-tournament",
@@ -2966,7 +2968,8 @@
       }
     ],
     "publishedAt": "2025-01-23T09:00:00-08:00",
-    "updatedAt": "2025-01-23T09:00:00-08:00"
+    "updatedAt": "2025-01-23T09:00:00-08:00",
+    "schemaType": "HowTo"
   },
   {
     "slug": "canadian-debate-formats",
@@ -3407,7 +3410,8 @@
       }
     ],
     "publishedAt": "2026-02-11T09:00:00-08:00",
-    "updatedAt": "2026-02-11T09:00:00-08:00"
+    "updatedAt": "2026-02-11T09:00:00-08:00",
+    "schemaType": "HowTo"
   },
   {
     "slug": "shy-child-public-speaking",
@@ -3838,7 +3842,8 @@
       }
     ],
     "publishedAt": "2026-03-18T09:00:00-08:00",
-    "updatedAt": "2026-03-18T09:00:00-08:00"
+    "updatedAt": "2026-03-18T09:00:00-08:00",
+    "schemaType": "HowTo"
   },
   {
     "slug": "what-debate-class-looks-like",

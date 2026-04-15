@@ -77,6 +77,7 @@ export default function AboutPageContent() {
                   alt="DSDC students at the World Scholar's Cup competition"
                   width={900}
                   height={675}
+                  priority
                   className="h-full w-full object-cover"
                   sizes="(max-width: 1024px) 100vw, 40vw"
                 />

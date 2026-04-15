@@ -86,6 +86,18 @@ const staticEntries: StaticSitemapEntry[] = [
     files: ["app/register/layout.tsx", "app/register/page.tsx", "app/register/RegisterForm.tsx"],
   },
   {
+    path: "/book",
+    changeFrequency: "monthly",
+    priority: 0.75,
+    files: ["app/book/layout.tsx", "app/book/page.tsx"],
+  },
+  {
+    path: "/compare",
+    changeFrequency: "monthly",
+    priority: 0.75,
+    files: ["app/compare/page.tsx"],
+  },
+  {
     path: "/online-debate-classes",
     changeFrequency: "monthly",
     priority: 0.9,
