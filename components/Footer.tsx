@@ -109,6 +109,16 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/debate-classes-for-kids" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {locale === "zh" ? "儿童辩论课" : "Debate for Kids"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/public-speaking-classes-for-teens" className="text-navy-200 hover:text-white text-sm transition-colors">
+                  {locale === "zh" ? "青少年公共演讲课" : "Public Speaking for Teens"}
+                </Link>
+              </li>
+              <li>
                 <Link href="/world-scholars-cup-coaching" className="text-navy-200 hover:text-white text-sm transition-colors">
                   {locale === "zh" ? "世界学者杯辅导" : "World Scholar's Cup"}
                 </Link>

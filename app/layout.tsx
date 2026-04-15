@@ -112,7 +112,9 @@ const breadcrumbLabelMap: Record<string, string> = {
   "debate-classes-alberta": "Debate Classes Alberta",
   "world-scholars-cup-coaching": "World Scholar's Cup Coaching",
   "debate-classes-for-beginners": "Debate Classes for Beginners",
+  "debate-classes-for-kids": "Debate Classes for Kids",
   "public-speaking-classes-for-kids": "Public Speaking Classes for Kids",
+  "public-speaking-classes-for-teens": "Public Speaking Classes for Teens",
   "guide-to-debate-in-canada": "Guide to Debate in Canada",
 };
 
@@ -127,10 +129,13 @@ const breadcrumbLabelMapZh: Record<string, string> = {
   contact: "联系我们",
   "debate-classes-toronto": "多伦多辩论课程",
   "debate-classes-vancouver": "温哥华辩论课程",
+  "debate-classes-for-kids": "儿童辩论课程",
   faq: "常见问题",
   "guide-to-debate-in-canada": "加拿大中学生辩论完整指南",
   "online-debate-classes": "在线辩论课程",
   pricing: "课程价格",
+  "public-speaking-classes-for-kids": "儿童公共演讲课程",
+  "public-speaking-classes-for-teens": "青少年公共演讲课程",
   privacy: "隐私政策",
   register: "报名",
   team: "教练团队",

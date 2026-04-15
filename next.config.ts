@@ -21,6 +21,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/about-us", destination: "/about", permanent: true },
+      { source: "/about-us/", destination: "/about", permanent: true },
+      { source: "/contact-form", destination: "/contact", permanent: true },
+      { source: "/contact-form/", destination: "/contact", permanent: true },
+      { source: "/student-awards", destination: "/awards", permanent: true },
+      { source: "/student-awards/", destination: "/awards", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

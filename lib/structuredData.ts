@@ -79,6 +79,36 @@ export const localBusinessSchema = {
     },
   ],
   priceRange: "$$",
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "5",
+    bestRating: "5",
+    ratingCount: "3",
+    reviewCount: "3",
+  },
+  review: [
+    {
+      "@type": "Review",
+      author: { "@type": "Person", name: "Angela M." },
+      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+      reviewBody:
+        "DSDC has been my home for debate ever since I started three years ago. I've seen myself visibly improve in confidence and critical thinking.",
+    },
+    {
+      "@type": "Review",
+      author: { "@type": "Person", name: "Ryland C." },
+      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+      reviewBody:
+        "The coaches always provide thoughtful feedback and put real effort into developing lessons with student growth in mind.",
+    },
+    {
+      "@type": "Review",
+      author: { "@type": "Person", name: "Daniel W." },
+      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+      reviewBody:
+        "The environment at DSDC is simply wonderful. The teachers are supportive of every individual student and are passionate about developing young minds.",
+    },
+  ],
   sameAs: [
     "https://instagram.com/debate_education/",
     "https://www.linkedin.com/company/debate-and-speech-development-community/",

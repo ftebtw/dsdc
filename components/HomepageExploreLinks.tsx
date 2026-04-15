@@ -61,6 +61,16 @@ export default function HomepageExploreLinks() {
             description: "通过在线公共演讲课帮助孩子建立自信和领导力，适合4-9年级学生。",
           },
           {
+            href: "/debate-classes-for-kids",
+            title: "儿童辩论课",
+            description: "面向4至12年级学生的在线辩论课程，帮助孩子提升批判性思维、表达和自信。",
+          },
+          {
+            href: "/public-speaking-classes-for-teens",
+            title: "青少年公共演讲课",
+            description: "为9至12年级学生准备演讲、面试和领导力沟通训练的在线课程。",
+          },
+          {
             href: "/world-scholars-cup-coaching",
             title: "世界学者杯辅导",
             description: "加拿大顶尖 WSC 辅导项目，资格赛通过率 100%。",
@@ -116,6 +126,16 @@ export default function HomepageExploreLinks() {
             href: "/public-speaking-classes-for-kids",
             title: "Public Speaking for Kids",
             description: "Build confidence and leadership skills with live online public speaking classes for Grades 4-9.",
+          },
+          {
+            href: "/debate-classes-for-kids",
+            title: "Debate Classes for Kids",
+            description: "Expert-led online debate classes for kids in Grades 4-12. Build critical thinking and confidence.",
+          },
+          {
+            href: "/public-speaking-classes-for-teens",
+            title: "Public Speaking for Teens",
+            description: "Prepare for presentations, interviews, and leadership with online public speaking classes for Grades 9-12.",
           },
           {
             href: "/world-scholars-cup-coaching",

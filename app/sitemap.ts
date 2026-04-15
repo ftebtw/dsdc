@@ -155,6 +155,18 @@ const staticEntries: StaticSitemapEntry[] = [
     files: ["app/public-speaking-classes-for-kids/page.tsx"],
   },
   {
+    path: "/debate-classes-for-kids",
+    changeFrequency: "monthly",
+    priority: 0.85,
+    files: ["app/debate-classes-for-kids/page.tsx"],
+  },
+  {
+    path: "/public-speaking-classes-for-teens",
+    changeFrequency: "monthly",
+    priority: 0.84,
+    files: ["app/public-speaking-classes-for-teens/page.tsx"],
+  },
+  {
     path: "/guide-to-debate-in-canada",
     changeFrequency: "yearly",
     priority: 0.6,
