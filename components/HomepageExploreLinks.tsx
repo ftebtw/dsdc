@@ -15,172 +15,57 @@ export default function HomepageExploreLinks() {
   const cards =
     locale === "zh"
       ? [
-          {
-            href: "/about",
-            title: "了解 DSDC",
-            description: "查看我们的理念、背景与为什么越来越多家庭选择线上辩论训练。",
-          },
-          {
-            href: "/pricing",
-            title: "课程价格",
-            description: "直接比较公开透明的课程定价，了解不同项目适合哪些学生。",
-          },
-          {
-            href: "/team",
-            title: "教练团队",
-            description: "认识来自顶尖大学和高水平辩论背景的 DSDC 教练。",
-          },
-          {
-            href: "/awards",
-            title: "学生成绩",
-            description: "浏览学生在辩论、演讲与 World Scholar's Cup 的比赛成果。",
-          },
-          {
-            href: "/faq",
-            title: "常见问题",
-            description: "快速了解上课方式、分班、设备、作业和报名流程。",
-          },
-          {
-            href: "/debate-classes-canada",
-            title: "加拿大辩论课程",
-            description: "查看 DSDC 如何为加拿大各地家庭提供在线辩论与公共演讲课程。",
-          },
-          {
-            href: "/online-debate-classes",
-            title: "在线辩论课程",
-            description: "看看 DSDC 的线上小班辩论课如何帮助学生持续进步。",
-          },
-          {
-            href: "/guide-to-debate-in-canada",
-            title: "加拿大辩论指南",
-            description: "阅读最受欢迎的入门文章，了解加拿大辩论生态和比赛路径。",
-          },
-          {
-            href: "/public-speaking-classes-for-kids",
-            title: "青少年公共演讲课",
-            description: "通过在线公共演讲课帮助孩子建立自信和领导力，适合4-9年级学生。",
-          },
-          {
-            href: "/debate-classes-for-kids",
-            title: "儿童辩论课",
-            description: "面向4至12年级学生的在线辩论课程，帮助孩子提升批判性思维、表达和自信。",
-          },
-          {
-            href: "/public-speaking-classes-for-teens",
-            title: "青少年公共演讲课",
-            description: "为9至12年级学生准备演讲、面试和领导力沟通训练的在线课程。",
-          },
-          {
-            href: "/world-scholars-cup-coaching",
-            title: "世界学者杯辅导",
-            description: "加拿大顶尖 WSC 辅导项目，资格赛通过率 100%。",
-          },
-          {
-            href: "/debate-classes-for-beginners",
-            title: "初学者辩论课",
-            description: "无需经验。我们的入门辩论课专为腼腆和初次接触辩论的学生设计。",
-          },
+          { href: "/classes", title: "全部课程", description: "比较各级别的辩论与演讲课程。" },
+          { href: "/pricing", title: "课程价格", description: "公开透明的课程定价与包含内容。" },
+          { href: "/debate-classes-for-kids", title: "儿童辩论课", description: "4-12 年级在线小班辩论课程。" },
+          { href: "/public-speaking-classes-for-kids", title: "儿童公共演讲课", description: "帮助孩子建立自信的线上演讲课。" },
+          { href: "/guide-to-debate-in-canada", title: "加拿大辩论指南", description: "完整了解加拿大辩论体系与比赛路径。" },
+          { href: "/team", title: "教练团队", description: "认识 DSDC 的辩论与演讲教练。" },
+          { href: "/awards", title: "学生成绩", description: "浏览学生比赛成果与国际奖项。" },
+          { href: "/faq", title: "常见问题", description: "上课方式、分班、作业与报名流程。" },
         ]
       : [
-          {
-            href: "/about",
-            title: "About DSDC",
-            description: "Learn how DSDC started, what we teach, and why families choose our online model.",
-          },
-          {
-            href: "/pricing",
-            title: "See Pricing",
-            description: "Compare transparent tuition and understand which programs fit your child's goals.",
-          },
-          {
-            href: "/team",
-            title: "Meet the Coaches",
-            description: "See the credentials and experience behind DSDC's debate and public speaking team.",
-          },
-          {
-            href: "/awards",
-            title: "Student Results",
-            description: "Browse tournament placements, awards, and World Scholar's Cup outcomes from DSDC students.",
-          },
-          {
-            href: "/faq",
-            title: "Read the FAQ",
-            description: "Get quick answers on class levels, scheduling, homework, Zoom setup, and registration.",
-          },
-          {
-            href: "/debate-classes-canada",
-            title: "Debate Classes Canada",
-            description: "See how DSDC serves families across Canada with live online debate and speaking programs.",
-          },
-          {
-            href: "/online-debate-classes",
-            title: "Online Debate Classes",
-            description: "Explore how DSDC runs live online classes for students across Canada and beyond.",
-          },
-          {
-            href: "/guide-to-debate-in-canada",
-            title: "Guide to Debate in Canada",
-            description: "Read our top-performing guide on formats, tournaments, and the Canadian debate pathway.",
-          },
-          {
-            href: "/public-speaking-classes-for-kids",
-            title: "Public Speaking for Kids",
-            description: "Build confidence and leadership skills with live online public speaking classes for Grades 4-9.",
-          },
-          {
-            href: "/debate-classes-for-kids",
-            title: "Debate Classes for Kids",
-            description: "Expert-led online debate classes for kids in Grades 4-12. Build critical thinking and confidence.",
-          },
-          {
-            href: "/public-speaking-classes-for-teens",
-            title: "Public Speaking for Teens",
-            description: "Prepare for presentations, interviews, and leadership with online public speaking classes for Grades 9-12.",
-          },
-          {
-            href: "/world-scholars-cup-coaching",
-            title: "World Scholar's Cup Coaching",
-            description: "Prepare for the World Scholar's Cup with Canada's top WSC coaching program. 100% qualification rate.",
-          },
-          {
-            href: "/debate-classes-for-beginners",
-            title: "Debate for Beginners",
-            description: "No experience needed. Our beginner debate classes are designed for shy and first-time students.",
-          },
+          { href: "/classes", title: "All Classes", description: "Compare every debate and public speaking program." },
+          { href: "/pricing", title: "See Pricing", description: "Transparent tuition and what's included." },
+          { href: "/debate-classes-for-kids", title: "Debate for Kids", description: "Online debate classes for Grades 4-12." },
+          { href: "/public-speaking-classes-for-kids", title: "Public Speaking for Kids", description: "Build confidence with live speaking classes." },
+          { href: "/guide-to-debate-in-canada", title: "Guide to Debate in Canada", description: "Our top-performing guide to the Canadian pathway." },
+          { href: "/team", title: "Meet the Coaches", description: "Credentials and experience behind DSDC." },
+          { href: "/awards", title: "Student Results", description: "Tournament placements and WSC outcomes." },
+          { href: "/faq", title: "Read the FAQ", description: "Class levels, scheduling, and registration." },
         ];
 
   return (
-    <section className="bg-white py-16 dark:bg-navy-900/30 md:py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="bg-white py-12 dark:bg-navy-900/30 md:py-16">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <AnimatedSection>
-          <h2 className="text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
-            {locale === "zh" ? "继续了解 DSDC 的课程与资源" : "Explore DSDC Programs and Resources"}
+          <h2 className="text-center text-2xl font-bold text-navy-800 dark:text-white md:text-3xl">
+            {locale === "zh" ? "继续了解 DSDC" : "Explore DSDC"}
           </h2>
-          <p className="mx-auto mt-4 max-w-3xl text-center text-lg leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+          <p className="mx-auto mt-3 max-w-2xl text-center text-base leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
             {locale === "zh"
-              ? "如果你正在比较课程、了解教练背景，或只是想先弄清楚加拿大辩论体系，这些页面会是最好的下一步。"
-              : "If you're comparing classes, reviewing coaching quality, or trying to understand the Canadian debate pathway, these pages are the best next steps."}
+              ? "比较课程、了解教练背景，或直接阅读我们最受欢迎的指南。"
+              : "Compare classes, review coaching credentials, or jump into our top guide."}
           </p>
         </AnimatedSection>
 
-        <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 md:mt-10 lg:grid-cols-4">
           {cards.map((card, index) => {
             const Icon = exploreIcons[index % exploreIcons.length];
             return (
-              <AnimatedSection key={card.href} delay={index * 0.05}>
-                <Link
-                  href={localizeHref(card.href)}
-                  className="group block h-full rounded-2xl border border-warm-200 bg-warm-50 p-6 shadow-sm transition-colors hover:border-gold-300 hover:bg-white hover:shadow-md dark:border-navy-700 dark:bg-navy-800 dark:hover:border-gold-400 dark:hover:bg-navy-700"
-                >
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gold-100 text-navy-800 transition-colors group-hover:bg-gold-200 dark:bg-gold-900/30 dark:text-gold-300 dark:group-hover:bg-gold-800/40">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="mb-3 text-xl font-bold text-navy-800 dark:text-white">{card.title}</h3>
-                  <p className="text-sm leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
-                    {card.description}
-                  </p>
-                </Link>
-              </AnimatedSection>
+              <Link
+                key={card.href}
+                href={localizeHref(card.href)}
+                className="group flex h-full flex-col rounded-xl border border-warm-200 bg-warm-50 p-4 transition-colors hover:border-gold-300 hover:bg-white dark:border-navy-700 dark:bg-navy-800 dark:hover:border-gold-400 dark:hover:bg-navy-700 sm:p-5"
+              >
+                <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-gold-100 text-navy-800 transition-colors group-hover:bg-gold-200 dark:bg-gold-900/30 dark:text-gold-300 dark:group-hover:bg-gold-800/40">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <h3 className="mb-1.5 text-base font-bold text-navy-800 dark:text-white sm:text-lg">{card.title}</h3>
+                <p className="text-xs leading-relaxed text-charcoal/65 dark:text-navy-200 font-sans sm:text-sm">
+                  {card.description}
+                </p>
+              </Link>
             );
           })}
         </div>
