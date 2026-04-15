@@ -6,13 +6,17 @@ import { Plus, Minus } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "./AnimatedSection";
 
+const HOMEPAGE_FAQ_LIMIT = 4;
+
 export default function FAQ() {
   const { t, messages } = useI18n();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const items = ((messages.faq as { items?: Array<{ q: string; a: string }> } | undefined)?.items ?? []) as Array<{
+  const allItems = ((messages.faq as { items?: Array<{ q: string; a: string }> } | undefined)?.items ?? []) as Array<{
     q: string;
     a: string;
   }>;
+  const items = allItems.slice(0, HOMEPAGE_FAQ_LIMIT);
+  const hasMore = allItems.length > HOMEPAGE_FAQ_LIMIT;
 
   return (
     <section className="faq-section py-12 md:py-16 bg-warm-100 dark:bg-navy-900/50">
@@ -79,6 +83,16 @@ export default function FAQ() {
             );
           })}
         </div>
+        {hasMore ? (
+          <div className="mt-8 text-center">
+            <Link
+              href="/faq"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-navy-800 underline underline-offset-4 transition-colors hover:text-gold-500 dark:text-gold-300 dark:hover:text-gold-200"
+            >
+              Read every question on our FAQ page →
+            </Link>
+          </div>
+        ) : null}
       </div>
     </section>
   );

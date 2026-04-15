@@ -19,12 +19,12 @@ export default function FeatureCards() {
           </h2>
         </AnimatedSection>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6 items-stretch">
           {keys.map((key, i) => {
             const Icon = icons[i];
             return (
-              <AnimatedSection key={key} delay={i * 0.1}>
-                <div className="flex items-start gap-4 rounded-xl bg-white px-5 py-4 shadow-sm dark:bg-navy-800">
+              <AnimatedSection key={key} delay={i * 0.1} className="h-full">
+                <div className="flex h-full items-start gap-4 rounded-xl bg-white px-5 py-5 shadow-sm dark:bg-navy-800">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gold-50 dark:bg-gold-900/30">
                     <Icon className="h-5 w-5 text-gold-500 dark:text-gold-400" />
                   </div>

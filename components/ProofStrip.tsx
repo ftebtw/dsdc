@@ -70,10 +70,10 @@ function Counter({ value, label, delay }: CounterProps) {
 
   return (
     <div ref={ref} className="text-center">
-      <div className="text-3xl md:text-4xl font-bold text-gold-400 font-serif leading-none">
+      <div className="text-3xl md:text-4xl font-bold text-navy-800 dark:text-gold-300 font-serif leading-none">
         {displayValue}
       </div>
-      <div className="mt-1.5 text-[0.7rem] md:text-xs text-white/70 font-sans uppercase tracking-wider">
+      <div className="mt-1.5 text-[0.7rem] md:text-xs text-charcoal/60 dark:text-navy-200 font-sans uppercase tracking-wider">
         {label}
       </div>
     </div>
@@ -108,15 +108,8 @@ export default function ProofStrip() {
     ((messages.competitions as { items?: string[] } | undefined)?.items ?? fallbackCompetitions) as string[];
 
   return (
-    <section className="stats-section relative overflow-hidden bg-navy-800 py-10 md:py-14">
-      <div
-        className="absolute inset-0 opacity-5"
-        style={{
-          backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
-          backgroundSize: "40px 40px",
-        }}
-      />
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <section className="stats-section border-y border-warm-200 bg-warm-50 py-10 md:py-14 dark:border-navy-800 dark:bg-navy-900/40">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Stats row */}
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-10">
           {statItems.map((stat, i) => (
@@ -130,18 +123,18 @@ export default function ProofStrip() {
         </div>
 
         {/* Divider */}
-        <div className="my-8 h-px w-full bg-white/10 md:my-10" />
+        <div className="my-8 h-px w-full bg-warm-200 dark:bg-navy-800 md:my-10" />
 
         {/* Competitions */}
         <AnimatedSection>
-          <p className="mb-4 text-center text-[0.7rem] md:text-xs font-semibold uppercase tracking-[0.2em] text-gold-300/80">
+          <p className="mb-4 text-center text-[0.7rem] md:text-xs font-semibold uppercase tracking-[0.2em] text-gold-600 dark:text-gold-300/80">
             {t("competitions.title")}
           </p>
           <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5">
             {competitionItems.map((name, i) => (
               <div
                 key={i}
-                className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] sm:text-xs font-medium text-white/80 transition-colors hover:border-gold-400/60 hover:text-white"
+                className="rounded-full border border-warm-200 bg-white px-3 py-1.5 text-[11px] sm:text-xs font-medium text-navy-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gold-300 hover:shadow-md dark:border-navy-700 dark:bg-navy-800 dark:text-navy-100 dark:hover:border-gold-500"
               >
                 {name}
               </div>
