@@ -34,15 +34,15 @@ export default function ClassesOverview() {
     <section className="py-12 md:py-16 bg-warm-100 dark:bg-navy-900/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection>
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-3 text-navy-800 dark:text-white">
+          <h2 className="text-3xl md:text-[2.2rem] font-bold text-center mb-3 text-navy-800 dark:text-white">
             {t("classesOverview.title")}
           </h2>
-          <p className="text-center text-sm md:text-base text-charcoal/70 dark:text-navy-300 font-sans mb-8">
-            Explore our{" "}
-            <Link href="/online-debate-classes" className="text-navy-800 dark:text-gold-300 font-semibold hover:underline">
-              online debate classes
-            </Link>
-            .
+          <p className="mx-auto mb-10 max-w-2xl text-center text-base md:text-lg text-charcoal/70 dark:text-navy-200 font-sans leading-relaxed">
+            Live{" "}
+            <Link href="/online-debate-classes" className="text-navy-800 underline underline-offset-4 hover:text-gold-500 dark:text-gold-300 dark:hover:text-gold-200">
+              online debate and public speaking classes
+            </Link>{" "}
+            for students in Grades 4–12, taught by coaches from Canada&rsquo;s National Debate Team.
           </p>
         </AnimatedSection>
 

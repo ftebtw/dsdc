@@ -14,7 +14,7 @@ export default function FeatureCards() {
     <section className="py-10 md:py-14 bg-warm-100 dark:bg-navy-900/50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection>
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-navy-800 dark:text-white">
+          <h2 className="text-3xl md:text-[2.2rem] font-bold text-center mb-10 text-navy-800 dark:text-white">
             {t("difference.title")}
           </h2>
         </AnimatedSection>
