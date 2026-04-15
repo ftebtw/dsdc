@@ -5,11 +5,12 @@ import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import AnimatedSection from "./AnimatedSection";
+import { faqEntries } from "@/lib/faqEntries";
 
 const HOMEPAGE_FAQ_LIMIT = 4;
 
 export default function FAQ() {
-  const { t, messages } = useI18n();
+  const { t, messages, locale } = useI18n();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const allItems = ((messages.faq as { items?: Array<{ q: string; a: string }> } | undefined)?.items ?? []) as Array<{
     q: string;
@@ -17,6 +18,10 @@ export default function FAQ() {
   }>;
   const items = allItems.slice(0, HOMEPAGE_FAQ_LIMIT);
   const hasMore = allItems.length > HOMEPAGE_FAQ_LIMIT;
+  // Per-question deep links only exist for the EN locale right now. faqEntries
+  // is ordered to match messages.faq.items, so we index-align to get the slug.
+  const getSlug = (index: number) =>
+    locale === "en" && index < faqEntries.length ? faqEntries[index].slug : null;
 
   return (
     <section className="faq-section py-12 md:py-16 bg-white dark:bg-navy-900/30">
@@ -32,6 +37,7 @@ export default function FAQ() {
             const isOpen = openIndex === i;
             const shouldShowBeginnersLink = i === 3;
             const shouldShowCanadaGuideLink = i === 3;
+            const slug = getSlug(i);
             return (
               <AnimatedSection key={i} delay={i * 0.05}>
                 <div className="bg-white dark:bg-navy-800 rounded-xl overflow-hidden shadow-sm border border-warm-200 dark:border-navy-700">
@@ -74,6 +80,16 @@ export default function FAQ() {
                             {t("faq.guideLinkText")}
                           </Link>
                           .
+                        </p>
+                      ) : null}
+                      {slug ? (
+                        <p className="px-4 sm:px-5 pb-4 sm:pb-5 -mt-3 text-sm font-semibold">
+                          <Link
+                            href={`/faq/${slug}`}
+                            className="inline-flex items-center gap-1 text-navy-800 underline underline-offset-4 hover:text-gold-500 dark:text-gold-300 dark:hover:text-gold-200"
+                          >
+                            Read the full answer →
+                          </Link>
                         </p>
                       ) : null}
                     </div>

@@ -4,6 +4,7 @@ import { hasChineseBlogTranslation } from "@/lib/blogLocalizations";
 import { getBlogPostHref } from "@/lib/blogPostPaths";
 import { addZhPrefix, hasChineseVersion } from "@/lib/localeRouting";
 import { getLocalizedLastModified } from "@/lib/pageMetadata";
+import { faqEntries } from "@/lib/faqEntries";
 
 type StaticSitemapEntry = {
   path: string;
@@ -210,6 +211,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: entry.priority,
     }));
 
+  const faqIndividualEntries: MetadataRoute.Sitemap = faqEntries.map((entry) => ({
+    url: `${baseUrl}/faq/${entry.slug}`,
+    lastModified: getLocalizedLastModified(["lib/faqEntries.ts", "app/faq/[slug]/page.tsx"]),
+    changeFrequency: "monthly" as const,
+    priority: 0.65,
+  }));
+
   const blogEntries: MetadataRoute.Sitemap = blogPosts
     .filter((post) => post.slug !== "guide-to-debate-in-canada")
     .map((post) => ({
@@ -228,5 +236,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.65,
     }));
 
-  return [...primaryEntries, ...zhEntries, ...blogEntries, ...zhBlogEntries];
+  return [...primaryEntries, ...zhEntries, ...faqIndividualEntries, ...blogEntries, ...zhBlogEntries];
 }

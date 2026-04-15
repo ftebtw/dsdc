@@ -1,9 +1,9 @@
-import enMessages from "@/messages/en.json";
+import { faqEntries } from "@/lib/faqEntries";
 
-const siteFaqMessages = ((enMessages.faq as { items?: Array<{ q: string; a: string }> } | undefined)?.items ??
-  []) as Array<{ q: string; a: string }>;
-
-export const siteFaqItems = siteFaqMessages.map((item) => ({
-  question: item.q,
-  answer: item.a,
+// Short-form FAQ items (question + answer) used in aggregated FAQPage schema
+// on the homepage and /faq index. The rich per-question body content lives in
+// faqEntries.ts and is rendered by /faq/[slug] pages.
+export const siteFaqItems = faqEntries.map((entry) => ({
+  question: entry.question,
+  answer: entry.answer,
 }));
