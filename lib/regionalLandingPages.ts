@@ -19,6 +19,9 @@ export type RegionalLandingPageData = {
   areasTitle: string;
   areas: string[];
   areasParagraph: string;
+  tournamentsTitle: string;
+  tournamentsIntro: string;
+  tournaments: string[];
   faqItems: Array<{ question: string; answer: string }>;
   ctaTitle: string;
   ctaText: string;
@@ -111,6 +114,19 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
     ],
     areasParagraph:
       "Because DSDC is online, families do not need to choose between strong coaching and a workable schedule. Students from across Calgary and the surrounding area can join the same live classes, receive the same written feedback, and stay consistent even during busy school terms or winter travel conditions.",
+    tournamentsTitle: "Tournaments Calgary Students Train For",
+    tournamentsIntro:
+      "DSDC students in Calgary prepare for the full Canadian debate calendar as well as major international events. Tournament readiness is built into our weekly practice, not added on at the last minute.",
+    tournaments: [
+      "Alberta Debate Association tournaments",
+      "Canadian National Debate Championships",
+      "Canadian Student Debating Federation events",
+      "World Scholar's Cup Regional Rounds",
+      "World Scholar's Cup Global Rounds",
+      "World Scholar's Cup Tournament of Champions at Yale",
+      "University of Calgary debate invitationals",
+      "Stanford, Princeton, and Oxford invitationals (advanced students)",
+    ],
     faqItems: [
       {
         question: "Do Calgary students really get enough speaking time in an online class?",
@@ -254,6 +270,19 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
     ],
     areasParagraph:
       "Families across Ottawa can access the same live classes without being restricted by neighborhood or school catchment. That helps students keep a consistent debate routine while still training with peers from across Canada.",
+    tournamentsTitle: "Tournaments Ottawa Students Train For",
+    tournamentsIntro:
+      "Ottawa families often want a program that prepares students for both Canadian and international competition. DSDC coaches toward the full tournament calendar so students are always building toward a real event rather than drilling in the abstract.",
+    tournaments: [
+      "Ontario Student Debating Union tournaments",
+      "Canadian National Debate Championships",
+      "Canadian Student Debating Federation events",
+      "OSDU Provincial Championships",
+      "Carleton and University of Ottawa invitationals",
+      "World Scholar's Cup Regional Rounds",
+      "World Scholar's Cup Global Rounds",
+      "World Scholar's Cup Tournament of Champions at Yale",
+    ],
     faqItems: [
       {
         question: "Can Ottawa students join even if their school has no debate club?",
@@ -397,6 +426,21 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
     ],
     areasParagraph:
       "Because the program is online, DSDC is not limited to one Ontario city. That makes it a practical option both for GTA families comparing quality and for families outside major debate hubs who still want serious coaching.",
+    tournamentsTitle: "Tournaments Ontario Students Train For",
+    tournamentsIntro:
+      "Ontario has one of the busiest debate calendars in Canada. DSDC students train for everything from provincial-level events to national championships to international invitationals, with weekly practice built around the next target on the schedule.",
+    tournaments: [
+      "Ontario Student Debating Union tournaments",
+      "OSDU Provincial Championships",
+      "Canadian National Debate Championships",
+      "Canadian Student Debating Federation events",
+      "University of Toronto Hart House debate invitationals",
+      "McMaster, Queen's, and Western University invitationals",
+      "World Scholar's Cup Regional Rounds",
+      "World Scholar's Cup Global Rounds",
+      "World Scholar's Cup Tournament of Champions at Yale",
+      "Stanford, Princeton, and Oxford invitationals (advanced students)",
+    ],
     faqItems: [
       {
         question: "Do Ontario students have to be in Toronto to join?",
@@ -539,6 +583,20 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
     ],
     areasParagraph:
       "A province-wide online option is especially useful in Alberta because it gives students more continuity across distance. Families can focus on coaching quality and long-term development rather than whether a program is physically nearby.",
+    tournamentsTitle: "Tournaments Alberta Students Train For",
+    tournamentsIntro:
+      "Alberta students compete at provincial, national, and international events. DSDC coaches toward the full pathway so students can start at local tournaments and progress through to Canadian Nationals and World Scholar's Cup at Yale.",
+    tournaments: [
+      "Alberta Debate Association tournaments",
+      "Alberta Provincial Championships",
+      "Canadian National Debate Championships",
+      "Canadian Student Debating Federation events",
+      "University of Calgary and University of Alberta invitationals",
+      "World Scholar's Cup Regional Rounds",
+      "World Scholar's Cup Global Rounds",
+      "World Scholar's Cup Tournament of Champions at Yale",
+      "Stanford, Princeton, and Oxford invitationals (advanced students)",
+    ],
     faqItems: [
       {
         question: "Do Alberta students need debate experience to join?",

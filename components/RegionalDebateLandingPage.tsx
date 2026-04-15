@@ -26,6 +26,56 @@ const testimonials = [
   },
 ];
 
+const debateFormats = [
+  {
+    title: "CNDF (Canadian National Debate Format)",
+    text: "CNDF is the flagship high school format used at Canadian Nationals and at provincial tournaments across the country. Students learn structured case-building, Points of Information, and clean summary speeches that reward logic and organization.",
+  },
+  {
+    title: "British Parliamentary",
+    text: "British Parliamentary is the dominant senior-level and university-circuit format. It teaches students to think quickly, compare nuanced arguments, and speak persuasively in four-team debates where strategic ranking matters as much as raw content.",
+  },
+  {
+    title: "World Schools",
+    text: "World Schools blends prepared and impromptu debating. It is widely used internationally and is the format DSDC alumni have used to represent Canada at the World Schools Debating Championships.",
+  },
+  {
+    title: "Cross-Examination",
+    text: "Cross-Examination emphasizes direct engagement, evidence comparison, and quick strategic responses under pressure. Strong for students who want to become more precise researchers and stronger refuters.",
+  },
+  {
+    title: "Public Speaking and Speech Events",
+    text: "For families that want communication training without the pressure of a debate round, DSDC also coaches impromptu, persuasive, and interpretive speaking - a common on-ramp into full debate.",
+  },
+];
+
+const classLevels = [
+  {
+    title: "Novice (Grades 4-6)",
+    text: "An excellent starting point for younger scholars. Build confidence through the fundamentals of speech execution and foundational debate formats - even shy and introverted children thrive.",
+  },
+  {
+    title: "Junior (Grades 7-9)",
+    text: "Build competitive debate skills while accelerating academic growth. Coaches integrate challenging topics like International Relations, Law, Philosophy, and Economics into debate practice.",
+  },
+  {
+    title: "Senior (Grades 10-12)",
+    text: "Rigorous practice in British Parliamentary, CNDF, and World Schools formats with advanced lectures on complex topics, delivered 1-2 times per week.",
+  },
+  {
+    title: "Advanced Competitive (Grades 10-12)",
+    text: "An elite program led by world-renowned university debaters for students deeply committed to competitive debate. Intensive drills, mock debates, and personalized coaching.",
+  },
+  {
+    title: "Public Speaking (Grades 4-9)",
+    text: "Comprehensive training in impromptu, persuasive, interpretive, and parliamentary formats. Designed to prepare students for speech provincials and build classroom confidence.",
+  },
+  {
+    title: "World Scholar's Cup (Grades 4-12)",
+    text: "Full WSC preparation with a 100% qualification rate since 2020 - from Regional Rounds to Global Rounds to the Tournament of Champions at Yale.",
+  },
+];
+
 export default function RegionalDebateLandingPage({ data }: { data: RegionalLandingPageData }) {
   const faqSchema = buildFaqSchema(data.faqItems);
   const breadcrumbSchema = buildBreadcrumbSchema([
@@ -109,6 +159,30 @@ export default function RegionalDebateLandingPage({ data }: { data: RegionalLand
 
       <KeyFactsBox itemType="https://schema.org/EducationalOrganization" title="At a Glance" facts={data.keyFacts} />
 
+      {/* Stats proof strip */}
+      <section className="bg-gold-400 dark:bg-gold-500/90 py-6 md:py-7">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 gap-5 text-center md:grid-cols-4">
+            <div>
+              <div className="text-2xl md:text-3xl font-bold text-navy-900">1,000+</div>
+              <div className="mt-1 text-xs md:text-sm font-semibold text-navy-900/85">Students coached</div>
+            </div>
+            <div>
+              <div className="text-2xl md:text-3xl font-bold text-navy-900">2017</div>
+              <div className="mt-1 text-xs md:text-sm font-semibold text-navy-900/85">Founded in Vancouver</div>
+            </div>
+            <div>
+              <div className="text-2xl md:text-3xl font-bold text-navy-900">100%</div>
+              <div className="mt-1 text-xs md:text-sm font-semibold text-navy-900/85">WSC qualification rate since 2020</div>
+            </div>
+            <div>
+              <div className="text-2xl md:text-3xl font-bold text-navy-900">20+</div>
+              <div className="mt-1 text-xs md:text-sm font-semibold text-navy-900/85">Coaches from top universities</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-white py-16 dark:bg-navy-900/30 md:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <h2 className="mb-8 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
@@ -187,7 +261,92 @@ export default function RegionalDebateLandingPage({ data }: { data: RegionalLand
         </div>
       </section>
 
+      {/* Debate formats taught */}
       <section className="bg-white py-16 dark:bg-navy-900/30 md:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-4 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
+            Debate Formats Taught at DSDC
+          </h2>
+          <p className="mx-auto mb-12 max-w-3xl text-center text-base md:text-lg text-charcoal/70 dark:text-navy-200 font-sans leading-relaxed">
+            Students choose the format that matches their goals, from provincial and national tournaments to
+            university and international competition. Every format is taught by coaches who have competed in it at a
+            high level.
+          </p>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            {debateFormats.map((item) => (
+              <article
+                key={item.title}
+                className="rounded-xl border border-warm-200 bg-warm-50 p-5 dark:border-navy-700 dark:bg-navy-800"
+              >
+                <h3 className="mb-2 text-lg font-bold text-navy-800 dark:text-white">{item.title}</h3>
+                <p className="leading-relaxed text-charcoal/70 dark:text-navy-300 font-sans">{item.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Class levels */}
+      <section className="bg-warm-100 py-16 dark:bg-navy-900/50 md:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-4 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
+            Our Class Levels
+          </h2>
+          <p className="mx-auto mb-12 max-w-3xl text-center text-base md:text-lg text-charcoal/70 dark:text-navy-200 font-sans leading-relaxed">
+            A clear progression from beginner to advanced. Students stay with the same program as they grow, instead
+            of restarting every year with a new provider.
+          </p>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {classLevels.map((item) => (
+              <article
+                key={item.title}
+                className="flex flex-col rounded-2xl border border-warm-200 bg-white p-6 shadow-sm dark:border-navy-700 dark:bg-navy-800"
+              >
+                <h3 className="mb-3 text-xl font-bold text-navy-800 dark:text-white">{item.title}</h3>
+                <p className="flex-1 leading-relaxed text-charcoal/75 dark:text-navy-200 font-sans">{item.text}</p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Link
+                    href="/classes"
+                    className="rounded-md border border-warm-300 px-4 py-2 text-sm font-medium text-navy-800 transition-colors hover:bg-warm-100 dark:border-navy-600 dark:text-navy-100 dark:hover:bg-navy-700"
+                  >
+                    View Class Details
+                  </Link>
+                  <Link
+                    href="/book"
+                    className="rounded-md bg-gold-400 px-4 py-2 text-sm font-semibold text-navy-900 transition-colors hover:bg-gold-300"
+                  >
+                    Book a Consultation
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Tournaments */}
+      <section className="bg-white py-16 dark:bg-navy-900/30 md:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-4 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
+            {data.tournamentsTitle}
+          </h2>
+          <p className="mx-auto mb-10 max-w-3xl text-center text-base md:text-lg text-charcoal/70 dark:text-navy-200 font-sans leading-relaxed">
+            {data.tournamentsIntro}
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {data.tournaments.map((item) => (
+              <div
+                key={item}
+                className="rounded-xl border border-warm-200 bg-warm-50 px-4 py-3 text-sm font-medium text-navy-800 dark:border-navy-700 dark:bg-navy-800 dark:text-navy-100 sm:text-base"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-warm-100 py-16 dark:bg-navy-900/50 md:py-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <h2 className="mb-12 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
             What Families Say About DSDC
