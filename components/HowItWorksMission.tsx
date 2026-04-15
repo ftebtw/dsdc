@@ -41,7 +41,7 @@ export default function HowItWorksMission() {
                     {t("howItWorks.subtitle")}
                   </p>
                 </div>
-                <ol className="relative space-y-7 md:space-y-8">
+                <ol className="relative flex flex-1 flex-col justify-between gap-8 md:gap-10">
                   <div className="absolute left-[22px] top-4 bottom-4 w-px bg-gold-200 dark:bg-gold-500/25" aria-hidden="true" />
                   {steps.map((step, i) => {
                     const Icon = stepIcons[i];
@@ -65,7 +65,7 @@ export default function HowItWorksMission() {
                     );
                   })}
                 </ol>
-                <div className="mt-auto pt-8">
+                <div className="pt-8">
                   <p className="mb-4 text-sm md:text-base text-charcoal/70 dark:text-navy-200/85 leading-relaxed font-sans">
                     Ready to begin? The free consultation takes about 15 minutes and there&rsquo;s no commitment.
                   </p>
