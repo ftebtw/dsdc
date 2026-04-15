@@ -16,6 +16,11 @@ export function useUser() {
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
 
     async function load() {

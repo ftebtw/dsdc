@@ -1,9 +1,26 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import WorldScholarsCupCoachingPageZh from "@/components/WorldScholarsCupCoachingPageZh";
 import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
+import { getRequestLocale } from "@/lib/requestLocale";
 
 const faqItems = [
+  {
+    question: "How do you qualify for the World Scholar's Cup?",
+    answer:
+      "You qualify by competing in a Regional Round and placing high enough in the team or individual rankings to earn a Global Round invitation. Top Global Round scholars then qualify for the Tournament of Champions at Yale. DSDC coaches students through each stage - our students have a 100% regional-qualification rate since 2020.",
+  },
+  {
+    question: "What is the theme for the Scholar's Cup 2026?",
+    answer:
+      "The World Scholar's Cup releases a new curriculum theme each year that is shared across all six subject areas. DSDC updates its coaching plan as soon as the 2026 theme is announced, and families enrolled in our WSC cohort get a theme-mapped reading list, curriculum outline, and term-by-term preparation schedule before the first class.",
+  },
+  {
+    question: "Is the World Scholar's Cup expensive?",
+    answer:
+      "Competition costs depend on which round your child attends. Regional Rounds typically cost around $100-200 USD in registration fees. Global Rounds and the Tournament of Champions at Yale cost more because families travel to host cities. DSDC's own coaching is priced at $30-50 CAD per hour for group classes, which is much lower than most WSC tutoring programs.",
+  },
   {
     question: "What age and grade is the World Scholar's Cup for?",
     answer:
@@ -56,6 +73,33 @@ const faqItems = [
   },
 ];
 
+const prepareForWsc = [
+  {
+    title: "Step 1: Understand the format",
+    text: "Learn the rules for each of the four events - Team Debate, Collaborative Writing, Scholar's Challenge, and Scholar's Bowl - before your child starts preparing. Knowing the format first prevents wasted practice.",
+  },
+  {
+    title: "Step 2: Read the year's curriculum",
+    text: "Each WSC season has a themed curriculum covering Science, History, Art & Music, Literature, Social Studies, and a Special Area. Start with the official outline and build a reading list from there.",
+  },
+  {
+    title: "Step 3: Join a coached cohort",
+    text: "Self-study is hard to sustain. A coached cohort gives your child a schedule, accountability, written feedback, and a team of peers to practice with every week - the biggest single factor in whether students qualify.",
+  },
+  {
+    title: "Step 4: Do weekly mock rounds",
+    text: "Mock debates, timed writing, and practice Scholar's Challenge exams reveal weak spots months before regionals. DSDC mock rounds mirror the real competition conditions so students show up calm.",
+  },
+  {
+    title: "Step 5: Prioritize Team Debate and Collaborative Writing",
+    text: "These two events are the most coachable and most often decide whether a team qualifies. Spend the most preparation time here - Scholar's Bowl rhythm and Scholar's Challenge content review can stack on top once the speaking and writing fundamentals are in place.",
+  },
+  {
+    title: "Step 6: Plan travel early if you qualify",
+    text: "Regional Round qualifiers need to plan Global Round travel weeks in advance. DSDC helps families figure out which Global Round city fits their schedule and what the workload looks like after qualifying.",
+  },
+];
+
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -105,17 +149,32 @@ const courseSchema = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
   return buildLocalizedPageMetadata({
     path: "/world-scholars-cup-coaching",
-    title: "World Scholar's Cup Coaching Canada | 100% Qual Rate | DSDC",
+    title:
+      locale === "zh"
+        ? "World Scholar's Cup 教学 2026 | 如何晋级 | DSDC"
+        : "World Scholar's Cup Coaching 2026 | How to Qualify | DSDC",
     description:
-      "Canada's top World Scholar's Cup coaching program. 100% qualification rate from regionals to the Tournament of Champions at Yale since 2020. Live online classes for Grades 4-12 covering all four WSC events: Team Debate, Collaborative Writing, Scholar's Challenge, and Scholar's Bowl.",
+      locale === "zh"
+        ? "如何为 World Scholar's Cup 2026 做准备并成功晋级。DSDC 是加拿大顶级的 WSC 教学项目，自 2020 年起保持 100% 晋级率。4-12 年级的在线直播课，覆盖全部四个 WSC 项目：Team Debate、Collaborative Writing、Scholar's Challenge、Scholar's Bowl。"
+        : "How to prepare for and qualify for the World Scholar's Cup 2026. DSDC is Canada's top-rated WSC coaching program with a 100% qualification rate since 2020. Live online classes for Grades 4-12 covering all four WSC events: Team Debate, Collaborative Writing, Scholar's Challenge, and Scholar's Bowl.",
+    keywords: [
+      "World Scholar's Cup coaching",
+      "World Scholar's Cup 2026",
+      "how to qualify for World Scholar's Cup",
+      "World Scholar's Cup theme",
+      "Scholar's Cup preparation",
+      "WSC coaching Canada",
+      "WSC Tournament of Champions",
+    ],
     images: [
       {
         url: "/images/photos/wsc-students-1.jpg",
       },
     ],
-    hasChineseVersion: false,
+    hasChineseVersion: true,
   });
 }
 
@@ -215,7 +274,12 @@ const whyDsdcForWsc = [
   },
 ];
 
-export default function WorldScholarsCupCoachingPage() {
+export default async function WorldScholarsCupCoachingPage() {
+  const locale = await getRequestLocale();
+  if (locale === "zh") {
+    return <WorldScholarsCupCoachingPageZh />;
+  }
+
   return (
     <>
       <script
@@ -475,6 +539,64 @@ export default function WorldScholarsCupCoachingPage() {
                 </div>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NEW: How to Prepare for WSC - targets PAA */}
+      <section className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-navy-800 dark:text-white mb-4">
+            How to Prepare for the World Scholar&apos;s Cup
+          </h2>
+          <p className="mx-auto mb-12 max-w-3xl text-center text-base md:text-lg text-charcoal/70 dark:text-navy-200 font-sans leading-relaxed">
+            Strong WSC preparation is sequenced, not improvised. This is the practical preparation path DSDC
+            uses with every student - whether they are training for a first Regional Round or a Tournament of
+            Champions run at Yale.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {prepareForWsc.map((step) => (
+              <article
+                key={step.title}
+                className="rounded-2xl border border-warm-200 dark:border-navy-700 bg-warm-50 dark:bg-navy-800 p-6 shadow-sm"
+              >
+                <h3 className="text-lg md:text-xl font-bold text-navy-800 dark:text-white mb-2">{step.title}</h3>
+                <p className="text-charcoal/75 dark:text-navy-200 font-sans leading-relaxed">{step.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NEW: WSC 2026 theme and curriculum */}
+      <section className="py-16 md:py-24 bg-warm-100 dark:bg-navy-900/50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-navy-800 dark:text-white mb-6">
+            The World Scholar&apos;s Cup 2026 Theme and Curriculum
+          </h2>
+          <div className="space-y-5 text-charcoal/80 dark:text-navy-200 text-lg leading-relaxed font-sans">
+            <p>
+              Every World Scholar&apos;s Cup season is built around a fresh theme that runs through all six
+              subject areas and all four events. The 2026 theme shapes everything from the reading list in
+              Literature to the case studies in Social Studies to the debate motions in Team Debate - which
+              is why students who prepare with a theme-aware curriculum do so much better than students
+              cramming from last year&apos;s outline.
+            </p>
+            <p>
+              DSDC rebuilds its WSC cohort syllabus as soon as the 2026 theme is released. Our coaches map
+              the official curriculum outline to weekly lessons, assign a theme-specific reading list,
+              and run practice rounds on motions drawn directly from the year&apos;s topics. Students walk
+              into regionals already familiar with the subject connections WSC judges reward most.
+            </p>
+            <p>
+              If you want to see the current theme, the latest curriculum announcements, and how we are
+              adapting our cohort for the coming season, the fastest way to get specifics is to{" "}
+              <Link href="/book" className="underline underline-offset-4 hover:text-gold-500 transition-colors">
+                book a free consultation
+              </Link>
+              . We will share the current theme, explain how it maps to each event, and recommend the right
+              starting cohort for your child&apos;s grade and experience level.
+            </p>
           </div>
         </div>
       </section>

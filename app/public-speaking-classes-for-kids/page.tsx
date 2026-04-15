@@ -2,14 +2,31 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import KeyFactsBox from "@/components/KeyFactsBox";
+import PublicSpeakingForKidsPageZh from "@/components/PublicSpeakingForKidsPageZh";
 import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
+import { getRequestLocale } from "@/lib/requestLocale";
 import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 
 const faqItems = [
   {
+    question: "Are public speaking and debate the same?",
+    answer:
+      "No. Public speaking trains students to present prepared and impromptu speeches to an audience. Debate adds rebuttal, opposition, and real-time argumentation against another side. Public speaking is often the first step; debate builds on it.",
+  },
+  {
+    question: "What are the 5 C's of public speaking?",
+    answer:
+      "The 5 C's usually refer to: Clarity, Confidence, Conciseness, Connection, and Credibility. DSDC's public speaking curriculum for kids builds each of these deliberately across the term, not just as slogans but through weekly speaking drills and feedback.",
+  },
+  {
+    question: "Does debate help with public speaking?",
+    answer:
+      "Yes. Debate dramatically improves public speaking because it forces students to speak clearly under pressure, structure arguments quickly, and respond to live questions. Many DSDC students begin with public speaking classes and transition into debate once they have the confidence.",
+  },
+  {
     question: "What age is best for public speaking classes for kids?",
     answer:
-      "Many students benefit from starting in Grades 4 through 9, but the right time depends on the child. Students who are shy, thoughtful, or eager to speak more confidently often improve quickly when they start early.",
+      "Students can start as early as Grade 1 with age-appropriate coaching, though the most common starting range is Grades 4 through 9. The right time depends on the child. Students who are shy, thoughtful, or eager to speak more confidently often improve quickly when they start early.",
   },
   {
     question: "What do kids actually do in a public speaking course?",
@@ -19,7 +36,7 @@ const faqItems = [
   {
     question: "Is this a good fit if my child is nervous about speaking in front of others?",
     answer:
-      "Yes. DSDC&apos;s public speaking classes are designed to help students build confidence gradually in a supportive environment, rather than throwing them into high-pressure performance too quickly.",
+      "Yes. DSDC's public speaking classes are designed to help students build confidence gradually in a supportive environment, rather than throwing them into high-pressure performance too quickly.",
   },
   {
     question: "How do public speaking classes connect to debate later on?",
@@ -29,12 +46,50 @@ const faqItems = [
   {
     question: "How much do classes cost and how do we get started?",
     answer:
-      "You can review our pricing online and then book a free consultation. We&apos;ll recommend the best class based on your child&apos;s age, confidence level, and goals.",
+      "You can review our pricing online and then book a free consultation. We'll recommend the best class based on your child's age, confidence level, and goals.",
   },
   {
     question: "Do online public speaking classes really work?",
     answer:
       "They do when they are interactive and feedback-rich. Students still speak live, practice in small groups, and receive direct coaching, but families avoid commuting and scheduling headaches.",
+  },
+];
+
+const psValueProps = [
+  {
+    title: "Live Zoom Classes",
+    text: "Every class is real-time and interactive. Students speak, get feedback, and interact with peers and coaches - not a pre-recorded video course. No commute, no drop-off logistics.",
+  },
+  {
+    title: "Small Group Sizes",
+    text: "Classes are capped around 8 to 12 students so every child speaks every week. Smaller groups mean more personal speaking time, better coach attention, and faster confidence gains.",
+  },
+  {
+    title: "Experienced Coaches",
+    text: "DSDC coaches come from Canada's National Debate Team, UBC, SFU, and international competitive circuits. They know how to coach children, not just how to speak themselves.",
+  },
+];
+
+const psCohorts = [
+  {
+    cohort: "Elementary Public Speaking (Grades 1-6)",
+    window: "Weeknights 5:00-6:15pm PT / 8:00-9:15pm ET",
+    text: "A gentle starting point for younger kids. Focus on confidence, vocal clarity, short structured speeches, and comfort speaking in front of a group.",
+  },
+  {
+    cohort: "Middle School Public Speaking (Grades 7-9)",
+    window: "Weeknights 6:30-8:00pm PT",
+    text: "For middle school students ready to structure longer speeches, handle persuasive assignments, and start taking impromptu prompts seriously.",
+  },
+  {
+    cohort: "Senior Public Speaking (Grades 10-12)",
+    window: "Weeknights and weekends",
+    text: "For high school students who want to present better at school, interview with confidence, and build a platform skill that also helps for scholarships and university applications.",
+  },
+  {
+    cohort: "Public Speaking + Debate Bridge",
+    window: "Rolling intake",
+    text: "A blended cohort for students who want to move from public speaking into debate over a term. Good for families who are unsure which program fits best.",
   },
 ];
 
@@ -49,7 +104,7 @@ const courseSchema = {
   "@type": "Course",
   name: "Public Speaking Classes for Kids",
   description:
-    "DSDC offers online public speaking classes for kids focused on confidence, leadership, academic communication, and clear speaking skills.",
+    "DSDC offers online youth public speaking classes for kids focused on confidence, leadership, academic communication, and clear speaking skills.",
   provider: {
     "@type": "EducationalOrganization",
     name: "DSDC",
@@ -59,17 +114,36 @@ const courseSchema = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getRequestLocale();
   return buildLocalizedPageMetadata({
     path: "/public-speaking-classes-for-kids",
-    title: "Public Speaking Classes for Kids | DSDC",
+    title:
+      locale === "zh"
+        ? "儿童在线演讲课 | 1-12 年级 | DSDC"
+        : "Online Public Speaking Classes for Kids | Grade 1 to 12 | DSDC",
     description:
-      "DSDC offers public speaking classes for kids that build confidence, leadership, and academic communication skills through live online coaching.",
+      locale === "zh"
+        ? "面向 1-12 年级儿童的 Zoom 在线实时演讲课。小班教学、经验丰富的教练，以及一套「自信优先」的课程体系——既适合害羞的孩子，也适合未来想走竞赛辩论路线的孩子。"
+        : "Live online public speaking classes for kids in Grade 1 to 12. Small groups, experienced coaches, and a confidence-first curriculum that works for shy students and future debaters alike.",
+    keywords: [
+      "public speaking classes for kids",
+      "online public speaking classes",
+      "public speaking for kids",
+      "kids public speaking course",
+      "public speaking vs debate",
+      "youth public speaking",
+    ],
     images: [{ url: "/images/photos/dsdc-class-photo.jpg" }],
-    hasChineseVersion: false,
+    hasChineseVersion: true,
   });
 }
 
-export default function PublicSpeakingClassesForKidsPage() {
+export default async function PublicSpeakingClassesForKidsPage() {
+  const locale = await getRequestLocale();
+  if (locale === "zh") {
+    return <PublicSpeakingForKidsPageZh />;
+  }
+
   return (
     <>
       <JsonLd id="public-speaking-course-schema" data={courseSchema} />
@@ -86,11 +160,11 @@ export default function PublicSpeakingClassesForKidsPage() {
         />
         <div className="relative mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
           <h1 className="mb-6 text-4xl font-bold text-white md:text-5xl lg:text-6xl">
-            Public Speaking Classes for Kids That Build Confidence for Life
+            Online Public Speaking Classes for Kids in Grade 1 to 12
           </h1>
           <p className="mx-auto mb-10 max-w-3xl text-xl font-sans text-white/90">
-            A live online kids public speaking course that helps students become clearer thinkers, stronger speakers,
-            and more confident leaders at school and beyond.
+            Live Zoom public speaking classes for kids. Small groups, experienced coaches, and a
+            confidence-first curriculum that works for shy students and future competitive debaters alike.
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link
@@ -115,12 +189,63 @@ export default function PublicSpeakingClassesForKidsPage() {
         facts={[
           { label: "Format", value: "Live online via Zoom" },
           { label: "Best for", value: "Students who want confidence, presentation skill, and stronger communication" },
-          { label: "Typical ages", value: "Grades 4-9" },
+          { label: "Typical ages", value: "Grade 1 to 12" },
           { label: "Class size", value: "Usually 8-12 students" },
           { label: "Feedback", value: "Personalized written feedback after class" },
           { label: "Next step", value: "Can lead into debate classes or competitive speaking opportunities" },
         ]}
       />
+
+      {/* NEW: 3-card value props */}
+      <section className="bg-warm-100 py-16 dark:bg-navy-900/50 md:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-6 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
+            Why DSDC Public Speaking Classes Work
+          </h2>
+          <p className="mx-auto mb-10 max-w-3xl text-center text-base md:text-lg leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+            Parents compare online public speaking classes on three things. Here is how DSDC handles each.
+          </p>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {psValueProps.map((prop) => (
+              <article
+                key={prop.title}
+                className="rounded-2xl border border-warm-200 bg-white p-6 shadow-sm dark:border-navy-700 dark:bg-navy-800"
+              >
+                <h3 className="mb-3 text-xl font-bold text-navy-800 dark:text-white">{prop.title}</h3>
+                <p className="leading-relaxed text-charcoal/75 dark:text-navy-200 font-sans">{prop.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NEW: Upcoming cohorts */}
+      <section className="bg-white py-16 dark:bg-navy-900/30 md:py-24">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-4 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
+            Upcoming Public Speaking Cohorts
+          </h2>
+          <p className="mx-auto mb-10 max-w-3xl text-center text-base md:text-lg leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+            DSDC runs multiple public speaking cohorts across time zones so Canadian families from
+            Vancouver to Toronto can join at a sensible hour. Specific start dates rotate each term -
+            book a consultation to reserve a spot.
+          </p>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            {psCohorts.map((cohort) => (
+              <article
+                key={cohort.cohort}
+                className="rounded-2xl border border-warm-200 bg-warm-50 p-6 shadow-sm dark:border-navy-700 dark:bg-navy-800"
+              >
+                <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-gold-600 dark:text-gold-300 font-sans">
+                  {cohort.window}
+                </p>
+                <h3 className="mb-2 text-xl font-bold text-navy-800 dark:text-white font-serif">{cohort.cohort}</h3>
+                <p className="leading-relaxed text-charcoal/75 dark:text-navy-200 font-sans">{cohort.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="bg-white py-16 dark:bg-navy-900/30 md:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -322,7 +447,7 @@ export default function PublicSpeakingClassesForKidsPage() {
             <p>
               Over time, parents often see the difference in places far beyond the class itself. Students participate
               more confidently in school, speak with more clarity during interviews or presentations, and begin to take
-              more ownership over how they communicate ideas. That is why public speaking for kids is often one of the
+              more ownership over how they communicate ideas. That is why youth public speaking training is often one of the
               most practical long-term investments a family can make in communication development.
             </p>
           </div>

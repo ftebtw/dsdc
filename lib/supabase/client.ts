@@ -9,7 +9,9 @@ export function getSupabaseBrowserClient() {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
-    throw new Error('Supabase browser env vars are missing.');
+    // In local dev without Supabase env vars, return null so unrelated pages
+    // (marketing, blog, etc.) can still render. Portal/auth code must null-check.
+    return null;
   }
 
   client = createBrowserClient(url, anonKey) as any;

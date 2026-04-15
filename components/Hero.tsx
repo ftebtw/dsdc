@@ -79,8 +79,7 @@ export default function Hero() {
         rel="preload"
         as="image"
         href="/images/photos/wsc-group-2.jpg"
-        // @ts-expect-error fetchPriority is a valid HTML attribute not yet in React types
-        fetchpriority="high"
+        fetchPriority="high"
       />
       {/* Background video */}
       <video

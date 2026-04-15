@@ -14,13 +14,19 @@ const CHINESE_VERSION_PATHS = new Set<string>([
   "/contact",
   "/debate-classes-toronto",
   "/debate-classes-vancouver",
+  "/debate-club",
+  "/debate-formats",
+  "/debate-summer-camp",
   "/faq",
   "/online-debate-classes",
   "/pricing",
   "/privacy",
+  "/public-speaking-classes-for-kids",
+  "/public-speaking-classes-vancouver",
   "/register",
   "/team",
   "/terms",
+  "/world-scholars-cup-coaching",
 ]);
 
 const CHINESE_BLOG_SLUGS = new Set<string>(translatedChineseBlogSlugs);

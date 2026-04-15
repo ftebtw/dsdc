@@ -84,15 +84,66 @@ const breadcrumbSchema = buildBreadcrumbSchema([
   { name: "Debate Classes Toronto", path: "/debate-classes-toronto" },
 ]);
 
+const torontoTournaments = [
+  {
+    name: "Hart House Debates (University of Toronto)",
+    text: "Canada's oldest debating society, hosted at the University of Toronto. Hart House runs high-caliber tournaments that draw strong Ontario high school teams and set the competitive bar for Toronto debate students.",
+  },
+  {
+    name: "Toronto Debating Society",
+    text: "One of the oldest civic debating clubs in North America. Toronto Debating Society events are a reference point for public speaking style and parliamentary format across the GTA.",
+  },
+  {
+    name: "OSDU - Ontario Student Debating Union",
+    text: "OSDU runs the main high school tournament circuit for Ontario, including provincial qualifiers for Canadian Nationals. DSDC students preparing for OSDU events train in CNDF and cross-examination formats directly applicable to OSDU judging standards.",
+  },
+  {
+    name: "University of Toronto High School Tournament",
+    text: "An annual tournament hosted on the University of Toronto campus that attracts competitive teams from across Ontario. Ideal for GTA students looking to step up from school-level debate into provincial competition.",
+  },
+];
+
+const torontoSchedule = [
+  {
+    program: "Novice Debate (Grades 4-6)",
+    time: "Weeknights 6:00-7:30pm ET",
+    text: "Runs at a time that works for families in Toronto, Brampton, Mississauga, Scarborough, and the wider GTA. Students finish dinner and log in from home without a commute.",
+  },
+  {
+    program: "Junior Debate (Grades 7-9)",
+    time: "Weeknights 7:00-8:30pm ET",
+    text: "Set up for middle school students across Ontario. The ET-aligned schedule means Toronto students join the same cohort as peers in Ottawa, Kitchener, and London.",
+  },
+  {
+    program: "Senior Debate (Grades 10-12)",
+    time: "Weeknights 7:30-9:00pm ET / Saturday mornings",
+    text: "High school students preparing for OSDU tournaments, CSDF Nationals, and university applications train in a senior cohort that fits around Ontario school schedules.",
+  },
+  {
+    program: "Public Speaking (Grades 4-9)",
+    time: "Weeknights and weekends ET",
+    text: "A gentler on-ramp for Toronto and GTA students who want confidence work before moving into formal debate. Also runs at Ontario-friendly times.",
+  },
+];
+
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
   return buildLocalizedPageMetadata({
     path: "/debate-classes-toronto",
-    title: locale === "zh" ? "多伦多辩论课程 | GTA 在线辩论与公共演讲 | DSDC" : "Debate Classes Toronto & GTA | DSDC",
+    title: locale === "zh" ? "多伦多辩论课程 | GTA 在线辩论与公共演讲 | DSDC" : "Debate Classes Toronto & GTA | Online Ontario Debate Club | DSDC",
     description:
       locale === "zh"
         ? "DSDC 为多伦多与 GTA 家庭提供可在线参加的辩论和公共演讲课程，覆盖 Brampton、Mississauga、Scarborough、North York 等地区。"
-        : "DSDC offers online debate classes Toronto and GTA families can join from home, including students in Brampton, Mississauga, Scarborough, and North York.",
+        : "DSDC offers online debate classes for Toronto and the GTA, with Ontario-timed cohorts, coaching for Hart House and OSDU tournaments, and live Zoom groups for students in Brampton, Mississauga, Scarborough, North York, Vaughan, Markham, and beyond.",
+    keywords: [
+      "debate classes Toronto",
+      "debate club Toronto",
+      "debate classes GTA",
+      "Toronto debate coaching",
+      "Hart House debate",
+      "OSDU debate",
+      "Ontario debate classes",
+    ],
     images: [{ url: "/images/photos/wsc-group-2.jpg" }],
     hasChineseVersion: true,
   });
@@ -262,6 +313,76 @@ export default async function DebateClassesTorontoPage() {
             </Link>{" "}
             helpful because the same criteria apply whether you&apos;re searching in Toronto, Brampton, Mississauga, or
             anywhere else in Canada.
+          </p>
+        </div>
+      </section>
+
+      {/* NEW: Ontario tournament circuit */}
+      <section className="bg-white py-16 dark:bg-navy-900/30 md:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-6 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
+            The Toronto and Ontario Tournament Circuit
+          </h2>
+          <p className="mx-auto mb-10 max-w-3xl text-center text-base md:text-lg leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+            Toronto has one of the strongest high school debate circuits in Canada, anchored by the
+            University of Toronto and long-running civic societies. DSDC coaches students to compete in
+            the tournaments that matter most for GTA and Ontario families.
+          </p>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {torontoTournaments.map((tournament) => (
+              <article
+                key={tournament.name}
+                className="flex flex-col rounded-2xl border border-warm-200 bg-warm-50 p-6 shadow-sm dark:border-navy-700 dark:bg-navy-800"
+              >
+                <h3 className="mb-3 text-xl font-bold text-navy-800 dark:text-white">{tournament.name}</h3>
+                <p className="flex-1 leading-relaxed text-charcoal/75 dark:text-navy-200 font-sans">{tournament.text}</p>
+              </article>
+            ))}
+          </div>
+          <p className="mx-auto mt-10 max-w-4xl text-center text-base leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+            Even if your child is not ready for tournaments yet, training with a coach who knows the
+            Ontario circuit means every class is pointed at the formats and judging standards GTA
+            students actually face. Once a student is ready, our{" "}
+            <Link href="/online-debate-classes" className="underline underline-offset-4 transition-colors hover:text-gold-500">
+              senior and advanced cohorts
+            </Link>{" "}
+            prepare directly for Hart House, OSDU, and CSDF National qualifiers.
+          </p>
+        </div>
+      </section>
+
+      {/* NEW: Class schedule in Eastern Time */}
+      <section className="bg-warm-100 py-16 dark:bg-navy-900/50 md:py-24">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-4 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
+            DSDC Class Schedule in Eastern Time
+          </h2>
+          <p className="mx-auto mb-10 max-w-3xl text-center text-base md:text-lg leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+            One of the most common questions GTA families ask is whether our class times work for Ontario.
+            They do - our weeknight and weekend cohorts are scheduled so Toronto students can join after
+            homework, practice, or extracurriculars without sacrificing sleep.
+          </p>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            {torontoSchedule.map((slot) => (
+              <article
+                key={slot.program}
+                className="rounded-2xl border border-warm-200 bg-white p-6 shadow-sm dark:border-navy-700 dark:bg-navy-800"
+              >
+                <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-gold-600 dark:text-gold-300 font-sans">
+                  {slot.time}
+                </p>
+                <h3 className="mb-2 text-xl font-bold text-navy-800 dark:text-white font-serif">{slot.program}</h3>
+                <p className="leading-relaxed text-charcoal/75 dark:text-navy-200 font-sans">{slot.text}</p>
+              </article>
+            ))}
+          </div>
+          <p className="mx-auto mt-8 max-w-3xl text-center text-base leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+            Specific start dates and cohort availability rotate each term. The fastest way to find an
+            Ontario-timed slot for your child is to{" "}
+            <Link href="/book" className="underline underline-offset-4 transition-colors hover:text-gold-500">
+              book a free consultation
+            </Link>
+            .
           </p>
         </div>
       </section>
