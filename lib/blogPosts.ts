@@ -1,3 +1,4 @@
+import bundledBlogPosts from "@/content/blog-posts.json";
 import { enrichBlogPosts } from "@/lib/articleMetadata";
 
 export interface BlogSection {
@@ -45,6 +46,26 @@ export interface BlogPost {
   citationSources?: ArticleCitation[];
   faqItems?: BlogFaqItem[];
   schemaType?: "Article" | "BlogPosting";
+}
+
+function parseSortableDate(post: Pick<BlogPost, "publishedAt" | "date">): number | null {
+  const value = post.publishedAt ?? post.date;
+  if (!value) return null;
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function sortBlogPosts(posts: BlogPost[]): BlogPost[] {
+  return [...posts].sort((a, b) => {
+    const aTime = parseSortableDate(a);
+    const bTime = parseSortableDate(b);
+
+    if (aTime === null && bTime === null) return a.slug.localeCompare(b.slug);
+    if (aTime === null) return 1;
+    if (bTime === null) return -1;
+    if (aTime === bTime) return a.slug.localeCompare(b.slug);
+    return bTime - aTime;
+  });
 }
 
 export const blogPosts: BlogPost[] = [
@@ -510,24 +531,30 @@ export const blogPosts: BlogPost[] = [
 ];
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
-  return enrichBlogPosts(blogPosts).find((p) => p.slug === slug);
+  return sortBlogPosts(enrichBlogPosts(blogPosts)).find((p) => p.slug === slug);
 }
 
-/** Reads from content/blog-posts.json if it exists (e.g. after admin save); otherwise returns static blogPosts. Use in server components or API routes. */
+/** Uses bundled content/blog-posts.json by default, with a local fs override for live admin edits. */
 export function getBlogPostsSync(): BlogPost[] {
-  if (typeof window !== "undefined") return enrichBlogPosts(blogPosts);
+  const fallbackPosts = sortBlogPosts(enrichBlogPosts(bundledBlogPosts as BlogPost[]));
+
+  if (typeof window !== "undefined") return fallbackPosts;
+
   try {
     const path = require("path");
     const fs = require("fs");
     const p = path.join(process.cwd(), "content", "blog-posts.json");
     if (fs.existsSync(p)) {
       const data = JSON.parse(fs.readFileSync(p, "utf-8"));
-      return enrichBlogPosts(Array.isArray(data) ? data : blogPosts);
+      if (Array.isArray(data)) {
+        return sortBlogPosts(enrichBlogPosts(data as BlogPost[]));
+      }
     }
   } catch (error) {
 
     console.error("[blog-posts] error:", error);
     // ignore
   }
-  return enrichBlogPosts(blogPosts);
+
+  return fallbackPosts;
 }
