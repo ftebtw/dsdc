@@ -4,8 +4,7 @@ import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
 import Hero from "@/components/Hero";
 import FeatureCards from "@/components/FeatureCards";
-import HowItWorks from "@/components/HowItWorks";
-import MissionSection from "@/components/MissionSection";
+import HowItWorksMission from "@/components/HowItWorksMission";
 import ClassesOverview from "@/components/ClassesOverview";
 import HomepageExploreLinks from "@/components/HomepageExploreLinks";
 import AuthHashRedirect from "@/components/AuthHashRedirect";
@@ -71,8 +70,7 @@ export default async function HomePage() {
       <AuthHashRedirect />
       <Hero />
       <FeatureCards />
-      <HowItWorks />
-      <MissionSection />
+      <HowItWorksMission />
       <ClassesOverview />
       <HomepageExploreLinks />
       <StatsCounter />
