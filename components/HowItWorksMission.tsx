@@ -41,7 +41,7 @@ export default function HowItWorksMission() {
                     {t("howItWorks.subtitle")}
                   </p>
                 </div>
-                <ol className="relative space-y-6">
+                <ol className="relative space-y-7 md:space-y-8">
                   <div className="absolute left-[22px] top-4 bottom-4 w-px bg-gold-200 dark:bg-gold-500/25" aria-hidden="true" />
                   {steps.map((step, i) => {
                     const Icon = stepIcons[i];
@@ -65,6 +65,17 @@ export default function HowItWorksMission() {
                     );
                   })}
                 </ol>
+                <div className="mt-auto pt-8">
+                  <p className="mb-4 text-sm md:text-base text-charcoal/70 dark:text-navy-200/85 leading-relaxed font-sans">
+                    Ready to begin? The free consultation takes about 15 minutes and there&rsquo;s no commitment.
+                  </p>
+                  <Link
+                    href="/book"
+                    className="inline-flex w-fit items-center px-6 py-3 bg-navy-800 dark:bg-gold-300 text-white dark:text-navy-950 font-semibold rounded-lg hover:bg-navy-700 dark:hover:bg-gold-200 transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                  >
+                    Book Your Free Call
+                  </Link>
+                </div>
               </div>
             </AnimatedSection>
 
