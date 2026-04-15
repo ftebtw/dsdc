@@ -331,7 +331,7 @@ export default function ClassesPage() {
             transition={{ duration: 0.8 }}
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6"
           >
-            Online Debate & Public Speaking Classes
+            Online Debate & Public Speaking Classes for Kids & Teens
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}

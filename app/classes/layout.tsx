@@ -4,9 +4,9 @@ import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 export async function generateMetadata(): Promise<Metadata> {
   return buildLocalizedPageMetadata({
     path: "/classes",
-    title: "Online Debate Classes for Kids | DSDC",
+    title: "Online Debate Classes for Kids & Teens Across Canada | DSDC",
     description:
-      "Compare DSDC online debate classes for kids, debate training, and public speaking courses with clear levels, schedules, and coaching support.",
+      "Browse DSDC's online debate and public speaking classes for Grades 4-12. Live Zoom sessions with small class sizes of 8-12 students. Available Canada-wide - Vancouver, Toronto, Brampton, Mississauga, and beyond. From $30/hr.",
     images: [
       {
         url: "/images/photos/wsc-group-2.jpg",

@@ -4,10 +4,7 @@ import Script from "next/script";
 
 import { getCmsMessageOverrides } from "@/lib/sanity/content";
 import JsonLd from "@/components/JsonLd";
-import { addZhPrefix, hasChineseVersion } from "@/lib/localeRouting";
-import { buildBreadcrumbSchema, localBusinessSchema, websiteSchema } from "@/lib/structuredData";
-import { getBlogPostsSync } from "@/lib/blogPosts";
-import { getLocalizedBlogPost } from "@/lib/blogLocalizations";
+import { localBusinessSchema, websiteSchema } from "@/lib/structuredData";
 import { DM_Sans, Inter, Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -36,11 +33,11 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "Debate & Public Speaking Classes for Kids in Canada | DSDC",
+    default: "Online Debate & Public Speaking Classes for Kids | DSDC Canada",
     template: "%s",
   },
   description:
-    "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaching and personalized feedback.",
+    "Award-winning online debate and public speaking classes for students in Grades 4-12. Live Zoom classes, expert coaches from Canada's National Debate Team, and a 100% World Scholar's Cup qualification rate. Try a free consultation.",
   keywords: [
     "debate classes Vancouver",
     "public speaking for kids BC",
@@ -53,9 +50,9 @@ export const metadata: Metadata = {
     "youth debate training",
   ],
   openGraph: {
-    title: "Debate & Public Speaking Classes for Kids in Canada | DSDC",
+    title: "Online Debate & Public Speaking Classes for Kids | DSDC Canada",
     description:
-      "Online debate and public speaking classes for kids in Canada. Expert coaches, personalized feedback, and proven tournament results. Grades 4-12.",
+      "Award-winning online debate and public speaking classes for students in Grades 4-12. Live Zoom classes, expert coaches from Canada's National Debate Team, and a 100% World Scholar's Cup qualification rate. Try a free consultation.",
     url: "https://dsdc.ca",
     siteName: "DSDC",
     type: "website",
@@ -71,9 +68,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Debate & Public Speaking Classes for Kids in Canada | DSDC",
+    title: "Online Debate & Public Speaking Classes for Kids | DSDC Canada",
     description:
-      "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaching and personalized feedback.",
+      "Award-winning online debate and public speaking classes for students in Grades 4-12. Live Zoom classes, expert coaches from Canada's National Debate Team, and a 100% World Scholar's Cup qualification rate. Try a free consultation.",
     images: ["https://dsdc.ca/images/photos/wsc-group-2.jpg"],
   },
   robots: {
@@ -86,102 +83,6 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL("https://dsdc.ca"),
 };
-
-const breadcrumbLabelMap: Record<string, string> = {
-  about: "About",
-  awards: "Awards",
-  blog: "Blog",
-  book: "Book a Free Consultation",
-  cancellation: "Cancellation Policy",
-  classes: "Classes",
-  compare: "Compare",
-  contact: "Contact",
-  faq: "FAQ",
-  pricing: "Pricing",
-  privacy: "Privacy Policy",
-  register: "Register",
-  team: "Team",
-  terms: "Terms",
-  "online-debate-classes": "Online Debate Classes",
-  "debate-classes-canada": "Debate Classes Canada",
-  "debate-classes-calgary": "Debate Classes Calgary",
-  "debate-classes-ontario": "Debate Classes Ontario",
-  "debate-classes-ottawa": "Debate Classes Ottawa",
-  "debate-classes-vancouver": "Debate Classes Vancouver",
-  "debate-classes-toronto": "Debate Classes Toronto",
-  "debate-classes-alberta": "Debate Classes Alberta",
-  "world-scholars-cup-coaching": "World Scholar's Cup Coaching",
-  "debate-classes-for-beginners": "Debate Classes for Beginners",
-  "debate-classes-for-kids": "Debate Classes for Kids",
-  "public-speaking-classes-for-kids": "Public Speaking Classes for Kids",
-  "public-speaking-classes-for-teens": "Public Speaking Classes for Teens",
-  "guide-to-debate-in-canada": "Guide to Debate in Canada",
-};
-
-const breadcrumbLabelMapZh: Record<string, string> = {
-  about: "关于我们",
-  awards: "学生成绩",
-  blog: "博客",
-  book: "预约咨询",
-  cancellation: "退款与取消政策",
-  classes: "课程",
-  compare: "课程对比",
-  contact: "联系我们",
-  "debate-classes-toronto": "多伦多辩论课程",
-  "debate-classes-vancouver": "温哥华辩论课程",
-  "debate-classes-for-kids": "儿童辩论课程",
-  faq: "常见问题",
-  "guide-to-debate-in-canada": "加拿大中学生辩论完整指南",
-  "online-debate-classes": "在线辩论课程",
-  pricing: "课程价格",
-  "public-speaking-classes-for-kids": "儿童公共演讲课程",
-  "public-speaking-classes-for-teens": "青少年公共演讲课程",
-  privacy: "隐私政策",
-  register: "报名",
-  team: "教练团队",
-  terms: "服务条款",
-};
-
-function formatSegment(segment: string) {
-  return segment
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-function getBreadcrumbItems(pathname: string, locale: "en" | "zh") {
-  const cleanPath = pathname === "/" ? "/" : pathname.replace(/\/+$/, "");
-  const homeName = locale === "zh" ? "首页" : "Home";
-  const localizePath = (path: string) => (locale === "zh" && hasChineseVersion(path) ? addZhPrefix(path) : path);
-
-  if (cleanPath === "/") {
-    return [{ name: homeName, path: localizePath("/") }];
-  }
-
-  if (cleanPath.startsWith("/blog/")) {
-    const slug = cleanPath.slice("/blog/".length);
-    const post = getLocalizedBlogPost(getBlogPostsSync(), slug, locale) ?? getBlogPostsSync().find((item) => item.slug === slug);
-    return [
-      { name: homeName, path: localizePath("/") },
-      { name: locale === "zh" ? "博客" : "Blog", path: localizePath("/blog") },
-      { name: post?.title ?? formatSegment(slug), path: localizePath(cleanPath) },
-    ];
-  }
-
-  const parts = cleanPath.split("/").filter(Boolean);
-  const items = [{ name: homeName, path: localizePath("/") }];
-
-  for (let index = 0; index < parts.length; index += 1) {
-    const slug = parts[index];
-    const path = `/${parts.slice(0, index + 1).join("/")}`;
-    items.push({
-      name: locale === "zh" ? breadcrumbLabelMapZh[slug] ?? formatSegment(slug) : breadcrumbLabelMap[slug] ?? formatSegment(slug),
-      path: localizePath(path),
-    });
-  }
-
-  return items;
-}
 
 export default async function RootLayout({
   children,
@@ -199,21 +100,13 @@ export default async function RootLayout({
     !pathname.startsWith("/auth") &&
     !pathname.startsWith("/payment") &&
     !pathname.startsWith("/_");
-  const englishHref = `https://dsdc.ca${pathname === "/" ? "" : pathname}`;
-  const chineseHref = `https://dsdc.ca${addZhPrefix(pathname)}`;
-  const breadcrumbSchema = isSeoPublicPath ? buildBreadcrumbSchema(getBreadcrumbItems(pathname, locale)) : null;
-  const showChineseAlternate = isSeoPublicPath && hasChineseVersion(pathname);
 
   return (
     <html lang={locale} className={`${inter.variable} ${playfair.variable} ${dmSans.variable}`}>
       <head>
-        {isSeoPublicPath ? <link rel="alternate" hrefLang="en" href={englishHref} /> : null}
-        {showChineseAlternate ? <link rel="alternate" hrefLang="zh" href={chineseHref} /> : null}
-        {isSeoPublicPath ? <link rel="alternate" hrefLang="x-default" href={englishHref} /> : null}
         <link rel="preconnect" href="https://9rjkctzpxtq3g6gf.public.blob.vercel-storage.com" crossOrigin="" />
-        <JsonLd id="site-local-business-schema" data={localBusinessSchema} />
-        <JsonLd id="site-website-schema" data={websiteSchema} />
-        {breadcrumbSchema ? <JsonLd id="site-breadcrumb-schema" data={breadcrumbSchema} /> : null}
+        {isSeoPublicPath ? <JsonLd id="site-local-business-schema" data={localBusinessSchema} /> : null}
+        {isSeoPublicPath ? <JsonLd id="site-website-schema" data={websiteSchema} /> : null}
       </head>
       <body className="font-sans antialiased">
         <a

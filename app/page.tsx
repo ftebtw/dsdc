@@ -25,9 +25,9 @@ export const revalidate = 60;
 export async function generateMetadata(): Promise<Metadata> {
   return buildLocalizedPageMetadata({
     path: "/",
-    title: "Debate & Public Speaking Classes for Kids in Canada | DSDC",
+    title: "Online Debate & Public Speaking Classes for Kids | DSDC Canada",
     description:
-      "DSDC offers online debate and public speaking classes for kids in Vancouver and across Canada, with expert coaches, personalized feedback, and proven tournament results.",
+      "Award-winning online debate and public speaking classes for students in Grades 4-12. Live Zoom classes, expert coaches from Canada's National Debate Team, and a 100% World Scholar's Cup qualification rate. Try a free consultation.",
     keywords: [
       "debate classes Vancouver",
       "public speaking for kids BC",
