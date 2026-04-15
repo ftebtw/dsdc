@@ -4,7 +4,7 @@ import { useState, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, CheckCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, trackConversion } from "@/lib/analytics";
 
 export default function ContactForm() {
   const { t, messages } = useI18n();
@@ -49,6 +49,7 @@ export default function ContactForm() {
 
       setSubmitted(true);
       trackEvent("form_submission", { form: "contact" });
+      trackConversion({ source: "contact_form" });
       setFormData({ name: "", email: "", phone: "", grade: "", heardAbout: "", message: "" });
       setTimeout(() => setSubmitted(false), 5000);
     } catch (err) {
