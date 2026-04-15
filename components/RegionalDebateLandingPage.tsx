@@ -2,6 +2,7 @@ import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import KeyFactsBox from "@/components/KeyFactsBox";
 import type { RegionalLandingPageData } from "@/lib/regionalLandingPages";
+import { getBlogPostHref } from "@/lib/blogPostPaths";
 import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 
 const testimonials = [
@@ -39,10 +40,17 @@ export default function RegionalDebateLandingPage({ data }: { data: RegionalLand
     url: `https://dsdc.ca${data.path}`,
     address: {
       "@type": "PostalAddress",
-      addressLocality: "Vancouver",
-      addressRegion: "BC",
+      addressLocality: data.geo.addressLocality,
+      addressRegion: data.geo.addressRegion,
       addressCountry: "CA",
     },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: data.geo.latitude,
+      longitude: data.geo.longitude,
+    },
+    email: "education@dsdc.ca",
+    foundingDate: "2017",
     areaServed: data.areas,
   };
   const courseSchema = {
@@ -228,6 +236,35 @@ export default function RegionalDebateLandingPage({ data }: { data: RegionalLand
           </div>
         </div>
       </section>
+
+      {data.relatedBlogPosts.length > 0 ? (
+        <section className="bg-warm-100 py-16 dark:bg-navy-900/50 md:py-24">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            <h2 className="mb-4 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
+              Further Reading for {data.breadcrumbName.replace(/^Debate Classes /, "")} Families
+            </h2>
+            <p className="mx-auto mb-10 max-w-3xl text-center text-base leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+              Hand-picked articles from the DSDC blog to help you learn more before booking a consultation.
+            </p>
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              {data.relatedBlogPosts.map((post) => (
+                <Link
+                  key={post.slug}
+                  href={getBlogPostHref(post.slug)}
+                  className="group block rounded-2xl border border-warm-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gold-400 hover:shadow-md dark:border-navy-700 dark:bg-navy-800"
+                >
+                  <h3 className="mb-2 text-lg font-bold text-navy-800 transition-colors group-hover:text-gold-500 dark:text-white dark:group-hover:text-gold-300">
+                    {post.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+                    {post.description}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="bg-navy-800 py-16 md:py-20">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">

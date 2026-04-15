@@ -23,6 +23,13 @@ export type RegionalLandingPageData = {
   ctaTitle: string;
   ctaText: string;
   relatedLinks: Array<{ href: string; label: string }>;
+  geo: {
+    addressLocality: string;
+    addressRegion: string;
+    latitude: number;
+    longitude: number;
+  };
+  relatedBlogPosts: Array<{ slug: string; title: string; description: string }>;
 };
 
 export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandingPageData> = {
@@ -136,6 +143,38 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
       { href: "/debate-classes-alberta", label: "See our Alberta page" },
       { href: "/book", label: "Book a free consultation" },
     ],
+    geo: {
+      addressLocality: "Calgary",
+      addressRegion: "AB",
+      latitude: 51.0447,
+      longitude: -114.0719,
+    },
+    relatedBlogPosts: [
+      {
+        slug: "guide-to-debate-in-canada",
+        title: "The Complete Guide to High School Debate in Canada",
+        description:
+          "Tournaments, formats, and the path to nationals - the full picture for Alberta families starting debate.",
+      },
+      {
+        slug: "online-vs-in-person-debate-classes",
+        title: "Online vs In-Person Debate Classes: What Actually Works?",
+        description:
+          "Why live online classes often work better than driving across Calgary for in-person coaching.",
+      },
+      {
+        slug: "choosing-debate-program-for-kids",
+        title: "How to Choose the Right Debate Program for Your Child",
+        description:
+          "A practical checklist for Calgary parents comparing coaching options, class sizes, and pathways.",
+      },
+      {
+        slug: "debate-vs-model-un",
+        title: "Debate vs Model UN: Which Is Better for Your Child?",
+        description:
+          "How competitive debate and Model UN compare for Alberta students thinking about enrichment activities.",
+      },
+    ],
   },
   ottawa: {
     slug: "ottawa",
@@ -246,6 +285,38 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
       { href: "/debate-classes-ontario", label: "See our Ontario page" },
       { href: "/debate-classes-toronto", label: "See our Toronto page" },
       { href: "/book", label: "Book a free consultation" },
+    ],
+    geo: {
+      addressLocality: "Ottawa",
+      addressRegion: "ON",
+      latitude: 45.4215,
+      longitude: -75.6972,
+    },
+    relatedBlogPosts: [
+      {
+        slug: "guide-to-debate-in-canada",
+        title: "The Complete Guide to High School Debate in Canada",
+        description:
+          "Everything Ottawa families need to know about Canadian debate tournaments, formats, and nationals.",
+      },
+      {
+        slug: "debate-ivy-league-admissions",
+        title: "How Debate Helps With Ivy League and Top University Admissions",
+        description:
+          "Why debate shows up on strong university applications - and how Ottawa students can benefit early.",
+      },
+      {
+        slug: "best-extracurriculars-university-canada",
+        title: "The Best Extracurriculars for Canadian University Applications",
+        description:
+          "Where debate fits on a well-rounded application for Ottawa high schoolers.",
+      },
+      {
+        slug: "debate-improves-writing-academics",
+        title: "How Debate Improves Writing and Academic Performance",
+        description:
+          "The academic side of debate that matters most for school-focused Ottawa students.",
+      },
     ],
   },
   ontario: {
@@ -358,6 +429,38 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
       { href: "/pricing", label: "Review pricing" },
       { href: "/book", label: "Book a free consultation" },
     ],
+    geo: {
+      addressLocality: "Toronto",
+      addressRegion: "ON",
+      latitude: 43.6532,
+      longitude: -79.3832,
+    },
+    relatedBlogPosts: [
+      {
+        slug: "guide-to-debate-in-canada",
+        title: "The Complete Guide to High School Debate in Canada",
+        description:
+          "Canadian debate formats, associations, and the path to nationals - essential reading for Ontario families.",
+      },
+      {
+        slug: "debate-ivy-league-admissions",
+        title: "How Debate Helps With Ivy League and Top University Admissions",
+        description:
+          "Why debate stands out on competitive Ontario university applications.",
+      },
+      {
+        slug: "online-vs-in-person-debate-classes",
+        title: "Online vs In-Person Debate Classes: What Actually Works?",
+        description:
+          "Why a well-run online program often beats commuting across the GTA for in-person coaching.",
+      },
+      {
+        slug: "parents-guide-competitive-debate-bc",
+        title: "A Parent's Guide to Competitive Debate",
+        description:
+          "How competitive debate actually works, written for parents who are new to the ecosystem.",
+      },
+    ],
   },
   alberta: {
     slug: "alberta",
@@ -467,6 +570,38 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
       { href: "/pricing", label: "Review pricing" },
       { href: "/guide-to-debate-in-canada", label: "Read the debate-in-Canada guide" },
       { href: "/book", label: "Book a free consultation" },
+    ],
+    geo: {
+      addressLocality: "Calgary",
+      addressRegion: "AB",
+      latitude: 51.0447,
+      longitude: -114.0719,
+    },
+    relatedBlogPosts: [
+      {
+        slug: "guide-to-debate-in-canada",
+        title: "The Complete Guide to High School Debate in Canada",
+        description:
+          "Canadian debate associations, formats, and tournament paths - the essential starting point for Alberta families.",
+      },
+      {
+        slug: "choosing-debate-program-for-kids",
+        title: "How to Choose the Right Debate Program for Your Child",
+        description:
+          "A practical checklist for Alberta parents comparing coaching options and long-term fit.",
+      },
+      {
+        slug: "canadian-debate-formats",
+        title: "A Guide to Canadian Debate Formats",
+        description:
+          "CNDF, British Parliamentary, World Schools, and Cross-Examination explained for Alberta students.",
+      },
+      {
+        slug: "public-speaking-benefits",
+        title: "The Real-World Benefits of Public Speaking for Kids",
+        description:
+          "Why public speaking is often the best first step before debate for younger Alberta students.",
+      },
     ],
   },
 };

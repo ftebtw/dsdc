@@ -7,7 +7,7 @@ import { getBlogPostsSync } from "@/lib/blogPosts";
 import { getLocalizedBlogPost, getLocalizedBlogPosts, hasChineseBlogTranslation } from "@/lib/blogLocalizations";
 import { addZhPrefix } from "@/lib/localeRouting";
 import { getRequestLocale } from "@/lib/requestLocale";
-import { SITE_NAME, SITE_OG_IMAGE_URL, SITE_URL, absoluteUrl, buildArticleSchema, buildFaqSchema } from "@/lib/structuredData";
+import { SITE_NAME, SITE_OG_IMAGE_URL, SITE_URL, absoluteUrl, buildArticleSchema, buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -76,12 +76,20 @@ export default async function BlogPostPage({ params }: Props) {
     notFound();
   }
 
+  const canonicalPath = locale === "zh" && hasChineseBlogTranslation(slug) ? addZhPrefix(href) : href;
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: "Home", path: locale === "zh" ? "/zh" : "/" },
+    { name: "Blog", path: locale === "zh" ? "/zh/blog" : "/blog" },
+    { name: post.title, path: canonicalPath },
+  ]);
+
   return (
     <>
       <JsonLd
         id={`article-schema-${post.slug}`}
-        data={buildArticleSchema(post, locale === "zh" && hasChineseBlogTranslation(slug) ? addZhPrefix(href) : href, locale)}
+        data={buildArticleSchema(post, canonicalPath, locale)}
       />
+      <JsonLd id={`breadcrumb-schema-${post.slug}`} data={breadcrumbSchema} />
       {post.faqItems?.length ? <JsonLd id={`faq-schema-${post.slug}`} data={buildFaqSchema(post.faqItems)} /> : null}
       <BlogPostContent post={post} allPosts={posts} />
     </>

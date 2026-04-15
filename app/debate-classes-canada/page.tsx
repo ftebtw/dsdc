@@ -4,6 +4,7 @@ import JsonLd from "@/components/JsonLd";
 import KeyFactsBox from "@/components/KeyFactsBox";
 import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 import { buildFaqSchema, buildBreadcrumbSchema, SITE_URL, SITE_LOGO_URL } from "@/lib/structuredData";
+import { canadaFaqItems as faqItems } from "@/lib/faqData";
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildLocalizedPageMetadata({
@@ -23,39 +24,6 @@ export async function generateMetadata(): Promise<Metadata> {
     hasChineseVersion: false,
   });
 }
-
-const faqItems = [
-  {
-    question: "What ages are DSDC debate classes for?",
-    answer:
-      "DSDC offers debate and public speaking classes for students in Grades 4 through 12. We have separate programs for elementary (Grades 4-6), intermediate (Grades 7-9), and senior (Grades 10-12) students.",
-  },
-  {
-    question: "Can students from any province in Canada join?",
-    answer:
-      "Yes. All DSDC classes are delivered live online via Zoom, so students from British Columbia, Alberta, Ontario, Quebec, and every other province and territory can participate. We have students from over 30 cities across Canada.",
-  },
-  {
-    question: "How much do debate classes cost in Canada?",
-    answer:
-      "DSDC group debate classes range from $30 to $50 CAD per hour, depending on the program level. Private coaching is also available. See our pricing page for full details.",
-  },
-  {
-    question: "What debate formats do you teach?",
-    answer:
-      "We teach Canadian National Debate Format (CNDF), British Parliamentary, World Schools, and Cross-Examination. Students learn the format most relevant to their age and competition goals.",
-  },
-  {
-    question: "Do students need prior debate experience?",
-    answer:
-      "No experience is needed. Our Novice Debate program is designed specifically for beginners. Many students start with no debate experience and progress to compete at national and international tournaments.",
-  },
-  {
-    question: "How are online debate classes structured?",
-    answer:
-      "Each class is 1 to 1.5 hours long, held live on Zoom with 8-12 students per class. Students receive direct coaching feedback every session. Classes run weekly during the school year.",
-  },
-];
 
 const courseSchema = {
   "@context": "https://schema.org",

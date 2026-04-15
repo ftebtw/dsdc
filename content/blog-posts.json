@@ -168,7 +168,9 @@
         "type": "paragraph",
         "content": "[Explore our classes](/classes) or [book a free consultation](/book)."
       }
-    ]
+    ],
+    "publishedAt": "2026-04-18T09:00:00-08:00",
+    "updatedAt": "2026-04-18T09:00:00-08:00"
   },
   {
     "slug": "debate-summer-camps-bc-2026",
@@ -303,7 +305,9 @@
         "type": "paragraph",
         "content": "[Book a free consultation](/book) and we'll recommend the right summer plan for your child, or [explore our classes](/classes) to see what's available."
       }
-    ]
+    ],
+    "publishedAt": "2026-04-11T09:00:00-08:00",
+    "updatedAt": "2026-04-11T09:00:00-08:00"
   },
   {
     "slug": "debate-vs-model-un",
@@ -482,12 +486,14 @@
         "type": "paragraph",
         "content": "[Book a free consultation](/book) and we'll recommend the right starting point. No pressure, no commitment — just a conversation about what's best for your child."
       }
-    ]
+    ],
+    "publishedAt": "2026-04-04T09:00:00-08:00",
+    "updatedAt": "2026-04-04T09:00:00-08:00"
   },
   {
     "slug": "start-debate-club-school-bc",
     "title": "How to Start a Debate Club at Your School in BC",
-    "excerpt": "A practical, step-by-step guide for teachers and students who want to launch a debate club at their BC school — from finding a sponsor teacher to running your first meeting and entering tournaments.",
+    "excerpt": "A BC-specific, step-by-step guide for teachers and students who want to launch a debate club at their British Columbia school — covering BCDSS, SFU/UBC tournaments, and the local debate calendar. (For a general, non-BC guide, see our student-POV version.)",
     "date": "2026-03-31",
     "author": "DSDC Team",
     "category": "Getting Started",
@@ -496,6 +502,10 @@
       {
         "type": "paragraph",
         "content": "Maybe you watched a debate tournament and thought, \"We should have this at our school.\" Maybe a teacher suggested it. Maybe you're a teacher yourself, looking at your students and thinking they'd benefit from a structured way to argue about things other than who gets the last pizza slice at lunch."
+      },
+      {
+        "type": "paragraph",
+        "content": "This guide is **written specifically for BC schools** and includes details about BCDSS, SFU and UBC tournaments, and the provincial debate calendar. If you are outside British Columbia, our general [How to Start a Debate Club at Your School](/blog/how-to-start-debate-club) guide is a better starting point."
       },
       {
         "type": "paragraph",
@@ -665,7 +675,9 @@
         "type": "paragraph",
         "content": "[Book a free consultation](/book) if you'd like guidance getting started, or [explore our classes](/classes) to see how DSDC can support your school's debate program."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-31T09:00:00-08:00",
+    "updatedAt": "2026-03-31T09:00:00-08:00"
   },
   {
     "slug": "how-to-write-debate-case",
@@ -860,7 +872,9 @@
         "type": "paragraph",
         "content": "[Book a free consultation](/book) and we'll recommend the right class for your level, or [explore our classes](/classes) to see what we offer."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-27T09:00:00-08:00",
+    "updatedAt": "2026-03-27T09:00:00-08:00"
   },
   {
     "slug": "win-first-debate-tournament",
@@ -1039,7 +1053,9 @@
         "type": "paragraph",
         "content": "[Explore our classes](/classes) or [book a free consultation](/book) to get started."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-20T09:00:00-08:00",
+    "updatedAt": "2026-03-20T09:00:00-08:00"
   },
   {
     "slug": "what-judges-look-for-debate",
@@ -1230,7 +1246,9 @@
         "type": "paragraph",
         "content": "[Explore our classes](/classes) or [book a free consultation](/book) to get started."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-17T09:00:00-08:00",
+    "updatedAt": "2026-03-17T09:00:00-08:00"
   },
   {
     "slug": "debate-ivy-league-admissions",
@@ -1381,7 +1399,9 @@
         "type": "paragraph",
         "content": "Ready to start? [Book a free consultation](/book) or [explore our classes](/classes)."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-15T09:00:00-08:00",
+    "updatedAt": "2026-03-15T09:00:00-08:00"
   },
   {
     "slug": "guide-to-debate-in-canada",
@@ -1787,7 +1807,9 @@
           "[Book a DSDC Consultation](/book)"
         ]
       }
-    ]
+    ],
+    "publishedAt": "2026-03-13T09:00:00-08:00",
+    "updatedAt": "2026-03-13T09:00:00-08:00"
   },
   {
     "slug": "best-debate-programs-vancouver",
@@ -2012,7 +2034,9 @@
         "question": "What is the best next step if I am still comparing options?",
         "answer": "Review the DSDC classes page, pricing, and team page, then book a free consultation. That gives you a concrete recommendation based on your child's age, experience, and goals."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-13T09:00:00-08:00",
+    "updatedAt": "2026-03-13T09:00:00-08:00"
   },
   {
     "slug": "parents-guide-competitive-debate-bc",
@@ -2139,7 +2163,9 @@
         "type": "paragraph",
         "content": "If your child is interested in competitive debate, we'd love to help. [Book a free consultation](/book) and we'll recommend the right class based on their age, experience, and goals."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-13T09:00:00-08:00",
+    "updatedAt": "2026-03-13T09:00:00-08:00"
   },
   {
     "slug": "online-vs-in-person-debate-classes",
@@ -2242,7 +2268,9 @@
         "type": "paragraph",
         "content": "Want to see how online debate classes work? [Book a free consultation](/book), or [explore our classes](/classes) and have your child experience them firsthand."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-13T09:00:00-08:00",
+    "updatedAt": "2026-03-13T09:00:00-08:00"
   },
   {
     "slug": "debate-university-admissions-canada",
@@ -2365,12 +2393,14 @@
         "type": "paragraph",
         "content": "Also read: [How Debate Helps Your Child Get Into Ivy League Universities](/blog/debate-ivy-league-admissions)."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-13T09:00:00-08:00",
+    "updatedAt": "2026-03-13T09:00:00-08:00"
   },
   {
     "slug": "debate-classes-shy-kids",
     "title": "Debate Classes for Shy Kids: Why Introverts Actually Thrive",
-    "excerpt": "Why shy and introverted kids often excel in debate, and how structured beginner classes help them build confidence without pressure.",
+    "excerpt": "Why shy and introverted kids often thrive in structured debate classes, and how beginner programs build confidence without overwhelming them. (For at-home confidence-building strategies, see our guide for parents of shy children.)",
     "date": "2026-03-13",
     "author": "DSDC Team",
     "category": "Student Tips",
@@ -2379,6 +2409,10 @@
       {
         "type": "paragraph",
         "content": "\"My child would never do debate — they're way too shy.\""
+      },
+      {
+        "type": "paragraph",
+        "content": "This article focuses on how **debate classes** specifically help shy students. If you are a parent looking for strategies you can use at home, read [How to Help a Shy Child Build Confidence Speaking](/blog/shy-child-public-speaking), which covers the home-side of the same problem."
       },
       {
         "type": "paragraph",
@@ -2484,12 +2518,14 @@
         "type": "paragraph",
         "content": "If your child is shy, quiet, or introverted - they might be a natural debater and not know it yet. [Book a free consultation](/book) and we'll talk about which class would be the best fit, or [explore our classes](/classes) first. No pressure, no commitment - just a conversation."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-13T09:00:00-08:00",
+    "updatedAt": "2026-03-13T09:00:00-08:00"
   },
   {
     "slug": "public-speaking-tips-kids",
     "title": "Public Speaking Tips for Kids: A Parent's Guide",
-    "excerpt": "Practical advice for parents who want to help their child become a more confident public speaker — from managing nerves and building structure to finding the right program.",
+    "excerpt": "A parent's overview of how kids build public speaking skills — nerves, structure, delivery, and choosing the right program. (For hands-on home exercises, see our dedicated activities guide.)",
     "date": "2026-03-06",
     "author": "DSDC Team",
     "category": "Public Speaking",
@@ -2498,6 +2534,10 @@
       {
         "type": "paragraph",
         "content": "Public speaking is consistently ranked as one of the top fears among adults — and kids are no different. If your child freezes up during class presentations, avoids speaking in group settings, or gets anxious at the thought of talking in front of others, you're not alone. Most children aren't naturally comfortable with public speaking. It's a skill that's learned, not inherited."
+      },
+      {
+        "type": "paragraph",
+        "content": "This is the high-level **parent's guide** to how kids develop public speaking skills. If you want specific hands-on exercises to try at home, read [Public Speaking Activities for Kids You Can Do at Home](/blog/public-speaking-activities-for-kids)."
       },
       {
         "type": "paragraph",
@@ -2639,7 +2679,9 @@
         "type": "paragraph",
         "content": "[Book a free consultation](/book) and we'll recommend the right class for your child's age and experience level, or [explore our classes](/classes) to see what we offer."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-06T09:00:00-08:00",
+    "updatedAt": "2026-03-06T09:00:00-08:00"
   },
   {
     "slug": "british-parliamentary-debate-guide",
@@ -2794,7 +2836,9 @@
         "type": "paragraph",
         "content": "[Explore our classes](/classes) or [book a free consultation](/book) to get started."
       }
-    ]
+    ],
+    "publishedAt": "2026-02-27T09:00:00-08:00",
+    "updatedAt": "2026-02-27T09:00:00-08:00"
   },
   {
     "slug": "debate-classes-cost",
@@ -2837,7 +2881,9 @@
         "type": "paragraph",
         "content": "Before enrolling in any debate coaching program, it's crucial to ask: What exactly are the fees, and how are they determined? By seeking out programs that clearly outline their costs, you can make an informed decision, ensuring your investment in your child's education is both valuable and fair. At DSDC, we believe that every student deserves access to quality debate coaching without hidden fees, price discrepancies, and unfair price hikes. If you want to compare options directly, [explore our classes](/classes), review [pricing](/pricing), and [book a free consultation](/book)."
       }
-    ]
+    ],
+    "publishedAt": "2025-01-25T09:00:00-08:00",
+    "updatedAt": "2025-01-25T09:00:00-08:00"
   },
   {
     "slug": "qualify-canadian-nationals",
@@ -2918,7 +2964,9 @@
         "type": "paragraph",
         "content": "At DSDC, our award-winning coaches specialize in preparing students for high-level competitions such as Canadian Nationals. With expertise in all major formats and a track record of success, we provide personalized coaching to help students excel. Whether your child is aiming to qualify or seeking to enhance their skills, [explore our classes](/classes), review our broader [debate classes across Canada](/debate-classes-canada), and [book a free consultation](/book) to learn more about our coaching programs."
       }
-    ]
+    ],
+    "publishedAt": "2025-01-23T09:00:00-08:00",
+    "updatedAt": "2025-01-23T09:00:00-08:00"
   },
   {
     "slug": "canadian-debate-formats",
@@ -2977,7 +3025,9 @@
         "type": "paragraph",
         "content": "At DSDC, our award-winning coaches are experts in all of these formats, bringing years of experience and success to the table. Whether your child is just starting or looking to master a specific debate style, [explore our classes](/classes), compare our [debate classes across Canada](/debate-classes-canada), see how families use our [debate classes in Vancouver](/debate-classes-vancouver), or browse our dedicated [debate classes for kids](/debate-classes-for-kids) page before you [book a free consultation](/book)."
       }
-    ]
+    ],
+    "publishedAt": "2025-01-22T09:00:00-08:00",
+    "updatedAt": "2025-01-22T09:00:00-08:00"
   },
   {
     "slug": "world-scholars-cup",
@@ -3051,7 +3101,9 @@
         "type": "paragraph",
         "content": "At DSDC, we don't just prepare you for the competition - we prepare you for success. Our award-winning WSC coaches have years of experience, and our proven track record of excellence speaks for itself. From mastering the curriculum to excelling in every event, DSDC ensures you're fully equipped to reach your WSC goals. [Explore our classes](/classes), learn more about our [World Scholar's Cup coaching](/world-scholars-cup-coaching), or [book a free consultation](/book) to get started."
       }
-    ]
+    ],
+    "publishedAt": "2025-01-21T09:00:00-08:00",
+    "updatedAt": "2025-01-21T09:00:00-08:00"
   },
   {
     "slug": "effective-study-techniques",
@@ -3139,7 +3191,9 @@
         "type": "paragraph",
         "content": "If your child wants to build stronger critical thinking, communication, and study habits, [explore our classes](/classes) or [book a free consultation](/book)."
       }
-    ]
+    ],
+    "publishedAt": "2025-01-20T09:00:00-08:00",
+    "updatedAt": "2025-01-20T09:00:00-08:00"
   },
   {
     "slug": "public-speaking-benefits",
@@ -3214,12 +3268,14 @@
         "type": "paragraph",
         "content": "Start building your confidence today — join a DSDC public speaking class and discover the transformative power of effective communication!"
       }
-    ]
+    ],
+    "publishedAt": "2025-01-18T09:00:00-08:00",
+    "updatedAt": "2025-01-18T09:00:00-08:00"
   },
   {
     "slug": "public-speaking-activities-for-kids",
     "title": "Public Speaking Activities for Kids You Can Do at Home",
-    "excerpt": "Nine practical speaking exercises you can do with your child tonight — from topic talks to family debate night — to build confidence without a classroom in sight.",
+    "excerpt": "Nine practical speaking activities you can do with your child tonight — from topic talks to family debate night — as a companion to our broader parent's guide to public speaking.",
     "date": "2026-02-11",
     "author": "DSDC Team",
     "category": "Parent Tips",
@@ -3228,6 +3284,10 @@
       {
         "type": "paragraph",
         "content": "If your child is the first to volunteer at the dinner table but freezes up the moment the teacher calls on them in class, you are not alone. Most kids can talk freely at home but tighten up the second there is an audience — and that is actually good news. It means the skill is not missing; it just needs practice in a setting that gradually raises the stakes."
+      },
+      {
+        "type": "paragraph",
+        "content": "This post is a companion to our broader [Public Speaking Tips for Kids: A Parent's Guide](/blog/public-speaking-tips-kids). Read that one first if you want the big picture — this one is all **activities you can do tonight**."
       },
       {
         "type": "paragraph",
@@ -3345,12 +3405,14 @@
         "type": "paragraph",
         "content": "The short version: the hardest part of public speaking is the first time. Home is the best place to take the first swing, and the second, and the tenth. By the time your child walks into a classroom, they will already know what their voice sounds like in front of an audience — and that is worth more than any warm-up a coach can run."
       }
-    ]
+    ],
+    "publishedAt": "2026-02-11T09:00:00-08:00",
+    "updatedAt": "2026-02-11T09:00:00-08:00"
   },
   {
     "slug": "shy-child-public-speaking",
     "title": "How to Help a Shy Child Build Confidence Speaking",
-    "excerpt": "A practical, empathetic guide for parents of shy or introverted kids — how to build speaking confidence at home, when to bring in a class, and what actually works.",
+    "excerpt": "A practical, empathetic guide for parents of shy or introverted kids: how to build speaking confidence at home before (or alongside) enrolling in classes. (For why debate classes specifically help introverts, see our companion post.)",
     "date": "2026-02-25",
     "author": "DSDC Team",
     "category": "Parent Tips",
@@ -3359,6 +3421,10 @@
       {
         "type": "paragraph",
         "content": "Your child dreads presentations. Raises their hand only when they are certain. Asks to go to the bathroom on show-and-tell day. If any of this sounds familiar, take a breath — your kid is not broken, and you are not failing them. Shyness in speaking situations is one of the most common things we see in first-time families at DSDC, and it is almost always something kids can work through."
+      },
+      {
+        "type": "paragraph",
+        "content": "This article focuses on what parents can do **at home** to help a shy child. If you are specifically wondering whether debate classes are a good fit for an introverted child, read [Debate Classes for Shy Kids: Why Introverts Actually Thrive](/blog/debate-classes-shy-kids)."
       },
       {
         "type": "paragraph",
@@ -3496,7 +3562,9 @@
         "type": "paragraph",
         "content": "Most shy kids who stay with it for a term come out the other side looking at you like, \"what was I so worried about?\" That is the whole job."
       }
-    ]
+    ],
+    "publishedAt": "2026-02-25T09:00:00-08:00",
+    "updatedAt": "2026-02-25T09:00:00-08:00"
   },
   {
     "slug": "choosing-debate-program-for-kids",
@@ -3639,12 +3707,14 @@
         "type": "paragraph",
         "content": "The goal here is the right program for your child, not any particular program. The framework above works regardless of which one you choose."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-05T09:00:00-08:00",
+    "updatedAt": "2026-03-05T09:00:00-08:00"
   },
   {
     "slug": "how-to-start-debate-club",
     "title": "How to Start a Debate Club at Your School",
-    "excerpt": "A student's step-by-step guide to starting a debate club at your school — finding a sponsor, recruiting members, picking a format, and running your first meetings.",
+    "excerpt": "A general student-POV step-by-step guide to starting a debate club at any school — finding a sponsor, recruiting members, picking a format, and running meetings. (For BC-specific tournament details, see our BC-focused guide.)",
     "date": "2026-03-18",
     "author": "DSDC Team",
     "category": "Student Tips",
@@ -3653,6 +3723,10 @@
       {
         "type": "paragraph",
         "content": "So you want to start a debate club at your school. Maybe there is not one and you are tired of waiting. Maybe there used to be one and it died when the teacher sponsor retired. Maybe you watched a debate tournament online and thought, \"I could do that, if I had somewhere to practice.\" Whatever the reason, here is the good news: starting a debate club is easier than you think, and you do not need permission from the universe to do it. You need a plan and the willingness to send a few emails."
+      },
+      {
+        "type": "paragraph",
+        "content": "This is a **general guide** for students anywhere in Canada. If you are specifically at a BC school and want details on BCDSS, SFU, and UBC tournaments, read [How to Start a Debate Club at Your School in BC](/blog/start-debate-club-school-bc) instead."
       },
       {
         "type": "paragraph",
@@ -3762,7 +3836,9 @@
         "type": "paragraph",
         "content": "The hardest part of starting a club is the first email to the teacher sponsor. Everything after that is just doing the work. If you are reading this article, you are already further ahead than most students who said they would start a debate club and never did. Send the email this week."
       }
-    ]
+    ],
+    "publishedAt": "2026-03-18T09:00:00-08:00",
+    "updatedAt": "2026-03-18T09:00:00-08:00"
   },
   {
     "slug": "what-debate-class-looks-like",
@@ -3901,7 +3977,9 @@
         "type": "paragraph",
         "content": "If you want to explore our [beginner debate classes](/debate-classes-for-beginners), [public speaking classes for kids](/public-speaking-classes-for-kids), or [online debate classes](/online-debate-classes), you can [compare all classes](/classes) or [book a free consultation](/book) and we will walk you through exactly which class fits your child's age and experience level."
       }
-    ]
+    ],
+    "publishedAt": "2026-04-01T09:00:00-08:00",
+    "updatedAt": "2026-04-01T09:00:00-08:00"
   },
   {
     "slug": "debate-improves-writing-academics",
@@ -4016,7 +4094,9 @@
         "type": "paragraph",
         "content": "If you want to see how our [classes](/classes) are structured for this kind of outcome, or explore [debate classes for kids](/debate-classes-for-kids), [book a free consultation](/book) and we will walk you through which level fits your child. The academic benefits kick in within a term for most students. The long-term benefits compound year after year."
       }
-    ]
+    ],
+    "publishedAt": "2026-04-08T09:00:00-08:00",
+    "updatedAt": "2026-04-08T09:00:00-08:00"
   },
   {
     "slug": "debate-terminology-beginners",
@@ -4163,6 +4243,8 @@
         "type": "paragraph",
         "content": "If you want to jump into a class that will use these terms in a low-pressure, beginner-friendly environment, our [beginner debate classes](/debate-classes-for-beginners) are designed exactly for students at this stage — no prior knowledge assumed. You can also read [our complete guide to debate in Canada](/guide-to-debate-in-canada) for a broader look at the landscape, or [compare all classes](/classes) on our website. When you are ready, [book a free consultation](/book) and we will help you figure out which level fits."
       }
-    ]
+    ],
+    "publishedAt": "2026-04-15T09:00:00-08:00",
+    "updatedAt": "2026-04-15T09:00:00-08:00"
   }
 ]

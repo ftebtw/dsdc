@@ -6,7 +6,7 @@ import { getBlogPostsSync } from "@/lib/blogPosts";
 import { getLocalizedBlogPost, getLocalizedBlogPosts } from "@/lib/blogLocalizations";
 import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 import { getRequestLocale } from "@/lib/requestLocale";
-import { buildArticleSchema } from "@/lib/structuredData";
+import { buildArticleSchema, buildBreadcrumbSchema } from "@/lib/structuredData";
 
 const guideSlug = "guide-to-debate-in-canada";
 
@@ -45,12 +45,16 @@ export default async function GuideToDebateInCanadaPage() {
     notFound();
   }
 
+  const canonicalPath = locale === "zh" ? "/zh/guide-to-debate-in-canada" : "/guide-to-debate-in-canada";
+  const breadcrumbSchema = buildBreadcrumbSchema([
+    { name: "Home", path: locale === "zh" ? "/zh" : "/" },
+    { name: post.title, path: canonicalPath },
+  ]);
+
   return (
     <>
-      <JsonLd
-        id="guide-to-debate-article-schema"
-        data={buildArticleSchema(post, locale === "zh" ? "/zh/guide-to-debate-in-canada" : "/guide-to-debate-in-canada", locale)}
-      />
+      <JsonLd id="guide-to-debate-article-schema" data={buildArticleSchema(post, canonicalPath, locale)} />
+      <JsonLd id="guide-to-debate-breadcrumb-schema" data={breadcrumbSchema} />
       <BlogPostContent post={post} allPosts={posts} />
     </>
   );

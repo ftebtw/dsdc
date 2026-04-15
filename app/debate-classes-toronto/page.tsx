@@ -6,39 +6,46 @@ import TorontoLandingPageZh from "@/components/TorontoLandingPageZh";
 import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 import { getRequestLocale } from "@/lib/requestLocale";
 import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
+import { torontoFaqItems as faqItems } from "@/lib/faqData";
 
-const faqItems = [
-  {
-    question: "Do you offer debate classes for students in Toronto and the GTA even though DSDC is based in Vancouver?",
-    answer:
-      "Yes. DSDC is based in Vancouver, but all classes are live online via Zoom, so students in Toronto, Brampton, Mississauga, North York, Scarborough, Vaughan, Markham, Oakville, and Milton can join the same high-level programs.",
+const localBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  name: "DSDC - Debate & Speech Development Community",
+  description:
+    "Online debate and public speaking classes for students in Toronto, the GTA, and across Ontario, delivered live by DSDC.",
+  url: "https://dsdc.ca/debate-classes-toronto",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Toronto",
+    addressRegion: "ON",
+    addressCountry: "CA",
   },
-  {
-    question: "Will my child still get enough speaking time in an online debate club setting?",
-    answer:
-      "Yes. Our classes are intentionally kept small, usually 8 to 12 students, so every student speaks, debates, and receives personalized written feedback every week.",
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: 43.6532,
+    longitude: -79.3832,
   },
-  {
-    question: "What kinds of debate formats do GTA students learn at DSDC?",
-    answer:
-      "Students train in major Canadian and international formats, including CNDF, British Parliamentary, World Schools, and Cross-Examination, plus public speaking and World Scholar's Cup preparation when relevant.",
-  },
-  {
-    question: "What do GTA families need to join classes from home?",
-    answer:
-      "Students only need a computer, a stable internet connection, a webcam, and Zoom. We provide the curriculum, structure, and weekly feedback.",
-  },
-  {
-    question: "Can we talk to someone before registering?",
-    answer:
-      "Absolutely. The best next step is to book a free consultation so we can recommend the right class based on your child's grade, confidence level, and goals.",
-  },
-  {
-    question: "How much do online debate classes cost?",
-    answer:
-      "Group class pricing is published clearly on our pricing page. Families can review costs before committing, which makes it easier to compare programs confidently.",
-  },
-];
+  email: "education@dsdc.ca",
+  foundingDate: "2017",
+  areaServed: [
+    "Toronto",
+    "North York",
+    "Scarborough",
+    "Etobicoke",
+    "Brampton",
+    "Mississauga",
+    "Vaughan",
+    "Markham",
+    "Richmond Hill",
+    "Oakville",
+    "Milton",
+    "Burlington",
+    "Pickering",
+    "Ajax",
+    "Whitby",
+  ],
+};
 
 const courseSchema = {
   "@context": "https://schema.org",
@@ -102,6 +109,7 @@ export default async function DebateClassesTorontoPage() {
     <>
       <JsonLd id="toronto-course-schema" data={courseSchema} />
       <JsonLd id="toronto-faq-schema" data={faqSchema} />
+      <JsonLd id="toronto-local-business-schema" data={localBusinessSchema} />
       <JsonLd id="toronto-breadcrumb-schema" data={breadcrumbSchema} />
 
       <section className="relative overflow-hidden bg-gradient-to-br from-navy-800 via-navy-700 to-navy-900 pb-20 pt-32 md:pb-28 md:pt-40">
@@ -433,6 +441,59 @@ export default async function DebateClassesTorontoPage() {
                   {item.answer}
                 </p>
               </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-16 dark:bg-navy-900/30 md:py-24">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <h2 className="mb-4 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
+            Further Reading for Toronto and GTA Families
+          </h2>
+          <p className="mx-auto mb-10 max-w-3xl text-center text-base leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+            Articles from the DSDC blog that help Ontario families understand competitive debate and how to choose
+            the right program.
+          </p>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            {[
+              {
+                href: "/guide-to-debate-in-canada",
+                title: "The Complete Guide to High School Debate in Canada",
+                description:
+                  "Canadian debate associations, formats, and the full path to nationals - essential reading for Ontario families.",
+              },
+              {
+                href: "/blog/debate-ivy-league-admissions",
+                title: "How Debate Helps With Ivy League and Top University Admissions",
+                description:
+                  "Why debate stands out on competitive Toronto and Ontario university applications.",
+              },
+              {
+                href: "/blog/online-vs-in-person-debate-classes",
+                title: "Online vs In-Person Debate Classes: What Actually Works?",
+                description:
+                  "Why a well-run online program often beats commuting across the GTA for in-person coaching.",
+              },
+              {
+                href: "/blog/choosing-debate-program-for-kids",
+                title: "How to Choose the Right Debate Program for Your Child",
+                description:
+                  "A practical checklist for Toronto parents comparing coaching options, class size, and long-term fit.",
+              },
+            ].map((post) => (
+              <Link
+                key={post.href}
+                href={post.href}
+                className="group block rounded-2xl border border-warm-200 bg-warm-50 p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gold-400 hover:shadow-md dark:border-navy-700 dark:bg-navy-800"
+              >
+                <h3 className="mb-2 text-lg font-bold text-navy-800 transition-colors group-hover:text-gold-500 dark:text-white dark:group-hover:text-gold-300">
+                  {post.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+                  {post.description}
+                </p>
+              </Link>
             ))}
           </div>
         </div>

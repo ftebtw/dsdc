@@ -6,59 +6,7 @@ import VancouverLandingPageZh from "@/components/VancouverLandingPageZh";
 import { buildLocalizedPageMetadata } from "@/lib/pageMetadata";
 import { getRequestLocale } from "@/lib/requestLocale";
 import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
-
-const faqItems = [
-  {
-    question: "Where is DSDC located?",
-    answer:
-      "DSDC was founded in Vancouver, BC in 2017. All our classes are online via Zoom, so students anywhere in the Lower Mainland (and beyond) can participate without commuting.",
-  },
-  {
-    question: "Do you prepare students for BC tournaments?",
-    answer:
-      "Yes. We coach students for BC Provincial Championships, SFU and UBC tournaments, and regional competitions throughout British Columbia, as well as Canadian Nationals and international events.",
-  },
-  {
-    question: "How are you different from other Vancouver debate academies?",
-    answer:
-      "We deliver the same expert coaching as in-person academies - but online, more affordable, and more convenient. Our coaches include Canadian National Team members and top university debaters. Group classes are $30-50/hr compared to $60-100+/hr at many in-person programs.",
-  },
-  {
-    question: "Can my child try a class first?",
-    answer:
-      "Yes. Book a free 15-minute consultation and we'll recommend the right class for your child.",
-  },
-  {
-    question: "Do you offer speech and debate classes or public speaking classes?",
-    answer:
-      "Yes. Families come to DSDC for debate classes, speech and debate classes, debate coaching, and public speaking classes. We also offer public speaking for kids who want to build confidence before moving into full debate.",
-  },
-  {
-    question: "What is the best age to start debate classes for kids in Vancouver?",
-    answer:
-      "Many students start in Grades 4 through 6, but we also work with middle school and high school students. We place each child into the right level based on age, confidence, and experience.",
-  },
-  {
-    question: "What does my child need to join a Zoom debate class?",
-    answer:
-      "Students only need a laptop or desktop computer, a stable internet connection, a webcam, and a quiet place to speak. We provide the curriculum, structure, and coaching.",
-  },
-  {
-    question: "How much homework do students get each week?",
-    answer:
-      "Homework is usually short and purposeful: speech outlines, research notes, or brief prep for the next practice round. The goal is to reinforce class learning without overwhelming students.",
-  },
-  {
-    question: "Do you only serve families in Vancouver proper?",
-    answer:
-      "No. We work with students across Burnaby, Richmond, Surrey, Coquitlam, North Vancouver, West Vancouver, New Westminster, Langley, Delta, White Rock, and the rest of BC.",
-  },
-  {
-    question: "Can my child join if their school does not have a debate club?",
-    answer:
-      "Yes. Many students join DSDC specifically because their school does not offer a debate club or because the school program is not enough on its own. We support both complete beginners and experienced competitors.",
-  },
-];
+import { vancouverFaqItems as faqItems } from "@/lib/faqData";
 
 const faqSchema = buildFaqSchema(faqItems);
 
@@ -674,6 +622,58 @@ export default async function DebateClassesVancouverPage() {
                   {item.answer}
                 </p>
               </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-24 bg-warm-100 dark:bg-navy-900/50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-navy-800 dark:text-white mb-4">
+            Further Reading for Vancouver Families
+          </h2>
+          <p className="text-center text-base text-charcoal/70 dark:text-navy-200 font-sans leading-relaxed max-w-3xl mx-auto mb-10">
+            Hand-picked articles from the DSDC blog to help you compare programs and understand how BC debate works.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[
+              {
+                href: "/blog/best-debate-programs-vancouver",
+                title: "The Best Debate Programs in Vancouver",
+                description:
+                  "A candid look at how Vancouver debate programs compare on coaching, class size, and results.",
+              },
+              {
+                href: "/blog/parents-guide-competitive-debate-bc",
+                title: "A Parent's Guide to Competitive Debate in BC",
+                description:
+                  "How competitive debate works in British Columbia, written for parents new to the scene.",
+              },
+              {
+                href: "/blog/start-debate-club-school-bc",
+                title: "How to Start a Debate Club at Your BC School",
+                description:
+                  "A step-by-step guide for students who want to launch a debate club at their school.",
+              },
+              {
+                href: "/guide-to-debate-in-canada",
+                title: "The Complete Guide to High School Debate in Canada",
+                description:
+                  "National associations, formats, and the path to nationals - the single best overview for BC families.",
+              },
+            ].map((post) => (
+              <Link
+                key={post.href}
+                href={post.href}
+                className="group block rounded-2xl border border-warm-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gold-400 hover:shadow-md dark:border-navy-700 dark:bg-navy-800"
+              >
+                <h3 className="mb-2 text-lg font-bold text-navy-800 transition-colors group-hover:text-gold-500 dark:text-white dark:group-hover:text-gold-300">
+                  {post.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-charcoal/70 dark:text-navy-200 font-sans">
+                  {post.description}
+                </p>
+              </Link>
             ))}
           </div>
         </div>
