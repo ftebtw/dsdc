@@ -5,6 +5,7 @@ import { getBlogPostHref } from "@/lib/blogPostPaths";
 import { addZhPrefix, hasChineseVersion } from "@/lib/localeRouting";
 import { getLocalizedLastModified } from "@/lib/pageMetadata";
 import { faqEntries } from "@/lib/faqEntries";
+import { glossaryEntries } from "@/lib/glossaryEntries";
 
 type StaticSitemapEntry = {
   path: string;
@@ -153,7 +154,36 @@ const staticEntries: StaticSitemapEntry[] = [
     path: "/world-scholars-cup-coaching",
     changeFrequency: "monthly",
     priority: 0.8,
-    files: ["app/world-scholars-cup-coaching/page.tsx"],
+    files: ["app/world-scholars-cup-coaching/page.tsx", "components/WorldScholarsCupCoachingPageZh.tsx"],
+    includeZh: true,
+  },
+  {
+    path: "/debate-club",
+    changeFrequency: "monthly",
+    priority: 0.88,
+    files: ["app/debate-club/page.tsx", "components/DebateClubPageZh.tsx"],
+    includeZh: true,
+  },
+  {
+    path: "/debate-summer-camp",
+    changeFrequency: "monthly",
+    priority: 0.82,
+    files: ["app/debate-summer-camp/page.tsx", "components/DebateSummerCampPageZh.tsx"],
+    includeZh: true,
+  },
+  {
+    path: "/public-speaking-classes-vancouver",
+    changeFrequency: "monthly",
+    priority: 0.85,
+    files: ["app/public-speaking-classes-vancouver/page.tsx", "components/PublicSpeakingVancouverPageZh.tsx"],
+    includeZh: true,
+  },
+  {
+    path: "/debate-formats",
+    changeFrequency: "monthly",
+    priority: 0.78,
+    files: ["app/debate-formats/page.tsx", "components/DebateFormatsPageZh.tsx"],
+    includeZh: true,
   },
   {
     path: "/debate-classes-for-beginners",
@@ -165,7 +195,8 @@ const staticEntries: StaticSitemapEntry[] = [
     path: "/public-speaking-classes-for-kids",
     changeFrequency: "monthly",
     priority: 0.85,
-    files: ["app/public-speaking-classes-for-kids/page.tsx"],
+    files: ["app/public-speaking-classes-for-kids/page.tsx", "components/PublicSpeakingForKidsPageZh.tsx"],
+    includeZh: true,
   },
   {
     path: "/debate-classes-for-kids",
@@ -218,6 +249,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.65,
   }));
 
+  const glossaryIndexEntry: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/glossary`,
+      lastModified: getLocalizedLastModified(["lib/glossaryEntries.ts", "app/glossary/page.tsx"]),
+      changeFrequency: "monthly" as const,
+      priority: 0.75,
+    },
+  ];
+
+  const glossaryIndividualEntries: MetadataRoute.Sitemap = glossaryEntries.map((entry) => ({
+    url: `${baseUrl}/glossary/${entry.slug}`,
+    lastModified: getLocalizedLastModified(["lib/glossaryEntries.ts", "app/glossary/[slug]/page.tsx"]),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
   const blogEntries: MetadataRoute.Sitemap = blogPosts
     .filter((post) => post.slug !== "guide-to-debate-in-canada")
     .map((post) => ({
@@ -236,5 +283,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.65,
     }));
 
-  return [...primaryEntries, ...zhEntries, ...faqIndividualEntries, ...blogEntries, ...zhBlogEntries];
+  return [
+    ...primaryEntries,
+    ...zhEntries,
+    ...faqIndividualEntries,
+    ...glossaryIndexEntry,
+    ...glossaryIndividualEntries,
+    ...blogEntries,
+    ...zhBlogEntries,
+  ];
 }
