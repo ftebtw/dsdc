@@ -8,7 +8,7 @@ export default function FinalCTA() {
   const { t } = useI18n();
 
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section className="relative py-14 md:py-20 overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-navy-800 via-navy-700 to-navy-900" />
       <div
@@ -21,10 +21,10 @@ export default function FinalCTA() {
 
       <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <AnimatedSection>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
             {t("finalCta.title")}
           </h2>
-          <p className="text-lg text-white/80 mb-10 font-sans">
+          <p className="text-lg text-white/80 mb-8 font-sans">
             {t("finalCta.subtitle")}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

@@ -15,10 +15,10 @@ export default function FAQ() {
   }>;
 
   return (
-    <section className="faq-section py-20 md:py-28 bg-warm-100 dark:bg-navy-900/50">
+    <section className="faq-section py-12 md:py-16 bg-warm-100 dark:bg-navy-900/50">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-navy-800 dark:text-white">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 text-navy-800 dark:text-white">
             {t("faq.title")}
           </h2>
         </AnimatedSection>

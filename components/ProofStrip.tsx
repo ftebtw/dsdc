@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n";
+import AnimatedSection from "./AnimatedSection";
 
 interface CounterProps {
   value: string;
@@ -69,10 +70,10 @@ function Counter({ value, label, delay }: CounterProps) {
 
   return (
     <div ref={ref} className="text-center">
-      <div className="text-4xl md:text-5xl font-bold text-gold-400 font-serif mb-2">
+      <div className="text-3xl md:text-4xl font-bold text-gold-400 font-serif leading-none">
         {displayValue}
       </div>
-      <div className="text-sm md:text-base text-white/80 font-sans uppercase tracking-wider">
+      <div className="mt-1.5 text-[0.7rem] md:text-xs text-white/70 font-sans uppercase tracking-wider">
         {label}
       </div>
     </div>
@@ -86,34 +87,67 @@ const statItems = [
   { value: "20+", labelKey: "stats.coaches" },
 ];
 
-export default function StatsCounter() {
-  const { t } = useI18n();
+const fallbackCompetitions = [
+  "Canadian National Debate Championships",
+  "US National Debate Championships",
+  "World University Debating Championships",
+  "Stanford Invitational",
+  "Princeton Invitational",
+  "World Scholar's Cup - Yale",
+  "Oxford Schools Championships",
+  "Georgetown Public Forum",
+  "UBC Debate Tournaments",
+  "SFU Worlds Schools Championships",
+  "BC Provincial Championships",
+  "Harvard Model United Nations",
+];
+
+export default function ProofStrip() {
+  const { t, messages } = useI18n();
+  const competitionItems =
+    ((messages.competitions as { items?: string[] } | undefined)?.items ?? fallbackCompetitions) as string[];
 
   return (
-    <section className="stats-section py-20 md:py-24 bg-navy-800 relative overflow-hidden">
-      {/* Subtle pattern overlay */}
-      <div className="absolute inset-0 opacity-5">
-        <div
-          className="w-full h-full"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-      </div>
-
-      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+    <section className="stats-section relative overflow-hidden bg-navy-800 py-10 md:py-14">
+      <div
+        className="absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        {/* Stats row */}
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-10">
           {statItems.map((stat, i) => (
             <Counter
               key={stat.labelKey}
               value={stat.value}
               label={t(stat.labelKey)}
-              delay={i * 0.15}
+              delay={i * 0.12}
             />
           ))}
         </div>
+
+        {/* Divider */}
+        <div className="my-8 h-px w-full bg-white/10 md:my-10" />
+
+        {/* Competitions */}
+        <AnimatedSection>
+          <p className="mb-4 text-center text-[0.7rem] md:text-xs font-semibold uppercase tracking-[0.2em] text-gold-300/80">
+            {t("competitions.title")}
+          </p>
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5">
+            {competitionItems.map((name, i) => (
+              <div
+                key={i}
+                className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] sm:text-xs font-medium text-white/80 transition-colors hover:border-gold-400/60 hover:text-white"
+              >
+                {name}
+              </div>
+            ))}
+          </div>
+        </AnimatedSection>
       </div>
     </section>
   );

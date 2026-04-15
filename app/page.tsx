@@ -14,8 +14,7 @@ import { homePageDataSanity } from "@/lib/sanity/presentation";
 import { buildFaqSchema, heroVideoSchema } from "@/lib/structuredData";
 import { siteFaqItems } from "@/lib/siteFaq";
 
-const StatsCounter = dynamic(() => import("@/components/StatsCounter"));
-const CompetitionLogos = dynamic(() => import("@/components/CompetitionLogos"), { ssr: true });
+const ProofStrip = dynamic(() => import("@/components/ProofStrip"), { ssr: true });
 const TestimonialCarousel = dynamic(() => import("@/components/TestimonialCarousel"), { ssr: true });
 const FAQ = dynamic(() => import("@/components/FAQ"), { ssr: true });
 
@@ -70,11 +69,10 @@ export default async function HomePage() {
       <AuthHashRedirect />
       <Hero />
       <FeatureCards />
+      <ProofStrip />
       <HowItWorksMission />
       <ClassesOverview />
       <HomepageExploreLinks />
-      <StatsCounter />
-      <CompetitionLogos />
       <TestimonialCarousel />
       <FAQ />
       <FinalCTA />

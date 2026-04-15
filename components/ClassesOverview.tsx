@@ -31,13 +31,13 @@ export default function ClassesOverview() {
   const { t } = useI18n();
 
   return (
-    <section className="py-20 md:py-28 bg-warm-100 dark:bg-navy-900/50">
+    <section className="py-12 md:py-16 bg-warm-100 dark:bg-navy-900/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-navy-800 dark:text-white">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-3 text-navy-800 dark:text-white">
             {t("classesOverview.title")}
           </h2>
-          <p className="text-center text-charcoal/70 dark:text-navy-300 font-sans mb-10 -mt-10">
+          <p className="text-center text-sm md:text-base text-charcoal/70 dark:text-navy-300 font-sans mb-8">
             Explore our{" "}
             <Link href="/online-debate-classes" className="text-navy-800 dark:text-gold-300 font-semibold hover:underline">
               online debate classes
@@ -85,7 +85,7 @@ export default function ClassesOverview() {
         </div>
 
         <AnimatedSection delay={0.3}>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <Link
               href="/classes"
               className="px-8 py-3.5 bg-navy-800 text-white font-semibold rounded-lg
