@@ -7,6 +7,7 @@ import { BookOpen, Trophy, Globe, Mic, Swords, GraduationCap, Clock, Users, Mess
 import { useI18n } from "@/lib/i18n";
 import { addZhPrefix, hasChineseVersion } from "@/lib/localeRouting";
 import AnimatedSection from "@/components/AnimatedSection";
+import MetaViewContentTracker from "@/components/MetaViewContentTracker";
 
 const classIcons = [BookOpen, Swords, GraduationCap, Trophy, Globe, Mic];
 const classImages = [
@@ -315,6 +316,11 @@ export default function ClassesPage() {
 
   return (
     <>
+      <MetaViewContentTracker
+        contentName="Classes Page"
+        contentCategory="Classes"
+      />
+
       {/* Hero */}
       <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 bg-gradient-to-br from-navy-800 via-navy-700 to-navy-900 overflow-hidden">
         <div

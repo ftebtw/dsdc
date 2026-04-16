@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, CheckCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { trackEvent, trackConversion } from "@/lib/analytics";
+import { trackContact, trackConversion, trackEvent, trackMetaStandardEvent } from "@/lib/analytics";
 
 export default function ContactForm() {
   const { t, messages } = useI18n();
+  const pathname = usePathname();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +26,7 @@ export default function ContactForm() {
     []) as string[];
   const heardOptions = ((messages.bookPage as { heardOptions?: string[] } | undefined)?.heardOptions ??
     []) as string[];
+  const isBookPage = pathname === "/book" || pathname === "/zh/book";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -48,8 +51,22 @@ export default function ContactForm() {
       }
 
       setSubmitted(true);
-      trackEvent("form_submission", { form: "contact" });
-      trackConversion({ source: "contact_form" });
+      trackEvent("form_submission", { form: isBookPage ? "consultation" : "contact" });
+
+      if (isBookPage) {
+        trackConversion({ source: "contact_form" });
+        trackMetaStandardEvent("Lead", {
+          content_name: "Consultation Form Submission",
+          content_category: "Consultation",
+          source: "contact_form",
+        });
+      } else {
+        trackContact({
+          content_name: "Contact Form",
+          content_category: "Contact",
+        });
+      }
+
       setFormData({ name: "", email: "", phone: "", grade: "", heardAbout: "", message: "" });
       setTimeout(() => setSubmitted(false), 5000);
     } catch (err) {

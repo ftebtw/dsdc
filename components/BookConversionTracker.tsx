@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { trackConversion } from "@/lib/analytics";
+import { trackConversion, trackMetaStandardEvent } from "@/lib/analytics";
 
 // Listens for Calendly's postMessage event_scheduled and fires a real
 // conversion event on actual booking. Replaces the old on-page-load gtag
@@ -29,7 +29,14 @@ export default function BookConversionTracker() {
           source: "calendly_booking",
           value: 1,
           currency: "CAD",
-          additionalFbqEvent: "Schedule",
+        });
+        trackMetaStandardEvent("Lead", {
+          content_name: "Calendly Consultation Booked",
+          content_category: "Consultation",
+          source: "calendly",
+        });
+        trackMetaStandardEvent("Schedule", {
+          content_name: "Consultation Scheduled via Calendly",
         });
       }
     }

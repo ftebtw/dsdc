@@ -11,30 +11,53 @@ export function trackEvent(
   }
 }
 
-// Google Ads conversion tag for consultation bookings and lead form submissions.
-// This is the same send_to used in the old on-page-load script in app/book/page.tsx,
-// now fired only on actual conversion (Calendly schedule or contact form submit).
+type MetaStandardEvent =
+  | "Lead"
+  | "ViewContent"
+  | "Contact"
+  | "Schedule"
+  | "CompleteRegistration";
+
+export function trackMetaStandardEvent(
+  eventName: MetaStandardEvent,
+  params?: Record<string, string | number>
+) {
+  if (typeof window === "undefined") return false;
+
+  const w = window as unknown as {
+    fbq?: (...args: unknown[]) => void;
+  };
+
+  if (!w.fbq) return false;
+
+  w.fbq("track", eventName, params);
+  return true;
+}
+
+export function trackViewContent(params: Record<string, string | number>) {
+  return trackMetaStandardEvent("ViewContent", params);
+}
+
+export function trackContact(params: Record<string, string | number>) {
+  return trackMetaStandardEvent("Contact", params);
+}
+
+// Google Ads conversion tag for real consultation bookings and form leads.
 const GOOGLE_ADS_CONVERSION_ID = "AW-390603959/uChFCKeu14ccELfJoLoB";
 
-// Fire a real conversion event. Use this when the user actually completes a
-// high-intent action (books a consultation, submits the contact form).
-// Fires:
-//   - gtag conversion (Google Ads bidding signal)
-//   - fbq Lead (Meta Pixel standard event, optimizable by Meta Ads Manager)
-//   - optional second fbq event (e.g. "Schedule" when the action is a booking)
+// Fire a real Google Ads conversion event. Meta standard events should be
+// tracked separately so each page can send the exact payload required.
 export function trackConversion(options: {
   source: "calendly_booking" | "contact_form" | "other";
   value?: number;
   currency?: string;
-  additionalFbqEvent?: "Schedule" | "CompleteRegistration";
 }) {
-  const { source, value = 1, currency = "CAD", additionalFbqEvent } = options;
+  const { source, value = 1, currency = "CAD" } = options;
 
   if (typeof window === "undefined") return;
 
   const w = window as unknown as {
     gtag?: (...args: unknown[]) => void;
-    fbq?: (...args: unknown[]) => void;
   };
 
   if (w.gtag) {
@@ -48,12 +71,5 @@ export function trackConversion(options: {
       currency,
       source,
     });
-  }
-
-  if (w.fbq) {
-    w.fbq("track", "Lead", { value, currency, content_name: source });
-    if (additionalFbqEvent) {
-      w.fbq("track", additionalFbqEvent, { value, currency, content_name: source });
-    }
   }
 }
