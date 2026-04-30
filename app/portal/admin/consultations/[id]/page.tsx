@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import AdminConsultationForm from '@/app/portal/_components/AdminConsultationForm';
+import ConsultationDeleteButton from './ConsultationDeleteButton';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
 import { formatUtcForUser } from '@/lib/portal/time';
@@ -101,6 +102,16 @@ export default async function AdminConsultationDetailPage({
           initialValues={consultationToFormValues(consultation)}
           submitLabel="Save Changes"
           cancelHref="/portal/admin/consultations"
+        />
+      </SectionCard>
+
+      <SectionCard
+        title="Danger Zone"
+        description="Permanently remove this consultation record. This cannot be undone."
+      >
+        <ConsultationDeleteButton
+          consultationId={consultation.id}
+          studentName={consultation.student_name}
         />
       </SectionCard>
     </div>

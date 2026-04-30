@@ -120,6 +120,29 @@ export async function updateConsultation(formData: FormData) {
   redirect(`/portal/admin/consultations/${consultationId}?updated=1`);
 }
 
+export async function deleteConsultation(formData: FormData) {
+  await requireRole(['admin']);
+  const supabase = await getSupabaseServerClient();
+  const consultationId = readString(formData, 'id');
+
+  if (!consultationId) {
+    redirect('/portal/admin/consultations?error=missing_record');
+  }
+
+  const { error } = await (supabase as any)
+    .from('consultations')
+    .delete()
+    .eq('id', consultationId);
+
+  if (error) {
+    console.error('[consultations] delete failed', error);
+    redirect(`/portal/admin/consultations/${consultationId}?error=delete_failed`);
+  }
+
+  revalidatePath('/portal/admin/consultations');
+  redirect('/portal/admin/consultations?deleted=1');
+}
+
 export async function updateConsultationStatus(id: string, status: string) {
   await requireRole(['admin']);
   const supabase = await getSupabaseServerClient();

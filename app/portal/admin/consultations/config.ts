@@ -176,5 +176,6 @@ export function consultationErrorMessage(value: string | null | undefined): stri
   if (value === 'missing_required') return 'Parent name and student name are required.';
   if (value === 'missing_record') return 'Consultation record not found.';
   if (value === 'save_failed') return 'Could not save the consultation. Please try again.';
+  if (value === 'delete_failed') return 'Could not delete the consultation. Please try again.';
   return null;
 }
