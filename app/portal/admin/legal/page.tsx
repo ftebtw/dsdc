@@ -2,6 +2,8 @@ export const dynamic = 'force-dynamic';
 
 import { randomUUID } from 'crypto';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import FlashBanners from '@/app/portal/_components/FlashBanners';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';
 import { sendPortalEmails } from '@/lib/email/send';
@@ -35,7 +37,9 @@ async function createLegalDocument(formData: FormData) {
   const fileValue = formData.get('file');
   const file = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
 
-  if (!title || !file || !requiredForOptions.includes(requiredFor)) return;
+  if (!title || !file || !requiredForOptions.includes(requiredFor)) {
+    redirect('/portal/admin/legal?error=missing_fields');
+  }
 
   const bucket = process.env.PORTAL_BUCKET_LEGAL_DOCS || 'portal-legal-docs';
   const documentId = randomUUID();
@@ -46,7 +50,10 @@ async function createLegalDocument(formData: FormData) {
     contentType: file.type || undefined,
     upsert: false,
   });
-  if (uploadResult.error) return;
+  if (uploadResult.error) {
+    console.error('[admin-legal] storage upload failed', uploadResult.error);
+    redirect('/portal/admin/legal?error=upload_failed');
+  }
 
   const { error } = await supabase.from('legal_documents').insert({
     id: documentId,
@@ -58,8 +65,9 @@ async function createLegalDocument(formData: FormData) {
   });
 
   if (error) {
+    console.error('[admin-legal] insert failed', error);
     await supabase.storage.from(bucket).remove([objectPath]);
-    return;
+    redirect('/portal/admin/legal?error=save_failed');
   }
 
   try {
@@ -119,6 +127,7 @@ async function createLegalDocument(formData: FormData) {
   }
 
   revalidatePath('/portal/admin/legal');
+  redirect('/portal/admin/legal?uploaded=1');
 }
 
 async function deleteLegalDocument(formData: FormData) {
@@ -126,24 +135,38 @@ async function deleteLegalDocument(formData: FormData) {
   await requireRole(['admin']);
   const supabase = await getSupabaseServerClient();
   const documentId = String(formData.get('document_id') || '');
-  if (!documentId) return;
+  if (!documentId) {
+    redirect('/portal/admin/legal?error=missing_record');
+  }
 
   const { data: document } = await supabase
     .from('legal_documents')
     .select('id,file_path')
     .eq('id', documentId)
     .maybeSingle();
-  if (!document) return;
+  if (!document) {
+    redirect('/portal/admin/legal?error=missing_record');
+  }
 
   const bucket = process.env.PORTAL_BUCKET_LEGAL_DOCS || 'portal-legal-docs';
   await supabase.storage.from(bucket).remove([document.file_path]);
-  await supabase.from('legal_documents').delete().eq('id', documentId);
+  const { error } = await supabase.from('legal_documents').delete().eq('id', documentId);
+  if (error) {
+    console.error('[admin-legal] delete failed', error);
+    redirect('/portal/admin/legal?error=delete_failed');
+  }
 
   revalidatePath('/portal/admin/legal');
+  redirect('/portal/admin/legal?deleted=1');
 }
 
-export default async function AdminLegalDocumentsPage() {
+export default async function AdminLegalDocumentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ uploaded?: string; deleted?: string; error?: string }>;
+}) {
   await requireRole(['admin']);
+  const params = await searchParams;
   const supabase = await getSupabaseServerClient();
 
   const [{ data: documentsData }, { data: signaturesData }, { data: profilesData }] = await Promise.all([
@@ -169,6 +192,17 @@ export default async function AdminLegalDocumentsPage() {
 
   return (
     <div className="space-y-6">
+      <FlashBanners
+        searchParams={params}
+        successMessages={{ uploaded: 'Document uploaded.', deleted: 'Document deleted.' }}
+        errorMessages={{
+          missing_fields: 'Title, file, and required-for option are required.',
+          missing_record: 'Document not found.',
+          upload_failed: 'Upload to storage failed. Please try again or check the file size.',
+          save_failed: 'Could not save the document. Please try again.',
+          delete_failed: 'Could not delete the document. Please try again.',
+        }}
+      />
       <SectionCard title="Legal Document Management" description="Upload templates and track completion status.">
         <form action={createLegalDocument} className="grid md:grid-cols-2 gap-3">
           <input

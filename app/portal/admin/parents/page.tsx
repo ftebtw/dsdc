@@ -1,7 +1,9 @@
 export const dynamic = 'force-dynamic';
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import FlashBanners from "@/app/portal/_components/FlashBanners";
 import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -12,15 +14,22 @@ async function linkStudentToParent(formData: FormData) {
   const supabase = await getSupabaseServerClient();
   const parentId = String(formData.get("parent_id") || "");
   const studentId = String(formData.get("student_id") || "");
-  if (!parentId || !studentId) return;
+  if (!parentId || !studentId) {
+    redirect("/portal/admin/parents?error=missing_record");
+  }
 
-  await supabase
+  const { error } = await supabase
     .from("parent_student_links")
     .upsert(
       { parent_id: parentId, student_id: studentId },
       { onConflict: "parent_id,student_id" }
     );
+  if (error) {
+    console.error("[admin-parents] link failed", error);
+    redirect("/portal/admin/parents?error=link_failed");
+  }
   revalidatePath("/portal/admin/parents");
+  redirect("/portal/admin/parents?linked=1");
 }
 
 async function unlinkStudentFromParent(formData: FormData) {
@@ -29,14 +38,21 @@ async function unlinkStudentFromParent(formData: FormData) {
   const supabase = await getSupabaseServerClient();
   const parentId = String(formData.get("parent_id") || "");
   const studentId = String(formData.get("student_id") || "");
-  if (!parentId || !studentId) return;
+  if (!parentId || !studentId) {
+    redirect("/portal/admin/parents?error=missing_record");
+  }
 
-  await supabase
+  const { error } = await supabase
     .from("parent_student_links")
     .delete()
     .eq("parent_id", parentId)
     .eq("student_id", studentId);
+  if (error) {
+    console.error("[admin-parents] unlink failed", error);
+    redirect("/portal/admin/parents?error=unlink_failed");
+  }
   revalidatePath("/portal/admin/parents");
+  redirect("/portal/admin/parents?unlinked=1");
 }
 
 function formatCreated(value: string | null) {
@@ -44,8 +60,13 @@ function formatCreated(value: string | null) {
   return new Date(value).toLocaleString();
 }
 
-export default async function AdminParentsPage() {
+export default async function AdminParentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ linked?: string; unlinked?: string; error?: string }>;
+}) {
   await requireRole(["admin"]);
+  const params = await searchParams;
   const supabase = await getSupabaseServerClient();
 
   const [parentsResult, studentsResult] = await Promise.all([
@@ -114,6 +135,16 @@ export default async function AdminParentsPage() {
   }
 
   return (
+    <div className="space-y-6">
+      <FlashBanners
+        searchParams={params}
+        successMessages={{ linked: 'Student linked to parent.', unlinked: 'Student unlinked.' }}
+        errorMessages={{
+          missing_record: 'Parent or student not specified.',
+          link_failed: 'Could not link the student. Please try again.',
+          unlink_failed: 'Could not unlink the student. Please try again.',
+        }}
+      />
     <SectionCard title="Parents" description="Parent accounts and student links.">
       <div className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-x-auto">
         <table className="w-full min-w-[1100px] text-sm">
@@ -232,5 +263,6 @@ export default async function AdminParentsPage() {
         <p className="mt-4 text-sm text-charcoal/70 dark:text-navy-300">No parent accounts found.</p>
       ) : null}
     </SectionCard>
+    </div>
   );
 }

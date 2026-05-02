@@ -1,6 +1,9 @@
 export const dynamic = 'force-dynamic';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import ConfirmDeleteButton from '@/app/portal/_components/ConfirmDeleteButton';
+import FlashBanners from '@/app/portal/_components/FlashBanners';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -15,21 +18,35 @@ async function createTerm(formData: FormData) {
   const endDate = String(formData.get('end_date') || '');
   const weeks = Number(formData.get('weeks') || 13);
   const isActive = formData.get('is_active') === 'on';
-  if (!name || !startDate || !endDate || !weeks) return;
-
-  if (isActive) {
-    await supabase.from('terms').update({ is_active: false }).eq('is_active', true);
+  if (!name || !startDate || !endDate || !weeks) {
+    redirect('/portal/admin/terms?error=missing_fields');
   }
 
-  await supabase.from('terms').insert({
+  if (isActive) {
+    const { error: deactivateError } = await supabase
+      .from('terms')
+      .update({ is_active: false })
+      .eq('is_active', true);
+    if (deactivateError) {
+      console.error('[admin-terms] deactivate failed', deactivateError);
+      redirect('/portal/admin/terms?error=save_failed');
+    }
+  }
+
+  const { error } = await supabase.from('terms').insert({
     name,
     start_date: startDate,
     end_date: endDate,
     weeks,
     is_active: isActive,
   });
+  if (error) {
+    console.error('[admin-terms] create failed', error);
+    redirect('/portal/admin/terms?error=save_failed');
+  }
 
   revalidatePath('/portal/admin/terms');
+  redirect('/portal/admin/terms?created=1');
 }
 
 async function updateTerm(formData: FormData) {
@@ -43,13 +60,22 @@ async function updateTerm(formData: FormData) {
   const endDate = String(formData.get('end_date') || '');
   const weeks = Number(formData.get('weeks') || 13);
   const isActive = formData.get('is_active') === 'on';
-  if (!id || !name || !startDate || !endDate || !weeks) return;
-
-  if (isActive) {
-    await supabase.from('terms').update({ is_active: false }).eq('is_active', true);
+  if (!id || !name || !startDate || !endDate || !weeks) {
+    redirect('/portal/admin/terms?error=missing_fields');
   }
 
-  await supabase
+  if (isActive) {
+    const { error: deactivateError } = await supabase
+      .from('terms')
+      .update({ is_active: false })
+      .eq('is_active', true);
+    if (deactivateError) {
+      console.error('[admin-terms] deactivate failed', deactivateError);
+      redirect('/portal/admin/terms?error=save_failed');
+    }
+  }
+
+  const { error } = await supabase
     .from('terms')
     .update({
       name,
@@ -59,8 +85,13 @@ async function updateTerm(formData: FormData) {
       is_active: isActive,
     })
     .eq('id', id);
+  if (error) {
+    console.error('[admin-terms] update failed', error);
+    redirect('/portal/admin/terms?error=save_failed');
+  }
 
   revalidatePath('/portal/admin/terms');
+  redirect('/portal/admin/terms?saved=1');
 }
 
 async function deleteTerm(formData: FormData) {
@@ -68,19 +99,53 @@ async function deleteTerm(formData: FormData) {
   await requireRole(['admin']);
   const supabase = await getSupabaseServerClient();
   const id = String(formData.get('id') || '');
-  if (!id) return;
-  await supabase.from('terms').delete().eq('id', id);
+  if (!id) {
+    redirect('/portal/admin/terms?error=missing_record');
+  }
+
+  const { error } = await supabase.from('terms').delete().eq('id', id);
+  if (error) {
+    console.error('[admin-terms] delete failed', error);
+    redirect('/portal/admin/terms?error=delete_failed');
+  }
+
   revalidatePath('/portal/admin/terms');
+  redirect('/portal/admin/terms?deleted=1');
 }
 
-export default async function AdminTermsPage() {
+export default async function AdminTermsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    created?: string;
+    saved?: string;
+    deleted?: string;
+    error?: string;
+  }>;
+}) {
   await requireRole(['admin']);
   const supabase = await getSupabaseServerClient();
+  const params = await searchParams;
   const { data: termsData } = await supabase.from('terms').select('*').order('start_date', { ascending: false });
   const terms = (termsData ?? []) as Array<Record<string, any>>;
 
   return (
     <div className="space-y-6">
+      <FlashBanners
+        searchParams={params}
+        successMessages={{
+          created: 'Term created successfully.',
+          saved: 'Term saved.',
+          deleted: 'Term deleted.',
+        }}
+        errorMessages={{
+          missing_fields: 'Please fill in all required fields.',
+          missing_record: 'Term not found.',
+          save_failed: 'Could not save the term. Please try again.',
+          delete_failed: 'Could not delete the term. It may still have related classes or other linked data.',
+        }}
+      />
+
       <SectionCard title="Create Term" description="Only one term can be active at a time.">
         <form action={createTerm} className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <input
@@ -167,12 +232,12 @@ export default async function AdminTermsPage() {
                 <button type="submit" className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold">
                   Save
                 </button>
-                <button
-                  formAction={deleteTerm}
-                  className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm"
+                <ConfirmDeleteButton
+                  action={deleteTerm}
+                  confirmMessage="Deleting a term cascades to its classes, enrollments, attendance, and resources. This cannot be undone."
                 >
                   Delete
-                </button>
+                </ConfirmDeleteButton>
               </div>
             </form>
           ))}

@@ -2,6 +2,8 @@ export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import FlashBanners from '@/app/portal/_components/FlashBanners';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import PayrollTable from '@/app/portal/_components/PayrollTable';
 import { requireRole } from '@/lib/portal/auth';
@@ -45,19 +47,28 @@ async function createPayrollAdjustment(formData: FormData) {
   const noteRaw = String(formData.get('note') || '').trim();
   const hoursDelta = Number(hoursDeltaRaw);
 
-  if (!coachId || !isValidDate(adjustmentDate) || !Number.isFinite(hoursDelta) || hoursDelta === 0) return;
-  if (Math.abs(hoursDelta) > 24) return;
+  if (!coachId || !isValidDate(adjustmentDate) || !Number.isFinite(hoursDelta) || hoursDelta === 0) {
+    redirect('/portal/admin/payroll?error=invalid_adjustment');
+  }
+  if (Math.abs(hoursDelta) > 24) {
+    redirect('/portal/admin/payroll?error=hours_out_of_range');
+  }
 
   const supabase = await getSupabaseServerClient();
-  await (supabase as any).from('payroll_adjustments').insert({
+  const { error } = await (supabase as any).from('payroll_adjustments').insert({
     coach_id: coachId,
     adjustment_date: adjustmentDate,
     hours_delta: hoursDelta,
     note: noteRaw || null,
     created_by: session.userId,
   });
+  if (error) {
+    console.error('[admin-payroll] create adjustment failed', error);
+    redirect('/portal/admin/payroll?error=save_failed');
+  }
 
   revalidatePath('/portal/admin/payroll');
+  redirect('/portal/admin/payroll?adjusted=1');
 }
 
 async function deletePayrollAdjustment(formData: FormData) {
@@ -65,18 +76,33 @@ async function deletePayrollAdjustment(formData: FormData) {
 
   await requireRole(['admin']);
   const adjustmentId = String(formData.get('adjustment_id') || '').trim();
-  if (!adjustmentId) return;
+  if (!adjustmentId) {
+    redirect('/portal/admin/payroll?error=missing_record');
+  }
 
   const supabase = await getSupabaseServerClient();
-  await (supabase as any).from('payroll_adjustments').delete().eq('id', adjustmentId);
+  const { error } = await (supabase as any).from('payroll_adjustments').delete().eq('id', adjustmentId);
+  if (error) {
+    console.error('[admin-payroll] delete adjustment failed', error);
+    redirect('/portal/admin/payroll?error=delete_failed');
+  }
 
   revalidatePath('/portal/admin/payroll');
+  redirect('/portal/admin/payroll?deleted=1');
 }
 
 export default async function AdminPayrollPage({
   searchParams,
 }: {
-  searchParams: Promise<{ start?: string; end?: string; coachId?: string; preset?: string }>;
+  searchParams: Promise<{
+    start?: string;
+    end?: string;
+    coachId?: string;
+    preset?: string;
+    adjusted?: string;
+    deleted?: string;
+    error?: string;
+  }>;
 }) {
   const session = await requireRole(['admin']);
   const params = await searchParams;
@@ -148,6 +174,17 @@ export default async function AdminPayrollPage({
 
   return (
     <div className="space-y-6">
+      <FlashBanners
+        searchParams={params}
+        successMessages={{ adjusted: 'Manual adjustment added.', deleted: 'Adjustment deleted.' }}
+        errorMessages={{
+          missing_record: 'Adjustment not found.',
+          invalid_adjustment: 'Coach, date, and hours are required (hours must be non-zero).',
+          hours_out_of_range: 'Adjustment hours must be within +/- 24.',
+          save_failed: 'Could not save the adjustment. Please try again.',
+          delete_failed: 'Could not delete the adjustment. Please try again.',
+        }}
+      />
       <SectionCard title="Payroll" description="Hours are calculated from class schedule duration when checked in.">
         <form method="get" className="grid lg:grid-cols-6 gap-3 mb-4">
           <label className="text-sm lg:col-span-1">

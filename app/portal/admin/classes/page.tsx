@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import CancelClassButton from '@/app/portal/_components/CancelClassButton';
 import ConfirmDeleteButton from '@/app/portal/_components/ConfirmDeleteButton';
+import FlashBanners from '@/app/portal/_components/FlashBanners';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import TimezoneSelectNative from '@/app/portal/_components/TimezoneSelectNative';
 import { requireRole } from '@/lib/portal/auth';
@@ -59,7 +60,14 @@ function formatCoachTier(
 export default async function AdminClassesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ term?: string }>;
+  searchParams: Promise<{
+    term?: string;
+    created?: string;
+    saved?: string;
+    deleted?: string;
+    cloned?: string;
+    error?: string;
+  }>;
 }) {
   const session = await requireRole(['admin']);
   const params = await searchParams;
@@ -125,6 +133,24 @@ export default async function AdminClassesPage({
 
   return (
     <div className="space-y-6">
+      <FlashBanners
+        searchParams={params}
+        successMessages={{
+          created: 'Class created.',
+          saved: 'Class saved.',
+          deleted: 'Class deleted.',
+          cloned: 'Classes cloned to target term.',
+        }}
+        errorMessages={{
+          missing_record: 'Class not found.',
+          save_failed: 'Could not save the class. Please try again.',
+          delete_failed: 'Could not delete the class. It may still have related enrollments or attendance.',
+          invalid_clone: 'Pick a different source and target term.',
+          target_term_not_empty: 'The target term already has classes; clone aborted.',
+          source_term_empty: 'The source term has no classes to clone.',
+          clone_failed: 'Cloning classes failed. Please try again.',
+        }}
+      />
       <SectionCard title="Classes by Term" description="Create and manage class schedules for each term.">
         <form method="get" className="flex flex-wrap items-center gap-3 mb-4">
           <label className="text-sm text-navy-700 dark:text-navy-200">Select term</label>

@@ -15,12 +15,18 @@ async function updatePreferences(formData: FormData) {
   const calendarEmails =
     calendarRaw === 'important_only' || calendarRaw === 'none' ? calendarRaw : 'all';
 
-  const preferences = {
+  const patch = {
     class_reminders: normalizeClassReminderValue(formData.get('class_reminders')) || 'both',
     absence_alerts: formData.get('absence_alerts') === 'on',
     general_updates: formData.get('general_updates') === 'on',
     calendar_emails: calendarEmails,
   };
+
+  // Merge with existing prefs so unrelated keys (set elsewhere or in future)
+  // aren't silently wiped by a save here. Mirrors the API merge behavior in
+  // /api/portal/profile/preferences/route.ts.
+  const existing = (session.profile.notification_preferences || {}) as Record<string, unknown>;
+  const preferences = { ...existing, ...patch };
 
   await supabase
     .from('profiles')

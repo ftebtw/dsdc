@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/portal/auth";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
@@ -10,7 +11,7 @@ export async function createClass(formData: FormData) {
   const supabase = await getSupabaseServerClient();
   const primaryCoachId = String(formData.get("coach_id"));
 
-  const { data: createdClass } = await supabase
+  const { data: createdClass, error: insertError } = await supabase
     .from("classes")
     .insert({
       term_id: String(formData.get("term_id")),
@@ -28,6 +29,10 @@ export async function createClass(formData: FormData) {
     })
     .select("id")
     .maybeSingle();
+  if (insertError) {
+    console.error("[admin-classes] create failed", insertError);
+    redirect("/portal/admin/classes?error=save_failed");
+  }
 
   // Save optional co-coaches (excluding primary coach).
   const coCoachIds = formData
@@ -35,25 +40,32 @@ export async function createClass(formData: FormData) {
     .map(String)
     .filter((coachId) => Boolean(coachId) && coachId !== primaryCoachId);
   if (createdClass?.id && coCoachIds.length) {
-    await supabase.from("class_coaches").insert(
+    const { error: coCoachError } = await supabase.from("class_coaches").insert(
       coCoachIds.map((coachId) => ({
         class_id: createdClass.id,
         coach_id: coachId,
       }))
     );
+    if (coCoachError) {
+      console.error("[admin-classes] co-coach insert failed", coCoachError);
+      redirect("/portal/admin/classes?error=save_failed");
+    }
   }
 
   revalidatePath("/portal/admin/classes");
+  redirect("/portal/admin/classes?created=1");
 }
 
 export async function updateClass(formData: FormData) {
   await requireRole(["admin"]);
   const supabase = await getSupabaseServerClient();
   const classId = String(formData.get("id") || "");
-  if (!classId) return;
+  if (!classId) {
+    redirect("/portal/admin/classes?error=missing_record");
+  }
   const primaryCoachId = String(formData.get("coach_id"));
 
-  await supabase
+  const { error: updateError } = await supabase
     .from("classes")
     .update({
       term_id: String(formData.get("term_id")),
@@ -70,32 +82,55 @@ export async function updateClass(formData: FormData) {
       eligible_sub_tier: String(formData.get("eligible_sub_tier")) as Database["public"]["Enums"]["coach_tier"],
     })
     .eq("id", classId);
+  if (updateError) {
+    console.error("[admin-classes] update failed", updateError);
+    redirect("/portal/admin/classes?error=save_failed");
+  }
 
   // Sync co-coaches: delete all then re-insert.
   const coCoachIds = formData
     .getAll("co_coach_ids")
     .map(String)
     .filter((coachId) => Boolean(coachId) && coachId !== primaryCoachId);
-  await supabase.from("class_coaches").delete().eq("class_id", classId);
+  const { error: deleteCoCoachError } = await supabase
+    .from("class_coaches")
+    .delete()
+    .eq("class_id", classId);
+  if (deleteCoCoachError) {
+    console.error("[admin-classes] co-coach reset failed", deleteCoCoachError);
+    redirect("/portal/admin/classes?error=save_failed");
+  }
   if (coCoachIds.length) {
-    await supabase.from("class_coaches").insert(
+    const { error: coCoachError } = await supabase.from("class_coaches").insert(
       coCoachIds.map((coachId) => ({
         class_id: classId,
         coach_id: coachId,
       }))
     );
+    if (coCoachError) {
+      console.error("[admin-classes] co-coach insert failed", coCoachError);
+      redirect("/portal/admin/classes?error=save_failed");
+    }
   }
 
   revalidatePath("/portal/admin/classes");
+  redirect("/portal/admin/classes?saved=1");
 }
 
 export async function deleteClass(formData: FormData) {
   await requireRole(["admin"]);
   const supabase = await getSupabaseServerClient();
   const classId = String(formData.get("id") || "");
-  if (!classId) return;
-  await supabase.from("classes").delete().eq("id", classId);
+  if (!classId) {
+    redirect("/portal/admin/classes?error=missing_record");
+  }
+  const { error } = await supabase.from("classes").delete().eq("id", classId);
+  if (error) {
+    console.error("[admin-classes] delete failed", error);
+    redirect("/portal/admin/classes?error=delete_failed");
+  }
   revalidatePath("/portal/admin/classes");
+  redirect("/portal/admin/classes?deleted=1");
 }
 
 export async function cloneClassesToTerm(formData: FormData) {
@@ -104,7 +139,9 @@ export async function cloneClassesToTerm(formData: FormData) {
 
   const sourceTermId = String(formData.get("source_term_id") || "");
   const targetTermId = String(formData.get("target_term_id") || "");
-  if (!sourceTermId || !targetTermId || sourceTermId === targetTermId) return;
+  if (!sourceTermId || !targetTermId || sourceTermId === targetTermId) {
+    redirect("/portal/admin/classes?error=invalid_clone");
+  }
 
   const { data: existingClasses } = await supabase
     .from("classes")
@@ -113,7 +150,7 @@ export async function cloneClassesToTerm(formData: FormData) {
     .limit(1);
   if ((existingClasses ?? []).length > 0) {
     revalidatePath("/portal/admin/classes");
-    return;
+    redirect("/portal/admin/classes?error=target_term_not_empty");
   }
 
   const { data: sourceClasses, error } = await supabase
@@ -122,7 +159,13 @@ export async function cloneClassesToTerm(formData: FormData) {
       "id,name,description,type,coach_id,schedule_day,schedule_start_time,schedule_end_time,timezone,zoom_link,max_students,eligible_sub_tier"
     )
     .eq("term_id", sourceTermId);
-  if (error || !sourceClasses?.length) return;
+  if (error) {
+    console.error("[admin-classes] clone read failed", error);
+    redirect("/portal/admin/classes?error=clone_failed");
+  }
+  if (!sourceClasses?.length) {
+    redirect("/portal/admin/classes?error=source_term_empty");
+  }
   const classesToClone = sourceClasses as Array<{
     id: string;
     name: string;
@@ -153,10 +196,14 @@ export async function cloneClassesToTerm(formData: FormData) {
     eligible_sub_tier: cls.eligible_sub_tier,
   }));
 
-  const { data: insertedClasses } = await supabase
+  const { data: insertedClasses, error: cloneInsertError } = await supabase
     .from("classes")
     .insert(clones)
     .select("id,name,coach_id,schedule_day,schedule_start_time,schedule_end_time");
+  if (cloneInsertError) {
+    console.error("[admin-classes] clone insert failed", cloneInsertError);
+    redirect("/portal/admin/classes?error=clone_failed");
+  }
 
   // Clone co-coach assignments.
   const sourceClassIds = classesToClone.map((classRow) => classRow.id);
@@ -198,8 +245,15 @@ export async function cloneClassesToTerm(formData: FormData) {
     );
 
   if (clonedCoaches.length) {
-    await supabase.from("class_coaches").insert(clonedCoaches);
+    const { error: clonedCoachesError } = await supabase
+      .from("class_coaches")
+      .insert(clonedCoaches);
+    if (clonedCoachesError) {
+      console.error("[admin-classes] clone co-coaches failed", clonedCoachesError);
+      redirect("/portal/admin/classes?error=clone_failed");
+    }
   }
 
   revalidatePath("/portal/admin/classes");
+  redirect("/portal/admin/classes?cloned=1");
 }

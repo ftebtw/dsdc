@@ -1,8 +1,10 @@
 export const dynamic = 'force-dynamic';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { fromZonedTime } from 'date-fns-tz';
 import AdminDeleteUserButton from '@/app/portal/_components/AdminDeleteUserButton';
+import FlashBanners from '@/app/portal/_components/FlashBanners';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
@@ -16,17 +18,29 @@ async function updateHourlyRate(formData: FormData) {
 
   const coachId = String(formData.get('coach_id') || '');
   const hourlyRateRaw = String(formData.get('hourly_rate') || '').trim();
-  if (!coachId) return;
+  if (!coachId) {
+    redirect('/portal/admin/coaches?error=missing_record');
+  }
 
   let hourlyRate: number | null = null;
   if (hourlyRateRaw) {
     const parsed = Number(hourlyRateRaw);
-    if (!Number.isFinite(parsed) || parsed <= 0) return;
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      redirect('/portal/admin/coaches?error=invalid_rate');
+    }
     hourlyRate = parsed;
   }
 
-  await supabase.from('coach_profiles').update({ hourly_rate: hourlyRate }).eq('coach_id', coachId);
+  const { error } = await supabase
+    .from('coach_profiles')
+    .update({ hourly_rate: hourlyRate })
+    .eq('coach_id', coachId);
+  if (error) {
+    console.error('[admin-coaches] update hourly rate failed', error);
+    redirect('/portal/admin/coaches?error=save_failed');
+  }
   revalidatePath('/portal/admin/coaches');
+  redirect('/portal/admin/coaches?saved=1');
 }
 
 function isLate(
@@ -45,8 +59,13 @@ function formatTierLabel(tier: string): string {
   return tier.charAt(0).toUpperCase() + tier.slice(1);
 }
 
-export default async function AdminCoachesPage() {
+export default async function AdminCoachesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string; error?: string }>;
+}) {
   const session = await requireRole(['admin']);
+  const params = await searchParams;
   const supabase = await getSupabaseServerClient();
 
   const [{ data: coachProfilesData }, { data: classesData }, { data: checkinsData }, { data: allTierAssignments }] = await Promise.all([
@@ -86,6 +105,15 @@ export default async function AdminCoachesPage() {
 
   return (
     <div className="space-y-6">
+      <FlashBanners
+        searchParams={params}
+        successMessages={{ saved: 'Coach updated.' }}
+        errorMessages={{
+          missing_record: 'Coach not found.',
+          invalid_rate: 'Hourly rate must be a positive number.',
+          save_failed: 'Could not save the coach. Please try again.',
+        }}
+      />
       <SectionCard title="Coaches and TAs" description="Assignments, tier, and check-in history.">
         <div className="space-y-4">
           {coachProfiles.map((coachProfile: any) => {

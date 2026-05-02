@@ -30,13 +30,29 @@ export default async function CoachReportCardsPage() {
     );
   }
 
+  // Find every class this coach teaches in the active term, including
+  // co-coach assignments (class_coaches), not just primary coach. Without
+  // this, pure co-coaches see no report cards even though RLS would allow it.
+  const { data: coCoachRowsData } = await supabase
+    .from('class_coaches')
+    .select('class_id')
+    .eq('coach_id', session.userId);
+  const coCoachClassIds = [
+    ...new Set(((coCoachRowsData ?? []) as Array<{ class_id: string }>).map((row) => row.class_id)),
+  ];
+
+  const classFilters: string[] = [`coach_id.eq.${session.userId}`];
+  if (coCoachClassIds.length) {
+    classFilters.push(`id.in.(${coCoachClassIds.join(',')})`);
+  }
+
   const classes = (
     (
       await supabase
         .from('classes')
         .select('*')
-        .eq('coach_id', session.userId)
         .eq('term_id', activeTerm.id)
+        .or(classFilters.join(','))
         .order('schedule_start_time', { ascending: true })
     ).data ?? []
   ) as Array<Record<string, any>>;

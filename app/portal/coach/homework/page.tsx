@@ -46,9 +46,34 @@ export default async function CoachHomeworkPage() {
     : { data: [] as Array<{ id: string; name: string }> };
   const coCoachClasses = (coCoachClassesData ?? []) as Array<{ id: string; name: string }>;
 
+  // Sub/TA assignments — accepted requests give the coach access to the class's
+  // homework via is_subbing_class_any() RLS, so include them in the dropdown.
+  const [{ data: subRowsData }, { data: taRowsData }] = await Promise.all([
+    (supabase as any)
+      .from('sub_requests')
+      .select('class_id')
+      .eq('accepting_coach_id', session.userId)
+      .eq('status', 'accepted'),
+    (supabase as any)
+      .from('ta_requests')
+      .select('class_id')
+      .eq('accepting_ta_id', session.userId)
+      .eq('status', 'accepted'),
+  ]);
+  const subClassIds = [
+    ...new Set([
+      ...((subRowsData ?? []) as Array<{ class_id: string }>).map((row) => row.class_id),
+      ...((taRowsData ?? []) as Array<{ class_id: string }>).map((row) => row.class_id),
+    ]),
+  ];
+  const { data: subClassesData } = subClassIds.length
+    ? await supabase.from('classes').select('id,name').in('id', subClassIds).order('name', { ascending: true })
+    : { data: [] as Array<{ id: string; name: string }> };
+  const subClasses = (subClassesData ?? []) as Array<{ id: string; name: string }>;
+
   const classOptions = [
     ...new Map(
-      [...primaryClasses, ...coCoachClasses].map((classRow) => [classRow.id, classRow] as const)
+      [...primaryClasses, ...coCoachClasses, ...subClasses].map((classRow) => [classRow.id, classRow] as const)
     ).values(),
   ];
   if (classOptions.length === 0) {

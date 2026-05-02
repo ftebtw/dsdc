@@ -1,6 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import FlashBanners from '@/app/portal/_components/FlashBanners';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
@@ -12,9 +14,22 @@ async function cancelSubRequest(formData: FormData) {
   await requireRole(['admin']);
   const supabase = await getSupabaseServerClient();
   const id = String(formData.get('id') || '');
-  if (!id) return;
-  await supabase.from('sub_requests').update({ status: 'cancelled' }).eq('id', id).eq('status', 'open');
+  if (!id) {
+    redirect('/portal/admin/subs?error=missing_record');
+  }
+  // Allow cancelling open OR accepted requests — the admin needs the ability
+  // to recall coverage even after a sub has accepted.
+  const { error } = await supabase
+    .from('sub_requests')
+    .update({ status: 'cancelled' })
+    .eq('id', id)
+    .in('status', ['open', 'accepted']);
+  if (error) {
+    console.error('[admin-subs] cancel sub request failed', error);
+    redirect('/portal/admin/subs?error=cancel_failed');
+  }
   revalidatePath('/portal/admin/subs');
+  redirect('/portal/admin/subs?cancelled=1');
 }
 
 async function cancelTaRequest(formData: FormData) {
@@ -22,15 +37,26 @@ async function cancelTaRequest(formData: FormData) {
   await requireRole(['admin']);
   const supabase = await getSupabaseServerClient();
   const id = String(formData.get('id') || '');
-  if (!id) return;
-  await supabase.from('ta_requests').update({ status: 'cancelled' }).eq('id', id).eq('status', 'open');
+  if (!id) {
+    redirect('/portal/admin/subs?error=missing_record');
+  }
+  const { error } = await supabase
+    .from('ta_requests')
+    .update({ status: 'cancelled' })
+    .eq('id', id)
+    .in('status', ['open', 'accepted']);
+  if (error) {
+    console.error('[admin-subs] cancel ta request failed', error);
+    redirect('/portal/admin/subs?error=cancel_failed');
+  }
   revalidatePath('/portal/admin/subs');
+  redirect('/portal/admin/subs?cancelled=1');
 }
 
 export default async function AdminSubsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; cancelled?: string; error?: string }>;
 }) {
   await requireRole(['admin']);
   const params = await searchParams;
@@ -64,7 +90,16 @@ export default async function AdminSubsPage({
   const people = await getProfileMap(supabase, ids);
 
   return (
-    <SectionCard title="Sub & TA Requests" description="Admin view of all substitute and TA requests.">
+    <div className="space-y-6">
+      <FlashBanners
+        searchParams={params}
+        successMessages={{ cancelled: 'Request cancelled.' }}
+        errorMessages={{
+          missing_record: 'Request not found.',
+          cancel_failed: 'Could not cancel the request. It may already be cancelled or completed.',
+        }}
+      />
+      <SectionCard title="Sub & TA Requests" description="Admin view of all substitute and TA requests.">
       <form method="get" className="flex items-center gap-3 mb-4">
         <select
           name="status"
@@ -105,10 +140,12 @@ export default async function AdminSubsPage({
                   Accepted by: {row.accepting_coach_id ? (people[row.accepting_coach_id]?.display_name || people[row.accepting_coach_id]?.email || row.accepting_coach_id) : '—'}
                 </p>
                 <p className="text-sm mt-1 uppercase">Status: {row.status}</p>
-                {row.status === 'open' ? (
+                {row.status === 'open' || row.status === 'accepted' ? (
                   <form action={cancelSubRequest} className="mt-2">
                     <input type="hidden" name="id" value={row.id} />
-                    <button className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm">Cancel</button>
+                    <button className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm">
+                      {row.status === 'accepted' ? 'Cancel (recall)' : 'Cancel'}
+                    </button>
                   </form>
                 ) : null}
               </article>
@@ -141,10 +178,12 @@ export default async function AdminSubsPage({
                   Accepted by: {row.accepting_ta_id ? (people[row.accepting_ta_id]?.display_name || people[row.accepting_ta_id]?.email || row.accepting_ta_id) : '—'}
                 </p>
                 <p className="text-sm mt-1 uppercase">Status: {row.status}</p>
-                {row.status === 'open' ? (
+                {row.status === 'open' || row.status === 'accepted' ? (
                   <form action={cancelTaRequest} className="mt-2">
                     <input type="hidden" name="id" value={row.id} />
-                    <button className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm">Cancel</button>
+                    <button className="px-3 py-1.5 rounded-md bg-red-600 text-white text-sm">
+                      {row.status === 'accepted' ? 'Cancel (recall)' : 'Cancel'}
+                    </button>
                   </form>
                 ) : null}
               </article>
@@ -153,5 +192,6 @@ export default async function AdminSubsPage({
         </div>
       </div>
     </SectionCard>
+    </div>
   );
 }
