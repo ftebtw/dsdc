@@ -19,14 +19,6 @@ function readNullableString(formData: FormData, key: string): string | null {
   return value || null;
 }
 
-function readNullableInteger(formData: FormData, key: string): number | null {
-  const raw = readString(formData, key);
-  if (!raw) return null;
-  const parsed = Number(raw);
-  if (!Number.isFinite(parsed) || parsed < 0) return null;
-  return Math.floor(parsed);
-}
-
 function readBoolean(formData: FormData, key: string): boolean {
   return formData.get(key) === 'on';
 }
@@ -46,10 +38,6 @@ function consultationPayload(formData: FormData) {
     parent_email: readNullableString(formData, 'parent_email'),
     parent_phone: readNullableString(formData, 'parent_phone'),
     preferred_language: normalizePreferredLanguage(readString(formData, 'preferred_language')),
-    student_name: readString(formData, 'student_name'),
-    student_grade: readNullableString(formData, 'student_grade'),
-    student_age: readNullableInteger(formData, 'student_age'),
-    student_school: readNullableString(formData, 'student_school'),
     location_timezone: readNullableString(formData, 'location_timezone'),
     how_found_us: normalizeHowFoundUs(readString(formData, 'how_found_us')),
     how_found_us_details: readNullableString(formData, 'how_found_us_details'),
@@ -58,29 +46,91 @@ function consultationPayload(formData: FormData) {
       ? readNullableString(formData, 'prior_experience_details')
       : null,
     goals: readNullableString(formData, 'goals'),
-    recommended_class: readNullableString(formData, 'recommended_class'),
     next_steps: readNullableString(formData, 'next_steps'),
     notes: readNullableString(formData, 'notes'),
     consult_date: readDate(formData, 'consult_date'),
   };
 }
 
+type StudentRow = {
+  student_name: string;
+  student_grade: string | null;
+  student_age: number | null;
+  student_school: string | null;
+  recommended_class: string | null;
+};
+
+function readStudents(formData: FormData): StudentRow[] {
+  const raw = String(formData.get('students') || '[]');
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) return [];
+
+  const cleaned: StudentRow[] = [];
+  for (const entry of parsed) {
+    if (!entry || typeof entry !== 'object') continue;
+    const e = entry as Record<string, unknown>;
+    const name = typeof e.studentName === 'string' ? e.studentName.trim() : '';
+    if (!name) continue;
+    const grade = typeof e.studentGrade === 'string' ? e.studentGrade.trim() : '';
+    const ageRaw = typeof e.studentAge === 'string' ? e.studentAge.trim() : '';
+    const ageNum = ageRaw ? Number(ageRaw) : Number.NaN;
+    const age = Number.isFinite(ageNum) && ageNum >= 0 ? Math.floor(ageNum) : null;
+    const school = typeof e.studentSchool === 'string' ? e.studentSchool.trim() : '';
+    const recommended = typeof e.recommendedClass === 'string' ? e.recommendedClass.trim() : '';
+    cleaned.push({
+      student_name: name,
+      student_grade: grade || null,
+      student_age: age,
+      student_school: school || null,
+      recommended_class: recommended || null,
+    });
+  }
+  return cleaned;
+}
+
 export async function createConsultation(formData: FormData) {
   const session = await requireRole(['admin']);
   const supabase = await getSupabaseServerClient();
   const payload = consultationPayload(formData);
+  const students = readStudents(formData);
 
-  if (!payload.parent_name || !payload.student_name) {
+  if (!payload.parent_name || students.length === 0) {
     redirect('/portal/admin/consultations/new?error=missing_required');
   }
 
-  const { error } = await (supabase as any).from('consultations').insert({
-    ...payload,
-    created_by: session.userId,
-  });
+  const { data: created, error } = await (supabase as any)
+    .from('consultations')
+    .insert({
+      ...payload,
+      created_by: session.userId,
+    })
+    .select('id')
+    .single();
 
-  if (error) {
+  if (error || !created?.id) {
     console.error('[consultations] create failed', error);
+    redirect('/portal/admin/consultations/new?error=save_failed');
+  }
+
+  const consultationId = created.id as string;
+  const studentRows = students.map((student, index) => ({
+    ...student,
+    consultation_id: consultationId,
+    sort_order: index,
+  }));
+
+  const { error: studentsError } = await (supabase as any)
+    .from('consultation_students')
+    .insert(studentRows);
+
+  if (studentsError) {
+    console.error('[consultations] create students failed', studentsError);
+    await (supabase as any).from('consultations').delete().eq('id', consultationId);
     redirect('/portal/admin/consultations/new?error=save_failed');
   }
 
@@ -93,12 +143,13 @@ export async function updateConsultation(formData: FormData) {
   const supabase = await getSupabaseServerClient();
   const consultationId = readString(formData, 'id');
   const payload = consultationPayload(formData);
+  const students = readStudents(formData);
 
   if (!consultationId) {
     redirect('/portal/admin/consultations?error=missing_record');
   }
 
-  if (!payload.parent_name || !payload.student_name) {
+  if (!payload.parent_name || students.length === 0) {
     redirect(`/portal/admin/consultations/${consultationId}?error=missing_required`);
   }
 
@@ -112,6 +163,31 @@ export async function updateConsultation(formData: FormData) {
 
   if (error) {
     console.error('[consultations] update failed', error);
+    redirect(`/portal/admin/consultations/${consultationId}?error=save_failed`);
+  }
+
+  const { error: deleteError } = await (supabase as any)
+    .from('consultation_students')
+    .delete()
+    .eq('consultation_id', consultationId);
+
+  if (deleteError) {
+    console.error('[consultations] update students delete failed', deleteError);
+    redirect(`/portal/admin/consultations/${consultationId}?error=save_failed`);
+  }
+
+  const studentRows = students.map((student, index) => ({
+    ...student,
+    consultation_id: consultationId,
+    sort_order: index,
+  }));
+
+  const { error: insertError } = await (supabase as any)
+    .from('consultation_students')
+    .insert(studentRows);
+
+  if (insertError) {
+    console.error('[consultations] update students insert failed', insertError);
     redirect(`/portal/admin/consultations/${consultationId}?error=save_failed`);
   }
 

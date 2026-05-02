@@ -2,9 +2,13 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import type { ConsultationFormValues } from '@/app/portal/admin/consultations/config';
+import type {
+  ConsultationFormValues,
+  ConsultationStudentFormValues,
+} from '@/app/portal/admin/consultations/config';
 import {
   consultationStatusOptions,
+  emptyStudentFormValues,
   howFoundUsOptions,
   preferredLanguageOptions,
   recommendedClassOptions,
@@ -30,10 +34,26 @@ export default function AdminConsultationForm({
   consultationId,
 }: Props) {
   const [hasPriorExperience, setHasPriorExperience] = useState(initialValues.hasPriorExperience);
+  const [students, setStudents] = useState<ConsultationStudentFormValues[]>(
+    initialValues.students.length > 0 ? initialValues.students : [emptyStudentFormValues()]
+  );
+
+  function updateStudent(index: number, patch: Partial<ConsultationStudentFormValues>) {
+    setStudents((prev) => prev.map((student, i) => (i === index ? { ...student, ...patch } : student)));
+  }
+
+  function addStudent() {
+    setStudents((prev) => [...prev, emptyStudentFormValues()]);
+  }
+
+  function removeStudent(index: number) {
+    setStudents((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)));
+  }
 
   return (
     <form action={formAction} className="space-y-8">
       {consultationId ? <input type="hidden" name="id" value={consultationId} /> : null}
+      <input type="hidden" name="students" value={JSON.stringify(students)} />
 
       <section className="space-y-4">
         <div>
@@ -90,58 +110,103 @@ export default function AdminConsultationForm({
       <section className="space-y-4">
         <div>
           <h3 className="text-lg font-semibold text-navy-800 dark:text-white">Student Information</h3>
-          <p className="text-sm text-charcoal/65 dark:text-navy-300">Who the consultation is for.</p>
+          <p className="text-sm text-charcoal/65 dark:text-navy-300">Add one or more children for this consultation.</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Student Name</span>
-            <input
-              type="text"
-              name="student_name"
-              required
-              defaultValue={initialValues.studentName}
-              className={inputClassName}
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Grade</span>
-            <input
-              type="text"
-              name="student_grade"
-              defaultValue={initialValues.studentGrade}
-              className={inputClassName}
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Age</span>
-            <input
-              type="number"
-              min={0}
-              name="student_age"
-              defaultValue={initialValues.studentAge}
-              className={inputClassName}
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">School</span>
-            <input
-              type="text"
-              name="student_school"
-              defaultValue={initialValues.studentSchool}
-              className={inputClassName}
-            />
-          </label>
-          <label className="block md:col-span-2">
-            <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Location / Timezone</span>
-            <input
-              type="text"
-              name="location_timezone"
-              defaultValue={initialValues.locationTimezone}
-              placeholder="Vancouver, PST"
-              className={inputClassName}
-            />
-          </label>
+        <div className="space-y-4">
+          {students.map((student, index) => (
+            <div
+              key={index}
+              className="rounded-xl border border-warm-200 dark:border-navy-700 bg-warm-50 dark:bg-navy-900/50 p-4 space-y-4"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <h4 className="text-sm font-semibold text-navy-800 dark:text-white">
+                  {students.length > 1 ? `Child ${index + 1}` : 'Child'}
+                </h4>
+                {students.length > 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => removeStudent(index)}
+                    className="text-sm text-red-600 dark:text-red-400 hover:underline"
+                  >
+                    Remove
+                  </button>
+                ) : null}
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="block">
+                  <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Student Name</span>
+                  <input
+                    type="text"
+                    required
+                    value={student.studentName}
+                    onChange={(event) => updateStudent(index, { studentName: event.target.value })}
+                    className={inputClassName}
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Grade</span>
+                  <input
+                    type="text"
+                    value={student.studentGrade}
+                    onChange={(event) => updateStudent(index, { studentGrade: event.target.value })}
+                    className={inputClassName}
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Age</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={student.studentAge}
+                    onChange={(event) => updateStudent(index, { studentAge: event.target.value })}
+                    className={inputClassName}
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">School</span>
+                  <input
+                    type="text"
+                    value={student.studentSchool}
+                    onChange={(event) => updateStudent(index, { studentSchool: event.target.value })}
+                    className={inputClassName}
+                  />
+                </label>
+                <label className="block md:col-span-2">
+                  <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Recommended Class</span>
+                  <input
+                    type="text"
+                    list="consultation-recommended-class-options"
+                    value={student.recommendedClass}
+                    onChange={(event) => updateStudent(index, { recommendedClass: event.target.value })}
+                    className={inputClassName}
+                  />
+                </label>
+              </div>
+            </div>
+          ))}
+          <datalist id="consultation-recommended-class-options">
+            {recommendedClassOptions.map((option) => (
+              <option key={option} value={option} />
+            ))}
+          </datalist>
+          <button
+            type="button"
+            onClick={addStudent}
+            className="rounded-lg border border-dashed border-warm-300 dark:border-navy-600 px-4 py-2 text-sm font-medium text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700"
+          >
+            + Add another child
+          </button>
         </div>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Location / Timezone</span>
+          <input
+            type="text"
+            name="location_timezone"
+            defaultValue={initialValues.locationTimezone}
+            placeholder="Vancouver, PST"
+            className={inputClassName}
+          />
+        </label>
       </section>
 
       <section className="space-y-4">
@@ -242,21 +307,6 @@ export default function AdminConsultationForm({
               placeholder="What are their goals for attending classes?"
               className={textareaClassName}
             />
-          </label>
-          <label className="block md:col-span-2">
-            <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Recommended Class</span>
-            <input
-              type="text"
-              name="recommended_class"
-              list="consultation-recommended-class-options"
-              defaultValue={initialValues.recommendedClass}
-              className={inputClassName}
-            />
-            <datalist id="consultation-recommended-class-options">
-              {recommendedClassOptions.map((option) => (
-                <option key={option} value={option} />
-              ))}
-            </datalist>
           </label>
           <label className="block md:col-span-2">
             <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Next Steps</span>

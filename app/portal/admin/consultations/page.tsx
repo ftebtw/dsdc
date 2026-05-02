@@ -9,6 +9,7 @@ import {
   consultationErrorMessage,
   consultationStatusOptions,
   type ConsultationRecord,
+  type ConsultationStudent,
   howFoundUsLabel,
   normalizeConsultationStatus,
 } from '@/app/portal/admin/consultations/config';
@@ -53,14 +54,59 @@ export default async function AdminConsultationsPage({
 
   if (queryText) {
     const safeQuery = escapeOrFilterValue(queryText);
-    query = query.or(
-      `parent_name.ilike.%${safeQuery}%,student_name.ilike.%${safeQuery}%,parent_email.ilike.%${safeQuery}%,parent_phone.ilike.%${safeQuery}%`
+    const { data: studentMatches } = await (supabase as any)
+      .from('consultation_students')
+      .select('consultation_id')
+      .ilike('student_name', `%${safeQuery}%`);
+    const matchedIds = Array.from(
+      new Set(((studentMatches ?? []) as Array<{ consultation_id: string }>).map((row) => row.consultation_id))
     );
+
+    const orParts = [
+      `parent_name.ilike.%${safeQuery}%`,
+      `parent_email.ilike.%${safeQuery}%`,
+      `parent_phone.ilike.%${safeQuery}%`,
+    ];
+    if (matchedIds.length > 0) {
+      orParts.push(`id.in.(${matchedIds.join(',')})`);
+    }
+    query = query.or(orParts.join(','));
   }
 
   const { data } = await query;
-  const consultations = (data ?? []) as ConsultationRecord[];
+  const baseConsultations = (data ?? []) as Array<Omit<ConsultationRecord, 'students'>>;
+
+  const consultationIds = baseConsultations.map((c) => c.id);
+  let studentsByConsultation: Record<string, ConsultationStudent[]> = {};
+  if (consultationIds.length > 0) {
+    const { data: studentsData } = await (supabase as any)
+      .from('consultation_students')
+      .select('*')
+      .in('consultation_id', consultationIds)
+      .order('sort_order', { ascending: true });
+    studentsByConsultation = ((studentsData ?? []) as ConsultationStudent[]).reduce(
+      (acc, student) => {
+        const list = acc[student.consultation_id] ?? [];
+        list.push(student);
+        acc[student.consultation_id] = list;
+        return acc;
+      },
+      {} as Record<string, ConsultationStudent[]>
+    );
+  }
+
+  const consultations: ConsultationRecord[] = baseConsultations.map((c) => ({
+    ...c,
+    students: studentsByConsultation[c.id] ?? [],
+  }));
   const errorMessage = consultationErrorMessage(params.error);
+
+  function joinStudentField(students: ConsultationStudent[], field: keyof ConsultationStudent): string {
+    const values = students
+      .map((student) => student[field])
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+    return values.length > 0 ? values.join(', ') : '-';
+  }
 
   return (
     <div className="space-y-6">
@@ -133,11 +179,11 @@ export default async function AdminConsultationsPage({
           consultations={consultations.map((consultation) => ({
             id: consultation.id,
             consultDate: consultation.consult_date,
-            studentName: consultation.student_name || '-',
+            studentName: joinStudentField(consultation.students, 'student_name'),
             parentName: consultation.parent_name || '-',
-            studentGrade: consultation.student_grade || '-',
+            studentGrade: joinStudentField(consultation.students, 'student_grade'),
             howFoundUs: howFoundUsLabel(consultation.how_found_us),
-            recommendedClass: consultation.recommended_class || '-',
+            recommendedClass: joinStudentField(consultation.students, 'recommended_class'),
             status: consultation.status,
           }))}
         />

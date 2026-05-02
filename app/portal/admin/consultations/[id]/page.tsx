@@ -14,9 +14,11 @@ import {
   consultationErrorMessage,
   consultationStatusClass,
   consultationStatusLabel,
+  consultationStudentDisplayName,
   consultationToFormValues,
   preferredLanguageLabel,
   type ConsultationRecord,
+  type ConsultationStudent,
 } from '@/app/portal/admin/consultations/config';
 
 export default async function AdminConsultationDetailPage({
@@ -32,11 +34,21 @@ export default async function AdminConsultationDetailPage({
   const supabase = await getSupabaseServerClient();
 
   const { data } = await (supabase as any).from('consultations').select('*').eq('id', id).maybeSingle();
-  const consultation = (data ?? null) as ConsultationRecord | null;
+  const baseConsultation = (data ?? null) as Omit<ConsultationRecord, 'students'> | null;
 
-  if (!consultation) {
+  if (!baseConsultation) {
     notFound();
   }
+
+  const { data: studentsData } = await (supabase as any)
+    .from('consultation_students')
+    .select('*')
+    .eq('consultation_id', baseConsultation.id)
+    .order('sort_order', { ascending: true });
+  const consultation: ConsultationRecord = {
+    ...baseConsultation,
+    students: ((studentsData ?? []) as ConsultationStudent[]),
+  };
 
   const profileMap = await getProfileMap(supabase, [consultation.created_by]);
   const creator = profileMap[consultation.created_by];
@@ -67,7 +79,7 @@ export default async function AdminConsultationDetailPage({
       ) : null}
 
       <SectionCard
-        title={`${consultation.student_name} Consultation`}
+        title={`${consultationStudentDisplayName(consultation) || consultation.parent_name} Consultation`}
         description={`Consulted with ${consultation.parent_name} on ${consultation.consult_date}`}
       >
         <div className="grid gap-3 md:grid-cols-2 text-sm">
@@ -111,7 +123,7 @@ export default async function AdminConsultationDetailPage({
       >
         <ConsultationDeleteButton
           consultationId={consultation.id}
-          studentName={consultation.student_name}
+          studentName={consultationStudentDisplayName(consultation) || consultation.parent_name}
         />
       </SectionCard>
     </div>

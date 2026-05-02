@@ -1,5 +1,17 @@
 export type ConsultationStatus = 'new' | 'follow_up' | 'registered' | 'declined' | 'no_show';
 
+export type ConsultationStudent = {
+  id: string;
+  consultation_id: string;
+  student_name: string;
+  student_grade: string | null;
+  student_age: number | null;
+  student_school: string | null;
+  recommended_class: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
 export type ConsultationRecord = {
   id: string;
   created_at: string;
@@ -10,20 +22,24 @@ export type ConsultationRecord = {
   parent_email: string | null;
   parent_phone: string | null;
   preferred_language: string | null;
-  student_name: string;
-  student_grade: string | null;
-  student_age: number | null;
-  student_school: string | null;
   location_timezone: string | null;
   how_found_us: string | null;
   how_found_us_details: string | null;
   has_prior_experience: boolean;
   prior_experience_details: string | null;
   goals: string | null;
-  recommended_class: string | null;
   next_steps: string | null;
   notes: string | null;
   consult_date: string;
+  students: ConsultationStudent[];
+};
+
+export type ConsultationStudentFormValues = {
+  studentName: string;
+  studentGrade: string;
+  studentAge: string;
+  studentSchool: string;
+  recommendedClass: string;
 };
 
 export type ConsultationFormValues = {
@@ -31,17 +47,13 @@ export type ConsultationFormValues = {
   parentEmail: string;
   parentPhone: string;
   preferredLanguage: string;
-  studentName: string;
-  studentGrade: string;
-  studentAge: string;
-  studentSchool: string;
+  students: ConsultationStudentFormValues[];
   locationTimezone: string;
   howFoundUs: string;
   howFoundUsDetails: string;
   hasPriorExperience: boolean;
   priorExperienceDetails: string;
   goals: string;
-  recommendedClass: string;
   nextSteps: string;
   notes: string;
   consultDate: string;
@@ -124,23 +136,29 @@ export function preferredLanguageLabel(value: string | null | undefined): string
   return preferredLanguageOptions.find((option) => option.value === value)?.label ?? '-';
 }
 
+export function emptyStudentFormValues(): ConsultationStudentFormValues {
+  return {
+    studentName: '',
+    studentGrade: '',
+    studentAge: '',
+    studentSchool: '',
+    recommendedClass: '',
+  };
+}
+
 export function emptyConsultationValues(): ConsultationFormValues {
   return {
     parentName: '',
     parentEmail: '',
     parentPhone: '',
     preferredLanguage: '',
-    studentName: '',
-    studentGrade: '',
-    studentAge: '',
-    studentSchool: '',
+    students: [emptyStudentFormValues()],
     locationTimezone: '',
     howFoundUs: '',
     howFoundUsDetails: '',
     hasPriorExperience: false,
     priorExperienceDetails: '',
     goals: '',
-    recommendedClass: '',
     nextSteps: '',
     notes: '',
     consultDate: new Date().toISOString().slice(0, 10),
@@ -149,22 +167,29 @@ export function emptyConsultationValues(): ConsultationFormValues {
 }
 
 export function consultationToFormValues(record: ConsultationRecord): ConsultationFormValues {
+  const students = (record.students ?? [])
+    .slice()
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((student) => ({
+      studentName: student.student_name ?? '',
+      studentGrade: student.student_grade ?? '',
+      studentAge: student.student_age == null ? '' : String(student.student_age),
+      studentSchool: student.student_school ?? '',
+      recommendedClass: student.recommended_class ?? '',
+    }));
+
   return {
     parentName: record.parent_name ?? '',
     parentEmail: record.parent_email ?? '',
     parentPhone: record.parent_phone ?? '',
     preferredLanguage: record.preferred_language ?? '',
-    studentName: record.student_name ?? '',
-    studentGrade: record.student_grade ?? '',
-    studentAge: record.student_age == null ? '' : String(record.student_age),
-    studentSchool: record.student_school ?? '',
+    students: students.length > 0 ? students : [emptyStudentFormValues()],
     locationTimezone: record.location_timezone ?? '',
     howFoundUs: record.how_found_us ?? '',
     howFoundUsDetails: record.how_found_us_details ?? '',
     hasPriorExperience: Boolean(record.has_prior_experience),
     priorExperienceDetails: record.prior_experience_details ?? '',
     goals: record.goals ?? '',
-    recommendedClass: record.recommended_class ?? '',
     nextSteps: record.next_steps ?? '',
     notes: record.notes ?? '',
     consultDate: record.consult_date ?? new Date().toISOString().slice(0, 10),
@@ -172,8 +197,17 @@ export function consultationToFormValues(record: ConsultationRecord): Consultati
   };
 }
 
+export function consultationStudentDisplayName(record: ConsultationRecord): string {
+  const names = (record.students ?? [])
+    .slice()
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((student) => student.student_name)
+    .filter((name): name is string => Boolean(name && name.trim()));
+  return names.join(', ');
+}
+
 export function consultationErrorMessage(value: string | null | undefined): string | null {
-  if (value === 'missing_required') return 'Parent name and student name are required.';
+  if (value === 'missing_required') return 'Parent name and at least one student name are required.';
   if (value === 'missing_record') return 'Consultation record not found.';
   if (value === 'save_failed') return 'Could not save the consultation. Please try again.';
   if (value === 'delete_failed') return 'Could not delete the consultation. Please try again.';
