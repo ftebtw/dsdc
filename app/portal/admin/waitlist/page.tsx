@@ -7,7 +7,6 @@ import type { WaitlistListItem } from '@/app/portal/_components/AdminWaitlistLis
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import {
-  normalizeWaitlistStatus,
   sanitizeStudents,
   waitlistErrorMessage,
   waitlistStatusOptions,
@@ -27,7 +26,7 @@ export default async function AdminWaitlistPage({
 }: {
   searchParams: Promise<{
     query?: string;
-    status?: string;
+    status?: string | string[];
     timezone?: string;
     created?: string;
     updated?: string;
@@ -40,8 +39,15 @@ export default async function AdminWaitlistPage({
   const params = await searchParams;
 
   const queryText = normalizeSearchTerm(params.query);
-  const selectedStatus =
-    waitlistStatusOptions.some((option) => option.value === params.status) ? params.status || '' : '';
+  const validStatusValues = new Set(waitlistStatusOptions.map((option) => option.value));
+  const rawStatuses = Array.isArray(params.status)
+    ? params.status
+    : params.status
+      ? [params.status]
+      : [];
+  const selectedStatuses = Array.from(
+    new Set(rawStatuses.filter((value): value is string => Boolean(value) && validStatusValues.has(value as never)))
+  );
   const selectedTimezone = normalizeSearchTerm(params.timezone);
 
   let query = (supabase as any)
@@ -50,8 +56,8 @@ export default async function AdminWaitlistPage({
     .order('timezone', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false });
 
-  if (selectedStatus) {
-    query = query.eq('status', normalizeWaitlistStatus(selectedStatus));
+  if (selectedStatuses.length > 0) {
+    query = query.in('status', selectedStatuses);
   }
 
   if (selectedTimezone) {
@@ -118,53 +124,64 @@ export default async function AdminWaitlistPage({
         description="Families waiting on a class — grouped by timezone so you can build cohorts that share the same hours."
       >
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <form
-            method="get"
-            className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_180px_220px_auto_auto] w-full md:max-w-5xl"
-          >
-            <input
-              type="search"
-              name="query"
-              defaultValue={queryText}
-              placeholder="Search parent, email, phone, location"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            />
-            <select
-              name="status"
-              defaultValue={selectedStatus}
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            >
-              <option value="">All statuses</option>
+          <form method="get" className="w-full md:max-w-5xl space-y-3">
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px_auto_auto]">
+              <input
+                type="search"
+                name="query"
+                defaultValue={queryText}
+                placeholder="Search parent, email, phone, location"
+                className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+              />
+              <select
+                name="timezone"
+                defaultValue={selectedTimezone}
+                className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+              >
+                <option value="">All timezones</option>
+                {timezonesPresent.map((tz) => (
+                  <option key={tz} value={tz}>
+                    {tz}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className="rounded-lg bg-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-700"
+              >
+                Apply
+              </button>
+              <Link
+                href="/portal/admin/waitlist"
+                className="rounded-lg border border-warm-300 dark:border-navy-600 px-4 py-2 text-center text-sm font-medium text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700"
+              >
+                Reset
+              </Link>
+            </div>
+
+            <fieldset className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <legend className="mr-1 text-xs font-medium uppercase tracking-wide text-charcoal/55 dark:text-navy-400">
+                Status
+              </legend>
               {waitlistStatusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
+                <label
+                  key={option.value}
+                  className="inline-flex items-center gap-2 text-sm text-navy-800 dark:text-navy-100"
+                >
+                  <input
+                    type="checkbox"
+                    name="status"
+                    value={option.value}
+                    defaultChecked={selectedStatuses.includes(option.value)}
+                    className="rounded border-warm-300 dark:border-navy-600"
+                  />
                   {option.label}
-                </option>
+                </label>
               ))}
-            </select>
-            <select
-              name="timezone"
-              defaultValue={selectedTimezone}
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            >
-              <option value="">All timezones</option>
-              {timezonesPresent.map((tz) => (
-                <option key={tz} value={tz}>
-                  {tz}
-                </option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              className="rounded-lg bg-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-700"
-            >
-              Apply
-            </button>
-            <Link
-              href="/portal/admin/waitlist"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 px-4 py-2 text-center text-sm font-medium text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700"
-            >
-              Reset
-            </Link>
+              <span className="text-xs text-charcoal/55 dark:text-navy-400">
+                (none ticked = all)
+              </span>
+            </fieldset>
           </form>
 
           <Link
