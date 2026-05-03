@@ -10,6 +10,7 @@ This CMS is now set to **live edit** for the main website content.
 - Homepage
 - Pricing Page
 - Team Page
+- Additional Pages
 - Site Settings
 
 Changes save to live automatically.
@@ -21,6 +22,7 @@ Changes save to live automatically.
 - Homepage
 - Pricing Page
 - Team Page
+- Additional Pages
 - Site Settings
 3. Edit text and wait 10 to 30 seconds, then refresh the website.
 
@@ -29,6 +31,7 @@ Changes save to live automatically.
 - **Homepage**: hero text, cards, testimonials, FAQ, final call-to-action.
 - **Pricing Page**: pricing text, currency labels, private coaching copy.
 - **Team Page**: team labels and coach bios.
+- **Additional Pages**: copy for the Classes, Book, Awards, Blog, and Payment Success pages, plus stats and competitions.
 - **Site Settings**: navigation labels and footer/contact text.
 
 ## How To Confirm A Change Worked

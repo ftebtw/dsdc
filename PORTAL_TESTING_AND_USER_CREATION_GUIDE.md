@@ -5,11 +5,9 @@ Use this as a copy/paste checklist for Rebecca to test live features safely.
 ## Current Scope
 
 1. Built now:
-   Public registration flow (`/register` -> `/register/classes` -> Stripe Checkout -> `/register/success`), full portal for Admin/Coach/TA/Student/Parent, scheduling flows, report cards, and payroll export.
-2. New in latest update:
-   Coach report card upload + submit, admin review queue (approve/reject), student/parent approved report card view, admin payroll page + CSV export, coach "My Hours".
-3. Not built yet:
-   Class credits UI and payroll export to accounting integrations (manual CSV only).
+   Public registration flow (`/register` -> `/register/classes` -> Stripe Checkout -> `/register/success`), full portal for Admin/Coach/TA/Student/Parent, scheduling flows, report cards, payroll export, class credits, consultations, waitlist, referrals, and homework review.
+2. Not built yet:
+   Payroll export to accounting integrations (manual CSV only).
 
 ## URLs to Test
 
@@ -63,24 +61,24 @@ Default seeded password is `PortalSeed123!Temp` unless env overrides changed it.
 
 1. Open `/register`.
 2. Select `I'm a Student`.
-3. Confirm only 3 fields are shown:
-   Display name, Email, Password.
+3. Confirm 5 fields are shown:
+   First name, Last name, Email, Password, Confirm Password.
 4. Submit with a new test email.
 5. Confirm redirect to `/register/classes`.
 6. Select one or more classes and continue to payment.
 7. Complete Stripe test payment (for example card `4242 4242 4242 4242`).
-8. Confirm redirect to `/register/success`.
-9. Confirm success page lists enrolled classes.
+8. Complete payment and confirm success page lists enrolled classes.
 
 ### C) Parent Registration
 
 1. Open `/register`.
 2. Select `I'm a Parent`.
-3. Confirm only 5 fields are shown:
-   Parent name, Parent email, Parent password, Student name, Student email.
-4. Complete registration, class selection, and payment.
-5. Confirm success page loads.
-6. Log into parent portal and confirm linked student appears in selector.
+3. Confirm the following fields are shown:
+   First name, Last name, Email, Password, Confirm Password, Phone (optional).
+4. Confirm a note explains the student is linked later via invite code from the portal.
+5. Complete registration, class selection, and payment.
+6. Confirm success page loads.
+7. Log into parent portal, generate an invite code (or use the "send code to student email" flow), and confirm the student can be linked.
 
 ### D) Enrollment Confirmation Email QA
 
@@ -100,7 +98,9 @@ After each successful registration payment:
 
 1. Log in as `admin@dsdc.local`.
 2. Confirm admin menu includes:
-   Dashboard, Terms, Classes, Report Cards, Payroll, Availability, Sub Requests, Private Sessions, Students, Coaches, Enroll, Legal Docs, Create User.
+   - Overview: Dashboard, Calendar, Referrals, Consultations, Waitlist, Terms, Classes, Report Cards, Payroll, Availability, Sub/TA Requests, Private Sessions, E-Transfers, Pending Approvals, Login Log.
+   - People: Students, Parents, Coaches, Enroll, Create User.
+   - Legal: Legal Docs, Account Settings.
 3. Open each menu page once and confirm no errors.
 4. Toggle dark mode in top bar and confirm theme changes.
 

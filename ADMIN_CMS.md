@@ -29,6 +29,7 @@ These are singleton documents with fixed IDs:
 - `homePageContent`
 - `pricingPageContent`
 - `teamPageContent`
+- `additionalPageContent` (covers /classes, /book, /awards, /blog, /payment/success)
 - `siteSettings`
 
 The Studio structure is pinned to these IDs, duplicate actions are blocked, and global create templates are hidden.
@@ -48,7 +49,7 @@ In Sanity project settings, add webhook:
 - Method: `POST`
 - Header: `Authorization: Bearer <SANITY_WEBHOOK_SECRET>`
 - Trigger: Create, Update, Delete
-- Filter: `_type in ["siteSettings", "homePageContent", "pricingPageContent", "teamPageContent"]`
+- Filter: `_type in ["siteSettings", "homePageContent", "pricingPageContent", "teamPageContent", "additionalPageContent"]`
 - Drafts/versions: off
 
 Manual test URL:

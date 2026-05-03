@@ -60,6 +60,7 @@ Please prepare:
    last name
    email
    password
+   confirm password
    phone number if you want
 4. Submit the form
 
@@ -78,6 +79,7 @@ You will link the student account after logging in.
    last name
    email
    password
+   confirm password
 4. Submit the form
 
 ### 5. Check your email and verify your account
@@ -310,6 +312,7 @@ Only choose `e-Transfer` or `Already Paid` if DSDC told you to do that.
    姓
    邮箱
    密码
+   再次输入密码
    电话号码（可选）
 4. 提交
 
@@ -328,6 +331,7 @@ Only choose `e-Transfer` or `Already Paid` if DSDC told you to do that.
    姓
    邮箱
    密码
+   再次输入密码
 4. 提交
 
 ### 5. 去邮箱验证账号
