@@ -120,6 +120,9 @@ export type Database = {
       }
       calendar_events: {
         Row: {
+          attachment_mime_type: string | null
+          attachment_name: string | null
+          attachment_path: string | null
           color: string
           created_at: string
           created_by: string
@@ -135,6 +138,9 @@ export type Database = {
           visibility: string
         }
         Insert: {
+          attachment_mime_type?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
           color?: string
           created_at?: string
           created_by: string
@@ -150,6 +156,9 @@ export type Database = {
           visibility?: string
         }
         Update: {
+          attachment_mime_type?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
           color?: string
           created_at?: string
           created_by?: string

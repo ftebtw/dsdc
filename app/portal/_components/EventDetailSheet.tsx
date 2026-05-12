@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { EventItem } from "./EventFormModal";
 import { convertDateKeyForDisplay, eventTimeRange } from "./calendarUtils";
 
@@ -20,6 +21,9 @@ export default function EventDetailSheet({
   onClose,
   onEdit,
 }: Props) {
+  const [attachmentLoading, setAttachmentLoading] = useState(false);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+
   const displayDate = event.is_all_day
     ? event.event_date
     : convertDateKeyForDisplay(
@@ -28,6 +32,28 @@ export default function EventDetailSheet({
         event.timezone,
         displayTimezone
       );
+
+  async function openAttachment() {
+    if (!event.attachment_path) return;
+    setAttachmentLoading(true);
+    setAttachmentError(null);
+    try {
+      const response = await fetch(`/api/portal/calendar-events/${event.id}/attachment-url`);
+      const result = (await response.json().catch(() => ({}))) as {
+        url?: string;
+        error?: string;
+      };
+      if (!response.ok || !result.url) {
+        setAttachmentError(
+          result.error || t("portal.eventDetail.attachmentError", "Could not open the attachment.")
+        );
+        return;
+      }
+      window.open(result.url, "_blank", "noopener,noreferrer");
+    } finally {
+      setAttachmentLoading(false);
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
@@ -69,6 +95,31 @@ export default function EventDetailSheet({
                 <span key={index}>{part}</span>
               )
             )}
+          </div>
+        ) : null}
+        {event.attachment_path ? (
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => {
+                void openAttachment();
+              }}
+              disabled={attachmentLoading}
+              className="inline-flex items-center gap-2 rounded-md border border-warm-300 dark:border-navy-600 bg-warm-50 dark:bg-navy-800 px-3 py-1.5 text-sm font-medium text-blue-700 dark:text-blue-300 hover:bg-warm-100 dark:hover:bg-navy-700 disabled:opacity-60"
+            >
+              <span>📎</span>
+              <span className="underline truncate max-w-[20rem]">
+                {event.attachment_name || t("portal.eventDetail.attachmentDefault", "Attachment")}
+              </span>
+              {attachmentLoading ? (
+                <span className="text-xs text-charcoal/60 dark:text-navy-400">
+                  {t("portal.common.loading", "Loading...")}
+                </span>
+              ) : null}
+            </button>
+            {attachmentError ? (
+              <p className="mt-1 text-xs text-red-600 dark:text-red-400">{attachmentError}</p>
+            ) : null}
           </div>
         ) : null}
         <div className="mt-4 flex items-center gap-2">

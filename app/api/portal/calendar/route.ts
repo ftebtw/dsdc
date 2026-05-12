@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
   let calendarEventQuery = admin
     .from("calendar_events")
     .select(
-      "id,title,description,event_date,start_time,end_time,timezone,color,is_all_day,visibility,is_important,created_by"
+      "id,title,description,event_date,start_time,end_time,timezone,color,is_all_day,visibility,is_important,created_by,attachment_path,attachment_name,attachment_mime_type"
     )
     .order("event_date", { ascending: true })
     .order("start_time", { ascending: true });
@@ -254,6 +254,9 @@ export async function GET(request: NextRequest) {
     is_all_day: !eventRow.start_time && !eventRow.end_time,
     is_important: false,
     created_by: eventRow.created_by ?? null,
+    attachment_path: null,
+    attachment_name: null,
+    attachment_mime_type: null,
   }));
 
   const calendarEvents = filteredCalendarEvents.map((eventRow: any) => ({
@@ -272,6 +275,9 @@ export async function GET(request: NextRequest) {
     is_all_day: Boolean(eventRow.is_all_day),
     is_important: Boolean(eventRow.is_important),
     created_by: eventRow.created_by,
+    attachment_path: eventRow.attachment_path ?? null,
+    attachment_name: eventRow.attachment_name ?? null,
+    attachment_mime_type: eventRow.attachment_mime_type ?? null,
   }));
 
   const events = [...legacyEvents, ...calendarEvents].sort((left, right) => {

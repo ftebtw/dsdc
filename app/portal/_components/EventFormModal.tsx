@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { portalT } from "@/lib/portal/parent-i18n";
 
@@ -20,6 +20,9 @@ export type EventItem = {
   is_all_day: boolean;
   is_important: boolean;
   created_by: string | null;
+  attachment_path: string | null;
+  attachment_name: string | null;
+  attachment_mime_type: string | null;
 };
 
 type Props = {
@@ -73,6 +76,14 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
   const [isImportant, setIsImportant] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [attachmentName, setAttachmentName] = useState("");
+  const [existingAttachment, setExistingAttachment] = useState<{
+    name: string | null;
+    path: string | null;
+  } | null>(null);
+  const [removeExistingAttachment, setRemoveExistingAttachment] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const isEditing = Boolean(event?.id && event.source === "calendar_events");
   const isLegacyEvent = Boolean(event?.id && event.source === "events");
@@ -94,6 +105,15 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
     setIsImportant(Boolean(event?.is_important));
     setLoading(false);
     setError(null);
+    setAttachmentFile(null);
+    setAttachmentName("");
+    setRemoveExistingAttachment(false);
+    if (event?.attachment_path) {
+      setExistingAttachment({ name: event.attachment_name, path: event.attachment_path });
+    } else {
+      setExistingAttachment(null);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }, [open, event, initialDate]);
 
   useEffect(() => {
@@ -113,58 +133,57 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
     setLoading(true);
     setError(null);
 
-    let endpoint: string;
-    let method: string;
-    let payload: Record<string, unknown>;
+    let response: Response;
 
     if (isLegacyEvent && event) {
-      endpoint = `/api/portal/admin/events/${event.id}`;
-      method = "PATCH";
-      payload = {
-        title: title.trim(),
-        description: description.trim() || null,
-        event_date: eventDate,
-        start_time: isAllDay ? null : (startTime || null),
-        end_time: isAllDay ? null : (endTime || null),
-        timezone,
-      };
-    } else if (isEditing && event) {
-      endpoint = `/api/portal/calendar-events/${event.id}`;
-      method = "PUT";
-      payload = {
-        title: title.trim(),
-        description: description.trim() || "",
-        eventDate,
-        startTime: isAllDay ? "00:00" : startTime,
-        endTime: isAllDay ? "23:59" : endTime,
-        timezone,
-        color,
-        visibility,
-        isAllDay,
-        isImportant: visibility === "personal" ? false : isImportant,
-      };
+      response = await fetch(`/api/portal/admin/events/${event.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim() || null,
+          event_date: eventDate,
+          start_time: isAllDay ? null : (startTime || null),
+          end_time: isAllDay ? null : (endTime || null),
+          timezone,
+        }),
+      });
     } else {
-      endpoint = "/api/portal/calendar-events";
-      method = "POST";
-      payload = {
-        title: title.trim(),
-        description: description.trim() || "",
-        eventDate,
-        startTime: isAllDay ? "00:00" : startTime,
-        endTime: isAllDay ? "23:59" : endTime,
-        timezone,
-        color,
-        visibility,
-        isAllDay,
-        isImportant: visibility === "personal" ? false : isImportant,
-      };
+      const form = new FormData();
+      form.append("title", title.trim());
+      form.append("description", description.trim());
+      form.append("eventDate", eventDate);
+      form.append("startTime", isAllDay ? "00:00" : startTime);
+      form.append("endTime", isAllDay ? "23:59" : endTime);
+      form.append("timezone", timezone);
+      form.append("color", color);
+      form.append("visibility", visibility);
+      form.append("isAllDay", String(isAllDay));
+      form.append("isImportant", String(visibility === "personal" ? false : isImportant));
+      if (attachmentFile) {
+        form.append("file", attachmentFile);
+        const trimmedName = attachmentName.trim();
+        if (trimmedName) form.append("attachmentName", trimmedName);
+      } else if (isEditing && attachmentName.trim() && existingAttachment && !removeExistingAttachment) {
+        form.append("attachmentName", attachmentName.trim());
+      }
+      if (isEditing && removeExistingAttachment && !attachmentFile) {
+        form.append("removeAttachment", "true");
+      }
+
+      if (isEditing && event) {
+        response = await fetch(`/api/portal/calendar-events/${event.id}`, {
+          method: "PUT",
+          body: form,
+        });
+      } else {
+        response = await fetch("/api/portal/calendar-events", {
+          method: "POST",
+          body: form,
+        });
+      }
     }
 
-    const response = await fetch(endpoint, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
     const result = (await response.json().catch(() => ({}))) as { error?: string };
 
     if (!response.ok) {
@@ -368,6 +387,97 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
               maxLength={4000}
             />
           </label>
+
+          {!isLegacyEvent ? (
+            <div className="sm:col-span-2 space-y-2 rounded-lg border border-dashed border-warm-300 dark:border-navy-600 p-3">
+              <span className="block text-xs font-medium text-charcoal/70 dark:text-navy-300">
+                {t("portal.eventForm.attachment", "Attachment (optional)")}
+              </span>
+
+              {existingAttachment && !removeExistingAttachment && !attachmentFile ? (
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <span className="truncate">
+                    📎 {existingAttachment.name || t("portal.eventForm.attachmentDefaultName", "Attachment")}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setRemoveExistingAttachment(true)}
+                    className="shrink-0 text-red-600 dark:text-red-400 underline text-xs"
+                  >
+                    {t("portal.eventForm.removeAttachment", "Remove")}
+                  </button>
+                </div>
+              ) : null}
+
+              {existingAttachment && removeExistingAttachment && !attachmentFile ? (
+                <div className="flex items-center justify-between gap-2 text-sm text-charcoal/60 dark:text-navy-400">
+                  <span className="truncate line-through">📎 {existingAttachment.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setRemoveExistingAttachment(false)}
+                    className="shrink-0 text-blue-600 dark:text-blue-400 underline text-xs"
+                  >
+                    {t("portal.eventForm.undoRemove", "Undo")}
+                  </button>
+                </div>
+              ) : null}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.csv,.jpg,.jpeg,.png,.webp,.gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip,text/plain,text/csv,image/*"
+                onChange={(eventValue) => {
+                  const next = eventValue.target.files?.[0] ?? null;
+                  setAttachmentFile(next);
+                  if (next && !attachmentName.trim()) {
+                    setAttachmentName(next.name.replace(/\.[^.]+$/, ""));
+                  }
+                }}
+                className="w-full text-sm rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 file:mr-3 file:rounded file:border-0 file:bg-gold-300 file:px-3 file:py-1"
+              />
+
+              {attachmentFile ? (
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <span className="truncate text-charcoal/70 dark:text-navy-300">
+                    {t("portal.eventForm.selectedFile", "Selected")}: {attachmentFile.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAttachmentFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    className="shrink-0 text-blue-600 dark:text-blue-400 underline text-xs"
+                  >
+                    {t("portal.eventForm.clearFile", "Clear")}
+                  </button>
+                </div>
+              ) : null}
+
+              {attachmentFile || (existingAttachment && !removeExistingAttachment) ? (
+                <label className="block">
+                  <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+                    {t("portal.eventForm.attachmentLabel", "Display name (shown to students/parents)")}
+                  </span>
+                  <input
+                    type="text"
+                    className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                    value={attachmentName}
+                    onChange={(eventValue) => setAttachmentName(eventValue.target.value)}
+                    placeholder={t("portal.eventForm.attachmentNamePlaceholder", "e.g. Tournament invitation")}
+                    maxLength={200}
+                  />
+                </label>
+              ) : null}
+
+              <p className="text-xs text-charcoal/60 dark:text-navy-400">
+                {t(
+                  "portal.eventForm.attachmentHelp",
+                  "PDF, Office docs, ZIP, text, or images. Max 25MB."
+                )}
+              </p>
+            </div>
+          ) : null}
         </div>
 
         {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
