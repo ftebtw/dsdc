@@ -270,6 +270,14 @@ export default async function AdminClassesPage({
               placeholder="Description (optional)"
               className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2 md:col-span-2"
             />
+            <input
+              name="custom_price_cad"
+              type="number"
+              min={0}
+              step={1}
+              placeholder="Custom price CAD (optional)"
+              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+            />
             <button
               type="submit"
               className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold justify-self-start"
@@ -448,6 +456,15 @@ export default async function AdminClassesPage({
                   defaultValue={classRow.description || ''}
                   placeholder="Description"
                   className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 lg:col-span-2"
+                />
+                <input
+                  name="custom_price_cad"
+                  type="number"
+                  min={0}
+                  step={1}
+                  defaultValue={classRow.custom_price_cad ?? ''}
+                  placeholder="Custom price CAD (optional)"
+                  className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
                 />
                 <div className="lg:col-span-4 text-sm text-charcoal/75 dark:text-navy-300">
                   Schedule:{' '}

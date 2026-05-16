@@ -489,7 +489,15 @@
     "checkoutError": "无法启动支付，请重试。",
     "contactUs": "联系我们",
     "perTerm": "/学期 + 适用税费",
-    "termLength": "12周学期"
+    "termLength": "12周学期",
+    "wscGlobalsBadge": "特别项目 · 2026春季",
+    "wscGlobalsTitle": "WSC 全球赛集训",
+    "wscGlobalsSubtitle": "为备战世界学者杯全球赛的学生量身定制的15节课程，2026年5月16日至7月18日开课。主要周六上课，最后几周加开周四集训。",
+    "wscGlobalsScheduleHeading": "课程安排（共15节）",
+    "wscGlobalsTuitionHeading": "项目学费",
+    "wscGlobalsTotalSuffix": "总价 + 适用税费",
+    "wscGlobalsRateNote": "每小时 40加元 · 15节 × 2小时",
+    "wscGlobalsCoachNote": "由 Emily Cui 老师授课"
   },
   "paymentSuccess": {
     "title": "报名确认成功！",

@@ -3,7 +3,7 @@ import type Stripe from "stripe";
 import { z } from "zod";
 import { getStripeClient } from "@/lib/stripe";
 import { isAllowedPriceId } from "@/lib/stripe-prices";
-import { getProratedCadPrice } from "@/lib/portal/class-pricing";
+import { getProratedCadPriceForClass } from "@/lib/portal/class-pricing";
 import { SESSIONS_PER_TERM } from "@/lib/pricing";
 import { getSupabaseRouteClient } from "@/lib/supabase/route";
 import type { Database } from "@/lib/supabase/database.types";
@@ -164,7 +164,7 @@ async function handleRegistrationCheckout(
 
   const { data: classRowsData, error: classRowsError } = await supabase
     .from("classes")
-    .select("id,name,type,max_students,term_id")
+    .select("id,name,type,max_students,term_id,custom_price_cad")
     .in("id", parsed.classIds)
     .eq("term_id", activeTerm.id);
   if (classRowsError) {
@@ -176,6 +176,7 @@ async function handleRegistrationCheckout(
     type: string;
     max_students: number;
     term_id: string;
+    custom_price_cad: number | null;
   }>;
 
   if (classRows.length !== parsed.classIds.length) {
@@ -221,8 +222,8 @@ async function handleRegistrationCheckout(
       ? activeTerm.weeks
       : SESSIONS_PER_TERM;
   const lineItems = classRows.map((classRow) => {
-    const priceCad = getProratedCadPrice(
-      classRow.type as ClassType,
+    const priceCad = getProratedCadPriceForClass(
+      { type: classRow.type as ClassType, custom_price_cad: classRow.custom_price_cad ?? null },
       activeTerm.end_date,
       totalWeeks
     );

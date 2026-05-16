@@ -5,7 +5,7 @@ import { z } from "zod";
 import { sendPortalEmails } from "@/lib/email/send";
 import { etransferInstructions } from "@/lib/email/templates";
 import { classTypeLabel } from "@/lib/portal/labels";
-import { getProratedCadPrice } from "@/lib/portal/class-pricing";
+import { getProratedCadPriceForClass } from "@/lib/portal/class-pricing";
 import { getPortalAppUrl } from "@/lib/email/resend";
 import { SESSIONS_PER_TERM } from "@/lib/pricing";
 import { rateLimit } from "@/lib/rate-limit";
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
 
   const { data: classRowsData, error: classRowsError } = await admin
     .from("classes")
-    .select("id,name,type,max_students,term_id")
+    .select("id,name,type,max_students,term_id,custom_price_cad")
     .in("id", payload.classIds)
     .eq("term_id", activeTerm.id);
   if (classRowsError) {
@@ -124,6 +124,7 @@ export async function POST(request: NextRequest) {
     type: ClassType;
     max_students: number;
     term_id: string;
+    custom_price_cad: number | null;
   }>;
   if (classRows.length !== payload.classIds.length) {
     return mergeCookies(
@@ -205,7 +206,7 @@ export async function POST(request: NextRequest) {
       : SESSIONS_PER_TERM;
   const totalAmountCad = classRows.reduce(
     (sum, classRow) =>
-      sum + getProratedCadPrice(classRow.type, activeTerm.end_date, totalWeeks),
+      sum + getProratedCadPriceForClass(classRow, activeTerm.end_date, totalWeeks),
     0
   );
   const locale = payload.locale ?? (studentProfile.locale === "zh" ? "zh" : "en");

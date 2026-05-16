@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import AdminEtransferManager from "@/app/portal/_components/AdminEtransferManager";
 import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";
-import { getCadPriceForClassType, getProratedCadPrice } from "@/lib/portal/class-pricing";
+import { getCadPriceForClass, getProratedCadPriceForClass } from "@/lib/portal/class-pricing";
 import { SESSIONS_PER_TERM } from "@/lib/pricing";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
@@ -38,8 +38,8 @@ export default async function AdminEtransfersPage() {
       ? supabase.from("profiles").select("id,email,display_name").in("id", studentIds)
       : Promise.resolve({ data: [] as Array<{ id: string; email: string; display_name: string | null }> }),
     classIds.length
-      ? supabase.from("classes").select("id,name,type,term_id").in("id", classIds)
-      : Promise.resolve({ data: [] as Array<{ id: string; name: string; type: ClassType; term_id: string }> }),
+      ? supabase.from("classes").select("id,name,type,term_id,custom_price_cad").in("id", classIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; name: string; type: ClassType; term_id: string; custom_price_cad: number | null }> }),
   ]);
 
   const studentRows = (studentRowsData ?? []) as Array<{
@@ -52,6 +52,7 @@ export default async function AdminEtransfersPage() {
     name: string;
     type: ClassType;
     term_id: string;
+    custom_price_cad: number | null;
   }>;
   const termIds = [...new Set(classRowsTyped.map((row) => row.term_id))];
   const { data: termRowsData } =
@@ -71,7 +72,7 @@ export default async function AdminEtransfersPage() {
   >;
   const classMap = Object.fromEntries(classRowsTyped.map((row) => [row.id, row])) as Record<
     string,
-    { id: string; name: string; type: ClassType; term_id: string }
+    { id: string; name: string; type: ClassType; term_id: string; custom_price_cad: number | null }
   >;
 
   const groups = new Map<
@@ -125,10 +126,10 @@ export default async function AdminEtransfersPage() {
         .filter(Boolean)
         .reduce((sum, classRow) => {
           const term = termsById.get(classRow.term_id);
-          if (!term?.end_date) return sum + getCadPriceForClassType(classRow.type);
+          if (!term?.end_date) return sum + getCadPriceForClass(classRow);
           const totalWeeks =
             typeof term.weeks === "number" && term.weeks > 0 ? term.weeks : SESSIONS_PER_TERM;
-          return sum + getProratedCadPrice(classRow.type, term.end_date, totalWeeks);
+          return sum + getProratedCadPriceForClass(classRow, term.end_date, totalWeeks);
         }, 0);
       const status: "pending_etransfer" | "etransfer_sent" = group.statuses.includes("etransfer_sent")
         ? "etransfer_sent"

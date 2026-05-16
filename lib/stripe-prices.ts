@@ -6,12 +6,18 @@ type PriceEnvByTier = Record<GroupTierKey, string>;
 export type StripePriceMap = Record<GroupTierKey, string>;
 type ClassType = Database["public"]["Enums"]["class_type"];
 
+export type SpecialProgramKey = "wscGlobals";
+
 const priceEnvByTier: PriceEnvByTier = {
   // One-time Stripe price IDs for per-term enrollment checkout.
   noviceIntermediate: "STRIPE_PRICE_NOVICE_INTERMEDIATE",
   publicSpeaking: "STRIPE_PRICE_PUBLIC_SPEAKING",
   wsc: "STRIPE_PRICE_WSC",
   advanced: "STRIPE_PRICE_ADVANCED",
+};
+
+const priceEnvBySpecialProgram: Record<SpecialProgramKey, string> = {
+  wscGlobals: "STRIPE_PRICE_WSC_GLOBALS",
 };
 
 let cachedPriceMap: StripePriceMap | null = null;
@@ -50,8 +56,18 @@ export function getPriceIdForTier(tier: GroupTierKey): string {
   return loadStripePriceMap()[tier];
 }
 
+export function getSpecialProgramPriceId(key: SpecialProgramKey): string | null {
+  const envName = priceEnvBySpecialProgram[key];
+  const value = process.env[envName]?.trim();
+  return value || null;
+}
+
 export function isAllowedPriceId(priceId: string): boolean {
-  return Object.values(loadStripePriceMap()).includes(priceId);
+  if (Object.values(loadStripePriceMap()).includes(priceId)) return true;
+  for (const key of Object.keys(priceEnvBySpecialProgram) as SpecialProgramKey[]) {
+    if (getSpecialProgramPriceId(key) === priceId) return true;
+  }
+  return false;
 }
 
 export function getTierForPriceId(priceId: string): GroupTierKey | null {

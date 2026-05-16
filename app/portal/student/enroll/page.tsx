@@ -6,7 +6,7 @@ import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";
 import { getActiveTerm } from "@/lib/portal/data";
 import { getClassTypeLabel } from "@/lib/portal/labels";
-import { getProratedCadPrice } from "@/lib/portal/class-pricing";
+import { getProratedCadPriceForClass } from "@/lib/portal/class-pricing";
 import { SESSIONS_PER_TERM, weeksRemainingInTerm } from "@/lib/pricing";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -131,7 +131,11 @@ export default async function StudentEnrollPage() {
         ),
         spotsRemaining: Number(classRow.max_students) - enrolledCount,
         alreadyEnrolled: enrolledClassIds.has(classRow.id),
-        priceCad: getProratedCadPrice(classRow.type, activeTerm.end_date, termTotalWeeks),
+        priceCad: getProratedCadPriceForClass(
+          { type: classRow.type, custom_price_cad: classRow.custom_price_cad ?? null },
+          activeTerm.end_date,
+          termTotalWeeks,
+        ),
       };
     })
     .filter((row) => row.spotsRemaining > 0 || row.alreadyEnrolled);

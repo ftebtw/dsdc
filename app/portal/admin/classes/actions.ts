@@ -6,6 +6,14 @@ import { requireRole } from "@/lib/portal/auth";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
+function parseCustomPriceCad(formData: FormData): number | null {
+  const raw = String(formData.get("custom_price_cad") ?? "").trim();
+  if (raw === "") return null;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value <= 0) return null;
+  return Math.round(value);
+}
+
 export async function createClass(formData: FormData) {
   await requireRole(["admin"]);
   const supabase = await getSupabaseServerClient();
@@ -26,6 +34,7 @@ export async function createClass(formData: FormData) {
       zoom_link: String(formData.get("zoom_link") || "") || null,
       max_students: Number(formData.get("max_students") || 12),
       eligible_sub_tier: String(formData.get("eligible_sub_tier")) as Database["public"]["Enums"]["coach_tier"],
+      custom_price_cad: parseCustomPriceCad(formData),
     })
     .select("id")
     .maybeSingle();
@@ -80,6 +89,7 @@ export async function updateClass(formData: FormData) {
       zoom_link: String(formData.get("zoom_link") || "") || null,
       max_students: Number(formData.get("max_students") || 12),
       eligible_sub_tier: String(formData.get("eligible_sub_tier")) as Database["public"]["Enums"]["coach_tier"],
+      custom_price_cad: parseCustomPriceCad(formData),
     })
     .eq("id", classId);
   if (updateError) {

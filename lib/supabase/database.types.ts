@@ -312,10 +312,56 @@ export type Database = {
           },
         ]
       }
+      class_resource_week_titles: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          week_number: number
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          week_number: number
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_resource_week_titles_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_resource_week_titles_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classes: {
         Row: {
           coach_id: string | null
           created_at: string
+          custom_price_cad: number | null
           description: string | null
           eligible_sub_tier: Database["public"]["Enums"]["coach_tier"]
           id: string
@@ -332,6 +378,7 @@ export type Database = {
         Insert: {
           coach_id?: string | null
           created_at?: string
+          custom_price_cad?: number | null
           description?: string | null
           eligible_sub_tier: Database["public"]["Enums"]["coach_tier"]
           id?: string
@@ -348,6 +395,7 @@ export type Database = {
         Update: {
           coach_id?: string | null
           created_at?: string
+          custom_price_cad?: number | null
           description?: string | null
           eligible_sub_tier?: Database["public"]["Enums"]["coach_tier"]
           id?: string
@@ -522,6 +570,121 @@ export type Database = {
           },
         ]
       }
+      consultation_students: {
+        Row: {
+          consultation_id: string
+          created_at: string
+          id: string
+          recommended_class: string | null
+          sort_order: number
+          student_age: number | null
+          student_grade: string | null
+          student_name: string
+          student_school: string | null
+        }
+        Insert: {
+          consultation_id: string
+          created_at?: string
+          id?: string
+          recommended_class?: string | null
+          sort_order?: number
+          student_age?: number | null
+          student_grade?: string | null
+          student_name: string
+          student_school?: string | null
+        }
+        Update: {
+          consultation_id?: string
+          created_at?: string
+          id?: string
+          recommended_class?: string | null
+          sort_order?: number
+          student_age?: number | null
+          student_grade?: string | null
+          student_name?: string
+          student_school?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultation_students_consultation_id_fkey"
+            columns: ["consultation_id"]
+            isOneToOne: false
+            referencedRelation: "consultations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consultations: {
+        Row: {
+          consult_date: string
+          created_at: string
+          created_by: string
+          goals: string | null
+          has_prior_experience: boolean
+          how_found_us: string | null
+          how_found_us_details: string | null
+          id: string
+          location_timezone: string | null
+          next_steps: string | null
+          notes: string | null
+          parent_email: string | null
+          parent_name: string
+          parent_phone: string | null
+          preferred_language: string | null
+          prior_experience_details: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          consult_date?: string
+          created_at?: string
+          created_by: string
+          goals?: string | null
+          has_prior_experience?: boolean
+          how_found_us?: string | null
+          how_found_us_details?: string | null
+          id?: string
+          location_timezone?: string | null
+          next_steps?: string | null
+          notes?: string | null
+          parent_email?: string | null
+          parent_name: string
+          parent_phone?: string | null
+          preferred_language?: string | null
+          prior_experience_details?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          consult_date?: string
+          created_at?: string
+          created_by?: string
+          goals?: string | null
+          has_prior_experience?: boolean
+          how_found_us?: string | null
+          how_found_us_details?: string | null
+          id?: string
+          location_timezone?: string | null
+          next_steps?: string | null
+          notes?: string | null
+          parent_email?: string | null
+          parent_name?: string
+          parent_phone?: string | null
+          preferred_language?: string | null
+          prior_experience_details?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
           approval_expires_at: string | null
@@ -629,6 +792,76 @@ export type Database = {
           {
             foreignKeyName: "events_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      homework_submissions: {
+        Row: {
+          class_id: string
+          created_at: string
+          external_url: string | null
+          feedback: string | null
+          file_name: string | null
+          file_path: string | null
+          grade: string | null
+          graded_at: string | null
+          graded_by: string | null
+          id: string
+          notes: string | null
+          student_id: string
+          title: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          external_url?: string | null
+          feedback?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          grade?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          notes?: string | null
+          student_id: string
+          title: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          external_url?: string | null
+          feedback?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          grade?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          notes?: string | null
+          student_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_submissions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_submissions_graded_by_fkey"
+            columns: ["graded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_submissions_student_id_fkey"
+            columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -881,6 +1114,51 @@ export type Database = {
           {
             foreignKeyName: "parent_student_links_student_id_fkey"
             columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_adjustments: {
+        Row: {
+          adjustment_date: string
+          coach_id: string
+          created_at: string
+          created_by: string
+          hours_delta: number
+          id: string
+          note: string | null
+        }
+        Insert: {
+          adjustment_date: string
+          coach_id: string
+          created_at?: string
+          created_by: string
+          hours_delta: number
+          id?: string
+          note?: string | null
+        }
+        Update: {
+          adjustment_date?: string
+          coach_id?: string
+          created_at?: string
+          created_by?: string
+          hours_delta?: number
+          id?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_adjustments_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_adjustments_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1310,8 +1588,8 @@ export type Database = {
           description: string | null
           file_path: string | null
           id: string
-          publish_at: string
           posted_by: string
+          publish_at: string
           session_date: string | null
           title: string
           type: Database["public"]["Enums"]["resource_type"]
@@ -1323,8 +1601,8 @@ export type Database = {
           description?: string | null
           file_path?: string | null
           id?: string
-          publish_at?: string
           posted_by: string
+          publish_at?: string
           session_date?: string | null
           title: string
           type: Database["public"]["Enums"]["resource_type"]
@@ -1336,8 +1614,8 @@ export type Database = {
           description?: string | null
           file_path?: string | null
           id?: string
-          publish_at?: string
           posted_by?: string
+          publish_at?: string
           session_date?: string | null
           title?: string
           type?: Database["public"]["Enums"]["resource_type"]
@@ -1572,6 +1850,68 @@ export type Database = {
           weeks?: number
         }
         Relationships: []
+      }
+      waitlist_entries: {
+        Row: {
+          created_at: string
+          created_by: string
+          debate_experience_details: string | null
+          has_debate_experience: boolean
+          id: string
+          location: string | null
+          notes: string | null
+          parent_email: string | null
+          parent_name: string
+          parent_phone: string | null
+          preferred_days_times: string | null
+          status: string
+          students: Json
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          debate_experience_details?: string | null
+          has_debate_experience?: boolean
+          id?: string
+          location?: string | null
+          notes?: string | null
+          parent_email?: string | null
+          parent_name: string
+          parent_phone?: string | null
+          preferred_days_times?: string | null
+          status?: string
+          students?: Json
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          debate_experience_details?: string | null
+          has_debate_experience?: boolean
+          id?: string
+          location?: string | null
+          notes?: string | null
+          parent_email?: string | null
+          parent_name?: string
+          parent_phone?: string | null
+          preferred_days_times?: string | null
+          status?: string
+          students?: Json
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -1834,6 +2174,7 @@ export type Database = {
           id: string
           in_progress_size: number
           key: string
+          metadata: Json | null
           owner_id: string | null
           upload_signature: string
           user_metadata: Json | null
@@ -1845,6 +2186,7 @@ export type Database = {
           id: string
           in_progress_size?: number
           key: string
+          metadata?: Json | null
           owner_id?: string | null
           upload_signature: string
           user_metadata?: Json | null
@@ -1856,6 +2198,7 @@ export type Database = {
           id?: string
           in_progress_size?: number
           key?: string
+          metadata?: Json | null
           owner_id?: string | null
           upload_signature?: string
           user_metadata?: Json | null
@@ -1974,6 +2317,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      allow_any_operation: {
+        Args: { expected_operations: string[] }
+        Returns: boolean
+      }
+      allow_only_operation: {
+        Args: { expected_operation: string }
+        Returns: boolean
+      }
       can_insert_object: {
         Args: { bucketid: string; metadata: Json; name: string; owner: string }
         Returns: undefined

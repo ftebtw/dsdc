@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import RegisterClassesClient from "./RegisterClassesClient";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { getProratedCadPrice } from "@/lib/portal/class-pricing";
+import { getProratedCadPriceForClass } from "@/lib/portal/class-pricing";
 import { classTypeLabel } from "@/lib/portal/labels";
 import { SESSIONS_PER_TERM, weeksRemainingInTerm } from "@/lib/pricing";
 
@@ -235,7 +235,11 @@ export default async function RegisterClassesPage({
   const weeksRemaining = weeksRemainingInTerm(activeTerm.end_date);
   const classPrices: Record<string, number> = {};
   for (const classRow of classRows) {
-    classPrices[classRow.id] = getProratedCadPrice(classRow.type, activeTerm.end_date, totalWeeks);
+    classPrices[classRow.id] = getProratedCadPriceForClass(
+      { type: classRow.type, custom_price_cad: classRow.custom_price_cad ?? null },
+      activeTerm.end_date,
+      totalWeeks,
+    );
   }
 
   return (

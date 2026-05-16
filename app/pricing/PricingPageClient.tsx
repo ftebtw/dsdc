@@ -77,6 +77,8 @@ export default function PricingPageClient() {
     []
   );
 
+  const [loadingWscGlobals, setLoadingWscGlobals] = useState(false);
+
   async function startCheckout(tierKey: GroupTierKey) {
     setLoadingTier(tierKey);
     const query = new URLSearchParams({
@@ -84,6 +86,29 @@ export default function PricingPageClient() {
       tier: tierKey,
     });
     window.location.assign(`/register?${query.toString()}`);
+  }
+
+  async function startWscGlobalsCheckout() {
+    if (loadingWscGlobals) return;
+    setLoadingWscGlobals(true);
+    trackEvent("cta_click", { cta: "enroll_wsc_globals" });
+    try {
+      const res = await fetch("/api/checkout/wsc-globals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale: locale === "zh" ? "zh" : "en" }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        console.error("[pricing] WSC Globals checkout failed", data?.error);
+        setLoadingWscGlobals(false);
+        return;
+      }
+      window.location.assign(data.url);
+    } catch (error) {
+      console.error("[pricing] WSC Globals checkout error", error);
+      setLoadingWscGlobals(false);
+    }
   }
 
   function trackPricingConsultationClick() {
@@ -227,6 +252,88 @@ export default function PricingPageClient() {
               {t("pricingPage.currencyDisclaimer")}
               {rateSource !== "live" && ` ${t("pricingPage.currencyFallback")}`}
             </p>
+          </AnimatedSection>
+        </div>
+      </section>
+
+      {/* WSC Globals Training */}
+      <section className="py-16 md:py-24 bg-warm-50 dark:bg-navy-900/40">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <AnimatedSection>
+            <div className="rounded-2xl border-2 border-purple-200 dark:border-purple-700/60 bg-white dark:bg-navy-800 p-6 sm:p-10 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+                  <Globe className="w-6 h-6 text-purple-600 dark:text-purple-300" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-300">
+                    {t("pricingPage.wscGlobalsBadge")}
+                  </p>
+                  <h2 className="mt-1 text-2xl font-bold text-navy-800 dark:text-white font-serif">
+                    {t("pricingPage.wscGlobalsTitle")}
+                  </h2>
+                  <p className="mt-2 text-charcoal/70 dark:text-navy-200 font-sans">
+                    {t("pricingPage.wscGlobalsSubtitle")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-sm font-semibold text-navy-700 dark:text-navy-200 uppercase tracking-wider mb-3">
+                    {t("pricingPage.wscGlobalsScheduleHeading")}
+                  </h3>
+                  <ul className="text-sm text-charcoal/80 dark:text-navy-200 space-y-1 font-sans">
+                    <li>May 16 (Sat) · 7:00–9:00 PM PT</li>
+                    <li>May 23 (Sat) · 7:00–9:00 PM PT</li>
+                    <li>May 30 (Sat) · 7:00–9:00 PM PT</li>
+                    <li>June 6 (Sat) · 7:00–9:00 PM PT</li>
+                    <li>June 13 (Sat) · 7:00–9:00 PM PT</li>
+                    <li>June 18 (Thu) · 7:00–9:00 PM PT</li>
+                    <li>June 20 (Sat) · 7:00–9:00 PM PT</li>
+                    <li>June 25 (Thu) · 7:00–9:00 PM PT</li>
+                    <li>June 27 (Sat) · 7:00–9:00 PM PT</li>
+                    <li>July 2 (Thu) · 7:00–9:00 PM PT</li>
+                    <li>July 4 (Sat) · 7:00–9:00 PM PT</li>
+                    <li>July 9 (Thu) · 7:00–9:00 PM PT</li>
+                    <li>July 11 (Sat) · 7:00–9:00 PM PT</li>
+                    <li>July 16 (Thu) · 7:00–9:00 PM PT</li>
+                    <li>July 18 (Sat) · 7:00–9:00 PM PT</li>
+                  </ul>
+                </div>
+                <div className="md:border-l md:border-warm-200 md:dark:border-navy-700 md:pl-6 flex flex-col">
+                  <h3 className="text-sm font-semibold text-navy-700 dark:text-navy-200 uppercase tracking-wider mb-3">
+                    {t("pricingPage.wscGlobalsTuitionHeading")}
+                  </h3>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-navy-800 dark:text-white">
+                      {formatDisplayPrice(convertCadPrice(1200, currency, rates), currency, locale)}
+                    </span>
+                    <span className="text-charcoal/50 dark:text-navy-300 text-sm font-sans">
+                      {t("pricingPage.wscGlobalsTotalSuffix")}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-300 font-sans">
+                    {t("pricingPage.wscGlobalsRateNote")}
+                  </p>
+                  <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-300 font-sans">
+                    {t("pricingPage.wscGlobalsCoachNote")}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void startWscGlobalsCheckout();
+                    }}
+                    disabled={loadingWscGlobals}
+                    className="mt-auto pt-6 sm:pt-0 sm:mt-6 w-full px-4 py-3 rounded-lg bg-navy-800 text-white font-semibold hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {loadingWscGlobals
+                      ? t("pricingPage.checkoutLoading")
+                      : t("pricingPage.enrollNow")}
+                  </button>
+                </div>
+              </div>
+            </div>
           </AnimatedSection>
         </div>
       </section>

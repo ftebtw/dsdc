@@ -4,7 +4,7 @@ import { sendPortalEmails } from "@/lib/email/send";
 import { getPortalAppUrl } from "@/lib/email/resend";
 import { etransferAdminSentNotice, etransferSentConfirmation } from "@/lib/email/templates";
 import { classTypeLabel } from "@/lib/portal/labels";
-import { getCadPriceForClassType, getProratedCadPrice } from "@/lib/portal/class-pricing";
+import { getCadPriceForClass, getProratedCadPriceForClass } from "@/lib/portal/class-pricing";
 import { SESSIONS_PER_TERM } from "@/lib/pricing";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
@@ -85,10 +85,16 @@ export async function POST(request: NextRequest) {
       .eq("student_id", studentId),
     admin
       .from("classes")
-      .select("id,name,type,term_id")
+      .select("id,name,type,term_id,custom_price_cad")
       .in("id", classIds),
   ]);
-  const classRowsTyped = (classesData ?? []) as Array<{ id: string; name: string; type: ClassType; term_id: string }>;
+  const classRowsTyped = (classesData ?? []) as Array<{
+    id: string;
+    name: string;
+    type: ClassType;
+    term_id: string;
+    custom_price_cad: number | null;
+  }>;
   const termIds = [...new Set(classRowsTyped.map((row) => row.term_id))];
   const { data: termRowsData } =
     termIds.length > 0
@@ -107,9 +113,9 @@ export async function POST(request: NextRequest) {
     }));
   const totalAmountCad = classRowsTyped.reduce((sum, classRow) => {
     const term = termsById.get(classRow.term_id);
-    if (!term?.end_date) return sum + getCadPriceForClassType(classRow.type);
+    if (!term?.end_date) return sum + getCadPriceForClass(classRow);
     const totalWeeks = typeof term.weeks === "number" && term.weeks > 0 ? term.weeks : SESSIONS_PER_TERM;
-    return sum + getProratedCadPrice(classRow.type, term.end_date, totalWeeks);
+    return sum + getProratedCadPriceForClass(classRow, term.end_date, totalWeeks);
   }, 0);
 
   const parentLinkRows = (parentLinks ?? []) as Array<{ parent_id: string; student_id: string }>;
