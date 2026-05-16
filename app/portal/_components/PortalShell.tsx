@@ -20,6 +20,7 @@ import {
   LayoutDashboard,
   Menu,
   MessageSquare,
+  Plus,
   Share2,
   Settings,
   Shield,
@@ -436,6 +437,11 @@ export default function PortalShell({
               href: "/portal/admin/private-sessions",
               label: t("portal.nav.admin.privateSessions", "Private Sessions"),
               icon: ClipboardCheck,
+            },
+            {
+              href: "/portal/admin/private-sessions/new",
+              label: t("portal.nav.admin.privateSessionsCreate", "Create Session"),
+              icon: Plus,
             },
             { href: "/portal/admin/etransfers", label: t("portal.nav.admin.etransfers", "E-Transfers"), icon: Banknote },
             {

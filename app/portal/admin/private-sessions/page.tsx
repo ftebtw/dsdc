@@ -1,5 +1,7 @@
 export const dynamic = 'force-dynamic';
 
+import Link from 'next/link';
+import AdminGeneratePaymentLinkButton from '@/app/portal/_components/AdminGeneratePaymentLinkButton';
 import PrivateSessionsManager from '@/app/portal/_components/PrivateSessionsManager';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
@@ -21,13 +23,14 @@ function stepForStatus(status: string): number {
 export default async function AdminPrivateSessionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; coachId?: string; studentId?: string }>;
+  searchParams: Promise<{ status?: string; coachId?: string; studentId?: string; created?: string }>;
 }) {
   const session = await requireRole(['admin']);
   const locale = (session.profile.locale === 'zh' ? 'zh' : 'en') as 'en' | 'zh';
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const params = await searchParams;
   const supabase = await getSupabaseServerClient();
+  const createdId = params.created || '';
 
   const selectedStatus = params.status === 'needs_action' ? 'coach_accepted' : params.status || '';
 
@@ -104,6 +107,31 @@ export default async function AdminPrivateSessionsPage({
         'Admin workflow: coach review, approval, payment, completion.'
       )}
     >
+      {createdId ? (
+        (() => {
+          const createdRow = rows.find((r: any) => r.id === createdId);
+          const createdAwaitingPayment = createdRow?.status === 'awaiting_payment';
+          return (
+            <div className="mb-4 space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-900/20 dark:text-emerald-300">
+              <div>
+                Session created.{' '}
+                {createdAwaitingPayment
+                  ? 'Generate the Stripe payment link below and share it with the student.'
+                  : 'Status is set to confirmed — no payment link needed.'}
+              </div>
+              {createdAwaitingPayment ? <AdminGeneratePaymentLinkButton sessionId={createdId} /> : null}
+            </div>
+          );
+        })()
+      ) : null}
+      <div className="mb-4 flex justify-end">
+        <Link
+          href="/portal/admin/private-sessions/new"
+          className="rounded-lg bg-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-700"
+        >
+          + Create session
+        </Link>
+      </div>
       <form method="get" className="grid sm:grid-cols-4 gap-3 mb-4">
         <select
           name="status"

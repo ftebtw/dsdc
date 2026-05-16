@@ -15,7 +15,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireApiRole(request, ['student', 'parent']);
+  const session = await requireApiRole(request, ['student', 'parent', 'admin']);
   if (!session) return jsonError('Unauthorized', 401);
 
   const { id } = await params;
@@ -39,7 +39,7 @@ export async function POST(
     if (row.student_id !== session.userId) {
       return mergeCookies(supabaseResponse, jsonError('Not allowed to pay for this session.', 403));
     }
-  } else {
+  } else if (session.profile.role === 'parent') {
     const { data: linkRow } = await supabase
       .from('parent_student_links')
       .select('id')
@@ -50,6 +50,7 @@ export async function POST(
       return mergeCookies(supabaseResponse, jsonError('Parent is not linked to this student.', 403));
     }
   }
+  // Admin role: no ownership check — admins can generate payment links for any session.
 
   const priceCad = Number(row.price_cad);
   if (!Number.isFinite(priceCad) || priceCad <= 0) {
@@ -68,7 +69,9 @@ export async function POST(
   const successBase =
     session.profile.role === 'parent'
       ? `${origin}/portal/parent/private-sessions?student=${encodeURIComponent(row.student_id)}`
-      : `${origin}/portal/student/booking`;
+      : session.profile.role === 'admin'
+        ? `${origin}/portal/admin/private-sessions`
+        : `${origin}/portal/student/booking`;
 
   const paramsObj: Stripe.Checkout.SessionCreateParams = {
     mode: 'payment',
