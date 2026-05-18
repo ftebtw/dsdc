@@ -286,6 +286,11 @@
       "bio": "BC省顶尖辩手之一，多次获得冠军和最佳演讲者称号。Akash从DSDC学生成长为教练，他将自己对辩论的热情传递给新一代学生。"
     },
     {
+      "name": "Kevin Nan",
+      "title": "资深辩论教练",
+      "bio": "Kevin 是 UBC Allard 法学院的应届毕业生，曾带领学生团队在 BC 省辩论锦标赛、Georgetown Invitational 以及 NSDA 韩国全国赛上夺得冠军。他擅长帮助学生从基本原理出发构建论证，尤其注重法律训练所要求的分析严谨性。作为选手，他曾赢得 UBC 高中辩论赛、BC 省模拟法庭锦标赛，以及三届 Lower Mainland 东部地区赛冠军，并打入 Heart of Europe 决赛和 WSDA Slovenia 半决赛。Kevin 目前担任 CAHSMUN 董事会成员，此前曾担任 DSABC 的地区协调员。"
+    },
+    {
       "name": "Annika Wang",
       "title": "辩论教练",
       "bio": "Annika Wang 是一位活跃于顶级赛事的竞赛辩手与教练。她在 2024 年 Australia-Asia Intervarsity Debating Championship 中获得总最佳辩手，并在 2025 年 World Universities Debating Championship 进入 Masters 组总决赛。Annika 在北京出生长大，从中文辩论和 Public Forum 起步，之后走向国际赛场。她目前教授 British Parliamentary、Asian Parliamentary、World Schools、英文与中文 Public Forum、3v3 以及中文辩论。Annika 曾在 Reddam House 指导 7 至 12 年级的 30 多名学生，带领校队打入 2024 年 Eastside 半决赛，目前也为悉尼大学学生会辩论协会 80 多名成员设计训练项目。除辩论外，她正在悉尼大学攻读法律与金融数学双学位，并把法律与数学训练带来的严谨分析能力融入每一节课。"
@@ -491,7 +496,7 @@
     "perTerm": "/学期 + 适用税费",
     "termLength": "12周学期",
     "wscGlobalsTitle": "WSC 全球赛集训",
-    "wscGlobalsCardDesc": "由 Emily Cui 老师授课的世界学者杯全球赛专项备战课程。",
+    "wscGlobalsCardDesc": "为备战世界学者杯全球赛量身定制的15节课程。",
     "wscGlobalsCardTotalSuffix": "总价 + 适用税费",
     "wscGlobalsCardSessionsLabel": "共15节 · 2026年5月16日至7月18日",
     "wscGlobalsRateNote": "每小时 40加元 · 每节2小时"
