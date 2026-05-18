@@ -70,7 +70,7 @@ export default function PricingPageClient() {
 
   const groupTiers = useMemo(
     () =>
-      GROUP_TIERS.map((tier) => ({
+      GROUP_TIERS.filter((tier) => tier.key !== "wsc").map((tier) => ({
         ...tier,
         icon: tierIcons[tier.key],
       })),
@@ -245,87 +245,41 @@ export default function PricingPageClient() {
                 </AnimatedSection>
               );
             })}
-          </div>
 
-          <AnimatedSection delay={0.12}>
-            <p className="mt-5 text-sm text-charcoal/60 dark:text-navy-300 font-sans">
-              {t("pricingPage.currencyDisclaimer")}
-              {rateSource !== "live" && ` ${t("pricingPage.currencyFallback")}`}
-            </p>
-          </AnimatedSection>
-        </div>
-      </section>
-
-      {/* WSC Globals Training */}
-      <section className="py-16 md:py-24 bg-warm-50 dark:bg-navy-900/40">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatedSection>
-            <div className="rounded-2xl border-2 border-purple-200 dark:border-purple-700/60 bg-white dark:bg-navy-800 p-6 sm:p-10 shadow-sm">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
-                  <Globe className="w-6 h-6 text-purple-600 dark:text-purple-300" />
+            <AnimatedSection delay={groupTiers.length * 0.08} className="h-full">
+              <div className="relative rounded-2xl border-2 p-6 sm:p-8 h-full flex flex-col transition-all duration-300 hover:shadow-xl border-warm-200 dark:border-navy-700 bg-white dark:bg-navy-800 hover:border-gold-200 dark:hover:border-gold-600">
+                <div className="w-12 h-12 rounded-xl bg-gold-400/10 dark:bg-gold-500/20 flex items-center justify-center mb-5">
+                  <Globe className="w-6 h-6 text-gold-500 dark:text-gold-400" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-300">
-                    {t("pricingPage.wscGlobalsBadge")}
-                  </p>
-                  <h2 className="mt-1 text-2xl font-bold text-navy-800 dark:text-white font-serif">
-                    {t("pricingPage.wscGlobalsTitle")}
-                  </h2>
-                  <p className="mt-2 text-charcoal/70 dark:text-navy-200 font-sans">
-                    {t("pricingPage.wscGlobalsSubtitle")}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-sm font-semibold text-navy-700 dark:text-navy-200 uppercase tracking-wider mb-3">
-                    {t("pricingPage.wscGlobalsScheduleHeading")}
-                  </h3>
-                  <ul className="text-sm text-charcoal/80 dark:text-navy-200 space-y-1 font-sans">
-                    <li>May 16 (Sat) · 7:00–9:00 PM PT</li>
-                    <li>May 23 (Sat) · 7:00–9:00 PM PT</li>
-                    <li>May 30 (Sat) · 7:00–9:00 PM PT</li>
-                    <li>June 6 (Sat) · 7:00–9:00 PM PT</li>
-                    <li>June 13 (Sat) · 7:00–9:00 PM PT</li>
-                    <li>June 18 (Thu) · 7:00–9:00 PM PT</li>
-                    <li>June 20 (Sat) · 7:00–9:00 PM PT</li>
-                    <li>June 25 (Thu) · 7:00–9:00 PM PT</li>
-                    <li>June 27 (Sat) · 7:00–9:00 PM PT</li>
-                    <li>July 2 (Thu) · 7:00–9:00 PM PT</li>
-                    <li>July 4 (Sat) · 7:00–9:00 PM PT</li>
-                    <li>July 9 (Thu) · 7:00–9:00 PM PT</li>
-                    <li>July 11 (Sat) · 7:00–9:00 PM PT</li>
-                    <li>July 16 (Thu) · 7:00–9:00 PM PT</li>
-                    <li>July 18 (Sat) · 7:00–9:00 PM PT</li>
-                  </ul>
-                </div>
-                <div className="md:border-l md:border-warm-200 md:dark:border-navy-700 md:pl-6 flex flex-col">
-                  <h3 className="text-sm font-semibold text-navy-700 dark:text-navy-200 uppercase tracking-wider mb-3">
-                    {t("pricingPage.wscGlobalsTuitionHeading")}
-                  </h3>
+                <h3 className="text-lg font-bold text-navy-800 dark:text-white mb-1 font-serif">
+                  {t("pricingPage.wscGlobalsTitle")}
+                </h3>
+                <p className="text-sm text-charcoal/50 dark:text-navy-300 mb-6 font-sans min-h-[3rem]">
+                  {t("pricingPage.wscGlobalsCardDesc")}
+                </p>
+                <div className="mt-auto">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-navy-800 dark:text-white">
+                    <span className="text-3xl font-bold text-navy-800 dark:text-white">
                       {formatDisplayPrice(convertCadPrice(1200, currency, rates), currency, locale)}
                     </span>
                     <span className="text-charcoal/50 dark:text-navy-300 text-sm font-sans">
-                      {t("pricingPage.wscGlobalsTotalSuffix")}
+                      {t("pricingPage.wscGlobalsCardTotalSuffix")}
                     </span>
                   </div>
-                  <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-300 font-sans">
+                  <p className="mt-2 text-xs text-charcoal/50 dark:text-navy-300 font-sans">
+                    {t("pricingPage.wscGlobalsCardSessionsLabel")}
+                  </p>
+                  <p className="mt-1 text-xs text-charcoal/50 dark:text-navy-400 font-sans">
                     {t("pricingPage.wscGlobalsRateNote")}
                   </p>
-                  <p className="mt-2 text-xs text-charcoal/60 dark:text-navy-300 font-sans">
-                    {t("pricingPage.wscGlobalsCoachNote")}
-                  </p>
+
                   <button
                     type="button"
                     onClick={() => {
                       void startWscGlobalsCheckout();
                     }}
                     disabled={loadingWscGlobals}
-                    className="mt-auto pt-6 sm:pt-0 sm:mt-6 w-full px-4 py-3 rounded-lg bg-navy-800 text-white font-semibold hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="mt-6 w-full px-4 py-3 rounded-lg bg-navy-800 text-white font-semibold hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {loadingWscGlobals
                       ? t("pricingPage.checkoutLoading")
@@ -333,7 +287,14 @@ export default function PricingPageClient() {
                   </button>
                 </div>
               </div>
-            </div>
+            </AnimatedSection>
+          </div>
+
+          <AnimatedSection delay={0.12}>
+            <p className="mt-5 text-sm text-charcoal/60 dark:text-navy-300 font-sans">
+              {t("pricingPage.currencyDisclaimer")}
+              {rateSource !== "live" && ` ${t("pricingPage.currencyFallback")}`}
+            </p>
           </AnimatedSection>
         </div>
       </section>

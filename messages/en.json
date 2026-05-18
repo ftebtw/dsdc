@@ -490,14 +490,11 @@
     "contactUs": "Contact Us",
     "perTerm": "/term + applicable taxes",
     "termLength": "12-week term",
-    "wscGlobalsBadge": "Special Program · Spring 2026",
     "wscGlobalsTitle": "WSC Globals Training",
-    "wscGlobalsSubtitle": "Custom 15-session cohort for students preparing for the World Scholar's Cup Global Round. Runs May 16 – July 18, 2026 with Saturday sessions and added Thursday intensives in the final weeks.",
-    "wscGlobalsScheduleHeading": "Schedule (15 sessions)",
-    "wscGlobalsTuitionHeading": "Program tuition",
-    "wscGlobalsTotalSuffix": "total + applicable taxes",
-    "wscGlobalsRateNote": "$40 CAD/hour · 15 sessions × 2 hours",
-    "wscGlobalsCoachNote": "Coached by Emily Cui"
+    "wscGlobalsCardDesc": "Custom Global Round preparation cohort, coached by Emily Cui.",
+    "wscGlobalsCardTotalSuffix": "total + applicable taxes",
+    "wscGlobalsCardSessionsLabel": "15 sessions · May 16 – July 18, 2026",
+    "wscGlobalsRateNote": "$40 CAD/hour · 2-hour sessions"
   },
   "paymentSuccess": {
     "title": "Enrollment confirmed!",
