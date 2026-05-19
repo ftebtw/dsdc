@@ -12,6 +12,8 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 const ALLOWED_STATUSES = ['awaiting_payment', 'confirmed'] as const;
 type AdminCreatableStatus = (typeof ALLOWED_STATUSES)[number];
+const MAX_ADDITIONAL_ATTENDEES = 2;
+const NEW_REDIRECT = '/portal/admin/private-sessions/new';
 
 function readString(formData: FormData, key: string): string {
   return String(formData.get(key) || '').trim();
@@ -92,7 +94,129 @@ function normalizeTime(value: string): string {
   return value.length === 5 ? `${value}:00` : value;
 }
 
-const NEW_REDIRECT = '/portal/admin/private-sessions/new';
+type AttendeeSpec =
+  | { mode: 'existing'; studentId: string }
+  | {
+      mode: 'new';
+      name: string;
+      email: string;
+      locale: 'en' | 'zh';
+      timezone: string;
+      emailPassword: boolean;
+    };
+
+type PendingPasswordEmail = {
+  email: string;
+  password: string;
+  locale: 'en' | 'zh';
+  displayName: string;
+};
+
+type ResolvedStudent = {
+  studentId: string;
+  pendingEmail: PendingPasswordEmail | null;
+};
+
+function parseAttendees(formData: FormData): AttendeeSpec[] {
+  const raw = String(formData.get('attendees') || '[]');
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) return [];
+
+  const out: AttendeeSpec[] = [];
+  for (const entry of parsed) {
+    if (!entry || typeof entry !== 'object') continue;
+    const e = entry as Record<string, unknown>;
+    const mode = e.mode === 'new' ? 'new' : 'existing';
+    if (mode === 'existing') {
+      const studentId = typeof e.studentId === 'string' ? e.studentId.trim() : '';
+      if (!studentId) continue;
+      out.push({ mode, studentId });
+    } else {
+      const name = typeof e.name === 'string' ? e.name.trim() : '';
+      const email = (typeof e.email === 'string' ? e.email.trim() : '').toLowerCase();
+      const locale = (typeof e.locale === 'string' ? e.locale : 'en') === 'zh' ? 'zh' : 'en';
+      const timezone = typeof e.timezone === 'string' && e.timezone.trim() ? e.timezone.trim() : '';
+      const emailPassword = Boolean(e.emailPassword);
+      if (!name || !email) continue;
+      out.push({ mode: 'new', name, email, locale, timezone, emailPassword });
+    }
+  }
+  return out;
+}
+
+async function resolveStudent(
+  spec: AttendeeSpec,
+  fallbackTimezone: string
+): Promise<ResolvedStudent> {
+  if (spec.mode === 'existing') {
+    return { studentId: spec.studentId, pendingEmail: null };
+  }
+
+  if (!spec.email || !/.+@.+\..+/.test(spec.email)) {
+    redirect(`${NEW_REDIRECT}?error=invalid_new_student_email`);
+  }
+  if (!spec.name) {
+    redirect(`${NEW_REDIRECT}?error=missing_new_student_name`);
+  }
+  const tz = spec.timezone || fallbackTimezone;
+  if (!isValidTimezone(tz)) {
+    redirect(`${NEW_REDIRECT}?error=invalid_new_student_timezone`);
+  }
+
+  const supabaseAdmin = getSupabaseAdminClient();
+  const temporaryPassword = createTemporaryPassword();
+  const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+    email: spec.email,
+    password: temporaryPassword,
+    email_confirm: true,
+    user_metadata: {
+      role: 'student',
+      display_name: spec.name,
+      locale: spec.locale,
+      timezone: tz,
+    },
+  });
+  if (createErr || !created?.user?.id) {
+    console.error('[admin-create-private-session] new student auth user failed', createErr);
+    redirect(`${NEW_REDIRECT}?error=new_student_create_failed`);
+  }
+  const studentId = created.user.id as string;
+
+  const { error: profileErr } = await supabaseAdmin
+    .from('profiles')
+    .upsert(
+      {
+        id: studentId,
+        email: spec.email,
+        role: 'student',
+        display_name: spec.name,
+        timezone: tz,
+        locale: spec.locale,
+      },
+      { onConflict: 'id' }
+    );
+  if (profileErr) {
+    console.error('[admin-create-private-session] new student profile failed', profileErr);
+    redirect(`${NEW_REDIRECT}?error=new_student_profile_failed`);
+  }
+
+  return {
+    studentId,
+    pendingEmail: spec.emailPassword
+      ? {
+          email: spec.email,
+          password: temporaryPassword,
+          locale: spec.locale,
+          displayName: spec.name,
+        }
+      : null,
+  };
+}
 
 export async function createPrivateSessionAsAdmin(formData: FormData): Promise<void> {
   const session = await requireRole(['admin']);
@@ -117,76 +241,48 @@ export async function createPrivateSessionAsAdmin(formData: FormData): Promise<v
   if (!isValidTimezone(timezone)) redirect(`${NEW_REDIRECT}?error=invalid_timezone`);
   if (priceCad === null) redirect(`${NEW_REDIRECT}?error=invalid_price`);
 
-  let studentId: string;
-  let newStudentEmail: string | null = null;
-  let newStudentPassword: string | null = null;
-  let newStudentLocale: 'en' | 'zh' = 'en';
-  let newStudentName = '';
-  let sendStudentPasswordEmail = false;
-
   const supabase = await getSupabaseServerClient();
 
+  // ---- Build the primary student spec ------------------------------------
+  let primarySpec: AttendeeSpec;
   if (studentMode === 'existing') {
-    studentId = readString(formData, 'student_id');
+    const studentId = readString(formData, 'student_id');
     if (!studentId) redirect(`${NEW_REDIRECT}?error=missing_student`);
+    primarySpec = { mode: 'existing', studentId };
   } else {
-    // Create new student via service-role admin client.
-    const email = readString(formData, 'new_student_email').toLowerCase();
-    const displayName = readString(formData, 'new_student_name');
-    const locale = normalizeLocale(readString(formData, 'new_student_locale'));
-    const studentTz = readString(formData, 'new_student_timezone') || timezone;
-    sendStudentPasswordEmail = readBoolean(formData, 'email_password');
+    primarySpec = {
+      mode: 'new',
+      name: readString(formData, 'new_student_name'),
+      email: readString(formData, 'new_student_email').toLowerCase(),
+      locale: normalizeLocale(readString(formData, 'new_student_locale')),
+      timezone: readString(formData, 'new_student_timezone') || timezone,
+      emailPassword: readBoolean(formData, 'email_password'),
+    };
+  }
 
-    if (!email || !/.+@.+\..+/.test(email)) redirect(`${NEW_REDIRECT}?error=invalid_new_student_email`);
-    if (!displayName) redirect(`${NEW_REDIRECT}?error=missing_new_student_name`);
-    if (!isValidTimezone(studentTz)) redirect(`${NEW_REDIRECT}?error=invalid_new_student_timezone`);
+  const attendeeSpecs = parseAttendees(formData);
+  if (attendeeSpecs.length > MAX_ADDITIONAL_ATTENDEES) {
+    redirect(`${NEW_REDIRECT}?error=too_many_attendees`);
+  }
 
-    const supabaseAdmin = getSupabaseAdminClient();
-    const temporaryPassword = createTemporaryPassword();
-    const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password: temporaryPassword,
-      email_confirm: true,
-      user_metadata: {
-        role: 'student',
-        display_name: displayName,
-        locale,
-        timezone: studentTz,
-      },
-    });
-    if (createErr || !created?.user?.id) {
-      console.error('[admin-create-private-session] new student auth user failed', createErr);
-      redirect(`${NEW_REDIRECT}?error=new_student_create_failed`);
+  // Resolve primary first so we can dedupe against it.
+  const primary = await resolveStudent(primarySpec, timezone);
+
+  // Resolve each attendee, deduping against primary + earlier attendees.
+  const attendeeResolved: ResolvedStudent[] = [];
+  const seenIds = new Set<string>([primary.studentId]);
+  for (const spec of attendeeSpecs) {
+    const resolved = await resolveStudent(spec, timezone);
+    if (seenIds.has(resolved.studentId)) {
+      redirect(`${NEW_REDIRECT}?error=duplicate_attendee`);
     }
-    studentId = created.user.id as string;
-
-    const { error: profileErr } = await supabaseAdmin
-      .from('profiles')
-      .upsert(
-        {
-          id: studentId,
-          email,
-          role: 'student',
-          display_name: displayName,
-          timezone: studentTz,
-          locale,
-        },
-        { onConflict: 'id' }
-      );
-    if (profileErr) {
-      console.error('[admin-create-private-session] new student profile failed', profileErr);
-      redirect(`${NEW_REDIRECT}?error=new_student_profile_failed`);
-    }
-
-    newStudentEmail = email;
-    newStudentPassword = temporaryPassword;
-    newStudentLocale = locale;
-    newStudentName = displayName;
+    seenIds.add(resolved.studentId);
+    attendeeResolved.push(resolved);
   }
 
   // ---- Insert private_sessions row ---------------------------------------
   const insertPayload: Record<string, unknown> = {
-    student_id: studentId,
+    student_id: primary.studentId,
     coach_id: coachId,
     availability_id: availabilityId || null,
     requested_date: requestedDate,
@@ -213,25 +309,53 @@ export async function createPrivateSessionAsAdmin(formData: FormData): Promise<v
     redirect(`${NEW_REDIRECT}?error=session_create_failed`);
   }
 
-  // ---- Email the temporary password to the newly created student --------
-  if (studentMode === 'new' && sendStudentPasswordEmail && newStudentEmail && newStudentPassword) {
+  const newSessionId = createdSession.id as string;
+
+  // ---- Insert attendees --------------------------------------------------
+  if (attendeeResolved.length > 0) {
+    const attendeeRows = attendeeResolved.map((a) => ({
+      session_id: newSessionId,
+      student_id: a.studentId,
+    }));
+    const { error: attendeeErr } = await (supabase as any)
+      .from('private_session_attendees')
+      .insert(attendeeRows);
+    if (attendeeErr) {
+      console.error('[admin-create-private-session] attendee insert failed', attendeeErr);
+      // Roll back the session row to avoid a half-created state.
+      await (supabase as any).from('private_sessions').delete().eq('id', newSessionId);
+      redirect(`${NEW_REDIRECT}?error=attendees_insert_failed`);
+    }
+  }
+
+  // ---- Email temp passwords to any newly created students ---------------
+  const pendingEmails: PendingPasswordEmail[] = [];
+  if (primary.pendingEmail) pendingEmails.push(primary.pendingEmail);
+  for (const a of attendeeResolved) {
+    if (a.pendingEmail) pendingEmails.push(a.pendingEmail);
+  }
+
+  if (pendingEmails.length > 0) {
     const portalBase = getPortalAppUrl().replace(/\/$/, '');
-    const template = studentTemporaryPasswordTemplate({
-      locale: newStudentLocale,
-      displayName: newStudentName,
-      email: newStudentEmail,
-      temporaryPassword: newStudentPassword,
-      loginUrl: `${portalBase}/portal/login`,
-    });
-    const sendResult = await sendPortalEmail({ to: newStudentEmail, ...template });
-    if (!sendResult.ok) {
-      console.error('[admin-create-private-session] failed to email new student password', {
-        email: newStudentEmail,
-        error: sendResult.error,
+    const loginUrl = `${portalBase}/portal/login`;
+    for (const pending of pendingEmails) {
+      const template = studentTemporaryPasswordTemplate({
+        locale: pending.locale,
+        displayName: pending.displayName,
+        email: pending.email,
+        temporaryPassword: pending.password,
+        loginUrl,
       });
+      const sendResult = await sendPortalEmail({ to: pending.email, ...template });
+      if (!sendResult.ok) {
+        console.error('[admin-create-private-session] failed to email new student password', {
+          email: pending.email,
+          error: sendResult.error,
+        });
+      }
     }
   }
 
   revalidatePath('/portal/admin/private-sessions');
-  redirect(`/portal/admin/private-sessions?created=${createdSession.id}`);
+  redirect(`/portal/admin/private-sessions?created=${newSessionId}`);
 }

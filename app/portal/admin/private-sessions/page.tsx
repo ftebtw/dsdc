@@ -47,12 +47,29 @@ export default async function AdminPrivateSessionsPage({
   const { data: rowsData } = await query;
   const rows = (rowsData ?? []) as Array<Record<string, any>>;
 
+  // Fetch additional attendees for the visible sessions so we can show
+  // "with Sibling1, Sibling2" next to the primary student.
+  const sessionIds = rows.map((row: any) => row.id).filter(Boolean) as string[];
+  const attendeesBySession: Record<string, string[]> = {};
+  if (sessionIds.length > 0) {
+    const { data: attendeeRows } = await supabase
+      .from('private_session_attendees')
+      .select('session_id,student_id')
+      .in('session_id', sessionIds);
+    for (const row of (attendeeRows ?? []) as Array<{ session_id: string; student_id: string }>) {
+      if (!attendeesBySession[row.session_id]) attendeesBySession[row.session_id] = [];
+      attendeesBySession[row.session_id].push(row.student_id);
+    }
+  }
+  const attendeeStudentIds = Object.values(attendeesBySession).flat();
+
   const ids = [
     ...new Set([
       ...rows.map((row: any) => row.coach_id),
       ...rows.map((row: any) => row.student_id),
       ...rows.map((row: any) => row.proposed_by).filter(Boolean),
       ...rows.map((row: any) => row.cancelled_by).filter(Boolean),
+      ...attendeeStudentIds,
     ]),
   ];
   const people = await getProfileMap(supabase, ids);
@@ -61,11 +78,18 @@ export default async function AdminPrivateSessionsPage({
 
   const items = rows.map((row: any) => {
     const status = String(row.status || 'pending');
+    const primaryName =
+      people[row.student_id]?.display_name || people[row.student_id]?.email || row.student_id;
+    const extraNames = (attendeesBySession[row.id] || [])
+      .map((sid) => people[sid]?.display_name || people[sid]?.email || sid)
+      .filter(Boolean);
+    const studentName =
+      extraNames.length > 0 ? `${primaryName} (with ${extraNames.join(', ')})` : primaryName;
 
     return {
       ...row,
       coachName: people[row.coach_id]?.display_name || people[row.coach_id]?.email || row.coach_id,
-      studentName: people[row.student_id]?.display_name || people[row.student_id]?.email || row.student_id,
+      studentName,
       proposedByName: row.proposed_by
         ? people[row.proposed_by]?.display_name || people[row.proposed_by]?.email || row.proposed_by
         : null,

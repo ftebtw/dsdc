@@ -33,6 +33,46 @@ type Props = {
   defaultTimezone: string;
 };
 
+type AttendeeRow = {
+  mode: 'existing' | 'new';
+  studentId: string;
+  name: string;
+  email: string;
+  locale: 'en' | 'zh';
+  timezone: string;
+  emailPassword: boolean;
+};
+
+const MAX_ADDITIONAL_ATTENDEES = 2;
+
+function makeEmptyAttendee(defaultTimezone: string): AttendeeRow {
+  return {
+    mode: 'existing',
+    studentId: '',
+    name: '',
+    email: '',
+    locale: 'en',
+    timezone: defaultTimezone,
+    emailPassword: true,
+  };
+}
+
+function serializeAttendees(rows: AttendeeRow[]) {
+  return rows.map((row) => {
+    if (row.mode === 'existing') {
+      return { mode: 'existing', studentId: row.studentId };
+    }
+    return {
+      mode: 'new',
+      name: row.name,
+      email: row.email,
+      locale: row.locale,
+      timezone: row.timezone,
+      emailPassword: row.emailPassword,
+    };
+  });
+}
+
 const inputClassName =
   'w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2';
 const labelClassName = 'mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200';
@@ -77,6 +117,21 @@ export default function AdminCreatePrivateSessionForm({
   const [newStudentEmail, setNewStudentEmail] = useState('');
   const [newStudentLocale, setNewStudentLocale] = useState<'en' | 'zh'>('en');
   const [newStudentTimezone, setNewStudentTimezone] = useState(defaultTimezone);
+  const [attendees, setAttendees] = useState<AttendeeRow[]>([]);
+
+  function updateAttendee(index: number, patch: Partial<AttendeeRow>) {
+    setAttendees((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+  }
+
+  function addAttendee() {
+    setAttendees((prev) =>
+      prev.length >= MAX_ADDITIONAL_ATTENDEES ? prev : [...prev, makeEmptyAttendee(defaultTimezone)]
+    );
+  }
+
+  function removeAttendee(index: number) {
+    setAttendees((prev) => prev.filter((_, i) => i !== index));
+  }
 
   const selectedCoach = useMemo(() => coaches.find((c) => c.id === coachId) || null, [coaches, coachId]);
 
@@ -156,6 +211,7 @@ export default function AdminCreatePrivateSessionForm({
         name="availability_id"
         value={dateMode === 'slot' ? availabilityId : ''}
       />
+      <input type="hidden" name="attendees" value={JSON.stringify(serializeAttendees(attendees))} />
 
       <section className="space-y-4">
         <div>
@@ -297,6 +353,155 @@ export default function AdminCreatePrivateSessionForm({
               (you can later trigger a password reset from Supabase).
             </p>
           </div>
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h3 className="text-lg font-semibold text-navy-800 dark:text-white">
+            Additional Attendees ({attendees.length}/{MAX_ADDITIONAL_ATTENDEES})
+          </h3>
+          <p className="text-sm text-charcoal/65 dark:text-navy-300">
+            Optional. Add up to {MAX_ADDITIONAL_ATTENDEES} siblings or co-attendees. The primary student above
+            still handles payment and portal display; additional attendees just get attached to the session.
+          </p>
+        </div>
+
+        {attendees.length === 0 ? (
+          <p className="text-sm text-charcoal/65 dark:text-navy-300">
+            No additional attendees. Click below to add one.
+          </p>
+        ) : null}
+
+        {attendees.map((row, index) => (
+          <div
+            key={index}
+            className="space-y-4 rounded-xl border border-warm-200 dark:border-navy-700 bg-warm-50 dark:bg-navy-900/50 p-4"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <h4 className="text-sm font-semibold text-navy-800 dark:text-white">Attendee {index + 2}</h4>
+              <button
+                type="button"
+                onClick={() => removeAttendee(index)}
+                className="text-sm text-red-600 dark:text-red-400 hover:underline"
+              >
+                Remove
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => updateAttendee(index, { mode: 'existing' })}
+                className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+                  row.mode === 'existing'
+                    ? 'bg-navy-800 text-white'
+                    : 'border border-warm-300 dark:border-navy-600 text-navy-800 dark:text-navy-100'
+                }`}
+              >
+                Pick existing
+              </button>
+              <button
+                type="button"
+                onClick={() => updateAttendee(index, { mode: 'new' })}
+                className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+                  row.mode === 'new'
+                    ? 'bg-navy-800 text-white'
+                    : 'border border-warm-300 dark:border-navy-600 text-navy-800 dark:text-navy-100'
+                }`}
+              >
+                Add new
+              </button>
+            </div>
+
+            {row.mode === 'existing' ? (
+              <label className="block">
+                <span className={labelClassName}>Student</span>
+                <select
+                  value={row.studentId}
+                  onChange={(event) => updateAttendee(index, { studentId: event.target.value })}
+                  className={inputClassName}
+                  required
+                >
+                  <option value="">Select a student</option>
+                  {students.map((student) => (
+                    <option key={student.id} value={student.id}>
+                      {displayLabel(student)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="block">
+                    <span className={labelClassName}>Full Name</span>
+                    <input
+                      type="text"
+                      value={row.name}
+                      onChange={(event) => updateAttendee(index, { name: event.target.value })}
+                      className={inputClassName}
+                      required={row.mode === 'new'}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className={labelClassName}>Email</span>
+                    <input
+                      type="email"
+                      value={row.email}
+                      onChange={(event) => updateAttendee(index, { email: event.target.value })}
+                      className={inputClassName}
+                      required={row.mode === 'new'}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className={labelClassName}>Locale</span>
+                    <select
+                      value={row.locale}
+                      onChange={(event) =>
+                        updateAttendee(index, { locale: event.target.value as 'en' | 'zh' })
+                      }
+                      className={inputClassName}
+                    >
+                      <option value="en">English</option>
+                      <option value="zh">中文</option>
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className={labelClassName}>Timezone</span>
+                    <input
+                      type="text"
+                      value={row.timezone}
+                      onChange={(event) => updateAttendee(index, { timezone: event.target.value })}
+                      className={inputClassName}
+                    />
+                  </label>
+                </div>
+                <label className="inline-flex items-center gap-2 text-sm font-medium text-navy-800 dark:text-white">
+                  <input
+                    type="checkbox"
+                    checked={row.emailPassword}
+                    onChange={(event) => updateAttendee(index, { emailPassword: event.target.checked })}
+                  />
+                  Email the generated temporary password to this student
+                </label>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {attendees.length < MAX_ADDITIONAL_ATTENDEES ? (
+          <button
+            type="button"
+            onClick={addAttendee}
+            className="rounded-lg border border-dashed border-warm-300 dark:border-navy-600 px-4 py-2 text-sm font-medium text-navy-800 dark:text-navy-100 hover:bg-warm-100 dark:hover:bg-navy-700"
+          >
+            + Add attendee
+          </button>
+        ) : (
+          <p className="text-xs text-charcoal/65 dark:text-navy-300">
+            Max {MAX_ADDITIONAL_ATTENDEES} additional attendees reached.
+          </p>
         )}
       </section>
 
