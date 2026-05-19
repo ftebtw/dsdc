@@ -57,7 +57,8 @@ async function main() {
   // 1) Current Price details
   console.log("\n=== STRIPE_PRICE_WSC ===");
   const price = await stripe.prices.retrieve(wscPriceId, { expand: ["product"] });
-  const product = typeof price.product === "object" ? price.product : null;
+  const product =
+    typeof price.product === "object" && !price.product.deleted ? price.product : null;
   console.log(`  id:            ${price.id}`);
   console.log(`  active:        ${price.active}`);
   console.log(`  currency:      ${price.currency.toUpperCase()}`);
