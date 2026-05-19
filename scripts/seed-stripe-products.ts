@@ -131,6 +131,8 @@ async function findOrCreatePrice(stripe: Stripe, tier: TierSeed, productId: stri
     currency: "cad",
     unit_amount: tier.amountCadCents,
     product: productId,
+    // GST is added on top of the listed price by Stripe Tax.
+    tax_behavior: "exclusive",
     metadata: {
       tier: tier.key,
       unit: "term",

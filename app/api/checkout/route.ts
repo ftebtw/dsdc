@@ -221,7 +221,7 @@ async function handleRegistrationCheckout(
     typeof activeTerm.weeks === "number" && activeTerm.weeks > 0
       ? activeTerm.weeks
       : SESSIONS_PER_TERM;
-  const lineItems = classRows.map((classRow) => {
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = classRows.map((classRow) => {
     const priceCad = getProratedCadPriceForClass(
       { type: classRow.type as ClassType, custom_price_cad: classRow.custom_price_cad ?? null },
       activeTerm.end_date,
@@ -235,6 +235,8 @@ async function handleRegistrationCheckout(
           description: `${activeTerm.name} enrollment`,
         },
         unit_amount: priceCad * 100,
+        // GST is added on top of the listed price by Stripe Tax.
+        tax_behavior: "exclusive",
       },
       quantity: 1,
     };
