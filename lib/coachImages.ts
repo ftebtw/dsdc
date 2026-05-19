@@ -9,7 +9,7 @@ export const coachImages: Record<string, string> = {
   "Emily Cui": "/images/coaches/emily-cui.jpg",
   "Catherine Wong": "/images/coaches/catherine-wong.jpg",
   "Anisha Biswas": "/images/coaches/anisha-biswas.jpg",
-  "Akash Krishnamurthy": "/images/coaches/akash-krishnamurthy.jpg",
+  "Akash Krishnamurthy": "/images/coaches/akash_headshot.jpeg",
   "Annika Wang": "/images/coaches/wang_annika.jpg",
   "Ming Su": "/images/coaches/su_ming.jpg",
   "Angela Meng": "/images/coaches/meng_angela.jpg",
