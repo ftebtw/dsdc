@@ -134,4 +134,15 @@ export const coachAwards: CoachAwards = {
     { tournament: "Dragon's Bowl Tournament (Junior)", year: "2024", award: "Champion" },
     { tournament: "Dragon's Bowl Tournament (Junior)", year: "2024", award: "Top Speaker" },
   ],
+  "Kevin Nan": [
+    { tournament: "JDC West Debate", year: "2021", award: "Champion" },
+    { tournament: "BC Mock Trial Provincials", year: "2017", award: "Champion" },
+    { tournament: "UBC High School Tournament", year: "2015", award: "Champion" },
+    { tournament: "Lower Mainland East Regionals", year: "2016", award: "Champion" },
+    { tournament: "Lower Mainland East Regionals", year: "2015", award: "Champion" },
+    { tournament: "Lower Mainland East Regionals", year: "2014", award: "Champion" },
+    { tournament: "Heart of Europe", year: "2015", award: "Finalist" },
+    { tournament: "World Schools Debate Academy", year: "2015", award: "Semi-Finalist" },
+    { tournament: "Canadian Junior Nationals", year: "2014", award: "Quarter-Finalist" },
+  ],
 };
