@@ -2,14 +2,17 @@
 
 import { useMemo, useRef, useState } from "react";
 import { Download, FileImage, FileText, Plus, Trash2 } from "lucide-react";
+import InstructorsEditor from "./InstructorsEditor";
 import RecurrenceEditor from "./RecurrenceEditor";
 import SingleClassPoster from "./SingleClassPoster";
 import TermOverviewPoster from "./TermOverviewPoster";
 import {
   POSTER_DIMENSIONS,
   emptyClassEntry,
+  emptyInstructor,
   type BuilderMode,
   type ClassEntry,
+  type Instructor,
   type PosterAspect,
 } from "./types";
 
@@ -23,12 +26,17 @@ export default function ScheduleTemplateBuilder({
   const [singleEntry, setSingleEntry] = useState<ClassEntry>(() => ({
     ...emptyClassEntry(),
     title: "Beginner Debate",
-    coach: "Alex",
+    description: "An introduction to competitive debate for new students. Build argumentation, rebuttal, and public speaking confidence.",
+    instructors: [{ ...emptyInstructor(), name: "Alex Smith", description: "Canadian National Debate Team coach." }],
   }));
   const [termTitle, setTermTitle] = useState<string>("Spring 2026 Class Schedule");
   const [termSubtitle, setTermSubtitle] = useState<string>("April – June");
   const [termEntries, setTermEntries] = useState<ClassEntry[]>([
-    { ...emptyClassEntry(), title: "Beginner Debate", coach: "Alex" },
+    {
+      ...emptyClassEntry(),
+      title: "Beginner Debate",
+      instructors: [{ ...emptyInstructor(), name: "Alex Smith" }],
+    },
   ]);
   const [aspect, setAspect] = useState<PosterAspect>(mode === "term" ? "landscape" : "portrait");
   const [busy, setBusy] = useState<"png" | "pdf" | null>(null);
@@ -314,6 +322,28 @@ function TextInput({
   );
 }
 
+function TextArea({
+  value,
+  onChange,
+  placeholder,
+  rows = 3,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  placeholder?: string;
+  rows?: number;
+}) {
+  return (
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full resize-none rounded-md border border-warm-300 bg-white px-3 py-2 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-navy-500 focus:outline-none dark:border-navy-500 dark:bg-navy-800 dark:text-white dark:placeholder:text-navy-200/40"
+    />
+  );
+}
+
 function TimeInput({ value, onChange }: { value: string; onChange: (next: string) => void }) {
   return (
     <input
@@ -331,6 +361,14 @@ function SingleClassForm({ entry, onChange }: { entry: ClassEntry; onChange: (ne
       <FieldLabel>Class title</FieldLabel>
       <TextInput value={entry.title} onChange={(t) => onChange({ ...entry, title: t })} placeholder="e.g. Beginner Debate" />
 
+      <FieldLabel>Description</FieldLabel>
+      <TextArea
+        value={entry.description}
+        onChange={(t) => onChange({ ...entry, description: t })}
+        placeholder="What students will learn, who it's for, etc."
+        rows={2}
+      />
+
       <FieldLabel>Time</FieldLabel>
       <div className="flex items-center gap-2">
         <TimeInput value={entry.startTime} onChange={(t) => onChange({ ...entry, startTime: t })} />
@@ -338,11 +376,13 @@ function SingleClassForm({ entry, onChange }: { entry: ClassEntry; onChange: (ne
         <TimeInput value={entry.endTime} onChange={(t) => onChange({ ...entry, endTime: t })} />
       </div>
 
-      <FieldLabel>Coach</FieldLabel>
-      <TextInput value={entry.coach} onChange={(t) => onChange({ ...entry, coach: t })} placeholder="e.g. Alex" />
-
       <FieldLabel>Recurrence</FieldLabel>
       <RecurrenceEditor value={entry.recurrence} onChange={(r) => onChange({ ...entry, recurrence: r })} />
+
+      <InstructorsEditor
+        value={entry.instructors}
+        onChange={(instructors: Instructor[]) => onChange({ ...entry, instructors })}
+      />
     </div>
   );
 }
@@ -420,19 +460,24 @@ function TermForm({
                     onChange={(t) => onUpdate(entry.id, { title: t })}
                     placeholder="Class title"
                   />
+                  <TextArea
+                    value={entry.description}
+                    onChange={(t) => onUpdate(entry.id, { description: t })}
+                    placeholder="Short description (optional)"
+                    rows={2}
+                  />
                   <div className="flex items-center gap-2">
                     <TimeInput value={entry.startTime} onChange={(t) => onUpdate(entry.id, { startTime: t })} />
                     <span className="text-xs text-charcoal/60 dark:text-navy-200/60">to</span>
                     <TimeInput value={entry.endTime} onChange={(t) => onUpdate(entry.id, { endTime: t })} />
                   </div>
-                  <TextInput
-                    value={entry.coach}
-                    onChange={(t) => onUpdate(entry.id, { coach: t })}
-                    placeholder="Coach name"
-                  />
                   <RecurrenceEditor
                     value={entry.recurrence}
                     onChange={(r) => onUpdate(entry.id, { recurrence: r })}
+                  />
+                  <InstructorsEditor
+                    value={entry.instructors}
+                    onChange={(instructors: Instructor[]) => onUpdate(entry.id, { instructors })}
                   />
                 </div>
               </div>

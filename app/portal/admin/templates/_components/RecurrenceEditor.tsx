@@ -21,6 +21,16 @@ export default function RecurrenceEditor({
   return (
     <div className="space-y-3 rounded-xl border border-warm-200 dark:border-navy-600/70 bg-warm-50/50 dark:bg-navy-900/40 p-3">
       <div className="flex items-center gap-2 text-sm">
+        <label className="text-charcoal/80 dark:text-navy-100/85">Starts on</label>
+        <input
+          type="date"
+          value={value.startDate}
+          onChange={(e) => onChange({ ...value, startDate: e.target.value })}
+          className="rounded-md border border-warm-300 dark:border-navy-500 bg-white dark:bg-navy-800 px-2 py-1 text-charcoal dark:text-white"
+        />
+      </div>
+
+      <div className="flex items-center gap-2 text-sm">
         <label className="text-charcoal/80 dark:text-navy-100/85">Repeats every</label>
         <input
           type="number"
