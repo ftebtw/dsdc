@@ -9,7 +9,12 @@ const schema = z.object({
   classId: z.string().uuid(),
   title: z.string().trim().min(1).max(180),
   notes: z.string().trim().max(4000).optional(),
-  externalUrl: z.string().trim().url().optional(),
+  externalUrls: z.array(z.string().trim().url()).max(10).optional(),
+  dueDate: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'dueDate must be YYYY-MM-DD')
+    .optional(),
 });
 
 function jsonError(message: string, status = 400) {
@@ -25,18 +30,27 @@ export async function POST(request: NextRequest) {
   if (!session) return jsonError('Unauthorized', 401);
 
   const formData = await request.formData();
+  const rawUrls = formData
+    .getAll('externalUrls')
+    .map((value) => (typeof value === 'string' ? value.trim() : ''))
+    .filter((value) => value.length > 0);
   const parsed = schema.safeParse({
     classId: formData.get('classId'),
     title: formData.get('title'),
     notes: formData.get('notes') || undefined,
-    externalUrl: formData.get('externalUrl') || undefined,
+    externalUrls: rawUrls.length > 0 ? rawUrls : undefined,
+    dueDate: formData.get('dueDate') || undefined,
   });
-  if (!parsed.success) return jsonError('Invalid payload.');
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    return jsonError(firstIssue?.message || 'Invalid payload.');
+  }
 
   const fileValue = formData.get('file');
   const file = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
-  if (!file && !parsed.data.externalUrl) {
-    return jsonError('Please attach a file or provide an external URL.');
+  const externalUrls = parsed.data.externalUrls ?? [];
+  if (!file && externalUrls.length === 0) {
+    return jsonError('Please attach a file or provide at least one link.');
   }
 
   const supabaseResponse = NextResponse.next();
@@ -106,7 +120,9 @@ export async function POST(request: NextRequest) {
       student_id: session.userId,
       title: parsed.data.title,
       notes: parsed.data.notes || null,
-      external_url: parsed.data.externalUrl || null,
+      external_url: externalUrls[0] || null,
+      external_urls: externalUrls,
+      due_date: parsed.data.dueDate || null,
       file_path: filePath,
       file_name: fileName,
     })

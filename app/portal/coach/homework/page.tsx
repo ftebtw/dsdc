@@ -16,6 +16,8 @@ type HomeworkRow = {
   file_path: string | null;
   file_name: string | null;
   external_url: string | null;
+  external_urls: string[] | null;
+  due_date: string | null;
   grade: string | null;
   feedback: string | null;
   graded_by: string | null;

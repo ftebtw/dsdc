@@ -22,12 +22,41 @@ type HomeworkSubmission = {
   file_path: string | null;
   file_name: string | null;
   external_url: string | null;
+  external_urls: string[] | null;
+  due_date: string | null;
   grade: string | null;
   feedback: string | null;
   graded_at: string | null;
   gradedByName?: string | null;
   created_at: string;
 };
+
+function effectiveUrls(submission: HomeworkSubmission): string[] {
+  const fromArray = (submission.external_urls ?? []).filter((url): url is string => Boolean(url && url.trim()));
+  if (fromArray.length > 0) return fromArray;
+  return submission.external_url ? [submission.external_url] : [];
+}
+
+function shortHost(url: string): string {
+  try {
+    const u = new URL(url);
+    return u.hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+}
+
+function formatDueDate(iso: string): string {
+  const [y, m, d] = iso.split('-').map((s) => parseInt(s, 10));
+  if (!y || !m || !d) return iso;
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
 
 type GradeDraft = {
   grade: string;
@@ -185,6 +214,12 @@ export default function CoachHomeworkManager({
                   </span>
                 </div>
 
+                {row.due_date ? (
+                  <p className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                    {t('portal.coachHomework.dueLabel', 'Due')}: {formatDueDate(row.due_date)}
+                  </p>
+                ) : null}
+
                 {row.notes ? (
                   <p className="mt-2 text-sm text-charcoal/75 dark:text-navy-200 whitespace-pre-wrap break-words">
                     {row.notes}
@@ -192,16 +227,19 @@ export default function CoachHomeworkManager({
                 ) : null}
 
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {row.external_url ? (
+                  {effectiveUrls(row).map((url, idx) => (
                     <a
-                      href={row.external_url}
+                      key={`${row.id}-${idx}`}
+                      href={url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                      title={url}
                     >
-                      {t('portal.coachHomework.openSubmission', 'Open Submission')}
+                      {t('portal.coachHomework.openLink', 'Open Link')}
+                      <span className="ml-1 text-charcoal/55 dark:text-navy-400">({shortHost(url)})</span>
                     </a>
-                  ) : null}
+                  ))}
                   {row.file_path ? (
                     <OpenSignedUrlButton
                       endpoint={`/api/portal/homework-submissions/${row.id}/signed-url`}
