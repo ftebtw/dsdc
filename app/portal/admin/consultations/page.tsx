@@ -11,7 +11,7 @@ import {
   type ConsultationRecord,
   type ConsultationStudent,
   howFoundUsLabel,
-  normalizeConsultationStatus,
+  normalizeConsultationStatuses,
 } from '@/app/portal/admin/consultations/config';
 
 function normalizeSearchTerm(value: string | undefined): string {
@@ -49,7 +49,7 @@ export default async function AdminConsultationsPage({
     .order('created_at', { ascending: false });
 
   if (selectedStatus) {
-    query = query.eq('status', normalizeConsultationStatus(selectedStatus));
+    query = query.contains('status', normalizeConsultationStatuses(selectedStatus));
   }
 
   if (queryText) {
@@ -184,7 +184,7 @@ export default async function AdminConsultationsPage({
             studentGrade: joinStudentField(consultation.students, 'student_grade'),
             howFoundUs: howFoundUsLabel(consultation.how_found_us),
             recommendedClass: joinStudentField(consultation.students, 'recommended_class'),
-            status: consultation.status,
+            statuses: normalizeConsultationStatuses(consultation.status),
           }))}
         />
       </SectionCard>

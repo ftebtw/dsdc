@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import type {
   ConsultationFormValues,
+  ConsultationStatus,
   ConsultationStudentFormValues,
 } from '@/app/portal/admin/consultations/config';
 import {
@@ -37,6 +38,18 @@ export default function AdminConsultationForm({
   const [students, setStudents] = useState<ConsultationStudentFormValues[]>(
     initialValues.students.length > 0 ? initialValues.students : [emptyStudentFormValues()]
   );
+  const [statuses, setStatuses] = useState<ConsultationStatus[]>(
+    initialValues.status.length > 0 ? initialValues.status : ['new']
+  );
+
+  function toggleStatus(value: ConsultationStatus, checked: boolean) {
+    setStatuses((prev) => {
+      if (checked) {
+        return prev.includes(value) ? prev : [...prev, value];
+      }
+      return prev.filter((entry) => entry !== value);
+    });
+  }
 
   function updateStudent(index: number, patch: Partial<ConsultationStudentFormValues>) {
     setStudents((prev) => prev.map((student, i) => (i === index ? { ...student, ...patch } : student)));
@@ -54,6 +67,7 @@ export default function AdminConsultationForm({
     <form action={formAction} className="space-y-8">
       {consultationId ? <input type="hidden" name="id" value={consultationId} /> : null}
       <input type="hidden" name="students" value={JSON.stringify(students)} />
+      <input type="hidden" name="statuses" value={JSON.stringify(statuses)} />
 
       <section className="space-y-4">
         <div>
@@ -284,20 +298,30 @@ export default function AdminConsultationForm({
               className={inputClassName}
             />
           </label>
-          <label className="block">
+          <div className="block">
             <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Status</span>
-            <select
-              name="status"
-              defaultValue={initialValues.status}
-              className={inputClassName}
-            >
-              {consultationStatusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+            <p className="mb-2 text-xs text-charcoal/60 dark:text-navy-400">
+              Select one or more statuses that apply.
+            </p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {consultationStatusOptions.map((option) => {
+                const checked = statuses.includes(option.value);
+                return (
+                  <label
+                    key={option.value}
+                    className="inline-flex items-center gap-2 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2 text-sm text-charcoal dark:text-navy-100 cursor-pointer hover:bg-warm-50 dark:hover:bg-navy-800"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(event) => toggleStatus(option.value, event.target.checked)}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
           <label className="block md:col-span-2">
             <span className="mb-1 block text-sm font-medium text-navy-700 dark:text-navy-200">Goals</span>
             <textarea

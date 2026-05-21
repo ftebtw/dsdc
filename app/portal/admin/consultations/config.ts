@@ -1,4 +1,11 @@
-export type ConsultationStatus = 'new' | 'follow_up' | 'registered' | 'declined' | 'no_show';
+export type ConsultationStatus =
+  | 'new'
+  | 'follow_up'
+  | 'registered'
+  | 'declined'
+  | 'no_show'
+  | 'rescheduled'
+  | 'trial_class';
 
 export type ConsultationStudent = {
   id: string;
@@ -17,7 +24,7 @@ export type ConsultationRecord = {
   created_at: string;
   updated_at: string;
   created_by: string;
-  status: ConsultationStatus | string;
+  status: ConsultationStatus[] | string[];
   parent_name: string;
   parent_email: string | null;
   parent_phone: string | null;
@@ -57,7 +64,7 @@ export type ConsultationFormValues = {
   nextSteps: string;
   notes: string;
   consultDate: string;
-  status: ConsultationStatus;
+  status: ConsultationStatus[];
 };
 
 export const consultationStatusOptions: Array<{ value: ConsultationStatus; label: string }> = [
@@ -66,6 +73,8 @@ export const consultationStatusOptions: Array<{ value: ConsultationStatus; label
   { value: 'registered', label: 'Registered' },
   { value: 'declined', label: 'Declined' },
   { value: 'no_show', label: 'No Show' },
+  { value: 'rescheduled', label: 'Rescheduled' },
+  { value: 'trial_class', label: 'Trial Class' },
 ];
 
 export const preferredLanguageOptions = [
@@ -94,9 +103,20 @@ export const recommendedClassOptions = [
   'Other',
 ] as const;
 
-export function normalizeConsultationStatus(value: string | null | undefined): ConsultationStatus {
-  const matched = consultationStatusOptions.find((option) => option.value === value);
-  return matched?.value ?? 'new';
+export function normalizeConsultationStatuses(
+  value: ReadonlyArray<string | null | undefined> | string | null | undefined
+): ConsultationStatus[] {
+  const raw = Array.isArray(value) ? value : value == null ? [] : [value];
+  const allowed = new Set(consultationStatusOptions.map((option) => option.value));
+  const result: ConsultationStatus[] = [];
+  for (const entry of raw) {
+    if (typeof entry !== 'string') continue;
+    const trimmed = entry.trim();
+    if (!allowed.has(trimmed as ConsultationStatus)) continue;
+    if (result.includes(trimmed as ConsultationStatus)) continue;
+    result.push(trimmed as ConsultationStatus);
+  }
+  return result.length > 0 ? result : ['new'];
 }
 
 export function normalizePreferredLanguage(value: string | null | undefined): string | null {
@@ -123,6 +143,10 @@ export function consultationStatusClass(value: string | null | undefined): strin
       return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
     case 'no_show':
       return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+    case 'rescheduled':
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+    case 'trial_class':
+      return 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300';
     default:
       return 'bg-warm-100 text-charcoal/80 dark:bg-navy-800 dark:text-navy-200';
   }
@@ -162,7 +186,7 @@ export function emptyConsultationValues(): ConsultationFormValues {
     nextSteps: '',
     notes: '',
     consultDate: new Date().toISOString().slice(0, 10),
-    status: 'new',
+    status: ['new'],
   };
 }
 
@@ -193,7 +217,7 @@ export function consultationToFormValues(record: ConsultationRecord): Consultati
     nextSteps: record.next_steps ?? '',
     notes: record.notes ?? '',
     consultDate: record.consult_date ?? new Date().toISOString().slice(0, 10),
-    status: normalizeConsultationStatus(record.status),
+    status: normalizeConsultationStatuses(record.status),
   };
 }
 

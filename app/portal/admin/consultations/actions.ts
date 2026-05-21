@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import {
-  normalizeConsultationStatus,
+  normalizeConsultationStatuses,
   normalizeHowFoundUs,
   normalizePreferredLanguage,
 } from '@/app/portal/admin/consultations/config';
@@ -29,11 +29,27 @@ function readDate(formData: FormData, key: string): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function readStatuses(formData: FormData): string[] {
+  const raw = formData.get('statuses');
+  if (typeof raw === 'string' && raw.length > 0) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((entry): entry is string => typeof entry === 'string');
+      }
+    } catch {
+      // fall through
+    }
+  }
+  const single = formData.get('status');
+  return typeof single === 'string' && single.length > 0 ? [single] : [];
+}
+
 function consultationPayload(formData: FormData) {
   const hasPriorExperience = readBoolean(formData, 'has_prior_experience');
 
   return {
-    status: normalizeConsultationStatus(readString(formData, 'status')),
+    status: normalizeConsultationStatuses(readStatuses(formData)),
     parent_name: readString(formData, 'parent_name'),
     parent_email: readNullableString(formData, 'parent_email'),
     parent_phone: readNullableString(formData, 'parent_phone'),
@@ -219,31 +235,3 @@ export async function deleteConsultation(formData: FormData) {
   redirect('/portal/admin/consultations?deleted=1');
 }
 
-export async function updateConsultationStatus(id: string, status: string) {
-  await requireRole(['admin']);
-  const supabase = await getSupabaseServerClient();
-  const consultationId = String(id || '').trim();
-  const normalizedStatus = normalizeConsultationStatus(status);
-
-  if (!consultationId) {
-    return { ok: false, error: 'Missing consultation record.' };
-  }
-
-  const { error } = await (supabase as any)
-    .from('consultations')
-    .update({
-      status: normalizedStatus,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', consultationId);
-
-  if (error) {
-    console.error('[consultations] quick status update failed', error);
-    return { ok: false, error: 'Could not update consultation status.' };
-  }
-
-  revalidatePath('/portal/admin/consultations');
-  revalidatePath(`/portal/admin/consultations/${consultationId}`);
-
-  return { ok: true };
-}

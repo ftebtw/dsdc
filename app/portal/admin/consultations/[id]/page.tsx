@@ -16,6 +16,7 @@ import {
   consultationStatusLabel,
   consultationStudentDisplayName,
   consultationToFormValues,
+  normalizeConsultationStatuses,
   preferredLanguageLabel,
   type ConsultationRecord,
   type ConsultationStudent,
@@ -100,8 +101,15 @@ export default async function AdminConsultationDetailPage({
           </p>
           <div className="md:col-span-2">
             <span className="font-medium text-navy-800 dark:text-white">Status:</span>{' '}
-            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${consultationStatusClass(consultation.status)}`}>
-              {consultationStatusLabel(consultation.status)}
+            <span className="inline-flex flex-wrap gap-1 align-middle">
+              {normalizeConsultationStatuses(consultation.status).map((status) => (
+                <span
+                  key={status}
+                  className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${consultationStatusClass(status)}`}
+                >
+                  {consultationStatusLabel(status)}
+                </span>
+              ))}
             </span>
           </div>
         </div>
