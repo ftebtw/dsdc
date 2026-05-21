@@ -37,7 +37,12 @@ export default function TermOverviewPoster({
       <div className="relative flex h-full flex-col p-14">
         <div className="flex items-start justify-between text-white">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/logos/logo-full.png" alt="DSDC" className="h-14 w-auto object-contain" />
+          <img
+            src="/images/logos/logo-full.png"
+            alt="DSDC"
+            className="h-14 w-auto object-contain"
+            style={{ filter: "brightness(0) invert(1)" }}
+          />
           <div className="text-right text-sm text-warm-100/85">
             <div className="font-semibold text-gold-300">dsdc.ca</div>
             <div className="mt-1">All times {tzShort}</div>
