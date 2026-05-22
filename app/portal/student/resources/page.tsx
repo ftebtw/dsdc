@@ -9,7 +9,6 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 
 const resourceTypes: Database['public']['Enums']['resource_type'][] = [
-  'homework',
   'lesson_plan',
   'slides',
   'document',

@@ -10,7 +10,7 @@ const metadataSchema = z.object({
   classId: z.string().uuid().optional(),
   title: z.string().min(1).max(180),
   description: z.string().trim().max(12000).optional(),
-  type: z.enum(['homework', 'lesson_plan', 'slides', 'document', 'recording', 'other']),
+  type: z.enum(['lesson_plan', 'slides', 'document', 'recording', 'other']),
   url: z.string().url().optional(),
   sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   publishAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),

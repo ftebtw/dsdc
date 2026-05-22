@@ -632,7 +632,7 @@ export type Database = {
           parent_phone: string | null
           preferred_language: string | null
           prior_experience_details: string | null
-          status: string
+          status: string[]
           updated_at: string
         }
         Insert: {
@@ -652,7 +652,7 @@ export type Database = {
           parent_phone?: string | null
           preferred_language?: string | null
           prior_experience_details?: string | null
-          status?: string
+          status?: string[]
           updated_at?: string
         }
         Update: {
@@ -672,7 +672,7 @@ export type Database = {
           parent_phone?: string | null
           preferred_language?: string | null
           prior_experience_details?: string | null
-          status?: string
+          status?: string[]
           updated_at?: string
         }
         Relationships: [
@@ -798,11 +798,74 @@ export type Database = {
           },
         ]
       }
-      homework_submissions: {
+      homework_assignments: {
         Row: {
           class_id: string
           created_at: string
+          description: string | null
+          due_date: string | null
+          external_urls: string[]
+          file_name: string | null
+          file_path: string | null
+          id: string
+          posted_by: string
+          publish_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          external_urls?: string[]
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          posted_by: string
+          publish_at?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          external_urls?: string[]
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          posted_by?: string
+          publish_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_assignments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_assignments_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      homework_submissions: {
+        Row: {
+          assignment_id: string | null
+          class_id: string
+          created_at: string
+          due_date: string | null
           external_url: string | null
+          external_urls: string[]
           feedback: string | null
           file_name: string | null
           file_path: string | null
@@ -815,9 +878,12 @@ export type Database = {
           title: string
         }
         Insert: {
+          assignment_id?: string | null
           class_id: string
           created_at?: string
+          due_date?: string | null
           external_url?: string | null
+          external_urls?: string[]
           feedback?: string | null
           file_name?: string | null
           file_path?: string | null
@@ -830,9 +896,12 @@ export type Database = {
           title: string
         }
         Update: {
+          assignment_id?: string | null
           class_id?: string
           created_at?: string
+          due_date?: string | null
           external_url?: string | null
+          external_urls?: string[]
           feedback?: string | null
           file_name?: string | null
           file_path?: string | null
@@ -845,6 +914,13 @@ export type Database = {
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "homework_submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "homework_assignments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "homework_submissions_class_id_fkey"
             columns: ["class_id"]
@@ -1232,6 +1308,39 @@ export type Database = {
           {
             foreignKeyName: "portal_login_log_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      private_session_attendees: {
+        Row: {
+          created_at: string
+          session_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          session_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          session_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "private_session_attendees_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "private_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "private_session_attendees_student_id_fkey"
+            columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

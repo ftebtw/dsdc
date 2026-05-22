@@ -15,7 +15,6 @@ type Resource = Database['public']['Tables']['resources']['Row'];
 type ResourceType = Database['public']['Enums']['resource_type'];
 
 const resourceTypeOptions: ResourceType[] = [
-  'homework',
   'lesson_plan',
   'slides',
   'document',
@@ -41,7 +40,7 @@ export default function CoachResourceManager({
   const [weekTitles, setWeekTitles] = useState<Record<string, string>>(initialWeekTitles);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<ResourceType>('homework');
+  const [type, setType] = useState<ResourceType>('lesson_plan');
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().slice(0, 10));
   const [publishDate, setPublishDate] = useState(new Date().toISOString().slice(0, 10));
   const [url, setUrl] = useState('');
@@ -208,7 +207,7 @@ export default function CoachResourceManager({
     setResources((prev) => [data.resource!, ...prev]);
     setTitle('');
     setDescription('');
-    setType('homework');
+    setType('lesson_plan');
     setUrl('');
     clearSelectedFile();
   }

@@ -7,6 +7,7 @@ import { getSupabaseRouteClient, mergeCookies } from '@/lib/supabase/route';
 
 const schema = z.object({
   classId: z.string().uuid(),
+  assignmentId: z.string().uuid().optional(),
   title: z.string().trim().min(1).max(180),
   notes: z.string().trim().max(4000).optional(),
   externalUrls: z.array(z.string().trim().url()).max(10).optional(),
@@ -36,6 +37,7 @@ export async function POST(request: NextRequest) {
     .filter((value) => value.length > 0);
   const parsed = schema.safeParse({
     classId: formData.get('classId'),
+    assignmentId: formData.get('assignmentId') || undefined,
     title: formData.get('title'),
     notes: formData.get('notes') || undefined,
     externalUrls: rawUrls.length > 0 ? rawUrls : undefined,
@@ -75,7 +77,27 @@ export async function POST(request: NextRequest) {
     return mergeCookies(supabaseResponse, jsonError('You are not enrolled in this class.', 403));
   }
 
-  const submissionId = randomUUID();
+  // When an assignmentId is provided, this is a submission against a coach-
+  // posted assignment. We upsert (one submission per (assignment, student))
+  // and refuse if the existing submission has already been graded.
+  let existingSubmission: any = null;
+  if (parsed.data.assignmentId) {
+    const { data: existing } = await (supabase as any)
+      .from('homework_submissions')
+      .select('*')
+      .eq('assignment_id', parsed.data.assignmentId)
+      .eq('student_id', session.userId)
+      .maybeSingle();
+    if (existing?.graded_at) {
+      return mergeCookies(
+        supabaseResponse,
+        jsonError('This submission has been graded and can no longer be edited.', 409)
+      );
+    }
+    existingSubmission = existing;
+  }
+
+  const submissionId = existingSubmission?.id ?? randomUUID();
   const bucket = process.env.PORTAL_BUCKET_RESOURCES || 'portal-resources';
   let filePath: string | null = null;
   let fileName: string | null = null;
@@ -112,22 +134,37 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const { data: inserted, error: insertError } = await (supabase as any)
-    .from('homework_submissions')
-    .insert({
-      id: submissionId,
-      class_id: parsed.data.classId,
-      student_id: session.userId,
-      title: parsed.data.title,
-      notes: parsed.data.notes || null,
-      external_url: externalUrls[0] || null,
-      external_urls: externalUrls,
-      due_date: parsed.data.dueDate || null,
-      file_path: filePath,
-      file_name: fileName,
-    })
-    .select('*')
-    .single();
+  const payload: Record<string, unknown> = {
+    id: submissionId,
+    class_id: parsed.data.classId,
+    assignment_id: parsed.data.assignmentId || null,
+    student_id: session.userId,
+    title: parsed.data.title,
+    notes: parsed.data.notes || null,
+    external_url: externalUrls[0] || null,
+    external_urls: externalUrls,
+    due_date: parsed.data.dueDate || null,
+    file_path: filePath,
+    file_name: fileName,
+  };
+
+  // If we're replacing an earlier ungraded submission for the same assignment,
+  // and the student didn't upload a new file this time, keep the previous
+  // file_path/name rather than wiping them.
+  if (existingSubmission && !filePath) {
+    payload.file_path = existingSubmission.file_path;
+    payload.file_name = existingSubmission.file_name;
+  }
+  // If they uploaded a new file, delete the old one to avoid orphaned objects.
+  if (existingSubmission?.file_path && filePath && existingSubmission.file_path !== filePath) {
+    await admin.storage.from(bucket).remove([existingSubmission.file_path]);
+  }
+
+  const writer = existingSubmission
+    ? (supabase as any).from('homework_submissions').update(payload).eq('id', submissionId).select('*').single()
+    : (supabase as any).from('homework_submissions').insert(payload).select('*').single();
+
+  const { data: inserted, error: insertError } = await writer;
 
   if (insertError) {
     if (filePath) {
