@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, FileImage, FileText, Plus, Trash2 } from "lucide-react";
 import InstructorsEditor from "./InstructorsEditor";
 import RecurrenceEditor from "./RecurrenceEditor";
@@ -42,13 +42,32 @@ export default function ScheduleTemplateBuilder({
   const [busy, setBusy] = useState<"png" | "pdf" | null>(null);
 
   const previewRef = useRef<HTMLDivElement>(null);
+  const previewSlotRef = useRef<HTMLDivElement>(null);
+  const [slotWidth, setSlotWidth] = useState(560);
+
+  useEffect(() => {
+    const el = previewSlotRef.current;
+    if (!el) return;
+    setSlotWidth(el.clientWidth);
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setSlotWidth(entry.contentRect.width);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const previewScale = useMemo(() => {
-    const target = 560;
     const dims = POSTER_DIMENSIONS[aspect];
-    const maxDim = Math.max(dims.width, dims.height);
-    return target / maxDim;
-  }, [aspect]);
+    // Fit the poster width to the available container width, but cap so it
+    // doesn't get unreasonably large on wide viewports and respect a max height.
+    const widthScale = Math.max(0.1, slotWidth) / dims.width;
+    const maxHeight = 720;
+    const heightScale = maxHeight / dims.height;
+    return Math.min(widthScale, heightScale, 0.7);
+  }, [aspect, slotWidth]);
 
   function changeMode(next: BuilderMode) {
     setMode(next);
@@ -220,6 +239,7 @@ export default function ScheduleTemplateBuilder({
           </div>
         </div>
         <div className="overflow-hidden rounded-xl border border-warm-200 bg-warm-50 dark:border-navy-600/70 dark:bg-navy-900/40 p-4">
+          <div ref={previewSlotRef} className="w-full" />
           <div
             className="mx-auto origin-top-left"
             style={{
