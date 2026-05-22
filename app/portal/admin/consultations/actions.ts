@@ -235,3 +235,31 @@ export async function deleteConsultation(formData: FormData) {
   redirect('/portal/admin/consultations?deleted=1');
 }
 
+export async function updateConsultationStatuses(id: string, statuses: string[]) {
+  await requireRole(['admin']);
+  const supabase = await getSupabaseServerClient();
+  const consultationId = String(id || '').trim();
+  const normalized = normalizeConsultationStatuses(statuses);
+
+  if (!consultationId) {
+    return { ok: false, error: 'Missing consultation record.' };
+  }
+
+  const { error } = await (supabase as any)
+    .from('consultations')
+    .update({
+      status: normalized,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', consultationId);
+
+  if (error) {
+    console.error('[consultations] inline statuses update failed', error);
+    return { ok: false, error: 'Could not update consultation status.' };
+  }
+
+  revalidatePath('/portal/admin/consultations');
+  revalidatePath(`/portal/admin/consultations/${consultationId}`);
+
+  return { ok: true, statuses: normalized };
+}
