@@ -79,25 +79,25 @@ function layoutFor(aspect: PosterAspect, instructorCount: number): LayoutTokens 
       showInstructorBio: true,
     };
   }
-  // portrait (default)
+  // portrait (default) — most spacious aspect; bigger typography for impact
   return {
     padding: "p-14",
-    titleSize: "text-6xl",
-    timeSize: "text-5xl",
-    timeSeparatorSize: "text-3xl",
-    descriptionSize: "text-xl",
+    titleSize: "text-7xl",
+    timeSize: "text-6xl",
+    timeSeparatorSize: "text-4xl",
+    descriptionSize: "text-2xl",
     descriptionClamp: "",
     sessionCols: "grid-cols-3",
-    sessionFont: "text-lg",
-    sessionRowGapY: "gap-y-2.5",
+    sessionFont: "text-2xl",
+    sessionRowGapY: "gap-y-4",
     sessionRowGapX: "gap-x-6",
-    maxSessions: 24,
-    sectionGap: "mt-8",
-    instructorPhoto: "h-24 w-24",
+    maxSessions: 21,
+    sectionGap: "mt-9",
+    instructorPhoto: "h-32 w-32",
     instructorPhotoRing: "ring-4",
-    instructorInitials: "text-3xl",
-    instructorName: "text-2xl",
-    instructorBio: "text-base",
+    instructorInitials: "text-4xl",
+    instructorName: "text-3xl",
+    instructorBio: "text-xl",
     instructorCols: (count) => (count <= 1 ? "grid-cols-1" : "grid-cols-2"),
     showInstructorBio: true,
   };
@@ -384,7 +384,7 @@ function VerticalLayout({
       <div className={tokens.sectionGap}>
         <TimeBlock tokens={tokens} startTime={startTime} endTime={endTime} tzShort={tzShort} />
       </div>
-      <div className={`flex-1 min-h-0 overflow-hidden ${tokens.sectionGap}`}>
+      <div className={`min-h-0 overflow-hidden ${tokens.sectionGap}`}>
         <SessionsBlock
           tokens={tokens}
           sessions={sessions}
@@ -397,7 +397,7 @@ function VerticalLayout({
           <InstructorBlock tokens={tokens} instructors={instructors} />
         </div>
       ) : null}
-      <div className={tokens.sectionGap}>
+      <div className={`mt-auto pt-6`}>
         <PosterFooter />
       </div>
     </div>
