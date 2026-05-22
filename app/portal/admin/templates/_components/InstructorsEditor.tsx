@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Plus, Trash2, Upload, X } from "lucide-react";
+import PhotoCropModal from "./PhotoCropModal";
 import { emptyInstructor, readFileAsDataUrl, type Instructor } from "./types";
 
 export default function InstructorsEditor({
@@ -10,6 +12,8 @@ export default function InstructorsEditor({
   value: Instructor[];
   onChange: (next: Instructor[]) => void;
 }) {
+  const [cropTarget, setCropTarget] = useState<{ id: string; rawDataUrl: string } | null>(null);
+
   function add() {
     onChange([...value, emptyInstructor()]);
   }
@@ -22,7 +26,10 @@ export default function InstructorsEditor({
   async function handlePhoto(id: string, file: File | null) {
     if (!file) return;
     const dataUrl = await readFileAsDataUrl(file);
-    update(id, { photoDataUrl: dataUrl });
+    setCropTarget({ id, rawDataUrl: dataUrl });
+  }
+  function openRecropFor(id: string, existingDataUrl: string) {
+    setCropTarget({ id, rawDataUrl: existingDataUrl });
   }
 
   return (
@@ -75,6 +82,7 @@ export default function InstructorsEditor({
                     photoDataUrl={instructor.photoDataUrl}
                     onPick={(file) => handlePhoto(instructor.id, file)}
                     onClear={() => update(instructor.id, { photoDataUrl: "" })}
+                    onRecrop={() => openRecropFor(instructor.id, instructor.photoDataUrl)}
                   />
                 </div>
                 <div className="flex-1 space-y-2">
@@ -98,6 +106,17 @@ export default function InstructorsEditor({
           ))}
         </div>
       )}
+
+      {cropTarget ? (
+        <PhotoCropModal
+          imageSrc={cropTarget.rawDataUrl}
+          onCancel={() => setCropTarget(null)}
+          onSave={(dataUrl) => {
+            update(cropTarget.id, { photoDataUrl: dataUrl });
+            setCropTarget(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -106,20 +125,30 @@ function PhotoSlot({
   photoDataUrl,
   onPick,
   onClear,
+  onRecrop,
 }: {
   photoDataUrl: string;
   onPick: (file: File | null) => void;
   onClear: () => void;
+  onRecrop: () => void;
 }) {
   if (photoDataUrl) {
     return (
       <div className="relative h-20 w-20">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={photoDataUrl}
-          alt="Instructor headshot"
-          className="h-20 w-20 rounded-full object-cover ring-2 ring-warm-300 dark:ring-navy-600"
-        />
+        <button
+          type="button"
+          onClick={onRecrop}
+          className="block h-20 w-20 overflow-hidden rounded-full ring-2 ring-warm-300 transition-transform hover:scale-[1.03] focus:outline-none focus:ring-navy-500 dark:ring-navy-600 dark:focus:ring-gold-400"
+          aria-label="Recrop photo"
+          title="Click to adjust crop"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photoDataUrl}
+            alt="Instructor headshot"
+            className="h-20 w-20 object-cover"
+          />
+        </button>
         <button
           type="button"
           onClick={onClear}
