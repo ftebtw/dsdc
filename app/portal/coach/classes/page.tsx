@@ -7,7 +7,7 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getClassesForCoachInActiveTerm, getProfileMap } from '@/lib/portal/data';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { classTypeLabel } from '@/lib/portal/labels';
-import { formatClassScheduleForViewer } from '@/lib/portal/time';
+import { formatClassScheduleForViewer, formatSessionRangeForViewer } from '@/lib/portal/time';
 import { portalT } from '@/lib/portal/parent-i18n';
 
 export default async function CoachClassesPage() {
@@ -19,6 +19,54 @@ export default async function CoachClassesPage() {
   const classes = await getClassesForCoachInActiveTerm(supabase, session.userId);
   const primaryClassIdSet = new Set(classes.map((classRow) => classRow.id));
   const today = new Date().toISOString().slice(0, 10);
+
+  // Private session group classrooms for this coach (no term filter; ongoing).
+  const { data: privateGroupRowsData } = await supabase
+    .from('classes')
+    .select('id,name,description,timezone,zoom_link')
+    .eq('coach_id', session.userId)
+    .eq('is_private_session_group', true)
+    .order('name', { ascending: true });
+  const privateGroups = (privateGroupRowsData ?? []) as Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    timezone: string;
+    zoom_link: string | null;
+  }>;
+  const privateGroupIds = privateGroups.map((g) => g.id);
+
+  const { data: privateGroupEnrollmentsData } = privateGroupIds.length
+    ? await supabase
+        .from('enrollments')
+        .select('class_id,student_id,status')
+        .in('class_id', privateGroupIds)
+        .eq('status', 'active')
+    : { data: [] as Array<{ class_id: string; student_id: string; status: string }> };
+  const privateGroupEnrollments = (privateGroupEnrollmentsData ?? []) as Array<{
+    class_id: string;
+    student_id: string;
+  }>;
+
+  const { data: upcomingPrivateSessionsData } = privateGroupIds.length
+    ? await supabase
+        .from('private_sessions')
+        .select('id,class_id,requested_date,requested_start_time,requested_end_time,timezone,status')
+        .in('class_id', privateGroupIds)
+        .gte('requested_date', today)
+        .not('status', 'in', '(cancelled,completed)')
+        .order('requested_date', { ascending: true })
+        .order('requested_start_time', { ascending: true })
+    : { data: [] as Array<any> };
+  const upcomingPrivateSessions = (upcomingPrivateSessionsData ?? []) as Array<{
+    id: string;
+    class_id: string;
+    requested_date: string;
+    requested_start_time: string;
+    requested_end_time: string;
+    timezone: string;
+    status: string;
+  }>;
 
   const classIds = classes.map((classRow) => classRow.id);
   const { data: enrollmentsData } = classIds.length
@@ -75,8 +123,13 @@ export default async function CoachClassesPage() {
     ? (((await supabase.from('classes').select('*').in('id', subbedClassIds)).data ?? []) as typeof classes)
     : ([] as typeof classes);
 
+  const privateGroupStudentIds = [
+    ...new Set(privateGroupEnrollments.map((row) => row.student_id)),
+  ];
+
   const profileMap = await getProfileMap(supabase, [
     ...studentIds,
+    ...privateGroupStudentIds,
     ...subRows.map((row: any) => row.accepting_coach_id).filter(Boolean),
     ...taRows.map((row: any) => row.accepting_ta_id).filter(Boolean),
   ]);
@@ -84,6 +137,7 @@ export default async function CoachClassesPage() {
     ...new Set(
       [
         ...studentIds,
+        ...privateGroupStudentIds,
         ...subRows.map((row: any) => row.accepting_coach_id).filter(Boolean),
         ...taRows.map((row: any) => row.accepting_ta_id).filter(Boolean),
       ].filter((id) => Boolean(id) && !profileMap[id])
@@ -128,6 +182,21 @@ export default async function CoachClassesPage() {
   const nextTaByClass = new Map<string, any>();
   for (const row of taRows) {
     if (!nextTaByClass.has(row.class_id)) nextTaByClass.set(row.class_id, row);
+  }
+
+  const privateGroupStudentsByGroup = new Map<string, string[]>();
+  for (const row of privateGroupEnrollments) {
+    const list = privateGroupStudentsByGroup.get(row.class_id) ?? [];
+    list.push(row.student_id);
+    privateGroupStudentsByGroup.set(row.class_id, list);
+  }
+  const nextSessionByGroup = new Map<string, (typeof upcomingPrivateSessions)[number]>();
+  for (const row of upcomingPrivateSessions) {
+    if (!nextSessionByGroup.has(row.class_id)) nextSessionByGroup.set(row.class_id, row);
+  }
+  const upcomingCountByGroup = new Map<string, number>();
+  for (const row of upcomingPrivateSessions) {
+    upcomingCountByGroup.set(row.class_id, (upcomingCountByGroup.get(row.class_id) ?? 0) + 1);
   }
 
   return (
@@ -255,6 +324,93 @@ export default async function CoachClassesPage() {
           </div>
         )}
       </SectionCard>
+
+      {privateGroups.length > 0 ? (
+        <SectionCard
+          title="Private Coaching Groups"
+          description="Ongoing private session groups. Use these classrooms to post homework, share resources, and track attendance across multiple sessions with the same students."
+        >
+          <div className="space-y-4">
+            {privateGroups.map((group) => {
+              const studentIdsForGroup = privateGroupStudentsByGroup.get(group.id) ?? [];
+              const nextSession = nextSessionByGroup.get(group.id);
+              const upcomingCount = upcomingCountByGroup.get(group.id) ?? 0;
+              return (
+                <article
+                  key={group.id}
+                  className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4"
+                >
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold text-navy-800 dark:text-white">{group.name}</h3>
+                      {group.description ? (
+                        <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">{group.description}</p>
+                      ) : null}
+                      {nextSession ? (
+                        <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-2">
+                          <span className="font-medium">Next session:</span>{' '}
+                          {(() => {
+                            try {
+                              return formatSessionRangeForViewer(
+                                nextSession.requested_date,
+                                nextSession.requested_start_time,
+                                nextSession.requested_end_time,
+                                nextSession.timezone,
+                                session.profile.timezone
+                              );
+                            } catch {
+                              return `${nextSession.requested_date} ${nextSession.requested_start_time.slice(0, 5)}-${nextSession.requested_end_time.slice(0, 5)}`;
+                            }
+                          })()}
+                          {upcomingCount > 1 ? ` (+${upcomingCount - 1} more upcoming)` : ''}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-2 italic">
+                          No upcoming sessions scheduled.
+                        </p>
+                      )}
+                      <p className="text-sm mt-2">
+                        {studentIdsForGroup.length} enrolled student{studentIdsForGroup.length === 1 ? '' : 's'}
+                      </p>
+                      {studentIdsForGroup.length > 0 ? (
+                        <div className="text-xs text-charcoal/70 dark:text-navy-300 mt-1 space-y-0.5">
+                          {studentIdsForGroup.map((studentId) => (
+                            <p key={studentId}>
+                              {profileMap[studentId]?.display_name ||
+                                profileMap[studentId]?.email ||
+                                'Student'}
+                            </p>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-2 md:justify-end">
+                      <Link
+                        href={`/portal/coach/resources/${group.id}`}
+                        className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold"
+                      >
+                        Resources
+                      </Link>
+                      <Link
+                        href={`/portal/coach/homework`}
+                        className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                      >
+                        Homework
+                      </Link>
+                      <Link
+                        href={`/portal/coach/attendance/${group.id}`}
+                        className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                      >
+                        Attendance
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </SectionCard>
+      ) : null}
 
       {subbedClasses.length > 0 ? (
         <SectionCard title="Subbing / TA Assignments" description="Classes you're covering as a sub or TA.">

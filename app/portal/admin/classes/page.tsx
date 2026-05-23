@@ -104,8 +104,14 @@ export default async function AdminClassesPage({
     params.term || terms.find((term: any) => term.is_active)?.id || terms[0]?.id || '';
 
   const classes = selectedTermId
-    ? (((await supabase.from('classes').select('*').eq('term_id', selectedTermId).order('name')).data ??
-        []) as Array<Record<string, any>>)
+    ? (((await supabase
+        .from('classes')
+        .select('*')
+        .eq('term_id', selectedTermId)
+        // Private session group classrooms have NULL term_id, so they wouldn't match
+        // the filter above either — this is a defensive guard.
+        .eq('is_private_session_group', false)
+        .order('name')).data ?? []) as Array<Record<string, any>>)
     : ([] as Array<Record<string, any>>);
 
   const coachIds = coachProfiles.map((row: any) => row.coach_id);

@@ -25,11 +25,18 @@ type AvailabilityOption = {
   timezone: string;
 };
 
+type GroupOption = {
+  id: string;
+  name: string;
+  coach_id: string;
+};
+
 type Props = {
   formAction: (formData: FormData) => void | Promise<void>;
   coaches: CoachOption[];
   students: StudentOption[];
   availability: AvailabilityOption[];
+  groups: GroupOption[];
   defaultTimezone: string;
 };
 
@@ -96,6 +103,7 @@ export default function AdminCreatePrivateSessionForm({
   coaches,
   students,
   availability,
+  groups,
   defaultTimezone,
 }: Props) {
   const [coachId, setCoachId] = useState('');
@@ -118,6 +126,10 @@ export default function AdminCreatePrivateSessionForm({
   const [newStudentLocale, setNewStudentLocale] = useState<'en' | 'zh'>('en');
   const [newStudentTimezone, setNewStudentTimezone] = useState(defaultTimezone);
   const [attendees, setAttendees] = useState<AttendeeRow[]>([]);
+  const [groupMode, setGroupMode] = useState<'none' | 'existing' | 'new'>('none');
+  const [selectedGroupId, setSelectedGroupId] = useState('');
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupDescription, setNewGroupDescription] = useState('');
 
   function updateAttendee(index: number, patch: Partial<AttendeeRow>) {
     setAttendees((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
@@ -138,6 +150,11 @@ export default function AdminCreatePrivateSessionForm({
   const coachAvailability = useMemo(
     () => availability.filter((slot) => slot.coach_id === coachId),
     [availability, coachId]
+  );
+
+  const coachGroups = useMemo(
+    () => groups.filter((g) => g.coach_id === coachId),
+    [groups, coachId]
   );
 
   const durationHours = useMemo(() => {
@@ -212,6 +229,22 @@ export default function AdminCreatePrivateSessionForm({
         value={dateMode === 'slot' ? availabilityId : ''}
       />
       <input type="hidden" name="attendees" value={JSON.stringify(serializeAttendees(attendees))} />
+      <input type="hidden" name="group_mode" value={groupMode} />
+      <input
+        type="hidden"
+        name="group_id"
+        value={groupMode === 'existing' ? selectedGroupId : ''}
+      />
+      <input
+        type="hidden"
+        name="new_group_name"
+        value={groupMode === 'new' ? newGroupName : ''}
+      />
+      <input
+        type="hidden"
+        name="new_group_description"
+        value={groupMode === 'new' ? newGroupDescription : ''}
+      />
 
       <section className="space-y-4">
         <div>
@@ -503,6 +536,111 @@ export default function AdminCreatePrivateSessionForm({
             Max {MAX_ADDITIONAL_ATTENDEES} additional attendees reached.
           </p>
         )}
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h3 className="text-lg font-semibold text-navy-800 dark:text-white">Classroom Group</h3>
+          <p className="text-sm text-charcoal/65 dark:text-navy-300">
+            Optional. Attach this session to a private coaching classroom so the coach can post homework, share
+            resources, and see upcoming sessions all in one place. Hidden from the regular admin classes list.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setGroupMode('none')}
+            className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+              groupMode === 'none'
+                ? 'bg-navy-800 text-white'
+                : 'border border-warm-300 dark:border-navy-600 text-navy-800 dark:text-navy-100'
+            }`}
+          >
+            None (standalone)
+          </button>
+          <button
+            type="button"
+            onClick={() => setGroupMode('existing')}
+            disabled={!coachId}
+            className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+              groupMode === 'existing'
+                ? 'bg-navy-800 text-white'
+                : 'border border-warm-300 dark:border-navy-600 text-navy-800 dark:text-navy-100'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={coachId ? '' : 'Select a coach first'}
+          >
+            Pick existing group
+          </button>
+          <button
+            type="button"
+            onClick={() => setGroupMode('new')}
+            disabled={!coachId}
+            className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+              groupMode === 'new'
+                ? 'bg-navy-800 text-white'
+                : 'border border-warm-300 dark:border-navy-600 text-navy-800 dark:text-navy-100'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={coachId ? '' : 'Select a coach first'}
+          >
+            Create new group
+          </button>
+        </div>
+
+        {groupMode === 'existing' ? (
+          <label className="block">
+            <span className={labelClassName}>Classroom</span>
+            <select
+              value={selectedGroupId}
+              onChange={(event) => setSelectedGroupId(event.target.value)}
+              className={inputClassName}
+              required={groupMode === 'existing'}
+            >
+              <option value="">Select a classroom</option>
+              {coachGroups.length === 0 ? (
+                <option disabled>No existing classroom groups for this coach</option>
+              ) : null}
+              {coachGroups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+            <span className="mt-1 block text-xs text-charcoal/65 dark:text-navy-300">
+              Students from this session will be enrolled into the classroom automatically.
+            </span>
+          </label>
+        ) : null}
+
+        {groupMode === 'new' ? (
+          <div className="space-y-3 rounded-xl border border-warm-200 dark:border-navy-700 bg-warm-50 dark:bg-navy-900/50 p-4">
+            <label className="block">
+              <span className={labelClassName}>Group name</span>
+              <input
+                type="text"
+                value={newGroupName}
+                onChange={(event) => setNewGroupName(event.target.value)}
+                placeholder="e.g. Smith Family Coaching"
+                className={inputClassName}
+                required={groupMode === 'new'}
+              />
+            </label>
+            <label className="block">
+              <span className={labelClassName}>Description (optional)</span>
+              <textarea
+                value={newGroupDescription}
+                onChange={(event) => setNewGroupDescription(event.target.value)}
+                placeholder="What's this group focused on? (Shown to the coach.)"
+                rows={3}
+                className={`${inputClassName} min-h-[80px]`}
+              />
+            </label>
+            <p className="text-xs text-charcoal/65 dark:text-navy-300">
+              The coach will see this classroom in their portal under &ldquo;Private Coaching Groups&rdquo; with all
+              the usual homework + resources tools.
+            </p>
+          </div>
+        ) : null}
       </section>
 
       <section className="space-y-4">

@@ -265,6 +265,22 @@ export async function createPrivateSessionAsAdmin(formData: FormData): Promise<v
     redirect(`${NEW_REDIRECT}?error=too_many_attendees`);
   }
 
+  // ---- Classroom group selection ----------------------------------------
+  // group_mode: 'none' | 'existing' | 'new'
+  const groupModeRaw = readString(formData, 'group_mode');
+  const groupMode: 'none' | 'existing' | 'new' =
+    groupModeRaw === 'existing' ? 'existing' : groupModeRaw === 'new' ? 'new' : 'none';
+  const groupExistingId = readString(formData, 'group_id');
+  const groupNewName = readString(formData, 'new_group_name');
+  const groupNewDescription = readNullableString(formData, 'new_group_description');
+
+  if (groupMode === 'existing' && !groupExistingId) {
+    redirect(`${NEW_REDIRECT}?error=missing_group`);
+  }
+  if (groupMode === 'new' && !groupNewName) {
+    redirect(`${NEW_REDIRECT}?error=missing_group_name`);
+  }
+
   // Resolve primary first so we can dedupe against it.
   const primary = await resolveStudent(primarySpec, timezone);
 
@@ -278,6 +294,61 @@ export async function createPrivateSessionAsAdmin(formData: FormData): Promise<v
     }
     seenIds.add(resolved.studentId);
     attendeeResolved.push(resolved);
+  }
+
+  // ---- Resolve / create the classroom group ------------------------------
+  let groupClassId: string | null = null;
+  if (groupMode === 'existing') {
+    // Verify the group exists and belongs to this coach (or no coach mismatch).
+    const { data: existingGroup, error: existingGroupErr } = await supabase
+      .from('classes')
+      .select('id,coach_id,is_private_session_group')
+      .eq('id', groupExistingId)
+      .maybeSingle();
+    if (existingGroupErr || !existingGroup) {
+      redirect(`${NEW_REDIRECT}?error=group_not_found`);
+    }
+    const groupRow = existingGroup as { id: string; coach_id: string; is_private_session_group: boolean };
+    if (!groupRow.is_private_session_group) {
+      redirect(`${NEW_REDIRECT}?error=group_not_private`);
+    }
+    if (groupRow.coach_id !== coachId) {
+      redirect(`${NEW_REDIRECT}?error=group_coach_mismatch`);
+    }
+    groupClassId = groupRow.id;
+  } else if (groupMode === 'new') {
+    const { data: newGroup, error: newGroupErr } = await (supabase as any)
+      .from('classes')
+      .insert({
+        name: groupNewName,
+        description: groupNewDescription,
+        coach_id: coachId,
+        is_private_session_group: true,
+        timezone,
+        max_students: 12,
+      })
+      .select('id')
+      .single();
+    if (newGroupErr || !newGroup?.id) {
+      console.error('[admin-create-private-session] group create failed', newGroupErr);
+      redirect(`${NEW_REDIRECT}?error=group_create_failed`);
+    }
+    groupClassId = newGroup.id as string;
+  }
+
+  // Enroll primary + attendees into the classroom (idempotent on (student_id, class_id)).
+  if (groupClassId) {
+    const enrollmentRows = [primary.studentId, ...attendeeResolved.map((a) => a.studentId)].map(
+      (studentId) => ({ student_id: studentId, class_id: groupClassId, status: 'active' })
+    );
+    const { error: enrollErr } = await (supabase as any)
+      .from('enrollments')
+      .upsert(enrollmentRows, { onConflict: 'student_id,class_id' });
+    if (enrollErr) {
+      console.error('[admin-create-private-session] group enrollment failed', enrollErr);
+      // Don't roll back the group on a partial enrollment failure — admin can re-enroll later.
+      redirect(`${NEW_REDIRECT}?error=group_enroll_failed`);
+    }
   }
 
   // ---- Insert private_sessions row ---------------------------------------
@@ -296,6 +367,7 @@ export async function createPrivateSessionAsAdmin(formData: FormData): Promise<v
     admin_approved_at: new Date().toISOString(),
     admin_approved_by: session.userId,
     confirmed_at: status === 'confirmed' ? new Date().toISOString() : null,
+    class_id: groupClassId,
   };
 
   const { data: createdSession, error: insertError } = await (supabase as any)

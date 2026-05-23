@@ -21,6 +21,16 @@ const ERROR_MESSAGES: Record<string, string> = {
   new_student_create_failed: 'Could not create the new student account (email may already be in use).',
   new_student_profile_failed: 'Could not create the new student profile.',
   session_create_failed: 'Could not create the session.',
+  attendees_insert_failed: 'Could not attach additional attendees to the session.',
+  too_many_attendees: 'A session can have at most 2 additional attendees.',
+  duplicate_attendee: 'The same student cannot appear more than once on a session.',
+  missing_group: 'Please pick an existing classroom group.',
+  missing_group_name: 'Please name the new classroom group.',
+  group_not_found: 'That classroom group no longer exists.',
+  group_not_private: 'Selected classroom is not a private session group.',
+  group_coach_mismatch: 'Selected classroom belongs to a different coach.',
+  group_create_failed: 'Could not create the classroom group.',
+  group_enroll_failed: 'Created the session, but enrolling students into the classroom failed.',
 };
 
 type CoachOption = {
@@ -34,6 +44,12 @@ type StudentOption = {
   id: string;
   display_name: string | null;
   email: string;
+};
+
+type GroupOption = {
+  id: string;
+  name: string;
+  coach_id: string;
 };
 
 type AvailabilityOption = {
@@ -56,7 +72,7 @@ export default async function NewAdminPrivateSessionPage({
 
   const supabase = await getSupabaseServerClient();
 
-  const [coachRowsRes, studentRowsRes, availabilityRowsRes] = await Promise.all([
+  const [coachRowsRes, studentRowsRes, availabilityRowsRes, groupRowsRes] = await Promise.all([
     supabase
       .from('profiles')
       .select('id,display_name,email,role')
@@ -73,6 +89,11 @@ export default async function NewAdminPrivateSessionPage({
       .gte('available_date', new Date().toISOString().slice(0, 10))
       .order('available_date', { ascending: true })
       .order('start_time', { ascending: true }),
+    supabase
+      .from('classes')
+      .select('id,name,coach_id')
+      .eq('is_private_session_group', true)
+      .order('name', { ascending: true }),
   ]);
 
   const coachRows = (coachRowsRes.data ?? []) as Array<{
@@ -119,6 +140,12 @@ export default async function NewAdminPrivateSessionPage({
       timezone: row.timezone,
     }));
 
+  const groups: GroupOption[] = ((groupRowsRes.data ?? []) as GroupOption[]).map((row) => ({
+    id: row.id,
+    name: row.name,
+    coach_id: row.coach_id,
+  }));
+
   return (
     <div className="space-y-6">
       <div>
@@ -145,6 +172,7 @@ export default async function NewAdminPrivateSessionPage({
           coaches={coaches}
           students={studentRows}
           availability={availability}
+          groups={groups}
           defaultTimezone={session.profile.timezone || 'America/Vancouver'}
         />
       </SectionCard>
