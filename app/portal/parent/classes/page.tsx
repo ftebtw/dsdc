@@ -7,7 +7,7 @@ import { getActiveTerm, getProfileMap } from '@/lib/portal/data';
 import { classTypeLabel, getClassTypeLabel } from '@/lib/portal/labels';
 import { getParentSelection } from '@/lib/portal/parent';
 import { parentT } from '@/lib/portal/parent-i18n';
-import { formatClassScheduleForViewer } from '@/lib/portal/time';
+import { formatClassScheduleForViewer, formatSessionRangeForViewer } from '@/lib/portal/time';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -135,12 +135,40 @@ export default async function ParentClassesPage({
     term: termMap[classRow.term_id] ?? null,
   }));
 
+  const privateGroupClasses = classRows
+    .filter((classRow: any) => classRow.is_private_session_group && classRow.enrollment_status === 'active')
+    .sort((left: any, right: any) => String(left.name ?? '').localeCompare(String(right.name ?? '')));
+
+  // Fetch upcoming sessions for these private groups (scoped to the selected student so a
+  // parent doesn't see sibling-only sessions in a shared group).
+  const privateGroupIds = privateGroupClasses.map((row: any) => row.id);
+  const upcomingSessionsByGroup = new Map<string, Array<Record<string, any>>>();
+  if (privateGroupIds.length > 0) {
+    const { data: groupSessionsData } = await supabase
+      .from('private_sessions')
+      .select('id,class_id,requested_date,requested_start_time,requested_end_time,timezone,zoom_link,status')
+      .in('class_id', privateGroupIds)
+      .gte('requested_date', today)
+      .order('requested_date', { ascending: true })
+      .order('requested_start_time', { ascending: true });
+    for (const row of (groupSessionsData ?? []) as Array<Record<string, any>>) {
+      const bucket = upcomingSessionsByGroup.get(row.class_id) ?? [];
+      bucket.push(row);
+      upcomingSessionsByGroup.set(row.class_id, bucket);
+    }
+  }
+
   const currentClasses = classRows
-    .filter((classRow: any) => classRow.term?.is_active && classRow.enrollment_status === 'active')
+    .filter(
+      (classRow: any) =>
+        !classRow.is_private_session_group &&
+        classRow.term?.is_active &&
+        classRow.enrollment_status === 'active'
+    )
     .sort(compareBySchedule);
 
   const pastClasses = classRows
-    .filter((classRow: any) => classRow.term && !classRow.term.is_active)
+    .filter((classRow: any) => !classRow.is_private_session_group && classRow.term && !classRow.term.is_active)
     .sort((left: any, right: any) => {
       const termDiff =
         new Date(right.term.start_date || right.term.end_date || 0).getTime() -
@@ -148,6 +176,78 @@ export default async function ParentClassesPage({
       if (termDiff !== 0) return termDiff;
       return compareBySchedule(left, right);
     });
+
+  const renderPrivateGroupCard = (classRow: any) => {
+    const upcoming = upcomingSessionsByGroup.get(classRow.id) ?? [];
+    const next = upcoming[0];
+    return (
+      <article
+        key={classRow.id}
+        className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4"
+      >
+        <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
+        {classRow.description ? (
+          <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">{classRow.description}</p>
+        ) : null}
+        <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
+          {parentT(locale, 'portal.parent.common.coachLabel', 'Coach')}:{' '}
+          {subPeople[classRow.coach_id]?.display_name ||
+            subPeople[classRow.coach_id]?.email ||
+            parentT(locale, 'portal.parent.common.coachFallback', 'DSDC Coach')}
+        </p>
+        {next ? (
+          <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-2">
+            <span className="font-medium">{parentT(locale, 'portal.parent.classes.nextSession', 'Next session')}:</span>{' '}
+            {(() => {
+              try {
+                return formatSessionRangeForViewer(
+                  next.requested_date,
+                  next.requested_start_time,
+                  next.requested_end_time,
+                  next.timezone,
+                  session.profile.timezone
+                );
+              } catch {
+                return `${next.requested_date} ${String(next.requested_start_time).slice(0, 5)}-${String(next.requested_end_time).slice(0, 5)}`;
+              }
+            })()}
+            {upcoming.length > 1 ? ` (+${upcoming.length - 1} more)` : ''}
+          </p>
+        ) : (
+          <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-2 italic">
+            {parentT(locale, 'portal.parent.classes.noUpcomingSessions', 'No upcoming sessions scheduled.')}
+          </p>
+        )}
+        {next?.zoom_link ? (
+          <p className="text-sm mt-1">
+            {parentT(locale, 'portal.parent.common.zoomLabel', 'Zoom')}:{' '}
+            <a
+              href={next.zoom_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-navy-700 dark:text-navy-200"
+            >
+              {parentT(locale, 'portal.parent.common.joinClass', 'Join Class')}
+            </a>
+          </p>
+        ) : null}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <a
+            href={`/portal/parent/attendance?student=${encodeURIComponent(selectedStudentId)}&classId=${encodeURIComponent(classRow.id)}`}
+            className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+          >
+            {parentT(locale, 'portal.parent.classes.viewAttendance', 'View Attendance')}
+          </a>
+          <a
+            href={`/portal/parent/resources?student=${encodeURIComponent(selectedStudentId)}&classId=${encodeURIComponent(classRow.id)}`}
+            className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+          >
+            {parentT(locale, 'portal.parent.classes.viewResources', 'View Resources')}
+          </a>
+        </div>
+      </article>
+    );
+  };
 
   const renderClassCard = (classRow: any, isPast: boolean) => (
     <article
@@ -237,7 +337,7 @@ export default async function ParentClassesPage({
             }`
       }
     >
-      {currentClasses.length === 0 && pastClasses.length === 0 ? (
+      {currentClasses.length === 0 && pastClasses.length === 0 && privateGroupClasses.length === 0 ? (
         <p className="text-sm text-charcoal/70 dark:text-navy-300">
           {parentT(locale, 'portal.parent.common.noActiveEnrollments', 'No active enrollments.')}
         </p>
@@ -253,6 +353,15 @@ export default async function ParentClassesPage({
           ) : (
             <div className="space-y-4">{currentClasses.map((classRow: any) => renderClassCard(classRow, false))}</div>
           )}
+
+          {privateGroupClasses.length > 0 ? (
+            <div className="pt-4 border-t border-warm-200 dark:border-navy-700 space-y-4">
+              <h3 className="font-semibold text-navy-800 dark:text-white">
+                {parentT(locale, 'portal.parent.classes.privateGroups', 'Private Coaching Groups')}
+              </h3>
+              <div className="space-y-4">{privateGroupClasses.map(renderPrivateGroupCard)}</div>
+            </div>
+          ) : null}
 
           {pastClasses.length > 0 ? (
             <div className="pt-4 border-t border-warm-200 dark:border-navy-700 space-y-4">
