@@ -11,7 +11,7 @@ const metadataSchema = z.object({
   title: z.string().min(1).max(180),
   description: z.string().trim().max(12000).optional(),
   type: z.enum(['lesson_plan', 'slides', 'document', 'recording', 'other']),
-  url: z.string().url().optional(),
+  urls: z.array(z.string().url()).max(10).optional(),
   sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   publishAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
@@ -136,18 +136,29 @@ export async function POST(request: NextRequest) {
   const fileValue = formData.get('file');
   const file = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
   const rawDescription = formStringValue(formData, 'description');
-  const rawUrl = formStringValue(formData, 'url');
+  // Accept both legacy single `url` and new repeated `urls[]` form fields so
+  // older clients (or callers that pass a single URL) keep working.
+  const rawUrls = (() => {
+    const fromArray = formData
+      .getAll('urls')
+      .map((v) => (typeof v === 'string' ? v.trim() : ''))
+      .filter((v) => v.length > 0);
+    if (fromArray.length > 0) return fromArray;
+    const single = formStringValue(formData, 'url');
+    return single ? [single] : [];
+  })();
+  const primaryUrl = rawUrls[0];
   const inferredTitle = inferResourceTitle({
     title: formStringValue(formData, 'title'),
     description: rawDescription,
-    url: rawUrl,
+    url: primaryUrl,
     file,
   });
 
-  if (!inferredTitle && !rawDescription && !rawUrl && !file) {
+  if (!inferredTitle && !rawDescription && rawUrls.length === 0 && !file) {
     return mergeCookies(
       supabaseResponse,
-      jsonError('Add a note, URL, or file before posting this resource.', 400)
+      jsonError('Add a note, link, or file before posting this resource.', 400)
     );
   }
 
@@ -156,7 +167,7 @@ export async function POST(request: NextRequest) {
     title: inferredTitle,
     description: rawDescription,
     type: formStringValue(formData, 'type') ?? 'other',
-    url: rawUrl,
+    urls: rawUrls.length > 0 ? rawUrls : undefined,
     sessionDate: formStringValue(formData, 'sessionDate'),
     publishAt: formStringValue(formData, 'publishAt'),
   });
@@ -168,7 +179,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const hasUrl = Boolean(parsed.data.url);
+  const cleanedUrls = parsed.data.urls ?? [];
+  const hasUrl = cleanedUrls.length > 0;
   if (file && file.size > RESOURCE_MAX_FILE_BYTES) {
     return mergeCookies(
       supabaseResponse,
@@ -258,7 +270,10 @@ export async function POST(request: NextRequest) {
   };
 
   if (hasUrl) {
-    rowPayload.url = parsed.data.url!;
+    // Keep the legacy single-URL column populated with the first link so
+    // any reader still on the old shape continues to work.
+    rowPayload.url = cleanedUrls[0];
+    (rowPayload as Record<string, unknown>).urls = cleanedUrls;
   }
 
   if (!file) {

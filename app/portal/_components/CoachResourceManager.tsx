@@ -11,8 +11,25 @@ import {
   resourceTypePriority,
 } from '@/lib/portal/resource-weeks';
 
-type Resource = Database['public']['Tables']['resources']['Row'];
+type Resource = Database['public']['Tables']['resources']['Row'] & {
+  urls?: string[] | null;
+};
 type ResourceType = Database['public']['Enums']['resource_type'];
+
+function effectiveUrls(resource: { url: string | null; urls?: string[] | null }): string[] {
+  const fromArray = (resource.urls ?? []).filter((u): u is string => Boolean(u && u.trim()));
+  if (fromArray.length > 0) return fromArray;
+  return resource.url ? [resource.url] : [];
+}
+
+function shortHost(url: string): string {
+  try {
+    const u = new URL(url);
+    return u.hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+}
 
 const resourceTypeOptions: ResourceType[] = [
   'lesson_plan',
@@ -43,7 +60,7 @@ export default function CoachResourceManager({
   const [type, setType] = useState<ResourceType>('lesson_plan');
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().slice(0, 10));
   const [publishDate, setPublishDate] = useState(new Date().toISOString().slice(0, 10));
-  const [url, setUrl] = useState('');
+  const [urls, setUrls] = useState<string[]>(['']);
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [editingWeek, setEditingWeek] = useState<number | null>(null);
@@ -153,10 +170,20 @@ export default function CoachResourceManager({
 
     if (file?.name) return file.name.trim().slice(0, 180);
 
-    const trimmedUrl = url.trim();
-    if (trimmedUrl) return trimmedUrl.slice(0, 180);
+    const firstUrl = urls.map((u) => u.trim()).find((u) => u.length > 0);
+    if (firstUrl) return firstUrl.slice(0, 180);
 
     return '';
+  }
+
+  function updateUrlAt(index: number, value: string) {
+    setUrls((prev) => prev.map((u, i) => (i === index ? value : u)));
+  }
+  function addUrlRow() {
+    setUrls((prev) => (prev.length >= 10 ? prev : [...prev, '']));
+  }
+  function removeUrlRow(index: number) {
+    setUrls((prev) => (prev.length <= 1 ? [''] : prev.filter((_, i) => i !== index)));
   }
 
   async function onCreate(event: React.FormEvent<HTMLFormElement>) {
@@ -166,7 +193,7 @@ export default function CoachResourceManager({
       setError(
         t(
           'portal.coachResource.contentRequired',
-          'Add a note, URL, or file before posting this resource.'
+          'Add a note, link, or file before posting this resource.'
         )
       );
       return;
@@ -175,6 +202,8 @@ export default function CoachResourceManager({
     setLoading(true);
     setError(null);
 
+    const cleanedUrls = urls.map((u) => u.trim()).filter((u) => u.length > 0);
+
     const formData = new FormData();
     formData.append('classId', classId);
     formData.append('title', normalizedTitle);
@@ -182,7 +211,9 @@ export default function CoachResourceManager({
     formData.append('type', type);
     formData.append('sessionDate', sessionDate);
     formData.append('publishAt', publishDate);
-    if (url.trim()) formData.append('url', url.trim());
+    for (const u of cleanedUrls) {
+      formData.append('urls', u);
+    }
     if (file) formData.append('file', file);
 
     const response = await fetch('/api/portal/resources/upload', {
@@ -208,7 +239,7 @@ export default function CoachResourceManager({
     setTitle('');
     setDescription('');
     setType('lesson_plan');
-    setUrl('');
+    setUrls(['']);
     clearSelectedFile();
   }
 
@@ -307,12 +338,41 @@ export default function CoachResourceManager({
             />
           </div>
         </div>
-        <input
-          placeholder={t('portal.coachResource.externalUrl', 'External URL (optional)')}
-          value={url}
-          onChange={(event) => setUrl(event.target.value)}
-          className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
-        />
+        <div className="space-y-2">
+          <span className="block text-xs font-medium text-navy-700 dark:text-navy-200">
+            {t('portal.coachResource.links', 'Links (optional)')}
+          </span>
+          {urls.map((u, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <input
+                type="url"
+                value={u}
+                onChange={(event) => updateUrlAt(index, event.target.value)}
+                placeholder={t('portal.coachResource.linkPlaceholder', 'https://...')}
+                className="flex-1 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+              />
+              {urls.length > 1 ? (
+                <button
+                  type="button"
+                  onClick={() => removeUrlRow(index)}
+                  className="rounded-md border border-warm-300 dark:border-navy-600 px-2 py-1.5 text-xs text-charcoal/70 dark:text-navy-300 hover:text-red-600 dark:hover:text-red-400"
+                  aria-label={t('portal.coachResource.removeLink', 'Remove link')}
+                >
+                  ×
+                </button>
+              ) : null}
+            </div>
+          ))}
+          {urls.length < 10 ? (
+            <button
+              type="button"
+              onClick={addUrlRow}
+              className="text-xs font-semibold text-navy-700 hover:text-navy-900 dark:text-gold-300 dark:hover:text-gold-200"
+            >
+              + {t('portal.coachResource.addLink', 'Add another link')}
+            </button>
+          ) : null}
+        </div>
         <p className="text-xs text-charcoal/60 dark:text-navy-400 -mt-1">
           Set a future publish date to schedule this resource for students and parents.
         </p>
@@ -448,7 +508,8 @@ export default function CoachResourceManager({
                           {items.map((resource) => {
                             const publishAt = resource.publish_at || resource.created_at;
                             const isScheduled = new Date(publishAt).getTime() > Date.now();
-                            const hasUrl = Boolean(resource.url);
+                            const resourceUrls = effectiveUrls(resource);
+                            const hasUrl = resourceUrls.length > 0;
                             const hasFile = Boolean(resource.file_path);
                             const hasOpenableTarget = hasUrl || hasFile;
                             return (
@@ -489,28 +550,28 @@ export default function CoachResourceManager({
                                     })}
                                   </p>
                                 </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                  {hasUrl && hasFile ? (
-                                    <>
-                                      <button
-                                        onClick={() => onOpen(resource, 'url')}
-                                        className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
-                                      >
-                                        {t('portal.resourceList.openLink', 'Open link')}
-                                      </button>
-                                      <button
-                                        onClick={() => onOpen(resource, 'file')}
-                                        className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
-                                      >
-                                        {t('portal.resourceList.openFile', 'Open file')}
-                                      </button>
-                                    </>
-                                  ) : hasOpenableTarget ? (
+                                <div className="flex flex-wrap items-center gap-2 shrink-0 justify-end">
+                                  {resourceUrls.map((linkUrl, idx) => (
                                     <button
-                                      onClick={() => onOpen(resource)}
+                                      key={`${resource.id}-link-${idx}`}
+                                      type="button"
+                                      onClick={() => window.open(linkUrl, '_blank', 'noopener,noreferrer')}
+                                      title={linkUrl}
                                       className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
                                     >
-                                      {t('portal.resourceList.open', 'Open')}
+                                      {resourceUrls.length === 1
+                                        ? t('portal.resourceList.openLink', 'Open link')
+                                        : `${t('portal.resourceList.link', 'Link')} ${idx + 1}`}
+                                      <span className="ml-1 text-charcoal/55 dark:text-navy-400">({shortHost(linkUrl)})</span>
+                                    </button>
+                                  ))}
+                                  {hasFile ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => onOpen(resource, 'file')}
+                                      className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
+                                    >
+                                      {t('portal.resourceList.openFile', 'Open file')}
                                     </button>
                                   ) : null}
                                   <button

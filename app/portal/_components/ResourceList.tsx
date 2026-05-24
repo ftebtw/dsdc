@@ -13,7 +13,23 @@ import {
 
 type Resource = Database['public']['Tables']['resources']['Row'] & {
   className?: string | null;
+  urls?: string[] | null;
 };
+
+function effectiveUrls(resource: { url: string | null; urls?: string[] | null }): string[] {
+  const fromArray = (resource.urls ?? []).filter((u): u is string => Boolean(u && u.trim()));
+  if (fromArray.length > 0) return fromArray;
+  return resource.url ? [resource.url] : [];
+}
+
+function shortHost(url: string): string {
+  try {
+    const u = new URL(url);
+    return u.hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+}
 
 type Props = {
   resources: Resource[];
@@ -82,9 +98,12 @@ export default function ResourceList({
 
   async function openResource(resource: Resource, target: 'auto' | 'url' | 'file' = 'auto') {
     setError(null);
-    if ((target === 'auto' || target === 'url') && resource.url) {
-      window.open(resource.url, '_blank', 'noopener,noreferrer');
-      return;
+    if (target === 'auto' || target === 'url') {
+      const firstUrl = effectiveUrls(resource)[0];
+      if (firstUrl) {
+        window.open(firstUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
     }
 
     if (!resource.file_path) {
@@ -146,7 +165,8 @@ export default function ResourceList({
                       </h4>
                       <div className="space-y-2 pl-1">
                         {items.map((resource) => {
-                          const hasUrl = Boolean(resource.url);
+                          const resourceUrls = effectiveUrls(resource);
+                          const hasUrl = resourceUrls.length > 0;
                           const hasFile = Boolean(resource.file_path);
                           const hasOpenableTarget = hasUrl || hasFile;
                           return (
@@ -178,28 +198,28 @@ export default function ResourceList({
                                   })}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                {hasUrl && hasFile ? (
-                                  <>
-                                    <button
-                                      onClick={() => openResource(resource, 'url')}
-                                      className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
-                                    >
-                                      {t('portal.resourceList.openLink', 'Open link')}
-                                    </button>
-                                    <button
-                                      onClick={() => openResource(resource, 'file')}
-                                      className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
-                                    >
-                                      {t('portal.resourceList.openFile', 'Open file')}
-                                    </button>
-                                  </>
-                                ) : hasOpenableTarget ? (
+                              <div className="flex flex-wrap items-center gap-2 shrink-0 justify-end">
+                                {resourceUrls.map((linkUrl, idx) => (
                                   <button
-                                    onClick={() => openResource(resource)}
+                                    key={`${resource.id}-link-${idx}`}
+                                    type="button"
+                                    onClick={() => window.open(linkUrl, '_blank', 'noopener,noreferrer')}
+                                    title={linkUrl}
                                     className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
                                   >
-                                    {labels?.open || t('portal.resourceList.open', 'Open')}
+                                    {resourceUrls.length === 1
+                                      ? t('portal.resourceList.openLink', 'Open link')
+                                      : `${t('portal.resourceList.link', 'Link')} ${idx + 1}`}
+                                    <span className="ml-1 text-charcoal/55 dark:text-navy-400">({shortHost(linkUrl)})</span>
+                                  </button>
+                                ))}
+                                {hasFile ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => openResource(resource, 'file')}
+                                    className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
+                                  >
+                                    {t('portal.resourceList.openFile', 'Open file')}
                                   </button>
                                 ) : null}
                                 {showDelete && onDelete ? (
@@ -232,7 +252,8 @@ export default function ResourceList({
     <div className="space-y-3">
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
       {sorted.map((resource) => {
-        const hasUrl = Boolean(resource.url);
+        const resourceUrls = effectiveUrls(resource);
+        const hasUrl = resourceUrls.length > 0;
         const hasFile = Boolean(resource.file_path);
         const hasOpenableTarget = hasUrl || hasFile;
         return (
@@ -258,28 +279,28 @@ export default function ResourceList({
                   {resource.type.replace('_', ' ')} - {new Date(resource.created_at).toLocaleString()}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                {hasUrl && hasFile ? (
-                  <>
-                    <button
-                      onClick={() => openResource(resource, 'url')}
-                      className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
-                    >
-                      {t('portal.resourceList.openLink', 'Open link')}
-                    </button>
-                    <button
-                      onClick={() => openResource(resource, 'file')}
-                      className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
-                    >
-                      {t('portal.resourceList.openFile', 'Open file')}
-                    </button>
-                  </>
-                ) : hasOpenableTarget ? (
+              <div className="flex flex-wrap items-center gap-2 justify-end">
+                {resourceUrls.map((linkUrl, idx) => (
                   <button
-                    onClick={() => openResource(resource)}
+                    key={`${resource.id}-link-${idx}`}
+                    type="button"
+                    onClick={() => window.open(linkUrl, '_blank', 'noopener,noreferrer')}
+                    title={linkUrl}
                     className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
                   >
-                    {labels?.open || t('portal.resourceList.open', 'Open')}
+                    {resourceUrls.length === 1
+                      ? t('portal.resourceList.openLink', 'Open link')
+                      : `${t('portal.resourceList.link', 'Link')} ${idx + 1}`}
+                    <span className="ml-1 text-charcoal/55 dark:text-navy-400">({shortHost(linkUrl)})</span>
+                  </button>
+                ))}
+                {hasFile ? (
+                  <button
+                    type="button"
+                    onClick={() => openResource(resource, 'file')}
+                    className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                  >
+                    {t('portal.resourceList.openFile', 'Open file')}
                   </button>
                 ) : null}
                 {showDelete && onDelete ? (
