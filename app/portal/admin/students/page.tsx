@@ -1,10 +1,33 @@
 export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import AdminDeleteUserButton from '@/app/portal/_components/AdminDeleteUserButton';
+import ConfirmDeleteButton from '@/app/portal/_components/ConfirmDeleteButton';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+
+async function unenrollStudentFromClass(formData: FormData) {
+  'use server';
+
+  await requireRole(['admin']);
+  const classId = String(formData.get('class_id') || '').trim();
+  const studentId = String(formData.get('student_id') || '').trim();
+  if (!classId || !studentId) return;
+
+  const supabase = await getSupabaseServerClient();
+  await (supabase as any)
+    .from('enrollments')
+    .update({ status: 'dropped' })
+    .eq('class_id', classId)
+    .eq('student_id', studentId)
+    .neq('status', 'dropped');
+
+  revalidatePath('/portal/admin/students');
+  redirect(`/portal/admin/students?classId=${classId}`);
+}
 
 export default async function AdminStudentsPage({
   searchParams,
@@ -23,11 +46,14 @@ export default async function AdminStudentsPage({
   const allClasses = (allClassesData ?? []) as Array<Record<string, any>>;
 
   const studentIds = students.map((student: any) => student.id);
+  // Exclude soft-removed (dropped) enrollments so the Classes/Status columns
+  // and the class filter only consider current rosters.
   const enrollments = studentIds.length
-    ? (((await supabase
+    ? (((await (supabase as any)
         .from('enrollments')
         .select('student_id,class_id,status')
-        .in('student_id', studentIds)).data ?? []) as Array<Record<string, any>>)
+        .in('student_id', studentIds)
+        .neq('status', 'dropped')).data ?? []) as Array<Record<string, any>>)
     : ([] as Array<Record<string, any>>);
 
   const classMap = Object.fromEntries(allClasses.map((classRow: any) => [classRow.id, classRow]));
@@ -39,6 +65,8 @@ export default async function AdminStudentsPage({
   const visibleStudents = filteredStudentSet
     ? students.filter((student: any) => filteredStudentSet.has(student.id))
     : students;
+
+  const selectedClassName = params.classId ? classMap[params.classId]?.name : null;
 
   return (
     <SectionCard title="Students" description="All students with enrollment status and class assignments.">
@@ -58,6 +86,13 @@ export default async function AdminStudentsPage({
         </select>
         <button className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">Apply</button>
       </form>
+
+      {selectedClassName ? (
+        <p className="mb-3 text-xs text-charcoal/70 dark:text-navy-300">
+          Showing students enrolled in <strong className="text-navy-800 dark:text-white">{selectedClassName}</strong>.
+          The <em>Remove from class</em> button takes them off this class only — their account and other enrolments stay.
+        </p>
+      ) : null}
 
       <div className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-x-auto">
         <table className="w-full min-w-[860px] text-sm">
@@ -86,13 +121,25 @@ export default async function AdminStudentsPage({
                   </td>
                   <td className="px-4 py-3">{rows.length ? rows.map((row) => row.status).join(', ') : '—'}</td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Link
                         href={`/portal/admin/students/${student.id}`}
                         className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
                       >
                         View
                       </Link>
+                      {params.classId ? (
+                        <form>
+                          <ConfirmDeleteButton
+                            action={unenrollStudentFromClass}
+                            hiddenFields={{ class_id: params.classId, student_id: student.id }}
+                            confirmMessage="Remove this student from this class? Their account and other enrolments stay intact."
+                            className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm text-charcoal/80 dark:text-navy-200 hover:text-red-600 hover:border-red-300 dark:hover:text-red-300 dark:hover:border-red-700"
+                          >
+                            Remove from class
+                          </ConfirmDeleteButton>
+                        </form>
+                      ) : null}
                       <AdminDeleteUserButton userId={student.id} displayName={student.display_name} />
                     </div>
                   </td>
