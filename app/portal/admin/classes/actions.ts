@@ -143,13 +143,17 @@ export async function deleteClass(formData: FormData) {
   redirect("/portal/admin/classes?deleted=1");
 }
 
+function appendQuery(url: string, extra: string): string {
+  return `${url}${url.includes("?") ? "&" : "?"}${extra}`;
+}
+
 export async function archiveClass(formData: FormData) {
   const session = await requireRole(["admin"]);
   const supabase = await getSupabaseServerClient();
   const classId = String(formData.get("id") || "");
   const redirectTo = String(formData.get("redirect_to") || "/portal/admin/classes");
   if (!classId) {
-    redirect(`${redirectTo}?error=missing_record`);
+    redirect(appendQuery(redirectTo, "error=missing_record"));
   }
   const { error } = await (supabase as any)
     .from("classes")
@@ -160,10 +164,10 @@ export async function archiveClass(formData: FormData) {
     .eq("id", classId);
   if (error) {
     console.error("[admin-classes] archive failed", error);
-    redirect(`${redirectTo}?error=archive_failed`);
+    redirect(appendQuery(redirectTo, "error=archive_failed"));
   }
   revalidatePath("/portal/admin/classes");
-  redirect(`${redirectTo}?archived=1`);
+  redirect(appendQuery(redirectTo, "archived=1"));
 }
 
 export async function unarchiveClass(formData: FormData) {
@@ -172,7 +176,7 @@ export async function unarchiveClass(formData: FormData) {
   const classId = String(formData.get("id") || "");
   const redirectTo = String(formData.get("redirect_to") || "/portal/admin/classes");
   if (!classId) {
-    redirect(`${redirectTo}?error=missing_record`);
+    redirect(appendQuery(redirectTo, "error=missing_record"));
   }
   const { error } = await (supabase as any)
     .from("classes")
@@ -180,10 +184,10 @@ export async function unarchiveClass(formData: FormData) {
     .eq("id", classId);
   if (error) {
     console.error("[admin-classes] unarchive failed", error);
-    redirect(`${redirectTo}?error=unarchive_failed`);
+    redirect(appendQuery(redirectTo, "error=unarchive_failed"));
   }
   revalidatePath("/portal/admin/classes");
-  redirect(`${redirectTo}?unarchived=1`);
+  redirect(appendQuery(redirectTo, "unarchived=1"));
 }
 
 export async function cloneClassesToTerm(formData: FormData) {
