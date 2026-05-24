@@ -4,7 +4,7 @@ import { useState } from 'react';
 import TimezoneSelect from '@/app/portal/_components/TimezoneSelect';
 
 type StudentOption = { id: string; label: string };
-type ClassOption = { id: string; label: string };
+type ClassOption = { id: string; label: string; archived?: boolean };
 
 export default function AdminManualEnrollForm({
   classOptions,
@@ -97,7 +97,12 @@ export default function AdminManualEnrollForm({
                     );
                   }}
                 />
-                {option.label}
+                <span className={option.archived ? 'text-charcoal/55 dark:text-navy-300/70' : ''}>{option.label}</span>
+                {option.archived ? (
+                  <span className="ml-auto rounded-full bg-warm-200 dark:bg-navy-700 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-charcoal/65 dark:text-navy-200/80">
+                    Archived
+                  </span>
+                ) : null}
               </label>
             ))}
           </div>
