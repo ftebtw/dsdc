@@ -31,32 +31,38 @@ export default function TermOverviewPoster({
       style={{ width: dims.width, height: dims.height }}
       className="relative overflow-hidden bg-warm-50 text-navy-900"
     >
-      <div className="absolute inset-x-0 top-0 h-3" style={{ background: "linear-gradient(90deg, #c9a227 0%, #f5ecd0 50%, #c9a227 100%)" }} />
-      <div className="absolute inset-x-0 top-3 h-36 bg-navy-900" />
+      <div
+        className="absolute inset-x-0 top-0 h-3 z-10"
+        style={{ background: "linear-gradient(90deg, #c9a227 0%, #f5ecd0 50%, #c9a227 100%)" }}
+      />
 
-      <div className="relative flex h-full flex-col p-14">
-        <div className="flex items-start justify-between text-white">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/images/logos/logo-full.png"
-            alt="DSDC"
-            className="h-14 w-auto object-contain"
-            style={{ filter: "brightness(0) invert(1)" }}
-          />
-          <div className="text-right text-sm text-warm-100/85">
-            <div className="font-semibold text-gold-300">dsdc.ca</div>
-            <div className="mt-1">All times {tzShort}</div>
+      <div className="relative flex h-full flex-col">
+        {/* Navy header — sized to content, holds logo row + schedule title */}
+        <div className="bg-navy-900 pt-14 pb-10 px-14">
+          <div className="flex items-start justify-between text-white">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/logos/logo-full.png"
+              alt="DSDC"
+              className="h-14 w-auto object-contain"
+              style={{ filter: "brightness(0) invert(1)" }}
+            />
+            <div className="text-right text-sm text-warm-100/85">
+              <div className="font-semibold text-gold-300">dsdc.ca</div>
+              <div className="mt-1">All times {tzShort}</div>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <h1 className="text-5xl font-bold tracking-tight text-white">{headerTitle}</h1>
+            {headerSubtitle ? (
+              <div className="mt-2 text-xl text-warm-100/85">{headerSubtitle}</div>
+            ) : null}
           </div>
         </div>
 
-        <div className="mt-5 text-white">
-          <h1 className="text-5xl font-bold tracking-tight">{headerTitle}</h1>
-          {headerSubtitle ? (
-            <div className="mt-1 text-xl text-warm-100/85">{headerSubtitle}</div>
-          ) : null}
-        </div>
-
-        <div className="mt-12 flex-1 overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden px-14 pt-10 pb-14">
+          <div className="flex-1 overflow-hidden">
           {entries.length === 0 ? (
             <div className="flex h-full items-center justify-center text-2xl text-charcoal/50">
               Add a class to see it here
@@ -114,11 +120,12 @@ export default function TermOverviewPoster({
               })}
             </div>
           )}
-        </div>
+          </div>
 
-        <div className="mt-6 flex items-center justify-between border-t border-warm-300 pt-5 text-sm text-charcoal/70">
-          <div>Online debate &amp; public speaking · Grades 4–12 · Canadian National Debate Team coaches</div>
-          <div className="font-semibold text-navy-800">dsdc.ca</div>
+          <div className="mt-6 flex items-center justify-between border-t border-warm-300 pt-5 text-sm text-charcoal/70">
+            <div>Online debate &amp; public speaking · Grades 4–12 · Canadian National Debate Team coaches</div>
+            <div className="font-semibold text-navy-800">dsdc.ca</div>
+          </div>
         </div>
       </div>
     </div>
