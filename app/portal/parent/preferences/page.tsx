@@ -20,6 +20,9 @@ async function updatePreferences(formData: FormData) {
     absence_alerts: formData.get('absence_alerts') === 'on',
     general_updates: formData.get('general_updates') === 'on',
     calendar_emails: calendarEmails,
+    class_resource_alerts: formData.get('class_resource_alerts') === 'on',
+    class_homework_alerts: formData.get('class_homework_alerts') === 'on',
+    homework_graded_alerts: formData.get('homework_graded_alerts') === 'on',
   };
 
   // Merge with existing prefs so unrelated keys (set elsewhere or in future)
@@ -44,6 +47,9 @@ export default async function ParentPreferencesPage() {
   const classReminders = normalizeClassReminderValue(prefs.class_reminders) || 'both';
   const absenceAlerts = Boolean(prefs.absence_alerts ?? true);
   const generalUpdates = Boolean(prefs.general_updates ?? true);
+  const classResourceAlerts = Boolean(prefs.class_resource_alerts ?? true);
+  const classHomeworkAlerts = Boolean(prefs.class_homework_alerts ?? true);
+  const homeworkGradedAlerts = Boolean(prefs.homework_graded_alerts ?? true);
   const calendarEmails =
     prefs.calendar_emails === 'important_only' || prefs.calendar_emails === 'none'
       ? prefs.calendar_emails
@@ -87,6 +93,33 @@ export default async function ParentPreferencesPage() {
         <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
           <input type="checkbox" name="general_updates" defaultChecked={generalUpdates} />
           {parentT(locale, 'portal.parent.preferences.generalUpdates', 'General updates')}
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
+          <input type="checkbox" name="class_resource_alerts" defaultChecked={classResourceAlerts} />
+          {parentT(
+            locale,
+            'portal.parent.preferences.resourceAlerts',
+            'Email me when a new class resource is posted'
+          )}
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
+          <input type="checkbox" name="class_homework_alerts" defaultChecked={classHomeworkAlerts} />
+          {parentT(
+            locale,
+            'portal.parent.preferences.homeworkAlerts',
+            'Email me when new homework is posted'
+          )}
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
+          <input type="checkbox" name="homework_graded_alerts" defaultChecked={homeworkGradedAlerts} />
+          {parentT(
+            locale,
+            'portal.parent.preferences.homeworkGradedAlerts',
+            "Email me when my student's homework is graded"
+          )}
         </label>
 
         <label className="block">

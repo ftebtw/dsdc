@@ -1457,3 +1457,127 @@ export function classCancelledNotice(input: {
     text,
   };
 }
+
+export function classResourcePostedTemplate(input: {
+  recipientName: string;
+  recipientRole: 'student' | 'parent';
+  studentName?: string;
+  className: string;
+  resourceTitle: string;
+  resourceType: string | null;
+  postedBy: string;
+  portalUrl: string;
+  preferenceUrl?: string;
+}) {
+  const isParent = input.recipientRole === 'parent';
+  const greeting = `Hi ${input.recipientName},`;
+  const intro = isParent
+    ? `${input.postedBy} posted a new resource for ${input.studentName || 'your student'} in ${input.className}.`
+    : `${input.postedBy} posted a new resource in ${input.className}.`;
+
+  const bodyLines = [
+    greeting,
+    intro,
+    `Resource: ${input.resourceTitle}`,
+    input.resourceType ? `Type: ${input.resourceType}` : '',
+    `Open the portal to view it.`,
+  ].filter(Boolean);
+
+  const { html, text } = renderTemplate({
+    title: `New resource in ${input.className}`,
+    bodyLines,
+    buttonLabel: 'View in portal',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+
+  return {
+    subject: `New resource in ${input.className}: ${input.resourceTitle}`,
+    html,
+    text,
+  };
+}
+
+export function homeworkAssignmentPostedTemplate(input: {
+  recipientName: string;
+  recipientRole: 'student' | 'parent';
+  studentName?: string;
+  className: string;
+  assignmentTitle: string;
+  description: string | null;
+  dueDate: string | null;
+  postedBy: string;
+  portalUrl: string;
+  preferenceUrl?: string;
+}) {
+  const isParent = input.recipientRole === 'parent';
+  const greeting = `Hi ${input.recipientName},`;
+  const intro = isParent
+    ? `${input.postedBy} posted new homework for ${input.studentName || 'your student'} in ${input.className}.`
+    : `${input.postedBy} posted new homework in ${input.className}.`;
+
+  const bodyLines = [
+    greeting,
+    intro,
+    `Assignment: ${input.assignmentTitle}`,
+    input.description ? `Details: ${input.description}` : '',
+    input.dueDate ? `Due date: ${input.dueDate}` : 'No due date set.',
+    'Open the portal for the full details and to upload your submission.',
+  ].filter(Boolean);
+
+  const { html, text } = renderTemplate({
+    title: `New homework in ${input.className}`,
+    bodyLines,
+    buttonLabel: 'View homework',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+
+  return {
+    subject: `New homework in ${input.className}: ${input.assignmentTitle}`,
+    html,
+    text,
+  };
+}
+
+export function homeworkGradedTemplate(input: {
+  recipientName: string;
+  recipientRole: 'student' | 'parent';
+  studentName?: string;
+  className: string;
+  submissionTitle: string;
+  grade: string | null;
+  feedback: string | null;
+  gradedBy: string;
+  portalUrl: string;
+  preferenceUrl?: string;
+}) {
+  const isParent = input.recipientRole === 'parent';
+  const greeting = `Hi ${input.recipientName},`;
+  const intro = isParent
+    ? `${input.gradedBy} graded ${input.studentName || 'your student'}'s homework in ${input.className}.`
+    : `${input.gradedBy} graded your homework in ${input.className}.`;
+
+  const bodyLines = [
+    greeting,
+    intro,
+    `Submission: ${input.submissionTitle}`,
+    input.grade ? `Grade: ${input.grade}` : '',
+    input.feedback ? `Feedback: ${input.feedback}` : '',
+    'Open the portal to see the full feedback.',
+  ].filter(Boolean);
+
+  const { html, text } = renderTemplate({
+    title: `Homework graded in ${input.className}`,
+    bodyLines,
+    buttonLabel: 'View feedback',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.preferenceUrl,
+  });
+
+  return {
+    subject: `Homework graded in ${input.className}: ${input.submissionTitle}`,
+    html,
+    text,
+  };
+}

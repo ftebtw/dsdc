@@ -54,6 +54,15 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
   const [privateSessionAlerts, setPrivateSessionAlerts] = useState<boolean>(
     asBoolean(initialPreferences.private_session_alerts, true)
   );
+  const [classResourceAlerts, setClassResourceAlerts] = useState<boolean>(
+    asBoolean(initialPreferences.class_resource_alerts, true)
+  );
+  const [classHomeworkAlerts, setClassHomeworkAlerts] = useState<boolean>(
+    asBoolean(initialPreferences.class_homework_alerts, true)
+  );
+  const [homeworkGradedAlerts, setHomeworkGradedAlerts] = useState<boolean>(
+    asBoolean(initialPreferences.homework_graded_alerts, true)
+  );
   const [calendarEmails, setCalendarEmails] = useState<'all' | 'important_only' | 'none'>(
     normalizeCalendarEmails(initialPreferences.calendar_emails)
   );
@@ -82,6 +91,9 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
             absence_alerts: absenceAlerts,
             general_updates: generalUpdates,
             calendar_emails: calendarEmails,
+            class_resource_alerts: classResourceAlerts,
+            class_homework_alerts: classHomeworkAlerts,
+            homework_graded_alerts: homeworkGradedAlerts,
           }
         : {
             sub_request_alerts: subRequestAlerts,
@@ -154,6 +166,42 @@ export default function RolePreferencesForm({ role, initialPreferences }: RolePr
               onChange={(event) => setGeneralUpdates(event.target.checked)}
             />
             {t('portal.parent.preferences.generalUpdates', 'General updates')}
+          </label>
+
+          <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
+            <input
+              type="checkbox"
+              checked={classResourceAlerts}
+              onChange={(event) => setClassResourceAlerts(event.target.checked)}
+            />
+            {t(
+              'portal.parent.preferences.resourceAlerts',
+              'Email me when a new class resource is posted'
+            )}
+          </label>
+
+          <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
+            <input
+              type="checkbox"
+              checked={classHomeworkAlerts}
+              onChange={(event) => setClassHomeworkAlerts(event.target.checked)}
+            />
+            {t(
+              'portal.parent.preferences.homeworkAlerts',
+              'Email me when new homework is posted'
+            )}
+          </label>
+
+          <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
+            <input
+              type="checkbox"
+              checked={homeworkGradedAlerts}
+              onChange={(event) => setHomeworkGradedAlerts(event.target.checked)}
+            />
+            {t(
+              'portal.parent.preferences.homeworkGradedAlerts',
+              'Email me when my homework is graded'
+            )}
           </label>
 
           <label className="block">

@@ -11,6 +11,9 @@ const bodySchema = z.object({
   sub_request_alerts: z.boolean().optional(),
   ta_request_alerts: z.boolean().optional(),
   private_session_alerts: z.boolean().optional(),
+  class_resource_alerts: z.boolean().optional(),
+  class_homework_alerts: z.boolean().optional(),
+  homework_graded_alerts: z.boolean().optional(),
   calendar_emails: z.union([z.literal('all'), z.literal('important_only'), z.literal('none')]).optional(),
 });
 
@@ -47,6 +50,9 @@ export async function PATCH(request: NextRequest) {
     if (body.absence_alerts !== undefined) patch.absence_alerts = body.absence_alerts;
     if (body.general_updates !== undefined) patch.general_updates = body.general_updates;
     if (body.calendar_emails !== undefined) patch.calendar_emails = body.calendar_emails;
+    if (body.class_resource_alerts !== undefined) patch.class_resource_alerts = body.class_resource_alerts;
+    if (body.class_homework_alerts !== undefined) patch.class_homework_alerts = body.class_homework_alerts;
+    if (body.homework_graded_alerts !== undefined) patch.homework_graded_alerts = body.homework_graded_alerts;
   }
 
   if (Object.keys(patch).length === 0) {
