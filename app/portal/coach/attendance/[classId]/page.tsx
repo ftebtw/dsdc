@@ -42,11 +42,35 @@ export default async function CoachAttendancePage({
     .maybeSingle();
 
   if (!classRow) notFound();
-  const todaySessionDate = getSessionDateForClassTimezone(classRow.timezone);
+  const isPrivateSessionGroup = Boolean((classRow as { is_private_session_group?: boolean }).is_private_session_group);
+  const classTimezone = classRow.timezone || session.profile.timezone || 'America/Vancouver';
+  const todaySessionDate = getSessionDateForClassTimezone(classTimezone);
   let restrictedSessionDates: string[] = [];
 
+  // For private session group classrooms, the allowed dates are pulled from
+  // the linked private_sessions rows (since there's no weekly schedule).
+  let privateGroupSessionDates: string[] = [];
+  if (isPrivateSessionGroup) {
+    const { data: groupSessionDates } = await supabase
+      .from('private_sessions')
+      .select('requested_date')
+      .eq('class_id', classId)
+      .order('requested_date', { ascending: true });
+    privateGroupSessionDates = [
+      ...new Set(
+        ((groupSessionDates ?? []) as Array<{ requested_date: string }>).map((row) => row.requested_date)
+      ),
+    ].sort();
+  }
+
   // Allow primary coach, co-coaches, accepted subs, and accepted TAs.
+  // Private session groups don't have sub/TA requests, so skip those checks.
   if (classRow.coach_id !== session.userId) {
+    if (isPrivateSessionGroup) {
+      // No co-coach / sub / TA system for private groups yet — only the
+      // primary coach can view attendance.
+      notFound();
+    }
     const [{ data: coCoach }, { data: subReqs }, { data: taReqs }] = await Promise.all([
       supabase
         .from('class_coaches')
@@ -79,10 +103,19 @@ export default async function CoachAttendancePage({
     }
   }
 
+  // For private groups, scope picker to the actual session dates so the
+  // coach can't mark attendance for arbitrary days. Falls back to today
+  // if there are no sessions yet.
+  const allowedDates = isPrivateSessionGroup ? privateGroupSessionDates : restrictedSessionDates;
   const sessionDate =
-    restrictedSessionDates.length > 0
-      ? pickInitialSessionDate(todaySessionDate, restrictedSessionDates)
+    allowedDates.length > 0
+      ? pickInitialSessionDate(todaySessionDate, allowedDates)
       : todaySessionDate;
+  // For private groups, treat the private_sessions dates as the only valid
+  // attendance dates so the picker reflects "real" sessions.
+  const effectiveRestrictedSessionDates = isPrivateSessionGroup
+    ? privateGroupSessionDates
+    : restrictedSessionDates;
 
   const [{ data: enrollmentsData }, { data: attendanceRowsData }, { data: absencesData }] = await Promise.all([
     supabase.from('enrollments').select('student_id').eq('class_id', classId),
@@ -124,17 +157,22 @@ export default async function CoachAttendancePage({
     ])
   );
 
-  return (
-    <SectionCard
-      title={`Attendance • ${classRow.name}`}
-      description={`${classTypeLabel[classRow.type as keyof typeof classTypeLabel] || String(classRow.type)} • ${formatClassScheduleForViewer(
+  const description = isPrivateSessionGroup
+    ? `Private Coaching Group${
+        privateGroupSessionDates.length > 0
+          ? ` • ${privateGroupSessionDates.length} session${privateGroupSessionDates.length === 1 ? '' : 's'} on record`
+          : ''
+      }`
+    : `${classTypeLabel[classRow.type as keyof typeof classTypeLabel] || String(classRow.type)} • ${formatClassScheduleForViewer(
         classRow.schedule_day,
         classRow.schedule_start_time,
         classRow.schedule_end_time,
         classRow.timezone,
         session.profile.timezone
-      )}`}
-    >
+      )}`;
+
+  return (
+    <SectionCard title={`Attendance • ${classRow.name}`} description={description}>
       <CoachAttendanceEditor
         classId={classId}
         userId={session.userId}
@@ -142,7 +180,7 @@ export default async function CoachAttendancePage({
         students={profiles}
         initialAttendance={attendanceByStudent}
         initialAbsenceStudentIds={absences.map((row) => row.student_id)}
-        restrictedSessionDates={restrictedSessionDates}
+        restrictedSessionDates={effectiveRestrictedSessionDates}
       />
     </SectionCard>
   );
