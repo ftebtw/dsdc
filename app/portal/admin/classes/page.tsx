@@ -122,15 +122,29 @@ export default async function AdminClassesPage({
     ? (((await classesQuery).data ?? []) as Array<Record<string, any>>)
     : ([] as Array<Record<string, any>>);
 
+  // Private session group classrooms (no term, no schedule). Respect the same
+  // show_archived toggle.
+  let privateGroupsQuery = supabase
+    .from('classes')
+    .select('*')
+    .eq('is_private_session_group', true)
+    .order('name');
+  if (!showArchived) privateGroupsQuery = privateGroupsQuery.is('archived_at', null);
+  const privateGroups = ((await privateGroupsQuery).data ?? []) as Array<Record<string, any>>;
+
   const coachIds = coachProfiles.map((row: any) => row.coach_id);
   const coachMap = await getProfileMap(supabase, coachIds);
 
+  const allClassIdsForEnrollments = [
+    ...classes.map((classRow) => classRow.id),
+    ...privateGroups.map((classRow) => classRow.id),
+  ];
   const classIds = classes.map((classRow) => classRow.id);
-  const enrollments = classIds.length
+  const enrollments = allClassIdsForEnrollments.length
     ? (((await supabase
         .from('enrollments')
         .select('class_id,student_id,status')
-        .in('class_id', classIds)
+        .in('class_id', allClassIdsForEnrollments)
         .eq('status', 'active')).data ?? []) as Array<Record<string, any>>)
     : ([] as Array<Record<string, any>>);
   const studentMap = await getProfileMap(
@@ -579,6 +593,99 @@ export default async function AdminClassesPage({
           })}
           {classes.length === 0 ? (
             <p className="text-sm text-charcoal/70 dark:text-navy-300">No classes found for this term.</p>
+          ) : null}
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Private Coaching Groups"
+        description="Ongoing private session group classrooms. Not tied to a term. Archive when the arrangement ends — resources and attendance remain accessible to enrolled students under Past Classes."
+      >
+        <div className="space-y-4">
+          {privateGroups.map((group) => {
+            const studentIds = enrollmentsByClass.get(group.id) ?? [];
+            const coachName =
+              coachMap[group.coach_id]?.display_name ||
+              coachMap[group.coach_id]?.email ||
+              group.coach_id;
+            const isArchived = Boolean(group.archived_at);
+            return (
+              <form
+                key={group.id}
+                action={archiveClass}
+                className={`rounded-xl border p-4 space-y-2 ${
+                  isArchived
+                    ? 'border-violet-200 dark:border-violet-700 bg-violet-50 dark:bg-violet-900/20'
+                    : 'border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900'
+                }`}
+              >
+                <input type="hidden" name="id" value={group.id} />
+                <input
+                  type="hidden"
+                  name="redirect_to"
+                  value={`/portal/admin/classes${showArchived ? '?show_archived=1' : ''}`}
+                />
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-semibold text-navy-800 dark:text-white">{group.name}</h3>
+                    {group.description ? (
+                      <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">{group.description}</p>
+                    ) : null}
+                    <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-1">
+                      Coach: {coachName}
+                    </p>
+                    <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-1">
+                      {studentIds.length} enrolled student{studentIds.length === 1 ? '' : 's'}
+                      {studentIds.length > 0 ? (
+                        <span className="text-charcoal/55 dark:text-navy-400">
+                          {' '}
+                          —{' '}
+                          {studentIds
+                            .map((id) => studentMap[id]?.display_name || studentMap[id]?.email || id)
+                            .join(', ')}
+                        </span>
+                      ) : null}
+                    </p>
+                    {isArchived ? (
+                      <p className="text-xs text-violet-700 dark:text-violet-300 mt-1">
+                        Archived on {new Date(group.archived_at).toLocaleDateString()}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {isArchived ? (
+                      <button
+                        type="submit"
+                        formAction={unarchiveClass}
+                        className="px-3 py-1.5 rounded-md border border-violet-400 bg-white dark:border-violet-700 dark:bg-violet-900/30 text-violet-800 dark:text-violet-200 text-sm"
+                      >
+                        Unarchive
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                      >
+                        Archive
+                      </button>
+                    )}
+                    <Link
+                      href={`/portal/admin/classes/${group.id}`}
+                      className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                    >
+                      View Details
+                    </Link>
+                  </div>
+                </div>
+              </form>
+            );
+          })}
+          {privateGroups.length === 0 ? (
+            <p className="text-sm text-charcoal/70 dark:text-navy-300">
+              {showArchived
+                ? 'No private coaching groups (archived included).'
+                : 'No active private coaching groups. Create one via the Create Private Session page.'}
+            </p>
           ) : null}
         </div>
       </SectionCard>
