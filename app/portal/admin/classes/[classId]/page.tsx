@@ -6,6 +6,7 @@ import { notFound, redirect } from 'next/navigation';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import CoachAttendanceEditor from '@/app/portal/_components/CoachAttendanceEditor';
 import CoachResourceManager from '@/app/portal/_components/CoachResourceManager';
+import ConfirmDeleteButton from '@/app/portal/_components/ConfirmDeleteButton';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
 import { classTypeLabel } from '@/lib/portal/labels';
@@ -41,6 +42,26 @@ async function deleteAttendanceSession(formData: FormData) {
 
   revalidatePath(`/portal/admin/classes/${classId}`);
   redirect(`/portal/admin/classes/${classId}?date=${sessionDate}`);
+}
+
+async function unenrollStudent(formData: FormData) {
+  'use server';
+
+  await requireRole(['admin']);
+  const classId = String(formData.get('class_id') || '').trim();
+  const studentId = String(formData.get('student_id') || '').trim();
+  if (!classId || !studentId) return;
+
+  const supabase = await getSupabaseServerClient();
+  await (supabase as any)
+    .from('enrollments')
+    .update({ status: 'dropped' })
+    .eq('class_id', classId)
+    .eq('student_id', studentId)
+    .neq('status', 'dropped');
+
+  revalidatePath(`/portal/admin/classes/${classId}`);
+  redirect(`/portal/admin/classes/${classId}`);
 }
 
 async function deleteAttendanceStudentLog(formData: FormData) {
@@ -89,7 +110,8 @@ export default async function AdminClassDetailPage({
   const { data: enrollmentsData } = await supabase
     .from('enrollments')
     .select('student_id,status')
-    .eq('class_id', classId);
+    .eq('class_id', classId)
+    .neq('status', 'dropped');
   const enrollments = (enrollmentsData ?? []) as EnrollmentRow[];
   const enrolledStudentIds = enrollments.map((item) => item.student_id);
 
@@ -250,17 +272,31 @@ export default async function AdminClassDetailPage({
           {enrolledStudentIds.length === 0 ? (
             <p className="text-sm text-charcoal/60 dark:text-navy-400">No students enrolled.</p>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <ul className="divide-y divide-warm-100 dark:divide-navy-700 rounded-lg border border-warm-200 dark:border-navy-600 overflow-hidden">
               {enrolledStudentIds.map((id) => (
-                <Link
+                <li
                   key={id}
-                  href={`/portal/admin/students/${id}`}
-                  className="inline-flex px-2.5 py-1 rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-800 text-sm hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors"
+                  className="flex items-center justify-between gap-3 px-3 py-2 bg-warm-50 dark:bg-navy-800 hover:bg-warm-100 dark:hover:bg-navy-700 transition-colors"
                 >
-                  {profileMap[id]?.display_name || profileMap[id]?.email || id}
-                </Link>
+                  <Link
+                    href={`/portal/admin/students/${id}`}
+                    className="text-sm font-medium text-navy-800 dark:text-white hover:underline truncate"
+                  >
+                    {profileMap[id]?.display_name || profileMap[id]?.email || id}
+                  </Link>
+                  <form>
+                    <ConfirmDeleteButton
+                      action={unenrollStudent}
+                      hiddenFields={{ class_id: classId, student_id: id }}
+                      confirmMessage="Remove this student from the class? Their account stays; they just come off the active roster. Past attendance and homework are preserved."
+                      className="px-2.5 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-xs font-semibold text-charcoal/70 dark:text-navy-200 hover:text-red-600 hover:border-red-300 dark:hover:text-red-300 dark:hover:border-red-700"
+                    >
+                      Remove from class
+                    </ConfirmDeleteButton>
+                  </form>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
 
