@@ -75,6 +75,71 @@ export async function getTodayClassesForCoach(
   return classes.filter((classRow) => isClassToday(classRow, now));
 }
 
+export type TodayPrivateGroupSession = {
+  sessionId: string;
+  classId: string;
+  className: string;
+  classTimezone: string;
+  startTime: string;
+  endTime: string;
+  sessionTimezone: string;
+  zoomLink: string | null;
+};
+
+// Returns today's private session group sessions where this coach is teaching.
+// These are private_sessions rows tied to a classroom (class_id is set).
+export async function getTodayPrivateGroupSessionsForCoach(
+  supabase: Client,
+  coachId: string,
+  now = new Date()
+): Promise<TodayPrivateGroupSession[]> {
+  const today = now.toISOString().slice(0, 10);
+  const { data: sessionRows } = await supabase
+    .from('private_sessions')
+    .select('id,class_id,requested_start_time,requested_end_time,timezone,zoom_link,status')
+    .eq('coach_id', coachId)
+    .eq('requested_date', today)
+    .not('class_id', 'is', null)
+    .neq('status', 'cancelled')
+    .order('requested_start_time', { ascending: true });
+
+  const rows = (sessionRows ?? []) as Array<{
+    id: string;
+    class_id: string | null;
+    requested_start_time: string;
+    requested_end_time: string;
+    timezone: string;
+    zoom_link: string | null;
+    status: string;
+  }>;
+  if (rows.length === 0) return [];
+
+  const classIds = [...new Set(rows.map((row) => row.class_id).filter((id): id is string => Boolean(id)))];
+  const { data: classData } = await supabase
+    .from('classes')
+    .select('id,name,timezone')
+    .in('id', classIds);
+  const classMap = new Map(
+    ((classData ?? []) as Array<{ id: string; name: string; timezone: string }>).map((c) => [c.id, c])
+  );
+
+  return rows
+    .filter((row) => row.class_id && classMap.has(row.class_id))
+    .map((row) => {
+      const klass = classMap.get(row.class_id as string)!;
+      return {
+        sessionId: row.id,
+        classId: row.class_id as string,
+        className: klass.name,
+        classTimezone: klass.timezone,
+        startTime: row.requested_start_time,
+        endTime: row.requested_end_time,
+        sessionTimezone: row.timezone,
+        zoomLink: row.zoom_link,
+      };
+    });
+}
+
 export async function getProfileMap(supabase: Client, ids: Array<string | null | undefined>) {
   const normalizedIds = [...new Set(ids.filter((id): id is string => Boolean(id)))];
   if (normalizedIds.length === 0) return {} as Record<string, Database['public']['Tables']['profiles']['Row']>;

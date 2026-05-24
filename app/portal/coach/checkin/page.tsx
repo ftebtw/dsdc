@@ -4,13 +4,20 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import CoachCheckinList from '@/app/portal/_components/CoachCheckinList';
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { getTodayClassesForCoach } from '@/lib/portal/data';
-import { getSessionDateForClassTimezone, formatClassScheduleForViewer } from '@/lib/portal/time';
+import { getTodayClassesForCoach, getTodayPrivateGroupSessionsForCoach } from '@/lib/portal/data';
+import {
+  getSessionDateForClassTimezone,
+  formatClassScheduleForViewer,
+  formatSessionRangeForViewer,
+} from '@/lib/portal/time';
 
 export default async function CoachCheckinPage() {
   const session = await requireRole(['coach', 'ta']);
   const supabase = await getSupabaseServerClient();
-  const todayClasses = await getTodayClassesForCoach(supabase, session.userId);
+  const [todayClasses, todayPrivateSessions] = await Promise.all([
+    getTodayClassesForCoach(supabase, session.userId),
+    getTodayPrivateGroupSessionsForCoach(supabase, session.userId),
+  ]);
 
   const checkins = await Promise.all(
     todayClasses.map(async (classRow) => {
@@ -26,18 +33,59 @@ export default async function CoachCheckinPage() {
     })
   );
 
-  const classItems = todayClasses.map((classRow) => ({
-    id: classRow.id,
-    name: classRow.name,
-    schedule: formatClassScheduleForViewer(
-      classRow.schedule_day,
-      classRow.schedule_start_time,
-      classRow.schedule_end_time,
-      classRow.timezone,
-      session.profile.timezone
-    ),
-    timezone: classRow.timezone,
-  }));
+  // De-dupe private group classrooms — multiple sessions today share one check-in.
+  const privateGroupClassIds = [...new Set(todayPrivateSessions.map((row) => row.classId))];
+  const privateCheckins = await Promise.all(
+    privateGroupClassIds.map(async (classId) => {
+      const classTimezone =
+        todayPrivateSessions.find((row) => row.classId === classId)?.classTimezone ||
+        session.profile.timezone;
+      const sessionDate = getSessionDateForClassTimezone(classTimezone);
+      const { data } = await supabase
+        .from('coach_checkins')
+        .select('checked_in_at')
+        .eq('coach_id', session.userId)
+        .eq('class_id', classId)
+        .eq('session_date', sessionDate)
+        .maybeSingle();
+      return [classId, data?.checked_in_at ?? null] as const;
+    })
+  );
+
+  const classItems = [
+    ...todayClasses.map((classRow) => ({
+      id: classRow.id,
+      name: classRow.name,
+      schedule: formatClassScheduleForViewer(
+        classRow.schedule_day,
+        classRow.schedule_start_time,
+        classRow.schedule_end_time,
+        classRow.timezone,
+        session.profile.timezone
+      ),
+      timezone: classRow.timezone,
+    })),
+    // One row per private session (so a coach with multiple group sessions today
+    // sees them all). Check-in itself is class-scoped, so multiple rows share state.
+    ...todayPrivateSessions.map((row) => ({
+      id: row.classId,
+      name: `${row.className} (Private)`,
+      schedule: (() => {
+        try {
+          return formatSessionRangeForViewer(
+            new Date().toISOString().slice(0, 10),
+            row.startTime,
+            row.endTime,
+            row.sessionTimezone,
+            session.profile.timezone
+          );
+        } catch {
+          return `${row.startTime.slice(0, 5)}-${row.endTime.slice(0, 5)} (${row.sessionTimezone})`;
+        }
+      })(),
+      timezone: row.classTimezone,
+    })),
+  ];
 
   return (
     <SectionCard
@@ -48,7 +96,9 @@ export default async function CoachCheckinPage() {
         userId={session.userId}
         timezone={session.profile.timezone}
         classes={classItems}
-        initialCheckins={Object.fromEntries(checkins.filter((entry) => Boolean(entry[1])))}
+        initialCheckins={Object.fromEntries(
+          [...checkins, ...privateCheckins].filter((entry) => Boolean(entry[1]))
+        )}
       />
     </SectionCard>
   );

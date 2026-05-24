@@ -4,8 +4,12 @@ import Link from 'next/link';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { getTodayClassesForCoach } from '@/lib/portal/data';
-import { getSessionDateForClassTimezone, formatClassScheduleForViewer } from '@/lib/portal/time';
+import { getTodayClassesForCoach, getTodayPrivateGroupSessionsForCoach } from '@/lib/portal/data';
+import {
+  getSessionDateForClassTimezone,
+  formatClassScheduleForViewer,
+  formatSessionRangeForViewer,
+} from '@/lib/portal/time';
 import { portalT } from '@/lib/portal/parent-i18n';
 
 export default async function CoachDashboardPage() {
@@ -14,7 +18,10 @@ export default async function CoachDashboardPage() {
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
 
   const supabase = await getSupabaseServerClient();
-  const todayClasses = await getTodayClassesForCoach(supabase, session.userId);
+  const [todayClasses, todayPrivateSessions] = await Promise.all([
+    getTodayClassesForCoach(supabase, session.userId),
+    getTodayPrivateGroupSessionsForCoach(supabase, session.userId),
+  ]);
   const todayDate = new Date().toISOString().slice(0, 10);
   const [{ data: todaySubs }, { data: todayTAs }] = await Promise.all([
     supabase
@@ -56,7 +63,29 @@ export default async function CoachDashboardPage() {
     })
   );
 
-  const checkinMap = Object.fromEntries(checkins.map((row) => [row.classId, row.checkedInAt]));
+  // De-dupe private group classrooms — multiple sessions today should still
+  // share a single check-in row (keyed on class_id + session_date).
+  const privateGroupClassIds = [...new Set(todayPrivateSessions.map((row) => row.classId))];
+  const privateCheckins = await Promise.all(
+    privateGroupClassIds.map(async (classId) => {
+      const classTimezone =
+        todayPrivateSessions.find((row) => row.classId === classId)?.classTimezone ||
+        session.profile.timezone;
+      const sessionDate = getSessionDateForClassTimezone(classTimezone);
+      const { data } = await supabase
+        .from('coach_checkins')
+        .select('checked_in_at')
+        .eq('coach_id', session.userId)
+        .eq('class_id', classId)
+        .eq('session_date', sessionDate)
+        .maybeSingle();
+      return { classId, checkedInAt: data?.checked_in_at ?? null };
+    })
+  );
+
+  const checkinMap = Object.fromEntries(
+    [...checkins, ...privateCheckins].map((row) => [row.classId, row.checkedInAt])
+  );
 
   return (
     <div className="space-y-6">
@@ -64,7 +93,7 @@ export default async function CoachDashboardPage() {
         title={t('portal.coachDashboard.title', 'Coach Dashboard')}
         description={t('portal.coachDashboard.description', "Today's classes and fast actions for check-in and attendance.")}
       >
-        {todayClasses.length === 0 ? (
+        {todayClasses.length === 0 && todayPrivateSessions.length === 0 ? (
           <p className="text-sm text-charcoal/70 dark:text-navy-300">
             {t('portal.coachDashboard.empty', 'No classes scheduled for today.')}
           </p>
@@ -105,6 +134,71 @@ export default async function CoachDashboardPage() {
                   </Link>
                   <Link
                     href={`/portal/coach/attendance/${classRow.id}`}
+                    className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                  >
+                    {t('portal.coachDashboard.markAttendance', 'Mark Attendance')}
+                  </Link>
+                </div>
+              </article>
+            ))}
+            {todayPrivateSessions.map((row) => (
+              <article
+                key={row.sessionId}
+                className="rounded-xl border border-violet-200 dark:border-violet-700 bg-violet-50 dark:bg-violet-900/20 p-4"
+              >
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-navy-800 dark:text-white">{row.className}</h3>
+                  <span className="text-xs uppercase tracking-wide text-violet-700 dark:text-violet-300">
+                    {t('portal.coachDashboard.privateBadge', 'Private')}
+                  </span>
+                </div>
+                <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-1">
+                  {(() => {
+                    try {
+                      return formatSessionRangeForViewer(
+                        new Date().toISOString().slice(0, 10),
+                        row.startTime,
+                        row.endTime,
+                        row.sessionTimezone,
+                        session.profile.timezone
+                      );
+                    } catch {
+                      return `${row.startTime.slice(0, 5)}-${row.endTime.slice(0, 5)} (${row.sessionTimezone})`;
+                    }
+                  })()}
+                </p>
+                <p className="text-sm mt-2">
+                  {checkinMap[row.classId] ? (
+                    <span className="text-green-700 dark:text-green-400">
+                      {t('portal.coachDashboard.checkedIn', 'Checked in')}
+                    </span>
+                  ) : (
+                    <span className="text-gold-700 dark:text-gold-300">
+                      {t('portal.coachDashboard.notCheckedInYet', 'Not checked in yet')}
+                    </span>
+                  )}
+                </p>
+                {row.zoomLink ? (
+                  <p className="text-sm mt-1">
+                    <a
+                      href={row.zoomLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-navy-700 dark:text-navy-200"
+                    >
+                      {t('portal.coachDashboard.openZoom', 'Open Zoom link')}
+                    </a>
+                  </p>
+                ) : null}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link
+                    href="/portal/coach/checkin"
+                    className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold"
+                  >
+                    {t('portal.coachDashboard.checkIn', 'Check-in')}
+                  </Link>
+                  <Link
+                    href={`/portal/coach/attendance/${row.classId}`}
                     className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
                   >
                     {t('portal.coachDashboard.markAttendance', 'Mark Attendance')}
