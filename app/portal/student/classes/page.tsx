@@ -161,7 +161,10 @@ export default async function StudentClassesPage() {
   }));
 
   const privateGroupClasses = classRows
-    .filter((classRow: any) => classRow.is_private_session_group && classRow.enrollment_status === 'active')
+    .filter(
+      (classRow: any) =>
+        classRow.is_private_session_group && classRow.enrollment_status === 'active' && !classRow.archived_at
+    )
     .sort((left: any, right: any) => String(left.name ?? '').localeCompare(String(right.name ?? '')));
 
   // Fetch upcoming sessions for the student's private groups so we can show the next meeting.
@@ -186,20 +189,35 @@ export default async function StudentClassesPage() {
     .filter(
       (classRow: any) =>
         !classRow.is_private_session_group &&
+        !classRow.archived_at &&
         classRow.term?.is_active &&
         classRow.enrollment_status === 'active'
     )
     .sort(compareBySchedule);
 
+  // Past = archived (regardless of term) OR enrolled in a non-active term.
   const pastClasses = classRows
-    .filter((classRow: any) => !classRow.is_private_session_group && classRow.term && !classRow.term.is_active)
+    .filter(
+      (classRow: any) =>
+        !classRow.is_private_session_group &&
+        (Boolean(classRow.archived_at) || (classRow.term && !classRow.term.is_active))
+    )
     .sort((left: any, right: any) => {
-      const termDiff =
-        new Date(right.term.start_date || right.term.end_date || 0).getTime() -
-        new Date(left.term.start_date || left.term.end_date || 0).getTime();
+      const leftDate = left.archived_at ? new Date(left.archived_at).getTime() : 0;
+      const rightDate = right.archived_at ? new Date(right.archived_at).getTime() : 0;
+      const archivedDiff = rightDate - leftDate;
+      if (archivedDiff !== 0) return archivedDiff;
+      const leftTerm = left.term ? new Date(left.term.start_date || left.term.end_date || 0).getTime() : 0;
+      const rightTerm = right.term ? new Date(right.term.start_date || right.term.end_date || 0).getTime() : 0;
+      const termDiff = rightTerm - leftTerm;
       if (termDiff !== 0) return termDiff;
       return compareBySchedule(left, right);
     });
+
+  // Archived private groups also count as past.
+  const pastPrivateGroupClasses = classRows
+    .filter((classRow: any) => classRow.is_private_session_group && classRow.archived_at)
+    .sort((left: any, right: any) => String(left.name ?? '').localeCompare(String(right.name ?? '')));
 
   const renderPrivateGroupCard = (classRow: any) => {
     const coach = profileMap[classRow.coach_id];
@@ -376,7 +394,10 @@ export default async function StudentClassesPage() {
             : t('portal.student.classes.noTerm', 'No active term is configured right now.')
         }
       >
-        {currentClasses.length === 0 && pastClasses.length === 0 && privateGroupClasses.length === 0 ? (
+        {currentClasses.length === 0 &&
+        pastClasses.length === 0 &&
+        privateGroupClasses.length === 0 &&
+        pastPrivateGroupClasses.length === 0 ? (
           <EnrollmentRequiredBanner role="student" locale={session.profile.locale === "zh" ? "zh" : "en"} />
         ) : (
           <div className="space-y-4">
@@ -400,12 +421,15 @@ export default async function StudentClassesPage() {
               </div>
             ) : null}
 
-            {pastClasses.length > 0 ? (
+            {pastClasses.length > 0 || pastPrivateGroupClasses.length > 0 ? (
               <div className="pt-4 border-t border-warm-200 dark:border-navy-700 space-y-4">
                 <h3 className="font-semibold text-navy-800 dark:text-white">
                   {t('portal.student.classes.pastEnrollments', 'Past Enrollments')}
                 </h3>
-                <div className="space-y-4">{pastClasses.map((classRow: any) => renderClassCard(classRow, true))}</div>
+                <div className="space-y-4">
+                  {pastClasses.map((classRow: any) => renderClassCard(classRow, true))}
+                  {pastPrivateGroupClasses.map(renderPrivateGroupCard)}
+                </div>
               </div>
             ) : null}
           </div>

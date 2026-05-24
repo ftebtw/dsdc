@@ -136,7 +136,10 @@ export default async function ParentClassesPage({
   }));
 
   const privateGroupClasses = classRows
-    .filter((classRow: any) => classRow.is_private_session_group && classRow.enrollment_status === 'active')
+    .filter(
+      (classRow: any) =>
+        classRow.is_private_session_group && classRow.enrollment_status === 'active' && !classRow.archived_at
+    )
     .sort((left: any, right: any) => String(left.name ?? '').localeCompare(String(right.name ?? '')));
 
   // Fetch upcoming sessions for these private groups (scoped to the selected student so a
@@ -162,20 +165,34 @@ export default async function ParentClassesPage({
     .filter(
       (classRow: any) =>
         !classRow.is_private_session_group &&
+        !classRow.archived_at &&
         classRow.term?.is_active &&
         classRow.enrollment_status === 'active'
     )
     .sort(compareBySchedule);
 
+  // Past = archived (regardless of term) OR enrolled in a non-active term.
   const pastClasses = classRows
-    .filter((classRow: any) => !classRow.is_private_session_group && classRow.term && !classRow.term.is_active)
+    .filter(
+      (classRow: any) =>
+        !classRow.is_private_session_group &&
+        (Boolean(classRow.archived_at) || (classRow.term && !classRow.term.is_active))
+    )
     .sort((left: any, right: any) => {
-      const termDiff =
-        new Date(right.term.start_date || right.term.end_date || 0).getTime() -
-        new Date(left.term.start_date || left.term.end_date || 0).getTime();
+      const leftArchived = left.archived_at ? new Date(left.archived_at).getTime() : 0;
+      const rightArchived = right.archived_at ? new Date(right.archived_at).getTime() : 0;
+      const archivedDiff = rightArchived - leftArchived;
+      if (archivedDiff !== 0) return archivedDiff;
+      const leftTerm = left.term ? new Date(left.term.start_date || left.term.end_date || 0).getTime() : 0;
+      const rightTerm = right.term ? new Date(right.term.start_date || right.term.end_date || 0).getTime() : 0;
+      const termDiff = rightTerm - leftTerm;
       if (termDiff !== 0) return termDiff;
       return compareBySchedule(left, right);
     });
+
+  const pastPrivateGroupClasses = classRows
+    .filter((classRow: any) => classRow.is_private_session_group && classRow.archived_at)
+    .sort((left: any, right: any) => String(left.name ?? '').localeCompare(String(right.name ?? '')));
 
   const renderPrivateGroupCard = (classRow: any) => {
     const upcoming = upcomingSessionsByGroup.get(classRow.id) ?? [];
@@ -337,7 +354,10 @@ export default async function ParentClassesPage({
             }`
       }
     >
-      {currentClasses.length === 0 && pastClasses.length === 0 && privateGroupClasses.length === 0 ? (
+      {currentClasses.length === 0 &&
+      pastClasses.length === 0 &&
+      privateGroupClasses.length === 0 &&
+      pastPrivateGroupClasses.length === 0 ? (
         <p className="text-sm text-charcoal/70 dark:text-navy-300">
           {parentT(locale, 'portal.parent.common.noActiveEnrollments', 'No active enrollments.')}
         </p>
@@ -363,12 +383,15 @@ export default async function ParentClassesPage({
             </div>
           ) : null}
 
-          {pastClasses.length > 0 ? (
+          {pastClasses.length > 0 || pastPrivateGroupClasses.length > 0 ? (
             <div className="pt-4 border-t border-warm-200 dark:border-navy-700 space-y-4">
               <h3 className="font-semibold text-navy-800 dark:text-white">
                 {parentT(locale, 'portal.parent.classes.pastEnrollments', 'Past Enrollments')}
               </h3>
-              <div className="space-y-4">{pastClasses.map((classRow: any) => renderClassCard(classRow, true))}</div>
+              <div className="space-y-4">
+                {pastClasses.map((classRow: any) => renderClassCard(classRow, true))}
+                {pastPrivateGroupClasses.map(renderPrivateGroupCard)}
+              </div>
             </div>
           ) : null}
         </div>

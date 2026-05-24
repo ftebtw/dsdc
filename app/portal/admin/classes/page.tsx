@@ -12,7 +12,7 @@ import { getProfileMap } from '@/lib/portal/data';
 import { formatClassScheduleForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
-import { createClass, updateClass, deleteClass, cloneClassesToTerm } from './actions';
+import { createClass, updateClass, deleteClass, cloneClassesToTerm, archiveClass, unarchiveClass } from './actions';
 
 const classTypes: Database['public']['Enums']['class_type'][] = [
   'novice_debate',
@@ -66,6 +66,9 @@ export default async function AdminClassesPage({
     saved?: string;
     deleted?: string;
     cloned?: string;
+    archived?: string;
+    unarchived?: string;
+    show_archived?: string;
     error?: string;
   }>;
 }) {
@@ -103,15 +106,20 @@ export default async function AdminClassesPage({
   const selectedTermId =
     params.term || terms.find((term: any) => term.is_active)?.id || terms[0]?.id || '';
 
+  const showArchived = params.show_archived === '1';
+
+  let classesQuery = supabase
+    .from('classes')
+    .select('*')
+    .eq('term_id', selectedTermId)
+    // Private session group classrooms have NULL term_id, so they wouldn't match
+    // the filter above either — this is a defensive guard.
+    .eq('is_private_session_group', false)
+    .order('name');
+  if (!showArchived) classesQuery = classesQuery.is('archived_at', null);
+
   const classes = selectedTermId
-    ? (((await supabase
-        .from('classes')
-        .select('*')
-        .eq('term_id', selectedTermId)
-        // Private session group classrooms have NULL term_id, so they wouldn't match
-        // the filter above either — this is a defensive guard.
-        .eq('is_private_session_group', false)
-        .order('name')).data ?? []) as Array<Record<string, any>>)
+    ? (((await classesQuery).data ?? []) as Array<Record<string, any>>)
     : ([] as Array<Record<string, any>>);
 
   const coachIds = coachProfiles.map((row: any) => row.coach_id);
@@ -146,6 +154,8 @@ export default async function AdminClassesPage({
           saved: 'Class saved.',
           deleted: 'Class deleted.',
           cloned: 'Classes cloned to target term.',
+          archived: 'Class archived. It still appears for enrolled students under Past Classes.',
+          unarchived: 'Class restored.',
         }}
         errorMessages={{
           missing_record: 'Class not found.',
@@ -155,6 +165,8 @@ export default async function AdminClassesPage({
           target_term_not_empty: 'The target term already has classes; clone aborted.',
           source_term_empty: 'The source term has no classes to clone.',
           clone_failed: 'Cloning classes failed. Please try again.',
+          archive_failed: 'Could not archive the class. Please try again.',
+          unarchive_failed: 'Could not restore the class. Please try again.',
         }}
       />
       <SectionCard title="Classes by Term" description="Create and manage class schedules for each term.">
@@ -171,6 +183,10 @@ export default async function AdminClassesPage({
               </option>
             ))}
           </select>
+          <label className="flex items-center gap-1.5 text-sm text-navy-700 dark:text-navy-200">
+            <input type="checkbox" name="show_archived" value="1" defaultChecked={showArchived} />
+            Show archived
+          </label>
           <button className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
             Load
           </button>
@@ -499,6 +515,19 @@ export default async function AdminClassesPage({
                       .join(', ')}
                   </p>
                 ) : null}
+                {classRow.archived_at ? (
+                  <p className="lg:col-span-4 text-xs text-violet-700 dark:text-violet-300">
+                    Archived on {new Date(classRow.archived_at).toLocaleDateString()}. Hidden from this list by default;
+                    still visible to enrolled students under Past Classes.
+                  </p>
+                ) : null}
+                <input
+                  type="hidden"
+                  name="redirect_to"
+                  value={`/portal/admin/classes?term=${encodeURIComponent(selectedTermId)}${
+                    showArchived ? '&show_archived=1' : ''
+                  }`}
+                />
                 <div className="lg:col-span-4 flex flex-wrap items-center gap-2">
                   <button type="submit" className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold">
                     Save
@@ -508,6 +537,23 @@ export default async function AdminClassesPage({
                     className={classRow.name}
                     scheduleDay={classRow.schedule_day}
                   />
+                  {classRow.archived_at ? (
+                    <button
+                      type="submit"
+                      formAction={unarchiveClass}
+                      className="px-3 py-1.5 rounded-md border border-violet-400 bg-violet-50 dark:border-violet-700 dark:bg-violet-900/30 text-violet-800 dark:text-violet-200 text-sm"
+                    >
+                      Unarchive
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      formAction={archiveClass}
+                      className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                    >
+                      Archive
+                    </button>
+                  )}
                   <ConfirmDeleteButton
                     action={deleteClass}
                     hiddenFields={{ id: classRow.id }}

@@ -143,6 +143,49 @@ export async function deleteClass(formData: FormData) {
   redirect("/portal/admin/classes?deleted=1");
 }
 
+export async function archiveClass(formData: FormData) {
+  const session = await requireRole(["admin"]);
+  const supabase = await getSupabaseServerClient();
+  const classId = String(formData.get("id") || "");
+  const redirectTo = String(formData.get("redirect_to") || "/portal/admin/classes");
+  if (!classId) {
+    redirect(`${redirectTo}?error=missing_record`);
+  }
+  const { error } = await (supabase as any)
+    .from("classes")
+    .update({
+      archived_at: new Date().toISOString(),
+      archived_by: session.userId,
+    })
+    .eq("id", classId);
+  if (error) {
+    console.error("[admin-classes] archive failed", error);
+    redirect(`${redirectTo}?error=archive_failed`);
+  }
+  revalidatePath("/portal/admin/classes");
+  redirect(`${redirectTo}?archived=1`);
+}
+
+export async function unarchiveClass(formData: FormData) {
+  await requireRole(["admin"]);
+  const supabase = await getSupabaseServerClient();
+  const classId = String(formData.get("id") || "");
+  const redirectTo = String(formData.get("redirect_to") || "/portal/admin/classes");
+  if (!classId) {
+    redirect(`${redirectTo}?error=missing_record`);
+  }
+  const { error } = await (supabase as any)
+    .from("classes")
+    .update({ archived_at: null, archived_by: null })
+    .eq("id", classId);
+  if (error) {
+    console.error("[admin-classes] unarchive failed", error);
+    redirect(`${redirectTo}?error=unarchive_failed`);
+  }
+  revalidatePath("/portal/admin/classes");
+  redirect(`${redirectTo}?unarchived=1`);
+}
+
 export async function cloneClassesToTerm(formData: FormData) {
   await requireRole(["admin"]);
   const supabase = await getSupabaseServerClient();

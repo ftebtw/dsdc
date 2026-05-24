@@ -26,6 +26,7 @@ export default async function CoachClassesPage() {
     .select('id,name,description,timezone,zoom_link')
     .eq('coach_id', session.userId)
     .eq('is_private_session_group', true)
+    .is('archived_at', null)
     .order('name', { ascending: true });
   const privateGroups = (privateGroupRowsData ?? []) as Array<{
     id: string;

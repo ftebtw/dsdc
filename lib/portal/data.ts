@@ -31,6 +31,7 @@ export async function getClassesForCoachInActiveTerm(
     .select('*')
     .eq('coach_id', coachId)
     .eq('term_id', activeTerm.id)
+    .is('archived_at', null)
     .order('schedule_start_time', { ascending: true });
 
   // Classes where this coach is an additional co-coach.
@@ -47,6 +48,7 @@ export async function getClassesForCoachInActiveTerm(
       .select('*')
       .in('id', coClassIds)
       .eq('term_id', activeTerm.id)
+      .is('archived_at', null)
       .order('schedule_start_time', { ascending: true });
     secondary = data ?? [];
   }
@@ -140,7 +142,8 @@ export async function getTodayPrivateGroupSessionsForCoach(
   const { data: classData } = await supabase
     .from('classes')
     .select('id,name,timezone')
-    .in('id', classIds);
+    .in('id', classIds)
+    .is('archived_at', null);
   const classMap = new Map(
     ((classData ?? []) as Array<{ id: string; name: string; timezone: string }>).map((c) => [c.id, c])
   );
