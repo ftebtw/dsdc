@@ -1,4 +1,5 @@
 import 'server-only';
+import { formatInTimeZone } from 'date-fns-tz';
 import type { Database } from '@/lib/supabase/database.types';
 import { isClassInDateRange, isClassToday } from '@/lib/portal/time';
 
@@ -88,17 +89,26 @@ export type TodayPrivateGroupSession = {
 
 // Returns today's private session group sessions where this coach is teaching.
 // These are private_sessions rows tied to a classroom (class_id is set).
+//
+// Date matching is timezone-aware: a session's "today" is computed in that
+// session's own timezone (since requested_date is the local calendar date,
+// not a UTC date). We query a 3-day window in UTC to catch sessions whose
+// requested_date is "today" in their local timezone but UTC-yesterday or
+// UTC-tomorrow on the server clock.
 export async function getTodayPrivateGroupSessionsForCoach(
   supabase: Client,
   coachId: string,
   now = new Date()
 ): Promise<TodayPrivateGroupSession[]> {
-  const today = now.toISOString().slice(0, 10);
+  const utcToday = now.toISOString().slice(0, 10);
+  const utcYesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const utcTomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
   const { data: sessionRows } = await supabase
     .from('private_sessions')
-    .select('id,class_id,requested_start_time,requested_end_time,timezone,zoom_link,status')
+    .select('id,class_id,requested_date,requested_start_time,requested_end_time,timezone,zoom_link,status')
     .eq('coach_id', coachId)
-    .eq('requested_date', today)
+    .in('requested_date', [utcYesterday, utcToday, utcTomorrow])
     .not('class_id', 'is', null)
     .neq('status', 'cancelled')
     .order('requested_start_time', { ascending: true });
@@ -106,6 +116,7 @@ export async function getTodayPrivateGroupSessionsForCoach(
   const rows = (sessionRows ?? []) as Array<{
     id: string;
     class_id: string | null;
+    requested_date: string;
     requested_start_time: string;
     requested_end_time: string;
     timezone: string;
@@ -114,7 +125,18 @@ export async function getTodayPrivateGroupSessionsForCoach(
   }>;
   if (rows.length === 0) return [];
 
-  const classIds = [...new Set(rows.map((row) => row.class_id).filter((id): id is string => Boolean(id)))];
+  // Keep only rows where requested_date equals "today" in that session's own timezone.
+  const matching = rows.filter((row) => {
+    try {
+      const localToday = formatInTimeZone(now, row.timezone, 'yyyy-MM-dd');
+      return row.requested_date === localToday;
+    } catch {
+      return row.requested_date === utcToday;
+    }
+  });
+  if (matching.length === 0) return [];
+
+  const classIds = [...new Set(matching.map((row) => row.class_id).filter((id): id is string => Boolean(id)))];
   const { data: classData } = await supabase
     .from('classes')
     .select('id,name,timezone')
@@ -123,7 +145,7 @@ export async function getTodayPrivateGroupSessionsForCoach(
     ((classData ?? []) as Array<{ id: string; name: string; timezone: string }>).map((c) => [c.id, c])
   );
 
-  return rows
+  return matching
     .filter((row) => row.class_id && classMap.has(row.class_id))
     .map((row) => {
       const klass = classMap.get(row.class_id as string)!;
