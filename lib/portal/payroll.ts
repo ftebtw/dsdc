@@ -241,11 +241,11 @@ export async function fetchPayrollDataset(
   const { data: classesData, error: classesError } = classIds.length
     ? await supabase
         .from('classes')
-        .select('id,name,schedule_start_time,schedule_end_time,timezone')
+        .select('id,name,schedule_start_time,schedule_end_time,timezone,is_private_session_group')
         .in('id', classIds)
     : { data: [] as ClassRow[], error: null as { message: string } | null };
   if (classesError) throw new Error(classesError.message);
-  const classes = (classesData ?? []) as ClassRow[];
+  const classes = (classesData ?? []) as Array<ClassRow & { is_private_session_group: boolean | null }>;
 
   const studentIds = [...new Set(privateSessions.map((row) => row.student_id))];
   const { data: studentProfilesData, error: studentProfilesError } = studentIds.length
@@ -284,10 +284,24 @@ export async function fetchPayrollDataset(
 
   const sessions: PayrollSessionRow[] = [];
   for (const checkin of checkins) {
-    const classRow = classMap[checkin.class_id];
+    const classRow = classMap[checkin.class_id] as
+      | (ClassRow & { is_private_session_group?: boolean | null })
+      | undefined;
     const coachProfile = coachProfileMap[checkin.coach_id];
     const profile = profileMap[checkin.coach_id];
     if (!classRow || !coachProfile || !profile) continue;
+
+    // Private session group classrooms have NULL schedule_* fields. Their
+    // payroll comes from the private_sessions loop below using each session's
+    // own start/end times — skip the group check-in here to avoid splitting
+    // null.
+    if (
+      classRow.is_private_session_group ||
+      !classRow.schedule_start_time ||
+      !classRow.schedule_end_time
+    ) {
+      continue;
+    }
 
     const durationHours = scheduledDurationHours(
       classRow.schedule_start_time,
@@ -547,10 +561,20 @@ export async function fetchPayrollTotalHours(
   if (classIds.length > 0) {
     const { data: classesData, error: classesError } = await supabase
       .from('classes')
-      .select('id,schedule_start_time,schedule_end_time')
+      .select('id,schedule_start_time,schedule_end_time,is_private_session_group')
       .in('id', classIds);
     if (classesError) throw new Error(classesError.message);
-    for (const row of (classesData ?? []) as Array<{ id: string; schedule_start_time: string; schedule_end_time: string }>) {
+    for (const row of (classesData ?? []) as Array<{
+      id: string;
+      schedule_start_time: string | null;
+      schedule_end_time: string | null;
+      is_private_session_group: boolean | null;
+    }>) {
+      // Private session group classrooms have NULL schedule_* — their hours
+      // come from the private_sessions table below.
+      if (row.is_private_session_group || !row.schedule_start_time || !row.schedule_end_time) {
+        continue;
+      }
       classDurationMap.set(row.id, scheduledDurationHours(row.schedule_start_time, row.schedule_end_time));
     }
   }
