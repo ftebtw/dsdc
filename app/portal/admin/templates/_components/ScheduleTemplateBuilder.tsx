@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Download, FileImage, FileText, Plus, Trash2 } from "lucide-react";
+import { Check, Download, FileImage, FileText, FolderOpen, Plus, Save, Trash2 } from "lucide-react";
 import InstructorsEditor from "./InstructorsEditor";
 import RecurrenceEditor from "./RecurrenceEditor";
 import SingleClassPoster from "./SingleClassPoster";
@@ -15,6 +15,16 @@ import {
   type Instructor,
   type PosterAspect,
 } from "./types";
+
+type SavedTemplate = {
+  id: string;
+  name: string;
+  mode: BuilderMode;
+  data: Record<string, unknown>;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
 
 export default function ScheduleTemplateBuilder({
   defaultTimezone,
@@ -40,6 +50,173 @@ export default function ScheduleTemplateBuilder({
   ]);
   const [aspect, setAspect] = useState<PosterAspect>(mode === "term" ? "landscape" : "portrait");
   const [busy, setBusy] = useState<"png" | "pdf" | null>(null);
+
+  // Saved templates state
+  const [savedTemplates, setSavedTemplates] = useState<SavedTemplate[]>([]);
+  const [loadedTemplateId, setLoadedTemplateId] = useState<string | null>(null);
+  const [loadedTemplateName, setLoadedTemplateName] = useState<string>("");
+  const [showNameInput, setShowNameInput] = useState(false);
+  const [nameInputValue, setNameInputValue] = useState("");
+  const [templatesBusy, setTemplatesBusy] = useState<null | "save" | "update" | "delete">(null);
+  const [templatesError, setTemplatesError] = useState<string | null>(null);
+
+  // Fetch saved templates on mount.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/portal/schedule-templates");
+        const json = (await res.json()) as { templates?: SavedTemplate[]; error?: string };
+        if (cancelled) return;
+        if (res.ok && json.templates) {
+          setSavedTemplates(json.templates);
+        }
+      } catch (e) {
+        if (!cancelled) console.error("Failed to load saved templates", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function serializeCurrent(): { mode: BuilderMode; data: Record<string, unknown> } {
+    if (mode === "single") {
+      return {
+        mode: "single",
+        data: { timezone, aspect, entry: singleEntry },
+      };
+    }
+    return {
+      mode: "term",
+      data: {
+        timezone,
+        aspect,
+        termTitle,
+        termSubtitle,
+        entries: termEntries,
+      },
+    };
+  }
+
+  function applyTemplate(template: SavedTemplate) {
+    setLoadedTemplateId(template.id);
+    setLoadedTemplateName(template.name);
+    const data = template.data as Record<string, unknown>;
+    const tz = typeof data.timezone === "string" ? data.timezone : timezone;
+    const tplAspect = (data.aspect as PosterAspect) ?? (template.mode === "term" ? "landscape" : "portrait");
+    setTimezone(tz);
+    setAspect(tplAspect);
+    setMode(template.mode);
+    if (template.mode === "single" && data.entry) {
+      setSingleEntry(data.entry as ClassEntry);
+    } else if (template.mode === "term") {
+      if (typeof data.termTitle === "string") setTermTitle(data.termTitle);
+      if (typeof data.termSubtitle === "string") setTermSubtitle(data.termSubtitle);
+      if (Array.isArray(data.entries)) setTermEntries(data.entries as ClassEntry[]);
+    }
+    setTemplatesError(null);
+  }
+
+  function clearLoadedReference() {
+    setLoadedTemplateId(null);
+    setLoadedTemplateName("");
+  }
+
+  async function saveAsNew(name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setTemplatesError("Template name is required.");
+      return;
+    }
+    setTemplatesBusy("save");
+    setTemplatesError(null);
+    try {
+      const payload = { name: trimmed, ...serializeCurrent() };
+      const res = await fetch("/api/portal/schedule-templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = (await res.json()) as { template?: SavedTemplate; error?: string };
+      if (!res.ok || !json.template) {
+        setTemplatesError(json.error || "Failed to save template.");
+        return;
+      }
+      setSavedTemplates((prev) => [json.template!, ...prev]);
+      setLoadedTemplateId(json.template.id);
+      setLoadedTemplateName(json.template.name);
+      setShowNameInput(false);
+      setNameInputValue("");
+    } catch (e) {
+      console.error(e);
+      setTemplatesError("Network error. Try again.");
+    } finally {
+      setTemplatesBusy(null);
+    }
+  }
+
+  async function updateLoaded() {
+    if (!loadedTemplateId) return;
+    setTemplatesBusy("update");
+    setTemplatesError(null);
+    try {
+      const payload = serializeCurrent();
+      const res = await fetch(`/api/portal/schedule-templates/${loadedTemplateId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = (await res.json()) as { template?: SavedTemplate; error?: string };
+      if (!res.ok || !json.template) {
+        setTemplatesError(json.error || "Failed to update template.");
+        return;
+      }
+      setSavedTemplates((prev) =>
+        prev
+          .map((t) => (t.id === json.template!.id ? json.template! : t))
+          .sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1))
+      );
+    } catch (e) {
+      console.error(e);
+      setTemplatesError("Network error. Try again.");
+    } finally {
+      setTemplatesBusy(null);
+    }
+  }
+
+  async function deleteLoaded() {
+    if (!loadedTemplateId) return;
+    if (!confirm(`Delete "${loadedTemplateName}"? This cannot be undone.`)) return;
+    setTemplatesBusy("delete");
+    setTemplatesError(null);
+    try {
+      const res = await fetch(`/api/portal/schedule-templates/${loadedTemplateId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        setTemplatesError(json.error || "Failed to delete template.");
+        return;
+      }
+      setSavedTemplates((prev) => prev.filter((t) => t.id !== loadedTemplateId));
+      clearLoadedReference();
+    } catch (e) {
+      console.error(e);
+      setTemplatesError("Network error. Try again.");
+    } finally {
+      setTemplatesBusy(null);
+    }
+  }
+
+  function handleTemplateSelect(id: string) {
+    if (!id) {
+      clearLoadedReference();
+      return;
+    }
+    const template = savedTemplates.find((t) => t.id === id);
+    if (template) applyTemplate(template);
+  }
 
   const previewRef = useRef<HTMLDivElement>(null);
   const previewSlotRef = useRef<HTMLDivElement>(null);
@@ -144,6 +321,32 @@ export default function ScheduleTemplateBuilder({
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="space-y-5">
+        <SavedTemplatesPanel
+          templates={savedTemplates}
+          loadedId={loadedTemplateId}
+          loadedName={loadedTemplateName}
+          busy={templatesBusy}
+          error={templatesError}
+          showNameInput={showNameInput}
+          nameInputValue={nameInputValue}
+          onSelect={handleTemplateSelect}
+          onUpdate={updateLoaded}
+          onDelete={deleteLoaded}
+          onSaveAsNewClick={() => {
+            setNameInputValue(loadedTemplateName || "");
+            setShowNameInput(true);
+            setTemplatesError(null);
+          }}
+          onSaveAsNewConfirm={() => saveAsNew(nameInputValue)}
+          onSaveAsNewCancel={() => {
+            setShowNameInput(false);
+            setNameInputValue("");
+            setTemplatesError(null);
+          }}
+          onNameInputChange={setNameInputValue}
+          onClearLoaded={clearLoadedReference}
+        />
+
         <div className="flex gap-2 rounded-xl bg-warm-100 p-1 dark:bg-navy-900/60">
           <button
             type="button"
@@ -299,6 +502,170 @@ const TIMEZONES: { value: string; label: string }[] = [
   { value: "Australia/Sydney", label: "Sydney (AEST)" },
   { value: "UTC", label: "UTC" },
 ];
+
+function SavedTemplatesPanel({
+  templates,
+  loadedId,
+  loadedName,
+  busy,
+  error,
+  showNameInput,
+  nameInputValue,
+  onSelect,
+  onUpdate,
+  onDelete,
+  onSaveAsNewClick,
+  onSaveAsNewConfirm,
+  onSaveAsNewCancel,
+  onNameInputChange,
+  onClearLoaded,
+}: {
+  templates: SavedTemplate[];
+  loadedId: string | null;
+  loadedName: string;
+  busy: null | "save" | "update" | "delete";
+  error: string | null;
+  showNameInput: boolean;
+  nameInputValue: string;
+  onSelect: (id: string) => void;
+  onUpdate: () => void;
+  onDelete: () => void;
+  onSaveAsNewClick: () => void;
+  onSaveAsNewConfirm: () => void;
+  onSaveAsNewCancel: () => void;
+  onNameInputChange: (next: string) => void;
+  onClearLoaded: () => void;
+}) {
+  const loaded = templates.find((t) => t.id === loadedId);
+  return (
+    <div className="rounded-xl border border-warm-200 dark:border-navy-600/70 bg-white/70 dark:bg-navy-900/40 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-semibold text-charcoal/85 dark:text-navy-100/85 flex items-center gap-2">
+          <FolderOpen className="h-4 w-4 text-charcoal/60 dark:text-navy-200/70" />
+          Saved templates
+        </div>
+        <span className="text-xs text-charcoal/55 dark:text-navy-200/55">
+          {templates.length} saved
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={loadedId ?? ""}
+          onChange={(e) => onSelect(e.target.value)}
+          className="flex-1 min-w-[180px] rounded-md border border-warm-300 bg-white px-3 py-2 text-sm text-charcoal focus:border-navy-500 focus:outline-none dark:border-navy-500 dark:bg-navy-800 dark:text-white"
+        >
+          <option value="">— New template (unsaved) —</option>
+          {templates.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name} ({t.mode === "single" ? "Single class" : "Term overview"})
+            </option>
+          ))}
+        </select>
+
+        {loadedId ? (
+          <>
+            <button
+              type="button"
+              onClick={onUpdate}
+              disabled={busy !== null}
+              className="inline-flex items-center gap-1.5 rounded-md bg-navy-800 px-3 py-2 text-xs font-semibold text-white hover:bg-navy-700 disabled:opacity-60 dark:bg-gold-400 dark:text-navy-900 dark:hover:bg-gold-300"
+              title="Save changes to this template"
+            >
+              <Check className="h-3.5 w-3.5" />
+              {busy === "update" ? "Saving..." : "Save changes"}
+            </button>
+            <button
+              type="button"
+              onClick={onSaveAsNewClick}
+              disabled={busy !== null}
+              className="inline-flex items-center gap-1.5 rounded-md border border-warm-300 bg-white px-3 py-2 text-xs font-semibold text-charcoal/85 hover:bg-warm-50 disabled:opacity-60 dark:border-navy-500 dark:bg-navy-800 dark:text-white dark:hover:bg-navy-700"
+              title="Save current state as a new template"
+            >
+              <Save className="h-3.5 w-3.5" />
+              Save as new
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={busy !== null}
+              className="inline-flex items-center gap-1.5 rounded-md border border-warm-300 bg-white px-3 py-2 text-xs font-semibold text-charcoal/70 hover:bg-red-50 hover:text-red-700 hover:border-red-300 disabled:opacity-60 dark:border-navy-500 dark:bg-navy-800 dark:text-navy-200 dark:hover:bg-red-900/20 dark:hover:text-red-300"
+              title="Delete this template"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              {busy === "delete" ? "Deleting..." : "Delete"}
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={onSaveAsNewClick}
+            disabled={busy !== null}
+            className="inline-flex items-center gap-1.5 rounded-md bg-navy-800 px-3 py-2 text-xs font-semibold text-white hover:bg-navy-700 disabled:opacity-60 dark:bg-gold-400 dark:text-navy-900 dark:hover:bg-gold-300"
+          >
+            <Save className="h-3.5 w-3.5" />
+            Save current as template
+          </button>
+        )}
+      </div>
+
+      {showNameInput ? (
+        <div className="space-y-2 rounded-md border border-warm-200 bg-warm-50 p-3 dark:border-navy-600/70 dark:bg-navy-900/60">
+          <div className="text-xs font-semibold text-charcoal/75 dark:text-navy-100/75">
+            Name this template
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              autoFocus
+              value={nameInputValue}
+              onChange={(e) => onNameInputChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") onSaveAsNewConfirm();
+                if (e.key === "Escape") onSaveAsNewCancel();
+              }}
+              placeholder="e.g. Beginner Debate – Spring 2026"
+              className="flex-1 min-w-[180px] rounded-md border border-warm-300 bg-white px-3 py-2 text-sm text-charcoal focus:border-navy-500 focus:outline-none dark:border-navy-500 dark:bg-navy-800 dark:text-white"
+            />
+            <button
+              type="button"
+              onClick={onSaveAsNewConfirm}
+              disabled={busy !== null || !nameInputValue.trim()}
+              className="inline-flex items-center gap-1.5 rounded-md bg-navy-800 px-3 py-2 text-xs font-semibold text-white hover:bg-navy-700 disabled:opacity-60 dark:bg-gold-400 dark:text-navy-900 dark:hover:bg-gold-300"
+            >
+              {busy === "save" ? "Saving..." : "Save template"}
+            </button>
+            <button
+              type="button"
+              onClick={onSaveAsNewCancel}
+              className="rounded-md border border-warm-300 bg-white px-3 py-2 text-xs font-semibold text-charcoal/85 hover:bg-warm-50 dark:border-navy-500 dark:bg-navy-800 dark:text-white dark:hover:bg-navy-700"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {error ? <p className="text-xs text-red-700 dark:text-red-400">{error}</p> : null}
+
+      {loaded ? (
+        <div className="flex items-center justify-between gap-2 text-xs text-charcoal/60 dark:text-navy-200/60">
+          <span>
+            Loaded: <strong className="text-charcoal/85 dark:text-navy-100/85">{loaded.name}</strong>{" "}
+            · updated {new Date(loaded.updated_at).toLocaleString()}
+          </span>
+          <button
+            type="button"
+            onClick={onClearLoaded}
+            className="rounded text-xs text-charcoal/55 underline-offset-2 hover:text-charcoal hover:underline dark:text-navy-200/55 dark:hover:text-white"
+          >
+            Detach
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 function TimezoneSelect({ value, onChange }: { value: string; onChange: (next: string) => void }) {
   return (
