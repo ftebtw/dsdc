@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
       "id,name,type,coach_id,schedule_day,schedule_start_time,schedule_end_time,timezone,zoom_link,term_id"
     )
     .eq("term_id", activeTerm.id)
+    .is("archived_at", null)
     .order("schedule_day", { ascending: true })
     .order("schedule_start_time", { ascending: true });
 
