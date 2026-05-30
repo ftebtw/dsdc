@@ -190,6 +190,125 @@ export async function unarchiveClass(formData: FormData) {
   redirect(appendQuery(redirectTo, "unarchived=1"));
 }
 
+export async function assignSessionCover(formData: FormData) {
+  const session = await requireRole(["admin"]);
+  const supabase = await getSupabaseServerClient();
+  const classId = String(formData.get("id") || "");
+  const sessionDate = String(formData.get("session_date") || "").trim();
+  const coveringCoachId = String(formData.get("covering_coach_id") || "").trim();
+  const redirectTo = String(formData.get("redirect_to") || `/portal/admin/classes/${classId}`);
+  if (!classId || !/^\d{4}-\d{2}-\d{2}$/.test(sessionDate) || !coveringCoachId) {
+    redirect(appendQuery(redirectTo, "error=cover_invalid"));
+  }
+
+  const { data: classRow } = await (supabase as any)
+    .from("classes")
+    .select("id,coach_id")
+    .eq("id", classId)
+    .maybeSingle();
+  if (!classRow || !classRow.coach_id) {
+    redirect(appendQuery(redirectTo, "error=cover_no_primary"));
+  }
+  if (classRow.coach_id === coveringCoachId) {
+    redirect(appendQuery(redirectTo, "error=cover_same_coach"));
+  }
+
+  // Reuse an existing (non-cancelled) request for this class+date if present,
+  // otherwise create a fresh, already-accepted one.
+  const { data: existing } = await (supabase as any)
+    .from("sub_requests")
+    .select("id")
+    .eq("class_id", classId)
+    .eq("session_date", sessionDate)
+    .in("status", ["open", "accepted"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await (supabase as any)
+      .from("sub_requests")
+      .update({
+        accepting_coach_id: coveringCoachId,
+        status: "accepted",
+        accepted_at: new Date().toISOString(),
+      })
+      .eq("id", existing.id);
+    if (error) {
+      console.error("[admin-classes] assign cover (update) failed", error);
+      redirect(appendQuery(redirectTo, "error=cover_failed"));
+    }
+  } else {
+    const { error } = await (supabase as any).from("sub_requests").insert({
+      requesting_coach_id: classRow.coach_id,
+      class_id: classId,
+      session_date: sessionDate,
+      reason: "Cover assigned by admin",
+      status: "accepted",
+      accepting_coach_id: coveringCoachId,
+      accepted_at: new Date().toISOString(),
+    });
+    if (error) {
+      console.error("[admin-classes] assign cover (insert) failed", error);
+      redirect(appendQuery(redirectTo, "error=cover_failed"));
+    }
+  }
+
+  // The original coach didn't teach this session — drop their check-in for
+  // that date so payroll doesn't pay them (payroll is driven by check-ins).
+  await (supabase as any)
+    .from("coach_checkins")
+    .delete()
+    .eq("class_id", classId)
+    .eq("session_date", sessionDate)
+    .eq("coach_id", classRow.coach_id);
+
+  revalidatePath(`/portal/admin/classes/${classId}`);
+  redirect(appendQuery(redirectTo, "cover_assigned=1"));
+}
+
+export async function removeSessionCover(formData: FormData) {
+  await requireRole(["admin"]);
+  const supabase = await getSupabaseServerClient();
+  const classId = String(formData.get("id") || "");
+  const sessionDate = String(formData.get("session_date") || "").trim();
+  const redirectTo = String(formData.get("redirect_to") || `/portal/admin/classes/${classId}`);
+  if (!classId || !/^\d{4}-\d{2}-\d{2}$/.test(sessionDate)) {
+    redirect(appendQuery(redirectTo, "error=cover_invalid"));
+  }
+
+  // Find the accepted cover for this class+date, capture the covering coach.
+  const { data: cover } = await (supabase as any)
+    .from("sub_requests")
+    .select("id,accepting_coach_id")
+    .eq("class_id", classId)
+    .eq("session_date", sessionDate)
+    .eq("status", "accepted")
+    .order("accepted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (cover) {
+    await (supabase as any)
+      .from("sub_requests")
+      .update({ status: "cancelled" })
+      .eq("id", cover.id);
+
+    // Remove the (no-longer-covering) coach's check-in so they're not paid.
+    if (cover.accepting_coach_id) {
+      await (supabase as any)
+        .from("coach_checkins")
+        .delete()
+        .eq("class_id", classId)
+        .eq("session_date", sessionDate)
+        .eq("coach_id", cover.accepting_coach_id);
+    }
+  }
+
+  revalidatePath(`/portal/admin/classes/${classId}`);
+  redirect(appendQuery(redirectTo, "cover_removed=1"));
+}
+
 export async function renamePrivateSessionGroup(formData: FormData) {
   await requireRole(["admin"]);
   const supabase = await getSupabaseServerClient();

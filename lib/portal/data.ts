@@ -1,7 +1,7 @@
 import 'server-only';
 import { formatInTimeZone } from 'date-fns-tz';
 import type { Database } from '@/lib/supabase/database.types';
-import { isClassInDateRange, isClassToday } from '@/lib/portal/time';
+import { isClassInDateRange, isClassToday, getSessionDateForClassTimezone } from '@/lib/portal/time';
 
 type Client = any;
 type PortalClass = Database['public']['Tables']['classes']['Row'];
@@ -76,6 +76,54 @@ export async function getTodayClassesForCoach(
 
   const classes = await getClassesForCoachInActiveTerm(supabase, coachId);
   return classes.filter((classRow) => isClassToday(classRow, now));
+}
+
+// Classes this coach is COVERING today via an accepted sub_request whose
+// session_date matches "today" in that class's own timezone. Used so a
+// covering coach (assigned by admin, or who accepted a sub request) actually
+// sees the class on their check-in screen — check-in is what drives payroll.
+export async function getTodaySubbedClassesForCoach(
+  supabase: Client,
+  coachId: string,
+  now = new Date()
+): Promise<PortalClass[]> {
+  // Query a small UTC window around now, then filter by each class's local date.
+  const windowStart = new Date(now.getTime() - 36 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const windowEnd = new Date(now.getTime() + 36 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+  const { data: subRows } = await supabase
+    .from('sub_requests')
+    .select('class_id,session_date')
+    .eq('accepting_coach_id', coachId)
+    .eq('status', 'accepted')
+    .gte('session_date', windowStart)
+    .lte('session_date', windowEnd);
+
+  const subs = (subRows ?? []) as Array<{ class_id: string; session_date: string }>;
+  if (subs.length === 0) return [];
+
+  const classIds = [...new Set(subs.map((row) => row.class_id))];
+  const { data: classRowsData } = await supabase
+    .from('classes')
+    .select('*')
+    .in('id', classIds)
+    .is('archived_at', null);
+
+  const classRows = (classRowsData ?? []) as PortalClass[];
+  const classById = new Map(classRows.map((c) => [c.id, c]));
+
+  const result: PortalClass[] = [];
+  const seen = new Set<string>();
+  for (const sub of subs) {
+    const classRow = classById.get(sub.class_id);
+    if (!classRow) continue;
+    const localToday = getSessionDateForClassTimezone(classRow.timezone, now);
+    if (sub.session_date === localToday && !seen.has(classRow.id)) {
+      seen.add(classRow.id);
+      result.push(classRow);
+    }
+  }
+  return result;
 }
 
 export type TodayPrivateGroupSession = {

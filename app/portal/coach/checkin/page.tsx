@@ -4,7 +4,11 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import CoachCheckinList from '@/app/portal/_components/CoachCheckinList';
 import { requireRole } from '@/lib/portal/auth';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
-import { getTodayClassesForCoach, getTodayPrivateGroupSessionsForCoach } from '@/lib/portal/data';
+import {
+  getTodayClassesForCoach,
+  getTodayPrivateGroupSessionsForCoach,
+  getTodaySubbedClassesForCoach,
+} from '@/lib/portal/data';
 import {
   getSessionDateForClassTimezone,
   formatClassScheduleForViewer,
@@ -14,10 +18,22 @@ import {
 export default async function CoachCheckinPage() {
   const session = await requireRole(['coach', 'ta']);
   const supabase = await getSupabaseServerClient();
-  const [todayClasses, todayPrivateSessions] = await Promise.all([
+  const [ownClasses, todayPrivateSessions, subbedClasses] = await Promise.all([
     getTodayClassesForCoach(supabase, session.userId),
     getTodayPrivateGroupSessionsForCoach(supabase, session.userId),
+    getTodaySubbedClassesForCoach(supabase, session.userId),
   ]);
+
+  // Merge own classes + classes being covered today (dedupe). Track which ids
+  // are covers so we can label them.
+  const ownClassIds = new Set(ownClasses.map((c) => c.id));
+  const coverClassIds = new Set(
+    subbedClasses.filter((c) => !ownClassIds.has(c.id)).map((c) => c.id)
+  );
+  const todayClasses = [
+    ...ownClasses,
+    ...subbedClasses.filter((c) => !ownClassIds.has(c.id)),
+  ];
 
   const checkins = await Promise.all(
     todayClasses.map(async (classRow) => {
@@ -55,7 +71,7 @@ export default async function CoachCheckinPage() {
   const classItems = [
     ...todayClasses.map((classRow) => ({
       id: classRow.id,
-      name: classRow.name,
+      name: coverClassIds.has(classRow.id) ? `${classRow.name} (Cover)` : classRow.name,
       schedule: formatClassScheduleForViewer(
         classRow.schedule_day,
         classRow.schedule_start_time,

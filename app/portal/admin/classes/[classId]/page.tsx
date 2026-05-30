@@ -7,6 +7,7 @@ import SectionCard from '@/app/portal/_components/SectionCard';
 import CoachAttendanceEditor from '@/app/portal/_components/CoachAttendanceEditor';
 import CoachResourceManager from '@/app/portal/_components/CoachResourceManager';
 import ConfirmDeleteButton from '@/app/portal/_components/ConfirmDeleteButton';
+import { assignSessionCover, removeSessionCover } from '../actions';
 import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
 import { classTypeLabel } from '@/lib/portal/labels';
@@ -210,6 +211,35 @@ export default async function AdminClassDetailPage({
     ? profileMap[classRow.coach_id]?.display_name || profileMap[classRow.coach_id]?.email || classRow.coach_id
     : 'Unassigned';
 
+  // Session-cover data: coaches that can cover + the current cover for the date.
+  const { data: coachProfilesData } = await supabase
+    .from('profiles')
+    .select('id,display_name,email,role')
+    .in('role', ['coach', 'ta'])
+    .order('display_name', { ascending: true });
+  const coverCoachOptions = ((coachProfilesData ?? []) as Array<{
+    id: string;
+    display_name: string | null;
+    email: string | null;
+  }>).filter((c) => c.id !== classRow.coach_id);
+
+  const { data: coverRowData } = await (supabase as any)
+    .from('sub_requests')
+    .select('accepting_coach_id')
+    .eq('class_id', classId)
+    .eq('session_date', selectedDate)
+    .eq('status', 'accepted')
+    .order('accepted_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const coverCoachId: string | null = coverRowData?.accepting_coach_id ?? null;
+  const coverCoachName = coverCoachId
+    ? coverCoachOptions.find((c) => c.id === coverCoachId)?.display_name ||
+      coverCoachOptions.find((c) => c.id === coverCoachId)?.email ||
+      coverCoachId
+    : null;
+  const coverRedirectTo = `/portal/admin/classes/${classId}?date=${selectedDate}`;
+
   const statusClass: Record<AttendanceStatus, string> = {
     present: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
     absent: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
@@ -309,6 +339,70 @@ export default async function AdminClassDetailPage({
             {'<- Back to Classes'}
           </Link>
         </div>
+      </SectionCard>
+
+      <SectionCard
+        title={`Session Cover - ${selectedDate}`}
+        description="Assign a covering coach for this session. The cover gets check-in access for this date and is paid for it; the original coach is not paid for a session they didn't teach."
+      >
+        {coverCoachId ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-violet-200 dark:border-violet-700 bg-violet-50 dark:bg-violet-900/20 px-4 py-3">
+            <p className="text-sm text-navy-800 dark:text-white">
+              Covered by <span className="font-semibold">{coverCoachName}</span> on {selectedDate}.
+              <span className="block text-xs text-charcoal/65 dark:text-navy-300 mt-0.5">
+                {coachName} ({'original coach'}) won&apos;t be paid for this session.
+              </span>
+            </p>
+            <form action={removeSessionCover}>
+              <input type="hidden" name="id" value={classId} />
+              <input type="hidden" name="session_date" value={selectedDate} />
+              <input type="hidden" name="redirect_to" value={coverRedirectTo} />
+              <button
+                type="submit"
+                className="px-3 py-1.5 rounded-md border border-violet-400 bg-white dark:border-violet-700 dark:bg-violet-900/30 text-violet-800 dark:text-violet-200 text-sm"
+              >
+                Remove cover
+              </button>
+            </form>
+          </div>
+        ) : coverCoachOptions.length === 0 ? (
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">No other coaches available to assign.</p>
+        ) : (
+          <form action={assignSessionCover} className="flex flex-wrap items-end gap-3">
+            <input type="hidden" name="id" value={classId} />
+            <input type="hidden" name="session_date" value={selectedDate} />
+            <input type="hidden" name="redirect_to" value={coverRedirectTo} />
+            <div>
+              <label className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+                Covering coach
+              </label>
+              <select
+                name="covering_coach_id"
+                required
+                defaultValue=""
+                className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2 text-sm"
+              >
+                <option value="" disabled>
+                  Select a coach…
+                </option>
+                {coverCoachOptions.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.display_name || c.email}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="submit"
+              className="px-3 py-1.5 rounded-md bg-navy-800 text-white text-sm font-semibold"
+            >
+              Assign cover
+            </button>
+          </form>
+        )}
+        <p className="mt-2 text-xs text-charcoal/55 dark:text-navy-400">
+          Change the date in the section below to assign a cover for a different session.
+        </p>
       </SectionCard>
 
       <SectionCard
