@@ -190,6 +190,38 @@ export async function unarchiveClass(formData: FormData) {
   redirect(appendQuery(redirectTo, "unarchived=1"));
 }
 
+export async function renamePrivateSessionGroup(formData: FormData) {
+  await requireRole(["admin"]);
+  const supabase = await getSupabaseServerClient();
+  const classId = String(formData.get("id") || "");
+  const name = String(formData.get("name") || "").trim();
+  const description = String(formData.get("description") || "").trim();
+  const redirectTo = String(formData.get("redirect_to") || "/portal/admin/classes");
+  if (!classId || !name) {
+    redirect(appendQuery(redirectTo, "error=missing_record"));
+  }
+  // Guard: only rename private-session group classrooms here so this can't be
+  // used to mangle a regular term class's required fields.
+  const { data: classRow } = await (supabase as any)
+    .from("classes")
+    .select("id,is_private_session_group")
+    .eq("id", classId)
+    .maybeSingle();
+  if (!classRow || !classRow.is_private_session_group) {
+    redirect(appendQuery(redirectTo, "error=not_a_private_group"));
+  }
+  const { error } = await (supabase as any)
+    .from("classes")
+    .update({ name, description: description || null })
+    .eq("id", classId);
+  if (error) {
+    console.error("[admin-classes] rename private group failed", error);
+    redirect(appendQuery(redirectTo, "error=rename_failed"));
+  }
+  revalidatePath("/portal/admin/classes");
+  redirect(appendQuery(redirectTo, "renamed=1"));
+}
+
 export async function cloneClassesToTerm(formData: FormData) {
   await requireRole(["admin"]);
   const supabase = await getSupabaseServerClient();

@@ -13,6 +13,7 @@ import { formatClassScheduleForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 import { createClass, updateClass, deleteClass, cloneClassesToTerm, archiveClass, unarchiveClass } from './actions';
+import PrivateGroupRename from './PrivateGroupRename';
 
 const classTypes: Database['public']['Enums']['class_type'][] = [
   'novice_debate',
@@ -609,28 +610,24 @@ export default async function AdminClassesPage({
               coachMap[group.coach_id]?.email ||
               group.coach_id;
             const isArchived = Boolean(group.archived_at);
+            const groupRedirectTo = `/portal/admin/classes${showArchived ? '?show_archived=1' : ''}`;
             return (
-              <form
+              <div
                 key={group.id}
-                action={archiveClass}
                 className={`rounded-xl border p-4 space-y-2 ${
                   isArchived
                     ? 'border-violet-200 dark:border-violet-700 bg-violet-50 dark:bg-violet-900/20'
                     : 'border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900'
                 }`}
               >
-                <input type="hidden" name="id" value={group.id} />
-                <input
-                  type="hidden"
-                  name="redirect_to"
-                  value={`/portal/admin/classes${showArchived ? '?show_archived=1' : ''}`}
-                />
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-semibold text-navy-800 dark:text-white">{group.name}</h3>
-                    {group.description ? (
-                      <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">{group.description}</p>
-                    ) : null}
+                  <div className="min-w-0 flex-1">
+                    <PrivateGroupRename
+                      groupId={group.id}
+                      name={group.name}
+                      description={group.description ?? null}
+                      redirectTo={groupRedirectTo}
+                    />
                     <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-1">
                       Coach: {coachName}
                     </p>
@@ -653,22 +650,25 @@ export default async function AdminClassesPage({
                     ) : null}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {isArchived ? (
-                      <button
-                        type="submit"
-                        formAction={unarchiveClass}
-                        className="px-3 py-1.5 rounded-md border border-violet-400 bg-white dark:border-violet-700 dark:bg-violet-900/30 text-violet-800 dark:text-violet-200 text-sm"
-                      >
-                        Unarchive
-                      </button>
-                    ) : (
-                      <button
-                        type="submit"
-                        className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
-                      >
-                        Archive
-                      </button>
-                    )}
+                    <form action={isArchived ? unarchiveClass : archiveClass}>
+                      <input type="hidden" name="id" value={group.id} />
+                      <input type="hidden" name="redirect_to" value={groupRedirectTo} />
+                      {isArchived ? (
+                        <button
+                          type="submit"
+                          className="px-3 py-1.5 rounded-md border border-violet-400 bg-white dark:border-violet-700 dark:bg-violet-900/30 text-violet-800 dark:text-violet-200 text-sm"
+                        >
+                          Unarchive
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+                        >
+                          Archive
+                        </button>
+                      )}
+                    </form>
                     <Link
                       href={`/portal/admin/classes/${group.id}`}
                       className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
@@ -677,7 +677,7 @@ export default async function AdminClassesPage({
                     </Link>
                   </div>
                 </div>
-              </form>
+              </div>
             );
           })}
           {privateGroups.length === 0 ? (

@@ -124,6 +124,70 @@ export default function CoachHomeworkManager({
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Edit-assignment state
+  const [editingAssignmentId, setEditingAssignmentId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editUrls, setEditUrls] = useState<string[]>(['']);
+  const [editDue, setEditDue] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  function beginEditAssignment(assignment: Assignment) {
+    setEditingAssignmentId(assignment.id);
+    setEditError(null);
+    setEditTitle(assignment.title);
+    setEditDescription(assignment.description ?? '');
+    setEditUrls(assignment.external_urls.length > 0 ? [...assignment.external_urls] : ['']);
+    setEditDue(assignment.due_date ?? '');
+  }
+  function cancelEditAssignment() {
+    setEditingAssignmentId(null);
+    setEditError(null);
+  }
+  function updateEditUrlAt(i: number, v: string) {
+    setEditUrls((prev) => prev.map((u, idx) => (idx === i ? v : u)));
+  }
+  function addEditUrlRow() {
+    setEditUrls((prev) => (prev.length >= 10 ? prev : [...prev, '']));
+  }
+  function removeEditUrlRow(i: number) {
+    setEditUrls((prev) => (prev.length <= 1 ? [''] : prev.filter((_, idx) => idx !== i)));
+  }
+
+  async function saveAssignmentEdit(assignment: Assignment) {
+    if (!editTitle.trim()) {
+      setEditError('Title is required.');
+      return;
+    }
+    setEditSaving(true);
+    setEditError(null);
+
+    const payload = {
+      title: editTitle.trim(),
+      description: editDescription.trim() ? editDescription.trim() : null,
+      externalUrls: editUrls.map((u) => u.trim()).filter(Boolean),
+      dueDate: editDue.trim() ? editDue.trim() : null,
+    };
+
+    const response = await fetch(`/api/portal/homework-assignments/${assignment.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = (await response.json()) as { error?: string; assignment?: Omit<Assignment, 'className'> };
+    setEditSaving(false);
+
+    if (!response.ok || !data.assignment) {
+      setEditError(data.error || 'Could not save changes.');
+      return;
+    }
+    setAssignments((prev) =>
+      prev.map((a) => (a.id === assignment.id ? { ...a, ...data.assignment!, className: a.className } : a))
+    );
+    setEditingAssignmentId(null);
+  }
+
   const filteredAssignments = useMemo(
     () => assignments.filter((a) => !filterClassId || a.class_id === filterClassId),
     [assignments, filterClassId]
@@ -466,42 +530,137 @@ export default function CoachHomeworkManager({
                   <span className="rounded-full bg-warm-100 px-2 py-0.5 text-charcoal dark:bg-navy-800 dark:text-navy-200">
                     {submittedCount}/{roster.length} submitted
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => deleteAssignment(assignment.id)}
-                    className="text-xs text-red-600 hover:underline"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => beginEditAssignment(assignment)}
+                      className="text-xs font-semibold text-navy-700 hover:underline dark:text-navy-100"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteAssignment(assignment.id)}
+                      className="text-xs text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </header>
 
-              {assignment.description ? (
-                <p className="mt-2 whitespace-pre-wrap break-words text-sm text-charcoal/75 dark:text-navy-200">
-                  {assignment.description}
-                </p>
-              ) : null}
-
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {assignment.external_urls.map((url, i) => (
-                  <a
-                    key={`${assignment.id}-link-${i}`}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-md border border-warm-300 px-3 py-1.5 text-xs text-charcoal hover:bg-warm-50 dark:border-navy-600 dark:text-navy-100 dark:hover:bg-navy-800"
-                    title={url}
-                  >
-                    Open ({shortHost(url)})
-                  </a>
-                ))}
-                {assignment.file_path ? (
-                  <OpenSignedUrlButton
-                    endpoint={`/api/portal/homework-assignments/${assignment.id}/signed-url`}
-                    label={`Open file${assignment.file_name ? ` (${assignment.file_name})` : ''}`}
+              {editingAssignmentId === assignment.id ? (
+                <div className="mt-3 space-y-2 rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900/60 p-3">
+                  <input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    placeholder="Title"
+                    className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
                   />
-                ) : null}
-              </div>
+                  <textarea
+                    rows={3}
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    placeholder="Description / instructions (optional)"
+                    className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                  />
+                  <div className="space-y-1.5">
+                    <span className="block text-xs text-charcoal/70 dark:text-navy-300">Links</span>
+                    {editUrls.map((u, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <input
+                          type="url"
+                          value={u}
+                          onChange={(e) => updateEditUrlAt(i, e.target.value)}
+                          placeholder="https://..."
+                          className="flex-1 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                        />
+                        {editUrls.length > 1 ? (
+                          <button
+                            type="button"
+                            onClick={() => removeEditUrlRow(i)}
+                            className="rounded-md border border-warm-300 dark:border-navy-600 px-2 py-1.5 text-xs text-charcoal/70 hover:text-red-600 dark:text-navy-300"
+                            aria-label="Remove link"
+                          >
+                            ×
+                          </button>
+                        ) : null}
+                      </div>
+                    ))}
+                    {editUrls.length < 10 ? (
+                      <button
+                        type="button"
+                        onClick={addEditUrlRow}
+                        className="text-xs font-semibold text-navy-700 hover:text-navy-900 dark:text-gold-300"
+                      >
+                        + Add another link
+                      </button>
+                    ) : null}
+                  </div>
+                  <label className="block">
+                    <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">Due date (optional)</span>
+                    <input
+                      type="date"
+                      value={editDue}
+                      onChange={(e) => setEditDue(e.target.value)}
+                      className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                    />
+                  </label>
+                  {assignment.file_path ? (
+                    <p className="text-xs text-charcoal/55 dark:text-navy-400">
+                      Attached file stays as-is. To change it, delete and re-post the assignment.
+                    </p>
+                  ) : null}
+                  {editError ? <p className="text-xs text-red-700">{editError}</p> : null}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => saveAssignmentEdit(assignment)}
+                      disabled={editSaving}
+                      className="rounded-md bg-navy-800 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
+                    >
+                      {editSaving ? 'Saving...' : 'Save changes'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEditAssignment}
+                      disabled={editSaving}
+                      className="rounded-md border border-warm-300 dark:border-navy-600 px-3 py-1.5 text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {assignment.description ? (
+                    <p className="mt-2 whitespace-pre-wrap break-words text-sm text-charcoal/75 dark:text-navy-200">
+                      {assignment.description}
+                    </p>
+                  ) : null}
+
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {assignment.external_urls.map((url, i) => (
+                      <a
+                        key={`${assignment.id}-link-${i}`}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-md border border-warm-300 px-3 py-1.5 text-xs text-charcoal hover:bg-warm-50 dark:border-navy-600 dark:text-navy-100 dark:hover:bg-navy-800"
+                        title={url}
+                      >
+                        Open ({shortHost(url)})
+                      </a>
+                    ))}
+                    {assignment.file_path ? (
+                      <OpenSignedUrlButton
+                        endpoint={`/api/portal/homework-assignments/${assignment.id}/signed-url`}
+                        label={`Open file${assignment.file_name ? ` (${assignment.file_name})` : ''}`}
+                      />
+                    ) : null}
+                  </div>
+                </>
+              )}
 
               <button
                 type="button"
