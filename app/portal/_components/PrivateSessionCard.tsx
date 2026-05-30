@@ -477,9 +477,13 @@ export default function PrivateSessionCard(props: Props) {
             disabled={!canRunActions}
             className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold disabled:opacity-70"
           >
-            {loading === 'approve'
-              ? t('portal.privateSessions.approving', 'Approving...')
-              : t('portal.privateSessions.approveNotifyStudent', 'Approve & Notify Student')}
+            {props.status === 'awaiting_payment'
+              ? loading === 'approve'
+                ? t('portal.privateSessions.confirming', 'Confirming...')
+                : t('portal.privateSessions.markPaidConfirm', 'Mark Paid & Confirm')
+              : loading === 'approve'
+                ? t('portal.privateSessions.approving', 'Approving...')
+                : t('portal.privateSessions.approveNotifyStudent', 'Approve & Notify Student')}
           </button>
         </form>
       ) : null}
