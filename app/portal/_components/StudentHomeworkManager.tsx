@@ -79,6 +79,15 @@ type SubmitDraft = {
   file: File | null;
 };
 
+type EditDraft = {
+  title: string;
+  notes: string;
+  externalUrls: string[];
+  dueDate: string;
+  file: File | null;
+  removeFile: boolean;
+};
+
 function emptyDraft(submission?: Submission | null): SubmitDraft {
   return {
     notes: submission?.notes ?? '',
@@ -131,6 +140,79 @@ export default function StudentHomeworkManager({
   const [statusByAssignment, setStatusByAssignment] = useState<Record<string, { error?: string; success?: string }>>(
     {}
   );
+
+  // Inline editing of already-posted free-form submissions.
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const editFileRef = useRef<HTMLInputElement | null>(null);
+
+  function beginEdit(submission: Submission) {
+    setEditingId(submission.id);
+    setEditError(null);
+    setEditDraft({
+      title: submission.title,
+      notes: submission.notes ?? '',
+      externalUrls:
+        submission.external_urls && submission.external_urls.length > 0
+          ? [...submission.external_urls]
+          : submission.external_url
+            ? [submission.external_url]
+            : [''],
+      dueDate: submission.due_date ?? '',
+      file: null,
+      removeFile: false,
+    });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditDraft(null);
+    setEditError(null);
+  }
+
+  function patchEditDraft(patch: Partial<EditDraft>) {
+    setEditDraft((prev) => (prev ? { ...prev, ...patch } : prev));
+  }
+
+  async function saveEdit(submission: Submission) {
+    if (!editDraft) return;
+    const cleanedUrls = editDraft.externalUrls.map((u) => u.trim()).filter((u) => u.length > 0);
+    if (!editDraft.title.trim()) {
+      setEditError('Title is required.');
+      return;
+    }
+    setSavingEdit(true);
+    setEditError(null);
+
+    const formData = new FormData();
+    formData.append('title', editDraft.title.trim());
+    if (editDraft.notes.trim()) formData.append('notes', editDraft.notes.trim());
+    for (const url of cleanedUrls) formData.append('externalUrls', url);
+    if (editDraft.dueDate.trim()) formData.append('dueDate', editDraft.dueDate.trim());
+    if (editDraft.file) formData.append('file', editDraft.file);
+    if (editDraft.removeFile && !editDraft.file) formData.append('removeFile', '1');
+
+    const response = await fetch(`/api/portal/homework-submissions/${submission.id}`, {
+      method: 'PATCH',
+      body: formData,
+    });
+    const data = (await response.json()) as {
+      error?: string;
+      submission?: Omit<Submission, 'className' | 'gradedByName'>;
+    };
+    setSavingEdit(false);
+
+    if (!response.ok || !data.submission) {
+      setEditError(data.error || 'Could not save changes.');
+      return;
+    }
+
+    const next: Submission = { ...data.submission, className: submission.className };
+    setSubmissions((prev) => prev.map((s) => (s.id === next.id ? next : s)));
+    cancelEdit();
+  }
 
   function updateDraft(assignmentId: string, patch: Partial<SubmitDraft>) {
     setDrafts((prev) => ({
@@ -449,7 +531,9 @@ export default function StudentHomeworkManager({
             Previous submissions ({legacySubmissions.length})
           </summary>
           <div className="mt-3 space-y-3">
-            {legacySubmissions.map((submission) => (
+            {legacySubmissions.map((submission) => {
+              const isEditing = editingId === submission.id && editDraft;
+              return (
               <article
                 key={submission.id}
                 className="rounded-xl border border-warm-200 dark:border-navy-600 bg-white dark:bg-navy-900 p-4"
@@ -471,44 +555,168 @@ export default function StudentHomeworkManager({
                     {submission.graded_at ? 'Graded' : 'Pending'}
                   </span>
                 </div>
-                {submission.notes ? (
-                  <p className="mt-2 whitespace-pre-wrap break-words text-sm text-charcoal/75 dark:text-navy-200">
-                    {submission.notes}
-                  </p>
-                ) : null}
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {effectiveUrls(submission).map((url, idx) => (
-                    <a
-                      key={`${submission.id}-link-${idx}`}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-md border border-warm-300 px-3 py-1.5 text-xs text-charcoal dark:border-navy-600 dark:text-navy-100"
-                    >
-                      Open ({shortHost(url)})
-                    </a>
-                  ))}
-                  {submission.file_path ? (
-                    <OpenSignedUrlButton
-                      endpoint={`/api/portal/homework-submissions/${submission.id}/signed-url`}
-                      label="Open file"
+
+                {isEditing ? (
+                  <div className="mt-3 space-y-2">
+                    <input
+                      value={editDraft!.title}
+                      onChange={(e) => patchEditDraft({ title: e.target.value })}
+                      placeholder="Title"
+                      className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
                     />
-                  ) : null}
-                </div>
-                {submission.grade ? (
-                  <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-3 text-sm dark:border-green-900/50 dark:bg-green-900/20">
-                    <p className="font-semibold text-green-900 dark:text-green-200">
-                      Grade: {submission.grade}
+                    <textarea
+                      rows={2}
+                      value={editDraft!.notes}
+                      onChange={(e) => patchEditDraft({ notes: e.target.value })}
+                      placeholder="Notes (optional)"
+                      className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                    />
+                    <div className="space-y-1.5">
+                      <span className="block text-xs text-charcoal/70 dark:text-navy-300">Links</span>
+                      {editDraft!.externalUrls.map((u, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <input
+                            type="url"
+                            value={u}
+                            onChange={(e) =>
+                              patchEditDraft({
+                                externalUrls: editDraft!.externalUrls.map((v, idx) => (idx === i ? e.target.value : v)),
+                              })
+                            }
+                            placeholder="https://..."
+                            className="flex-1 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                          />
+                          {editDraft!.externalUrls.length > 1 ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                patchEditDraft({
+                                  externalUrls: editDraft!.externalUrls.filter((_, idx) => idx !== i),
+                                })
+                              }
+                              className="rounded-md border border-warm-300 dark:border-navy-600 px-2 py-1.5 text-xs text-charcoal/70 hover:text-red-600 dark:text-navy-300"
+                              aria-label="Remove link"
+                            >
+                              ×
+                            </button>
+                          ) : null}
+                        </div>
+                      ))}
+                      {editDraft!.externalUrls.length < 10 ? (
+                        <button
+                          type="button"
+                          onClick={() => patchEditDraft({ externalUrls: [...editDraft!.externalUrls, ''] })}
+                          className="text-xs font-semibold text-navy-700 hover:text-navy-900 dark:text-gold-300"
+                        >
+                          + Add another link
+                        </button>
+                      ) : null}
+                    </div>
+                    <label className="block">
+                      <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">Due date (optional)</span>
+                      <input
+                        type="date"
+                        value={editDraft!.dueDate}
+                        onChange={(e) => patchEditDraft({ dueDate: e.target.value })}
+                        className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                      />
+                    </label>
+                    {submission.file_path && !editDraft!.file ? (
+                      <label className="flex items-center gap-2 text-xs text-charcoal/70 dark:text-navy-300">
+                        <input
+                          type="checkbox"
+                          checked={editDraft!.removeFile}
+                          onChange={(e) => patchEditDraft({ removeFile: e.target.checked })}
+                        />
+                        Remove attached file ({submission.file_name || 'file'})
+                      </label>
+                    ) : null}
+                    <input
+                      ref={editFileRef}
+                      type="file"
+                      onChange={(e) => patchEditDraft({ file: e.target.files?.[0] || null, removeFile: false })}
+                      className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-xs file:mr-3 file:rounded file:border-0 file:bg-gold-300 file:px-3 file:py-1"
+                    />
+                    <p className="text-xs text-charcoal/60 dark:text-navy-400">
+                      Replace the file by choosing a new one, or keep the current one.
                     </p>
-                    {submission.feedback ? (
-                      <p className="mt-1 whitespace-pre-wrap break-words text-green-900 dark:text-green-200">
-                        {submission.feedback}
+                    {editError ? <p className="text-xs text-red-700">{editError}</p> : null}
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => saveEdit(submission)}
+                        disabled={savingEdit}
+                        className="rounded-md bg-navy-800 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
+                      >
+                        {savingEdit ? 'Saving...' : 'Save changes'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEdit}
+                        disabled={savingEdit}
+                        className="rounded-md border border-warm-300 dark:border-navy-600 px-3 py-1.5 text-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {submission.notes ? (
+                      <p className="mt-2 whitespace-pre-wrap break-words text-sm text-charcoal/75 dark:text-navy-200">
+                        {submission.notes}
                       </p>
                     ) : null}
-                  </div>
-                ) : null}
+                    {submission.due_date ? (
+                      <p className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                        Due: {formatDueDate(submission.due_date)}
+                      </p>
+                    ) : null}
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {effectiveUrls(submission).map((url, idx) => (
+                        <a
+                          key={`${submission.id}-link-${idx}`}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-md border border-warm-300 px-3 py-1.5 text-xs text-charcoal dark:border-navy-600 dark:text-navy-100"
+                        >
+                          Open ({shortHost(url)})
+                        </a>
+                      ))}
+                      {submission.file_path ? (
+                        <OpenSignedUrlButton
+                          endpoint={`/api/portal/homework-submissions/${submission.id}/signed-url`}
+                          label="Open file"
+                        />
+                      ) : null}
+                      {!submission.graded_at ? (
+                        <button
+                          type="button"
+                          onClick={() => beginEdit(submission)}
+                          className="rounded-md border border-navy-300 px-3 py-1.5 text-xs font-semibold text-navy-700 hover:bg-navy-50 dark:border-navy-500 dark:text-navy-100 dark:hover:bg-navy-800"
+                        >
+                          Edit
+                        </button>
+                      ) : null}
+                    </div>
+                    {submission.grade ? (
+                      <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-3 text-sm dark:border-green-900/50 dark:bg-green-900/20">
+                        <p className="font-semibold text-green-900 dark:text-green-200">
+                          Grade: {submission.grade}
+                        </p>
+                        {submission.feedback ? (
+                          <p className="mt-1 whitespace-pre-wrap break-words text-green-900 dark:text-green-200">
+                            {submission.feedback}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </>
+                )}
               </article>
-            ))}
+              );
+            })}
           </div>
         </details>
       ) : null}
