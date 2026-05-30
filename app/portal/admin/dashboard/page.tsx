@@ -196,6 +196,34 @@ export default async function AdminDashboardPage() {
     activeClasses.map((classRow) => [classRow.id, { id: classRow.id, name: classRow.name }])
   );
 
+  // The recent check-in / attendance feeds can reference classes outside the
+  // active term — private-session group classrooms (term_id IS NULL) and
+  // archived classes. Those aren't in classMap, so the feed was falling back
+  // to the raw class UUID. Resolve their names directly and merge them in.
+  const feedClassIds = [
+    ...new Set(
+      [...checkinRows.map((row) => row.class_id), ...attendanceRows.map((row) => row.class_id)].filter(
+        (id): id is string => Boolean(id) && !classMap[id]
+      )
+    ),
+  ];
+  if (feedClassIds.length > 0) {
+    const { data: extraClassesData } = await supabase
+      .from('classes')
+      .select('id,name,is_private_session_group')
+      .in('id', feedClassIds);
+    for (const extra of (extraClassesData ?? []) as Array<{
+      id: string;
+      name: string;
+      is_private_session_group: boolean | null;
+    }>) {
+      classMap[extra.id] = {
+        id: extra.id,
+        name: extra.is_private_session_group ? `${extra.name} (Private)` : extra.name,
+      };
+    }
+  }
+
   const allProfileIds = [
     ...new Set(
       [
