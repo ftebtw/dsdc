@@ -218,19 +218,23 @@ export default async function AdminClassDetailPage({
     makeup: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
   };
 
+  const isPrivateGroup = Boolean((classRow as { is_private_session_group?: boolean }).is_private_session_group);
+  const classTypeText = isPrivateGroup
+    ? 'Private coaching group'
+    : classTypeLabel[classRow.type as keyof typeof classTypeLabel] || classRow.type || 'Class';
+  const scheduleText = formatClassScheduleForViewer(
+    classRow.schedule_day,
+    classRow.schedule_start_time,
+    classRow.schedule_end_time,
+    classRow.timezone,
+    session.profile.timezone
+  );
+
   return (
     <div className="space-y-6">
       <SectionCard
         title={classRow.name}
-        description={`${
-          classTypeLabel[classRow.type as keyof typeof classTypeLabel] || classRow.type
-        } - ${formatClassScheduleForViewer(
-          classRow.schedule_day,
-          classRow.schedule_start_time,
-          classRow.schedule_end_time,
-          classRow.timezone,
-          session.profile.timezone
-        )}`}
+        description={`${classTypeText} · ${scheduleText}`}
       >
         <div className="grid gap-2 text-sm text-charcoal/75 dark:text-navy-300">
           <p>

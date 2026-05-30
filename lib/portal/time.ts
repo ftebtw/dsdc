@@ -104,12 +104,18 @@ export function formatSessionRangeForViewer(
  * Handles weekday shifts across timezone boundaries using the next matching schedule day.
  */
 export function formatClassScheduleForViewer(
-  scheduleDay: string,
-  startTime: string,
-  endTime: string,
+  scheduleDay: string | null,
+  startTime: string | null,
+  endTime: string | null,
   classTimezone: string,
   viewerTimezone: string
 ): string {
+  // Private-session group classrooms (and any class without a fixed weekly
+  // slot) have null schedule fields — bail out instead of calling .slice on null.
+  if (!scheduleDay || !startTime || !endTime) {
+    return 'No fixed schedule';
+  }
+
   const dayIndex: Record<string, number> = {
     sun: 0,
     mon: 1,
