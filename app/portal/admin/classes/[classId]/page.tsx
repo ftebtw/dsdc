@@ -345,6 +345,23 @@ export default async function AdminClassDetailPage({
         title={`Session Cover - ${selectedDate}`}
         description="Assign a covering coach for this session. The cover gets check-in access for this date and is paid for it; the original coach is not paid for a session they didn't teach."
       >
+        <form method="get" className="mb-3 flex items-end gap-2">
+          <div>
+            <label className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+              Session date to cover
+            </label>
+            <input
+              type="date"
+              name="date"
+              defaultValue={selectedDate}
+              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2 text-sm"
+            />
+          </div>
+          <button className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+            Go to date
+          </button>
+        </form>
+
         {coverCoachId ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-violet-200 dark:border-violet-700 bg-violet-50 dark:bg-violet-900/20 px-4 py-3">
             <p className="text-sm text-navy-800 dark:text-white">
@@ -401,7 +418,7 @@ export default async function AdminClassDetailPage({
           </form>
         )}
         <p className="mt-2 text-xs text-charcoal/55 dark:text-navy-400">
-          Change the date in the section below to assign a cover for a different session.
+          Pick the session date above, choose the covering coach, then Assign cover.
         </p>
       </SectionCard>
 
