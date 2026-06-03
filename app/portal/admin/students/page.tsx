@@ -32,10 +32,11 @@ async function unenrollStudentFromClass(formData: FormData) {
 export default async function AdminStudentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ classId?: string }>;
+  searchParams: Promise<{ classId?: string; q?: string }>;
 }) {
   await requireRole(['admin']);
   const params = await searchParams;
+  const searchQuery = (params.q ?? '').trim();
   const supabase = await getSupabaseServerClient();
 
   const [{ data: studentsData }, { data: allClassesData }] = await Promise.all([
@@ -62,30 +63,68 @@ export default async function AdminStudentsPage({
     ? new Set(enrollments.filter((row) => row.class_id === params.classId).map((row) => row.student_id))
     : null;
 
-  const visibleStudents = filteredStudentSet
+  const classFilteredStudents = filteredStudentSet
     ? students.filter((student: any) => filteredStudentSet.has(student.id))
     : students;
+
+  // Free-text search across display name AND email (case-insensitive). This is
+  // how you find a student whose stored name differs from the name you know
+  // them by — search the email instead.
+  const q = searchQuery.toLowerCase();
+  const visibleStudents = q
+    ? classFilteredStudents.filter((student: any) => {
+        const name = String(student.display_name ?? '').toLowerCase();
+        const email = String(student.email ?? '').toLowerCase();
+        return name.includes(q) || email.includes(q);
+      })
+    : classFilteredStudents;
 
   const selectedClassName = params.classId ? classMap[params.classId]?.name : null;
 
   return (
     <SectionCard title="Students" description="All students with enrollment status and class assignments.">
-      <form method="get" className="flex flex-wrap items-center gap-3 mb-4">
-        <label className="text-sm text-navy-700 dark:text-navy-200">Filter by class</label>
-        <select
-          name="classId"
-          defaultValue={params.classId || ''}
-          className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-        >
-          <option value="">All classes</option>
-          {allClasses.map((classRow: any) => (
-            <option key={classRow.id} value={classRow.id}>
-              {classRow.name}
-            </option>
-          ))}
-        </select>
+      <form method="get" className="flex flex-wrap items-end gap-3 mb-4">
+        <div>
+          <label className="block text-xs text-navy-700 dark:text-navy-200 mb-1">Search name or email</label>
+          <input
+            type="search"
+            name="q"
+            defaultValue={searchQuery}
+            placeholder="e.g. youyi or qinchunlan22@gmail.com"
+            className="w-64 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-navy-700 dark:text-navy-200 mb-1">Filter by class</label>
+          <select
+            name="classId"
+            defaultValue={params.classId || ''}
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          >
+            <option value="">All classes</option>
+            {allClasses.map((classRow: any) => (
+              <option key={classRow.id} value={classRow.id}>
+                {classRow.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <button className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">Apply</button>
+        {searchQuery || params.classId ? (
+          <a
+            href="/portal/admin/students"
+            className="px-3 py-1.5 rounded-md text-sm text-charcoal/70 dark:text-navy-300 underline-offset-2 hover:underline"
+          >
+            Clear
+          </a>
+        ) : null}
       </form>
+
+      {searchQuery ? (
+        <p className="mb-3 text-xs text-charcoal/65 dark:text-navy-300">
+          {visibleStudents.length} result{visibleStudents.length === 1 ? '' : 's'} for “{searchQuery}”.
+        </p>
+      ) : null}
 
       {selectedClassName ? (
         <p className="mb-3 text-xs text-charcoal/70 dark:text-navy-300">

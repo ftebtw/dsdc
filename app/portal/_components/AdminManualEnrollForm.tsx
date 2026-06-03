@@ -63,11 +63,21 @@ export default function AdminManualEnrollForm({
     }
 
     const count = data.enrollments?.length ?? selectedClassIds.length;
+    const studentLabel =
+      mode === 'existing'
+        ? studentOptions.find((s) => s.id === studentId)?.label || 'student'
+        : displayName || email || 'new student';
+    const classLabels = selectedClassIds
+      .map((id) => classOptions.find((c) => c.id === id)?.label)
+      .filter(Boolean)
+      .join(', ');
     setMessage(
-      data.createdStudent
-        ? `Student created and enrolled in ${count} class(es).`
-        : `Enrolled in ${count} class(es).`
+      `${data.createdStudent ? 'Created and enrolled' : 'Enrolled'} ${studentLabel} in ${count} class${
+        count === 1 ? '' : 'es'
+      }${classLabels ? `: ${classLabels}` : ''}.`
     );
+    // Clear the selection so it's obvious the action completed.
+    setSelectedClassIds([]);
     if (mode === 'new') {
       setEmail('');
       setDisplayName('');
@@ -178,8 +188,16 @@ export default function AdminManualEnrollForm({
         </div>
       )}
 
-      {message ? <p className="text-sm text-green-700">{message}</p> : null}
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {message ? (
+        <div className="rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300">
+          ✓ {message}
+        </div>
+      ) : null}
+      {error ? (
+        <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+          {error}
+        </div>
+      ) : null}
 
       <button
         type="submit"
