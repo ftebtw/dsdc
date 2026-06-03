@@ -30,7 +30,7 @@ import {
   classPillClass,
   eventPillClass,
   eventPillStyle,
-  inTerm,
+  inClassRun,
   normalizeTimeZone,
   convertDateKeyForDisplay,
   convertTimeForDisplay,
@@ -197,15 +197,13 @@ export default function PortalCalendar({
     let sourceDate = addDays(gridStart, -1);
     const sourceEnd = addDays(gridEnd, 1);
     while (sourceDate <= sourceEnd) {
-      if (!inTerm(sourceDate, payload.term)) {
-        sourceDate = addDays(sourceDate, 1);
-        continue;
-      }
-
       const sourceKey = toKey(sourceDate);
       const weekday = sourceDate.getDay();
       for (const classItem of payload.classes) {
         if (classItem.weekday_index !== weekday) continue;
+        // Each class renders only within its own term's run, so classes from
+        // different (overlapping) terms each show across their own dates.
+        if (!inClassRun(sourceDate, classItem)) continue;
         const displayKey = convertDateKeyForDisplay(
           sourceKey,
           classItem.schedule_start_time,

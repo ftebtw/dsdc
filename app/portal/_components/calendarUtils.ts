@@ -13,6 +13,10 @@ export type CalendarClass = {
   zoom_link: string | null;
   is_mine: boolean;
   weekday_index: number;
+  // Each class is bounded by its OWN term's run, so classes from different
+  // (possibly overlapping) terms each render across their own date range.
+  term_start: string;
+  term_end: string;
 };
 
 export type CalendarCancellation = {
@@ -148,6 +152,17 @@ export function inTerm(date: Date, term: CalendarPayload["term"]) {
   if (!term) return false;
   const day = startOfDay(date).getTime();
   return day >= parseISO(term.start_date).getTime() && day <= parseISO(term.end_date).getTime();
+}
+
+// Whether a date falls within a single class's own term run. Lets classes
+// from different (possibly overlapping) terms each render across their range.
+export function inClassRun(date: Date, classItem: CalendarClass) {
+  if (!classItem.term_start || !classItem.term_end) return true;
+  const day = startOfDay(date).getTime();
+  return (
+    day >= parseISO(classItem.term_start).getTime() &&
+    day <= parseISO(classItem.term_end).getTime()
+  );
 }
 
 export function normalizeTimeZone(timezone: string | null | undefined) {

@@ -41,14 +41,41 @@ export async function GET(request: NextRequest) {
   }
 
   const admin = getSupabaseAdminClient();
-  const { data: activeTerm } = await admin.from("terms").select("id,name,start_date,end_date").eq("is_active", true).maybeSingle();
+  // Pull every term, not just the single active one. Schools can run
+  // overlapping terms (e.g. a regular term plus a WSC term that runs longer),
+  // and the calendar must show classes from all of them — each bounded by its
+  // own term's dates — within the requested window.
+  const { data: termsData } = await admin
+    .from("terms")
+    .select("id,name,start_date,end_date,is_active");
+  const allTerms = (termsData ?? []) as Array<{
+    id: string;
+    name: string;
+    start_date: string;
+    end_date: string;
+    is_active: boolean;
+  }>;
 
-  if (!activeTerm) {
+  // Terms that overlap the requested window (or, with no window, the active
+  // term plus any currently-running term).
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const relevantTerms = allTerms.filter((term) => {
+    if (from && to) return term.start_date <= to && term.end_date >= from;
+    return term.is_active || (term.start_date <= todayIso && term.end_date >= todayIso);
+  });
+  const termById = new Map(relevantTerms.map((term) => [term.id, term]));
+  // Header term: prefer the active one, else the first relevant term.
+  const headerTerm =
+    relevantTerms.find((term) => term.is_active) ?? relevantTerms[0] ?? allTerms.find((t) => t.is_active) ?? null;
+
+  if (relevantTerms.length === 0) {
     return NextResponse.json({
       classes: [],
       events: [],
       cancellations: [],
-      term: null,
+      term: headerTerm
+        ? { start_date: headerTerm.start_date, end_date: headerTerm.end_date, name: headerTerm.name }
+        : null,
     });
   }
 
@@ -57,7 +84,7 @@ export async function GET(request: NextRequest) {
     .select(
       "id,name,type,coach_id,schedule_day,schedule_start_time,schedule_end_time,timezone,zoom_link,term_id"
     )
-    .eq("term_id", activeTerm.id)
+    .in("term_id", relevantTerms.map((term) => term.id))
     .is("archived_at", null)
     .order("schedule_day", { ascending: true })
     .order("schedule_start_time", { ascending: true });
@@ -161,6 +188,7 @@ export async function GET(request: NextRequest) {
   const classes = classRows
     .map((row) => {
       const isMine = mineClassIds.has(row.id);
+      const term = termById.get(row.term_id);
       return {
         id: row.id,
         name: row.name,
@@ -173,6 +201,8 @@ export async function GET(request: NextRequest) {
         zoom_link: isMine ? row.zoom_link : null,
         is_mine: isMine,
         weekday_index: scheduleDayIndex[row.schedule_day] ?? 0,
+        term_start: term?.start_date ?? "",
+        term_end: term?.end_date ?? "",
       };
     })
     .filter((row) => parsedFilter.data === "all" || row.is_mine);
@@ -294,9 +324,9 @@ export async function GET(request: NextRequest) {
     events,
     cancellations,
     term: {
-      start_date: activeTerm.start_date,
-      end_date: activeTerm.end_date,
-      name: activeTerm.name,
+      start_date: headerTerm ? headerTerm.start_date : "",
+      end_date: headerTerm ? headerTerm.end_date : "",
+      name: headerTerm ? headerTerm.name : "",
     },
   });
 }
