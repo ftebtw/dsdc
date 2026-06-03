@@ -118,7 +118,11 @@ export default async function CoachAttendancePage({
     : restrictedSessionDates;
 
   const [{ data: enrollmentsData }, { data: attendanceRowsData }, { data: absencesData }] = await Promise.all([
-    supabase.from('enrollments').select('student_id').eq('class_id', classId),
+    supabase
+      .from('enrollments')
+      .select('student_id')
+      .eq('class_id', classId)
+      .in('status', ['active', 'completed']),
     supabase
       .from('attendance_records')
       .select('student_id,status,camera_on,marked_at')
