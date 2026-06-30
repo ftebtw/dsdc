@@ -11,6 +11,7 @@ const patchSchema = z.object({
   urls: z.array(z.string().trim().url()).max(10).optional(),
   sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
   publishAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  section: z.string().trim().max(120).nullable().optional(),
 });
 
 function jsonError(message: string, status = 400) {
@@ -127,6 +128,11 @@ export async function PATCH(
       `${parsed.data.publishAt}T00:00:00`,
       classTimezone
     ).toISOString();
+  }
+  if (parsed.data.section !== undefined) {
+    update.section = parsed.data.section === null || parsed.data.section === ''
+      ? null
+      : parsed.data.section;
   }
 
   if (Object.keys(update).length === 0) {

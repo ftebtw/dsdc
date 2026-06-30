@@ -53,28 +53,56 @@ export default function ResourceList({
   const { locale } = useI18n();
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [error, setError] = useState<string | null>(null);
-  const [collapsedWeeks, setCollapsedWeeks] = useState<Set<number>>(new Set());
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const hasWeeks = Boolean(termStartDate);
 
-  const grouped = useMemo(() => {
-    if (!hasWeeks) return null;
+  type Group = {
+    key: string;
+    label: string;
+    sortDate: string;
+    types: Array<{ type: string; resources: Resource[] }>;
+  };
 
-    const weekMap = new Map<number, Map<string, Resource[]>>();
+  const grouped = useMemo<Group[] | null>(() => {
+    if (!hasWeeks) return null;
+    type Bucket = {
+      key: string;
+      label: string;
+      sortDate: string;
+      typeMap: Map<string, Resource[]>;
+    };
+    const buckets = new Map<string, Bucket>();
 
     for (const resource of resources) {
       const dateStr = resource.session_date || resource.created_at.slice(0, 10);
-      const week = getWeekNumber(termStartDate!, dateStr);
-      if (!weekMap.has(week)) weekMap.set(week, new Map());
-      const typeMap = weekMap.get(week)!;
-      if (!typeMap.has(resource.type)) typeMap.set(resource.type, []);
-      typeMap.get(resource.type)!.push(resource);
+      const sectionName = (resource as { section?: string | null }).section?.trim();
+      const week = sectionName ? null : getWeekNumber(termStartDate!, dateStr);
+      const key = sectionName ? `section:${sectionName}` : `week:${week}`;
+      let bucket = buckets.get(key);
+      if (!bucket) {
+        bucket = {
+          key,
+          label: sectionName ? sectionName : `Week ${week}`,
+          sortDate: dateStr,
+          typeMap: new Map(),
+        };
+        buckets.set(key, bucket);
+      }
+      if (dateStr > bucket.sortDate) bucket.sortDate = dateStr;
+      if (!bucket.typeMap.has(resource.type)) bucket.typeMap.set(resource.type, []);
+      bucket.typeMap.get(resource.type)!.push(resource);
     }
 
-    return [...weekMap.entries()]
-      .sort((a, b) => b[0] - a[0])
-      .map(([week, typeMap]) => ({
-        week,
-        types: [...typeMap.entries()]
+    return [...buckets.values()]
+      .sort((a, b) => {
+        if (a.sortDate !== b.sortDate) return a.sortDate < b.sortDate ? 1 : -1;
+        return a.key < b.key ? 1 : -1;
+      })
+      .map((bucket) => ({
+        key: bucket.key,
+        label: bucket.label,
+        sortDate: bucket.sortDate,
+        types: [...bucket.typeMap.entries()]
           .sort(
             (a, b) =>
               (resourceTypePriority[a[0]] ?? 99) -
@@ -87,11 +115,11 @@ export default function ResourceList({
       }));
   }, [resources, termStartDate, hasWeeks]);
 
-  function toggleWeek(week: number) {
-    setCollapsedWeeks((prev) => {
+  function toggleGroup(key: string) {
+    setCollapsedGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(week)) next.delete(week);
-      else next.add(week);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }
@@ -137,19 +165,19 @@ export default function ResourceList({
     return (
       <div className="space-y-4">
         {error ? <p className="text-sm text-red-700">{error}</p> : null}
-        {grouped.map(({ week, types }) => {
-          const isCollapsed = collapsedWeeks.has(week);
+        {grouped.map(({ key, label, types }) => {
+          const isCollapsed = collapsedGroups.has(key);
           return (
             <div
-              key={week}
+              key={key}
               className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-hidden"
             >
               <button
                 type="button"
-                onClick={() => toggleWeek(week)}
+                onClick={() => toggleGroup(key)}
                 className="w-full flex items-center justify-between px-4 py-3 bg-warm-100 dark:bg-navy-800 hover:bg-warm-200 dark:hover:bg-navy-700 transition-colors"
               >
-                <h3 className="font-semibold text-navy-800 dark:text-white">Week {week}</h3>
+                <h3 className="font-semibold text-navy-800 dark:text-white">{label}</h3>
                 <span className="text-charcoal/50 dark:text-navy-400 text-sm">
                   {isCollapsed ? '>' : 'v'}
                 </span>

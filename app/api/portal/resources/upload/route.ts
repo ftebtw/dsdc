@@ -14,6 +14,7 @@ const metadataSchema = z.object({
   urls: z.array(z.string().url()).max(10).optional(),
   sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   publishAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  section: z.string().trim().max(120).optional(),
 });
 
 const RESOURCE_MAX_FILE_BYTES = 25 * 1024 * 1024; // 25MB
@@ -170,6 +171,7 @@ export async function POST(request: NextRequest) {
     urls: rawUrls.length > 0 ? rawUrls : undefined,
     sessionDate: formStringValue(formData, 'sessionDate'),
     publishAt: formStringValue(formData, 'publishAt'),
+    section: formStringValue(formData, 'section'),
   });
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
@@ -267,6 +269,7 @@ export async function POST(request: NextRequest) {
     type: parsed.data.type,
     session_date: parsed.data.sessionDate || new Date().toISOString().slice(0, 10),
     publish_at: publishAt,
+    section: parsed.data.section?.trim() ? parsed.data.section.trim() : null,
   };
 
   if (hasUrl) {

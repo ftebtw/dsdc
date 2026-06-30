@@ -1699,6 +1699,7 @@ export type Database = {
           id: string
           posted_by: string
           publish_at: string
+          section: string | null
           session_date: string | null
           title: string
           type: Database["public"]["Enums"]["resource_type"]
@@ -1712,6 +1713,7 @@ export type Database = {
           id?: string
           posted_by: string
           publish_at?: string
+          section?: string | null
           session_date?: string | null
           title: string
           type: Database["public"]["Enums"]["resource_type"]
@@ -1725,6 +1727,7 @@ export type Database = {
           id?: string
           posted_by?: string
           publish_at?: string
+          section?: string | null
           session_date?: string | null
           title?: string
           type?: Database["public"]["Enums"]["resource_type"]

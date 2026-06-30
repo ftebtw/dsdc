@@ -60,6 +60,7 @@ export default function CoachResourceManager({
   const [type, setType] = useState<ResourceType>('lesson_plan');
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().slice(0, 10));
   const [publishDate, setPublishDate] = useState(new Date().toISOString().slice(0, 10));
+  const [section, setSection] = useState('');
   const [urls, setUrls] = useState<string[]>(['']);
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -68,34 +69,72 @@ export default function CoachResourceManager({
   const [weekTitleSaving, setWeekTitleSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [collapsedWeeks, setCollapsedWeeks] = useState<Set<number>>(new Set());
-
   const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editType, setEditType] = useState<ResourceType>('lesson_plan');
   const [editSessionDate, setEditSessionDate] = useState('');
   const [editPublishDate, setEditPublishDate] = useState('');
+  const [editSection, setEditSection] = useState('');
   const [editUrls, setEditUrls] = useState<string[]>(['']);
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
-  const grouped = useMemo(() => {
-    const weekMap = new Map<number, Map<string, Resource[]>>();
+  type ResourceGroup = {
+    key: string;
+    kind: 'section' | 'week';
+    label: string;
+    week: number | null;
+    sectionName: string | null;
+    sortDate: string;
+    types: Array<{ type: string; resources: Resource[] }>;
+  };
+
+  const grouped = useMemo<ResourceGroup[]>(() => {
+    type Bucket = {
+      kind: 'section' | 'week';
+      week: number | null;
+      sectionName: string | null;
+      sortDate: string;
+      typeMap: Map<string, Resource[]>;
+    };
+    const buckets = new Map<string, Bucket>();
 
     for (const resource of resources) {
       const dateStr = resource.session_date || resource.created_at.slice(0, 10);
-      const week = getWeekNumber(termStartDate, dateStr);
-      if (!weekMap.has(week)) weekMap.set(week, new Map());
-      const typeMap = weekMap.get(week)!;
-      if (!typeMap.has(resource.type)) typeMap.set(resource.type, []);
-      typeMap.get(resource.type)!.push(resource);
+      const sectionName = (resource as { section?: string | null }).section?.trim();
+      const key = sectionName ? `section:${sectionName}` : `week:${getWeekNumber(termStartDate, dateStr)}`;
+      let bucket = buckets.get(key);
+      if (!bucket) {
+        bucket = sectionName
+          ? {
+              kind: 'section',
+              week: null,
+              sectionName,
+              sortDate: dateStr,
+              typeMap: new Map(),
+            }
+          : {
+              kind: 'week',
+              week: getWeekNumber(termStartDate, dateStr),
+              sectionName: null,
+              sortDate: dateStr,
+              typeMap: new Map(),
+            };
+        buckets.set(key, bucket);
+      }
+      if (dateStr > bucket.sortDate) bucket.sortDate = dateStr;
+      if (!bucket.typeMap.has(resource.type)) bucket.typeMap.set(resource.type, []);
+      bucket.typeMap.get(resource.type)!.push(resource);
     }
 
-    const sorted = [...weekMap.entries()].sort((a, b) => b[0] - a[0]);
+    const entries = [...buckets.entries()].sort((a, b) => {
+      if (a[1].sortDate !== b[1].sortDate) return a[1].sortDate < b[1].sortDate ? 1 : -1;
+      return a[0] < b[0] ? 1 : -1;
+    });
 
-    return sorted.map(([week, typeMap]) => {
-      const types = [...typeMap.entries()]
+    return entries.map(([key, bucket]) => {
+      const types = [...bucket.typeMap.entries()]
         .sort(
           (a, b) =>
             (resourceTypePriority[a[0]] ?? 99) -
@@ -105,15 +144,29 @@ export default function CoachResourceManager({
           type: typeName,
           resources: items.sort((a, b) => (a.created_at < b.created_at ? 1 : -1)),
         }));
-      return { week, types };
+      const label =
+        bucket.kind === 'section'
+          ? bucket.sectionName!
+          : weekTitles[String(bucket.week)]?.trim() || `Week ${bucket.week}`;
+      return {
+        key,
+        kind: bucket.kind,
+        label,
+        week: bucket.week,
+        sectionName: bucket.sectionName,
+        sortDate: bucket.sortDate,
+        types,
+      };
     });
-  }, [resources, termStartDate]);
+  }, [resources, termStartDate, weekTitles]);
 
-  function toggleWeek(week: number) {
-    setCollapsedWeeks((prev) => {
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+
+  function toggleGroup(key: string) {
+    setCollapsedGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(week)) next.delete(week);
-      else next.add(week);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }
@@ -221,6 +274,7 @@ export default function CoachResourceManager({
     formData.append('type', type);
     formData.append('sessionDate', sessionDate);
     formData.append('publishAt', publishDate);
+    if (section.trim()) formData.append('section', section.trim());
     for (const u of cleanedUrls) {
       formData.append('urls', u);
     }
@@ -249,6 +303,7 @@ export default function CoachResourceManager({
     setTitle('');
     setDescription('');
     setType('lesson_plan');
+    setSection('');
     setUrls(['']);
     clearSelectedFile();
   }
@@ -271,6 +326,7 @@ export default function CoachResourceManager({
       resource.session_date || (resource.publish_at || resource.created_at).slice(0, 10)
     );
     setEditPublishDate((resource.publish_at || resource.created_at).slice(0, 10));
+    setEditSection((resource as { section?: string | null }).section ?? '');
     const existing = effectiveUrls(resource);
     setEditUrls(existing.length > 0 ? existing : ['']);
   }
@@ -302,6 +358,7 @@ export default function CoachResourceManager({
       type: editType,
       sessionDate: editSessionDate || null,
       publishAt: editPublishDate || undefined,
+      section: editSection.trim() ? editSection.trim() : null,
       urls: editUrls.map((u) => u.trim()).filter(Boolean),
     };
 
@@ -414,6 +471,31 @@ export default function CoachResourceManager({
             />
           </div>
         </div>
+        <div>
+          <label className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+            Section (optional)
+          </label>
+          <input
+            type="text"
+            value={section}
+            onChange={(event) => setSection(event.target.value)}
+            list="coach-resource-section-suggestions"
+            placeholder="e.g. Thursday Week 3"
+            className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+          />
+          <datalist id="coach-resource-section-suggestions">
+            {[...new Set(
+              resources
+                .map((r) => (r as { section?: string | null }).section ?? '')
+                .filter((s): s is string => Boolean(s && s.trim()))
+            )].map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
+          <p className="mt-1 text-xs text-charcoal/55 dark:text-navy-400">
+            Type a section name to group resources yourself instead of by week (e.g. one section for Thursday, one for Saturday).
+          </p>
+        </div>
         <div className="space-y-2">
           <span className="block text-xs font-medium text-navy-700 dark:text-navy-200">
             {t('portal.coachResource.links', 'Links (optional)')}
@@ -501,36 +583,38 @@ export default function CoachResourceManager({
         </p>
       ) : (
         <div className="space-y-4">
-          {grouped.map(({ week, types }) => {
-            const isCollapsed = collapsedWeeks.has(week);
-            const currentWeekTitle = weekTitles[String(week)]?.trim() || `Week ${week}`;
+          {grouped.map((group) => {
+            const { key, kind, week, label, types } = group;
+            const isCollapsed = collapsedGroups.has(key);
             return (
               <div
-                key={week}
+                key={key}
                 className="rounded-xl border border-warm-200 dark:border-navy-600 overflow-hidden"
               >
                 <div className="flex items-center gap-2 px-4 py-3 bg-warm-100 dark:bg-navy-800">
                   <button
                     type="button"
-                    onClick={() => toggleWeek(week)}
+                    onClick={() => toggleGroup(key)}
                     className="flex-1 min-w-0 flex items-center justify-between text-left hover:opacity-90 transition-opacity"
                   >
                     <h3 className="font-semibold text-navy-800 dark:text-white truncate">
-                      {currentWeekTitle}
+                      {label}
                     </h3>
                     <span className="text-charcoal/50 dark:text-navy-400 text-sm pl-3 shrink-0">
                       {isCollapsed ? '>' : 'v'}
                     </span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => beginWeekRename(week)}
-                    className="text-xs text-blue-600 dark:text-blue-400 underline shrink-0"
-                  >
-                    {t('portal.coachResource.renameWeek', 'Rename')}
-                  </button>
+                  {kind === 'week' && week !== null ? (
+                    <button
+                      type="button"
+                      onClick={() => beginWeekRename(week)}
+                      className="text-xs text-blue-600 dark:text-blue-400 underline shrink-0"
+                    >
+                      {t('portal.coachResource.renameWeek', 'Rename')}
+                    </button>
+                  ) : null}
                 </div>
-                {editingWeek === week ? (
+                {kind === 'week' && week !== null && editingWeek === week ? (
                   <div className="px-4 pb-3 bg-warm-100 dark:bg-navy-800 flex flex-wrap items-center gap-2">
                     <input
                       value={editingWeekTitle}
@@ -645,6 +729,22 @@ export default function CoachResourceManager({
                                       />
                                     </label>
                                   </div>
+                                  <label className="block">
+                                    <span className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+                                      Section (optional)
+                                    </span>
+                                    <input
+                                      type="text"
+                                      value={editSection}
+                                      onChange={(e) => setEditSection(e.target.value)}
+                                      list="coach-resource-section-suggestions"
+                                      placeholder="e.g. Thursday Week 3"
+                                      className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                                    />
+                                    <span className="mt-1 block text-xs text-charcoal/55 dark:text-navy-400">
+                                      Leave blank to use auto week grouping.
+                                    </span>
+                                  </label>
                                   <div className="space-y-1.5">
                                     <span className="block text-xs text-charcoal/70 dark:text-navy-300">
                                       {t('portal.coachResource.links', 'Links (optional)')}
