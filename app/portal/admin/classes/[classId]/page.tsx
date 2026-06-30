@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { notFound, redirect } from 'next/navigation';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import CoachAttendanceEditor from '@/app/portal/_components/CoachAttendanceEditor';
+import CoachHomeworkManager from '@/app/portal/_components/CoachHomeworkManager';
 import CoachResourceManager from '@/app/portal/_components/CoachResourceManager';
 import ConfirmDeleteButton from '@/app/portal/_components/ConfirmDeleteButton';
 import { assignSessionCover, removeSessionCover } from '../actions';
@@ -197,6 +198,74 @@ export default async function AdminClassDetailPage({
     .eq('class_id', classId)
     .order('cancellation_date', { ascending: false });
   const cancellations = (cancellationsData ?? []) as CancellationRow[];
+
+  const [homeworkEnrollmentsResult, assignmentsResult, submissionsResult] = await Promise.all([
+    supabase
+      .from('enrollments')
+      .select('student_id, status')
+      .eq('class_id', classId)
+      .in('status', ['active', 'completed']),
+    (supabase as any)
+      .from('homework_assignments')
+      .select('*')
+      .eq('class_id', classId)
+      .order('due_date', { ascending: true, nullsFirst: false })
+      .order('created_at', { ascending: false }),
+    (supabase as any)
+      .from('homework_submissions')
+      .select('*')
+      .eq('class_id', classId)
+      .order('created_at', { ascending: false }),
+  ]);
+
+  const homeworkUnavailable = submissionsResult.error?.code === '42P01';
+  const homeworkError = !homeworkUnavailable ? submissionsResult.error?.message ?? null : null;
+  const assignmentRows = homeworkUnavailable
+    ? []
+    : ((assignmentsResult.data ?? []) as Array<{
+        id: string;
+        class_id: string;
+        posted_by: string;
+        title: string;
+        description: string | null;
+        external_urls: string[];
+        file_path: string | null;
+        file_name: string | null;
+        due_date: string | null;
+        publish_at: string;
+        created_at: string;
+      }>);
+  const submissionRows = homeworkUnavailable
+    ? []
+    : ((submissionsResult.data ?? []) as Array<{
+        id: string;
+        class_id: string;
+        assignment_id: string | null;
+        student_id: string;
+        title: string;
+        notes: string | null;
+        file_path: string | null;
+        file_name: string | null;
+        external_url: string | null;
+        external_urls: string[] | null;
+        due_date: string | null;
+        grade: string | null;
+        feedback: string | null;
+        graded_by: string | null;
+        graded_at: string | null;
+        created_at: string;
+      }>);
+  const homeworkEnrolledStudentIds = ((homeworkEnrollmentsResult.data ?? []) as Array<{ student_id: string }>).map(
+    (row) => row.student_id
+  );
+  const homeworkProfileIds = [
+    ...new Set([
+      ...homeworkEnrolledStudentIds,
+      ...submissionRows.map((row) => row.student_id),
+      ...submissionRows.map((row) => row.graded_by).filter((id): id is string => Boolean(id)),
+    ]),
+  ];
+  const homeworkProfileMap = await getProfileMap(supabase, homeworkProfileIds);
 
   const studentProfiles = enrolledStudentIds
     .map((id) => profileMap[id])
@@ -566,6 +635,51 @@ export default async function AdminClassDetailPage({
           termStartDate={termStartDate}
           initialWeekTitles={initialWeekTitles}
         />
+      </SectionCard>
+
+      <SectionCard
+        title="Homework"
+        description="Post assignments, view submissions, and grade homework for this class."
+      >
+        {homeworkUnavailable ? (
+          <p className="text-sm text-charcoal/70 dark:text-navy-300">
+            Homework feature is not available yet. Please run migration `0055_homework_assignments.sql`.
+          </p>
+        ) : homeworkError ? (
+          <p className="text-sm text-red-700">{homeworkError}</p>
+        ) : (
+          <CoachHomeworkManager
+            classes={[{ id: classId, name: classRow.name }]}
+            initialAssignments={assignmentRows.map((row) => ({
+              ...row,
+              className: classRow.name,
+            }))}
+            initialSubmissions={submissionRows.map((row) => ({
+              ...row,
+              className: classRow.name,
+              studentName:
+                homeworkProfileMap[row.student_id]?.display_name ||
+                homeworkProfileMap[row.student_id]?.email ||
+                row.student_id,
+              studentEmail: homeworkProfileMap[row.student_id]?.email || row.student_id,
+              gradedByName: row.graded_by
+                ? homeworkProfileMap[row.graded_by]?.display_name ||
+                  homeworkProfileMap[row.graded_by]?.email ||
+                  row.graded_by
+                : null,
+            }))}
+            enrolledByClass={{
+              [classId]: homeworkEnrolledStudentIds.map((studentId) => ({
+                studentId,
+                studentName:
+                  homeworkProfileMap[studentId]?.display_name ||
+                  homeworkProfileMap[studentId]?.email ||
+                  studentId,
+                studentEmail: homeworkProfileMap[studentId]?.email || studentId,
+              })),
+            }}
+          />
+        )}
       </SectionCard>
 
       {cancellations.length > 0 ? (
