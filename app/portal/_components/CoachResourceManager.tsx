@@ -70,6 +70,16 @@ export default function CoachResourceManager({
   const [error, setError] = useState<string | null>(null);
   const [collapsedWeeks, setCollapsedWeeks] = useState<Set<number>>(new Set());
 
+  const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editType, setEditType] = useState<ResourceType>('lesson_plan');
+  const [editSessionDate, setEditSessionDate] = useState('');
+  const [editPublishDate, setEditPublishDate] = useState('');
+  const [editUrls, setEditUrls] = useState<string[]>(['']);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
   const grouped = useMemo(() => {
     const weekMap = new Map<number, Map<string, Resource[]>>();
 
@@ -249,6 +259,72 @@ export default function CoachResourceManager({
     });
     if (!response.ok) return;
     setResources((prev) => prev.filter((resource) => resource.id !== resourceId));
+  }
+
+  function beginEditResource(resource: Resource) {
+    setEditingResourceId(resource.id);
+    setEditError(null);
+    setEditTitle(resource.title);
+    setEditDescription(resource.description ?? '');
+    setEditType(resource.type);
+    setEditSessionDate(
+      resource.session_date || (resource.publish_at || resource.created_at).slice(0, 10)
+    );
+    setEditPublishDate((resource.publish_at || resource.created_at).slice(0, 10));
+    const existing = effectiveUrls(resource);
+    setEditUrls(existing.length > 0 ? existing : ['']);
+  }
+  function cancelEditResource() {
+    setEditingResourceId(null);
+    setEditError(null);
+  }
+  function updateEditUrlAt(i: number, v: string) {
+    setEditUrls((prev) => prev.map((u, idx) => (idx === i ? v : u)));
+  }
+  function addEditUrlRow() {
+    setEditUrls((prev) => (prev.length >= 10 ? prev : [...prev, '']));
+  }
+  function removeEditUrlRow(i: number) {
+    setEditUrls((prev) => (prev.length <= 1 ? [''] : prev.filter((_, idx) => idx !== i)));
+  }
+
+  async function saveResourceEdit(resource: Resource) {
+    if (!editTitle.trim()) {
+      setEditError(t('portal.coachResource.titleRequired', 'Title is required.'));
+      return;
+    }
+    setEditSaving(true);
+    setEditError(null);
+
+    const payload = {
+      title: editTitle.trim(),
+      description: editDescription.trim() ? editDescription.trim() : null,
+      type: editType,
+      sessionDate: editSessionDate || null,
+      publishAt: editPublishDate || undefined,
+      urls: editUrls.map((u) => u.trim()).filter(Boolean),
+    };
+
+    const response = await fetch(`/api/portal/resources/${resource.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      resource?: Resource;
+    };
+    setEditSaving(false);
+
+    if (!response.ok || !data.resource) {
+      setEditError(
+        data.error || t('portal.coachResource.editError', 'Could not save changes.')
+      );
+      return;
+    }
+
+    setResources((prev) => prev.map((r) => (r.id === resource.id ? data.resource! : r)));
+    setEditingResourceId(null);
   }
 
   async function onOpen(resource: Resource, target: 'auto' | 'url' | 'file' = 'auto') {
@@ -512,6 +588,127 @@ export default function CoachResourceManager({
                             const hasUrl = resourceUrls.length > 0;
                             const hasFile = Boolean(resource.file_path);
                             const hasOpenableTarget = hasUrl || hasFile;
+                            const isEditing = editingResourceId === resource.id;
+                            if (isEditing) {
+                              return (
+                                <div
+                                  key={resource.id}
+                                  className="space-y-2 rounded-lg border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900/60 p-3"
+                                >
+                                  <div className="grid sm:grid-cols-2 gap-2">
+                                    <input
+                                      value={editTitle}
+                                      onChange={(e) => setEditTitle(e.target.value)}
+                                      placeholder={t('portal.coachResource.resourceTitle', 'Resource title')}
+                                      className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                                    />
+                                    <select
+                                      value={editType}
+                                      onChange={(e) => setEditType(e.target.value as ResourceType)}
+                                      className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                                    >
+                                      {resourceTypeOptions.map((option) => (
+                                        <option key={option} value={option}>
+                                          {resourceTypeIcon[option]} {resourceTypeLabel[option] || option}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <textarea
+                                    rows={3}
+                                    value={editDescription}
+                                    onChange={(e) => setEditDescription(e.target.value)}
+                                    placeholder={t('portal.coachResource.resourceDescription', 'Text / note (optional)')}
+                                    className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                                  />
+                                  <div className="grid sm:grid-cols-2 gap-2">
+                                    <label className="block">
+                                      <span className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+                                        Session Date (for week grouping)
+                                      </span>
+                                      <input
+                                        type="date"
+                                        value={editSessionDate}
+                                        onChange={(e) => setEditSessionDate(e.target.value)}
+                                        className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                                      />
+                                    </label>
+                                    <label className="block">
+                                      <span className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+                                        Publish Date
+                                      </span>
+                                      <input
+                                        type="date"
+                                        value={editPublishDate}
+                                        onChange={(e) => setEditPublishDate(e.target.value)}
+                                        className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                                      />
+                                    </label>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <span className="block text-xs text-charcoal/70 dark:text-navy-300">
+                                      {t('portal.coachResource.links', 'Links (optional)')}
+                                    </span>
+                                    {editUrls.map((u, i) => (
+                                      <div key={i} className="flex items-center gap-2">
+                                        <input
+                                          type="url"
+                                          value={u}
+                                          onChange={(e) => updateEditUrlAt(i, e.target.value)}
+                                          placeholder="https://..."
+                                          className="flex-1 rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+                                        />
+                                        {editUrls.length > 1 ? (
+                                          <button
+                                            type="button"
+                                            onClick={() => removeEditUrlRow(i)}
+                                            className="rounded-md border border-warm-300 dark:border-navy-600 px-2 py-1.5 text-xs text-charcoal/70 dark:text-navy-300 hover:text-red-600"
+                                            aria-label={t('portal.coachResource.removeLink', 'Remove link')}
+                                          >
+                                            ×
+                                          </button>
+                                        ) : null}
+                                      </div>
+                                    ))}
+                                    {editUrls.length < 10 ? (
+                                      <button
+                                        type="button"
+                                        onClick={addEditUrlRow}
+                                        className="text-xs font-semibold text-navy-700 hover:text-navy-900 dark:text-gold-300"
+                                      >
+                                        + {t('portal.coachResource.addLink', 'Add another link')}
+                                      </button>
+                                    ) : null}
+                                  </div>
+                                  {resource.file_path ? (
+                                    <p className="text-xs text-charcoal/55 dark:text-navy-400">
+                                      Attached file stays as-is. To change it, delete and re-post the resource.
+                                    </p>
+                                  ) : null}
+                                  {editError ? <p className="text-xs text-red-700">{editError}</p> : null}
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => saveResourceEdit(resource)}
+                                      disabled={editSaving}
+                                      className="rounded-md bg-navy-800 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
+                                    >
+                                      {editSaving
+                                        ? t('portal.common.saving', 'Saving...')
+                                        : t('portal.coachResource.saveChanges', 'Save changes')}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={cancelEditResource}
+                                      disabled={editSaving}
+                                      className="rounded-md border border-warm-300 dark:border-navy-600 px-3 py-1.5 text-sm"
+                                    >
+                                      {t('portal.common.cancel', 'Cancel')}
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            }
                             return (
                               <div
                                 key={resource.id}
@@ -574,6 +771,13 @@ export default function CoachResourceManager({
                                       {t('portal.resourceList.openFile', 'Open file')}
                                     </button>
                                   ) : null}
+                                  <button
+                                    type="button"
+                                    onClick={() => beginEditResource(resource)}
+                                    className="px-3 py-1 rounded-md border border-warm-300 dark:border-navy-600 text-sm hover:bg-warm-100 dark:hover:bg-navy-700"
+                                  >
+                                    {t('portal.common.edit', 'Edit')}
+                                  </button>
                                   <button
                                     onClick={() => onDelete(resource.id)}
                                     className="px-3 py-1 rounded-md bg-red-600 text-white text-sm"
