@@ -9,7 +9,7 @@ import TimezoneSelectNative from '@/app/portal/_components/TimezoneSelectNative'
 import { requireRole } from '@/lib/portal/auth';
 import { classTypeLabel } from '@/lib/portal/labels';
 import { getProfileMap } from '@/lib/portal/data';
-import { formatClassScheduleForViewer } from '@/lib/portal/time';
+import { formatClassScheduleDaysForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import type { Database } from '@/lib/supabase/database.types';
 import { createClass, updateClass, deleteClass, cloneClassesToTerm, archiveClass, unarchiveClass } from './actions';
@@ -611,7 +611,8 @@ export default async function AdminClassesPage({
                 />
                 <div className="lg:col-span-4 text-sm text-charcoal/75 dark:text-navy-300">
                   Schedule:{' '}
-                  {formatClassScheduleForViewer(
+                  {formatClassScheduleDaysForViewer(
+                    classRow.schedule_days,
                     classRow.schedule_day,
                     classRow.schedule_start_time,
                     classRow.schedule_end_time,

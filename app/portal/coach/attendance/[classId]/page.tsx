@@ -8,7 +8,7 @@ import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { classTypeLabel } from '@/lib/portal/labels';
-import { getSessionDateForClassTimezone, formatClassScheduleForViewer } from '@/lib/portal/time';
+import { getSessionDateForClassTimezone, formatClassScheduleDaysForViewer } from '@/lib/portal/time';
 
 type EnrollmentStudentRow = Pick<Database['public']['Tables']['enrollments']['Row'], 'student_id'>;
 type AttendanceRow = Pick<
@@ -167,7 +167,8 @@ export default async function CoachAttendancePage({
           ? ` • ${privateGroupSessionDates.length} session${privateGroupSessionDates.length === 1 ? '' : 's'} on record`
           : ''
       }`
-    : `${classTypeLabel[classRow.type as keyof typeof classTypeLabel] || String(classRow.type)} • ${formatClassScheduleForViewer(
+    : `${classTypeLabel[classRow.type as keyof typeof classTypeLabel] || String(classRow.type)} • ${formatClassScheduleDaysForViewer(
+        (classRow as { schedule_days?: string[] | null }).schedule_days ?? null,
         classRow.schedule_day,
         classRow.schedule_start_time,
         classRow.schedule_end_time,

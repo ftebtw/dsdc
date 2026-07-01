@@ -7,7 +7,10 @@ import { requireRole } from '@/lib/portal/auth';
 import { getActiveTerm, getProfileMap } from '@/lib/portal/data';
 import { classTypeLabel, getClassTypeLabel } from '@/lib/portal/labels';
 import { portalT } from '@/lib/portal/parent-i18n';
-import { formatClassScheduleForViewer, formatSessionRangeForViewer } from '@/lib/portal/time';
+import {
+  formatClassScheduleDaysForViewer,
+  formatSessionRangeForViewer,
+} from '@/lib/portal/time';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -185,32 +188,41 @@ export default async function StudentClassesPage() {
     }
   }
 
+  const isTermlessActive = (classRow: any) => {
+    if (classRow.term) return false;
+    if (classRow.end_date && classRow.end_date < today) return false;
+    return true;
+  };
+
   const currentClasses = classRows
     .filter(
       (classRow: any) =>
         !classRow.is_private_session_group &&
         !classRow.archived_at &&
-        classRow.term?.is_active &&
-        classRow.enrollment_status === 'active'
+        classRow.enrollment_status === 'active' &&
+        (classRow.term?.is_active || isTermlessActive(classRow))
     )
     .sort(compareBySchedule);
 
-  // Past = archived (regardless of term) OR enrolled in a non-active term.
+  // Past = archived OR term-anchored in a non-active term OR termless
+  // whose end_date has already passed.
   const pastClasses = classRows
     .filter(
       (classRow: any) =>
         !classRow.is_private_session_group &&
-        (Boolean(classRow.archived_at) || (classRow.term && !classRow.term.is_active))
+        (Boolean(classRow.archived_at) ||
+          (classRow.term && !classRow.term.is_active) ||
+          (!classRow.term && classRow.end_date && classRow.end_date < today))
     )
     .sort((left: any, right: any) => {
       const leftDate = left.archived_at ? new Date(left.archived_at).getTime() : 0;
       const rightDate = right.archived_at ? new Date(right.archived_at).getTime() : 0;
       const archivedDiff = rightDate - leftDate;
       if (archivedDiff !== 0) return archivedDiff;
-      const leftTerm = left.term ? new Date(left.term.start_date || left.term.end_date || 0).getTime() : 0;
-      const rightTerm = right.term ? new Date(right.term.start_date || right.term.end_date || 0).getTime() : 0;
-      const termDiff = rightTerm - leftTerm;
-      if (termDiff !== 0) return termDiff;
+      const leftAnchor = left.term?.start_date || left.start_date || 0;
+      const rightAnchor = right.term?.start_date || right.start_date || 0;
+      const anchorDiff = new Date(rightAnchor).getTime() - new Date(leftAnchor).getTime();
+      if (anchorDiff !== 0) return anchorDiff;
       return compareBySchedule(left, right);
     });
 
@@ -309,7 +321,8 @@ export default async function StudentClassesPage() {
         <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
         <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
           {getClassTypeLabel(classRow.type, locale)} -{' '}
-          {formatClassScheduleForViewer(
+          {formatClassScheduleDaysForViewer(
+            classRow.schedule_days,
             classRow.schedule_day,
             classRow.schedule_start_time,
             classRow.schedule_end_time,
@@ -318,8 +331,17 @@ export default async function StudentClassesPage() {
           )}
         </p>
         <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
-          {t('portal.student.classes.termLabel', 'Term')}:{' '}
-          {classRow.term?.name || t('portal.student.classes.noTermLabel', 'Unassigned term')}
+          {classRow.term ? (
+            <>
+              {t('portal.student.classes.termLabel', 'Term')}: {classRow.term.name}
+            </>
+          ) : classRow.start_date && classRow.end_date ? (
+            <>
+              {t('portal.student.classes.datesLabel', 'Dates')}: {classRow.start_date} - {classRow.end_date}
+            </>
+          ) : (
+            t('portal.student.classes.noTermLabel', 'Custom schedule')
+          )}
         </p>
         <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
           {t('portal.student.classes.coach', 'Coach')}:{' '}
@@ -362,7 +384,11 @@ export default async function StudentClassesPage() {
         ) : null}
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
-            href={`/portal/student/attendance?term=${encodeURIComponent(classRow.term_id)}&classId=${encodeURIComponent(classRow.id)}`}
+            href={
+              classRow.term_id
+                ? `/portal/student/attendance?term=${encodeURIComponent(classRow.term_id)}&classId=${encodeURIComponent(classRow.id)}`
+                : `/portal/student/attendance?classId=${encodeURIComponent(classRow.id)}`
+            }
             className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
           >
             {t('portal.student.classes.viewAttendance', 'View Attendance')}

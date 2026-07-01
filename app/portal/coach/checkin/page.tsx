@@ -11,7 +11,7 @@ import {
 } from '@/lib/portal/data';
 import {
   getSessionDateForClassTimezone,
-  formatClassScheduleForViewer,
+  formatClassScheduleDaysForViewer,
   formatSessionRangeForViewer,
 } from '@/lib/portal/time';
 
@@ -72,7 +72,8 @@ export default async function CoachCheckinPage() {
     ...todayClasses.map((classRow) => ({
       id: classRow.id,
       name: coverClassIds.has(classRow.id) ? `${classRow.name} (Cover)` : classRow.name,
-      schedule: formatClassScheduleForViewer(
+      schedule: formatClassScheduleDaysForViewer(
+        classRow.schedule_days,
         classRow.schedule_day,
         classRow.schedule_start_time,
         classRow.schedule_end_time,

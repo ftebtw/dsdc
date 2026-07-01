@@ -7,7 +7,7 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { getTodayClassesForCoach, getTodayPrivateGroupSessionsForCoach } from '@/lib/portal/data';
 import {
   getSessionDateForClassTimezone,
-  formatClassScheduleForViewer,
+  formatClassScheduleDaysForViewer,
   formatSessionRangeForViewer,
 } from '@/lib/portal/time';
 import { portalT } from '@/lib/portal/parent-i18n';
@@ -106,7 +106,8 @@ export default async function CoachDashboardPage() {
               >
                 <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
                 <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-1">
-                  {formatClassScheduleForViewer(
+                  {formatClassScheduleDaysForViewer(
+                    classRow.schedule_days,
                     classRow.schedule_day,
                     classRow.schedule_start_time,
                     classRow.schedule_end_time,
@@ -223,7 +224,8 @@ export default async function CoachDashboardPage() {
               >
                 <h3 className="font-semibold text-navy-800 dark:text-white">{classRow.name}</h3>
                 <p className="text-sm text-charcoal/65 dark:text-navy-300 mt-1">
-                  {formatClassScheduleForViewer(
+                  {formatClassScheduleDaysForViewer(
+                    classRow.schedule_days,
                     classRow.schedule_day,
                     classRow.schedule_start_time,
                     classRow.schedule_end_time,

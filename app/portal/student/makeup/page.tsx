@@ -7,7 +7,7 @@ import { getActiveTerm } from '@/lib/portal/data';
 import { hasActiveEnrollment } from '@/lib/portal/enrollment-status';
 import { classTypeLabel } from '@/lib/portal/labels';
 import { portalT } from '@/lib/portal/parent-i18n';
-import { formatClassScheduleForViewer } from '@/lib/portal/time';
+import { formatClassScheduleDaysForViewer } from '@/lib/portal/time';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export default async function StudentMakeupPage() {
@@ -118,7 +118,8 @@ export default async function StudentMakeupPage() {
                   {alternatives.map((classRow: any) => (
                     <p key={classRow.id} className="text-sm text-charcoal/80 dark:text-navy-200">
                       {classRow.name} -{' '}
-                      {formatClassScheduleForViewer(
+                      {formatClassScheduleDaysForViewer(
+                        classRow.schedule_days,
                         classRow.schedule_day,
                         classRow.schedule_start_time,
                         classRow.schedule_end_time,

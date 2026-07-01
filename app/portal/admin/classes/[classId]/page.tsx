@@ -13,7 +13,7 @@ import { requireRole } from '@/lib/portal/auth';
 import { getProfileMap } from '@/lib/portal/data';
 import { classTypeLabel } from '@/lib/portal/labels';
 import { getWeekNumber } from '@/lib/portal/resource-weeks';
-import { getSessionDateForClassTimezone, formatClassScheduleForViewer } from '@/lib/portal/time';
+import { getSessionDateForClassTimezone, formatClassScheduleDaysForViewer } from '@/lib/portal/time';
 import type { Database } from '@/lib/supabase/database.types';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -321,7 +321,8 @@ export default async function AdminClassDetailPage({
   const classTypeText = isPrivateGroup
     ? 'Private coaching group'
     : classTypeLabel[classRow.type as keyof typeof classTypeLabel] || classRow.type || 'Class';
-  const scheduleText = formatClassScheduleForViewer(
+  const scheduleText = formatClassScheduleDaysForViewer(
+    (classRow as { schedule_days?: string[] | null }).schedule_days ?? null,
     classRow.schedule_day,
     classRow.schedule_start_time,
     classRow.schedule_end_time,
