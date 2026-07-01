@@ -207,11 +207,11 @@ export default async function CoachClassesPage() {
     <div className="space-y-6">
       <SectionCard
         title={t('portal.coachClasses.title', 'My Classes')}
-        description={t('portal.coachClasses.description', 'Active-term classes assigned to you.')}
+        description={t('portal.coachClasses.description', 'Classes assigned to you.')}
       >
         {classes.length === 0 ? (
           <p className="text-sm text-charcoal/70 dark:text-navy-300">
-            {t('portal.coachClasses.empty', 'No active-term classes assigned.')}
+            {t('portal.coachClasses.empty', 'No classes assigned.')}
           </p>
         ) : (
           <div className="space-y-4">

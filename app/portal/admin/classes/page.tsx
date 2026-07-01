@@ -104,36 +104,23 @@ export default async function AdminClassesPage({
     classCoachesMap.set(row.class_id, list);
   }
 
-  const termSelectedExplicitly = params.term !== undefined;
-  const selectedTermId = termSelectedExplicitly
-    ? params.term!
-    : terms.find((term: any) => term.is_active)?.id || terms[0]?.id || '';
+  // Term is now purely an optional filter — no more "default active term"
+  // behaviour. When no `term` param is provided, every non-private-group
+  // class shows up.
+  const selectedTermId = params.term ?? '';
+  const filterByTerm = selectedTermId !== '';
 
   const showArchived = params.show_archived === '1';
 
   let classesQuery = supabase
     .from('classes')
     .select('*')
-    .eq('term_id', selectedTermId)
     .eq('is_private_session_group', false)
     .order('name');
+  if (filterByTerm) classesQuery = classesQuery.eq('term_id', selectedTermId);
   if (!showArchived) classesQuery = classesQuery.is('archived_at', null);
 
-  const classes = selectedTermId
-    ? (((await classesQuery).data ?? []) as Array<Record<string, any>>)
-    : ([] as Array<Record<string, any>>);
-
-  // Termless custom-schedule classes (term_id IS NULL, not a private
-  // session group). Always visible so they're not "trapped" behind the
-  // term filter — the admin never has to guess which term to pick.
-  let termlessClassesQuery = supabase
-    .from('classes')
-    .select('*')
-    .is('term_id', null)
-    .eq('is_private_session_group', false)
-    .order('name');
-  if (!showArchived) termlessClassesQuery = termlessClassesQuery.is('archived_at', null);
-  const termlessClasses = ((await termlessClassesQuery).data ?? []) as Array<Record<string, any>>;
+  const classes = ((await classesQuery).data ?? []) as Array<Record<string, any>>;
 
   // Private session group classrooms (no term, no schedule). Respect the same
   // show_archived toggle.
@@ -150,7 +137,6 @@ export default async function AdminClassesPage({
 
   const allClassIdsForEnrollments = [
     ...classes.map((classRow) => classRow.id),
-    ...termlessClasses.map((classRow) => classRow.id),
     ...privateGroups.map((classRow) => classRow.id),
   ];
   const classIds = classes.map((classRow) => classRow.id);
@@ -200,21 +186,28 @@ export default async function AdminClassesPage({
           invalid_date_range: 'End date must be on or after the start date.',
         }}
       />
-      <SectionCard title="Classes" description="Filter by term and create classes with a custom schedule.">
+      <SectionCard
+        title="Classes"
+        description="Create classes with custom schedules. Term is optional — leave it off for camps, workshops, and one-offs."
+      >
         <form method="get" className="flex flex-wrap items-center gap-3 mb-4">
-          <label className="text-sm text-navy-700 dark:text-navy-200">Filter by term</label>
-          <select
-            name="term"
-            defaultValue={selectedTermId}
-            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-          >
-            <option value="">No term (custom-schedule classes)</option>
-            {terms.map((term: any) => (
-              <option key={term.id} value={term.id}>
-                {term.name} {term.is_active ? '(Active)' : ''}
-              </option>
-            ))}
-          </select>
+          {terms.length > 0 ? (
+            <>
+              <label className="text-sm text-navy-700 dark:text-navy-200">Filter by term</label>
+              <select
+                name="term"
+                defaultValue={selectedTermId}
+                className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+              >
+                <option value="">All classes</option>
+                {terms.map((term: any) => (
+                  <option key={term.id} value={term.id}>
+                    {term.name} {term.is_active ? '(Active)' : ''}
+                  </option>
+                ))}
+              </select>
+            </>
+          ) : null}
           <label className="flex items-center gap-1.5 text-sm text-navy-700 dark:text-navy-200">
             <input type="checkbox" name="show_archived" value="1" defaultChecked={showArchived} />
             Show archived
@@ -253,18 +246,22 @@ export default async function AdminClassesPage({
               </option>
             ))}
           </select>
-          <select
-            name="term_id"
-            defaultValue={selectedTermId}
-            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-          >
-            <option value="">No term (use start/end dates)</option>
-            {terms.map((term: any) => (
-              <option key={term.id} value={term.id}>
-                Term: {term.name} {term.is_active ? '(Active)' : ''}
-              </option>
-            ))}
-          </select>
+          {terms.length > 0 ? (
+            <select
+              name="term_id"
+              defaultValue={selectedTermId}
+              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+            >
+              <option value="">No term (use start/end dates)</option>
+              {terms.map((term: any) => (
+                <option key={term.id} value={term.id}>
+                  Term: {term.name} {term.is_active ? '(Active)' : ''}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input type="hidden" name="term_id" value="" />
+          )}
           <fieldset className="col-span-full">
             <legend className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300 mb-1">
               Additional Coaches (optional)
@@ -444,7 +441,7 @@ export default async function AdminClassesPage({
 
       <SectionCard title="Class List" description="Edit, delete, and review class enrollment.">
         <div className="space-y-4">
-          {[...classes, ...termlessClasses].map((classRow) => {
+          {classes.map((classRow) => {
             const studentIds = enrollmentsByClass.get(classRow.id) ?? [];
             return (
               <form
@@ -646,8 +643,12 @@ export default async function AdminClassesPage({
                 <input
                   type="hidden"
                   name="redirect_to"
-                  value={`/portal/admin/classes?term=${encodeURIComponent(selectedTermId)}${
-                    showArchived ? '&show_archived=1' : ''
+                  value={`/portal/admin/classes${
+                    filterByTerm
+                      ? `?term=${encodeURIComponent(selectedTermId)}${showArchived ? '&show_archived=1' : ''}`
+                      : showArchived
+                        ? '?show_archived=1'
+                        : ''
                   }`}
                 />
                 <div className="lg:col-span-4 flex flex-wrap items-center gap-2">
@@ -699,8 +700,10 @@ export default async function AdminClassesPage({
               </form>
             );
           })}
-          {classes.length === 0 && termlessClasses.length === 0 ? (
-            <p className="text-sm text-charcoal/70 dark:text-navy-300">No classes found.</p>
+          {classes.length === 0 ? (
+            <p className="text-sm text-charcoal/70 dark:text-navy-300">
+              {filterByTerm ? 'No classes in this term.' : 'No classes yet. Create one above.'}
+            </p>
           ) : null}
         </div>
       </SectionCard>
