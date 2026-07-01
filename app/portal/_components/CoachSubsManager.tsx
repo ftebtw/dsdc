@@ -11,8 +11,8 @@ type ClassOption = {
   name: string;
   timezone: string;
   schedule_day: string | null;
-  schedule_start_time: string;
-  schedule_end_time: string;
+  schedule_start_time: string | null;
+  schedule_end_time: string | null;
 };
 
 type RequestItem = {
@@ -69,9 +69,9 @@ function getSessionDates(
   termStart: string,
   termEnd: string,
   classTimezone: string,
-  classEndTime: string
+  classEndTime: string | null
 ): Array<{ label: string; date: string }> {
-  if (!scheduleDay) return [];
+  if (!scheduleDay || !classEndTime) return [];
   const dayNum = DAY_MAP[scheduleDay.toLowerCase()];
   if (dayNum === undefined) return [];
 

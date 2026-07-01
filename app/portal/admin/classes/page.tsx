@@ -104,8 +104,10 @@ export default async function AdminClassesPage({
     classCoachesMap.set(row.class_id, list);
   }
 
-  const selectedTermId =
-    params.term || terms.find((term: any) => term.is_active)?.id || terms[0]?.id || '';
+  const termSelectedExplicitly = params.term !== undefined;
+  const selectedTermId = termSelectedExplicitly
+    ? params.term!
+    : terms.find((term: any) => term.is_active)?.id || terms[0]?.id || '';
 
   const showArchived = params.show_archived === '1';
 
@@ -113,8 +115,6 @@ export default async function AdminClassesPage({
     .from('classes')
     .select('*')
     .eq('term_id', selectedTermId)
-    // Private session group classrooms have NULL term_id, so they wouldn't match
-    // the filter above either — this is a defensive guard.
     .eq('is_private_session_group', false)
     .order('name');
   if (!showArchived) classesQuery = classesQuery.is('archived_at', null);
@@ -122,6 +122,18 @@ export default async function AdminClassesPage({
   const classes = selectedTermId
     ? (((await classesQuery).data ?? []) as Array<Record<string, any>>)
     : ([] as Array<Record<string, any>>);
+
+  // Termless custom-schedule classes (term_id IS NULL, not a private
+  // session group). Always visible so they're not "trapped" behind the
+  // term filter — the admin never has to guess which term to pick.
+  let termlessClassesQuery = supabase
+    .from('classes')
+    .select('*')
+    .is('term_id', null)
+    .eq('is_private_session_group', false)
+    .order('name');
+  if (!showArchived) termlessClassesQuery = termlessClassesQuery.is('archived_at', null);
+  const termlessClasses = ((await termlessClassesQuery).data ?? []) as Array<Record<string, any>>;
 
   // Private session group classrooms (no term, no schedule). Respect the same
   // show_archived toggle.
@@ -138,6 +150,7 @@ export default async function AdminClassesPage({
 
   const allClassIdsForEnrollments = [
     ...classes.map((classRow) => classRow.id),
+    ...termlessClasses.map((classRow) => classRow.id),
     ...privateGroups.map((classRow) => classRow.id),
   ];
   const classIds = classes.map((classRow) => classRow.id);
@@ -182,16 +195,20 @@ export default async function AdminClassesPage({
           clone_failed: 'Cloning classes failed. Please try again.',
           archive_failed: 'Could not archive the class. Please try again.',
           unarchive_failed: 'Could not restore the class. Please try again.',
+          schedule_days_required: 'Pick at least one day of the week for the class.',
+          term_or_dates_required: 'Pick a term, or provide a start date and end date.',
+          invalid_date_range: 'End date must be on or after the start date.',
         }}
       />
-      <SectionCard title="Classes by Term" description="Create and manage class schedules for each term.">
+      <SectionCard title="Classes" description="Filter by term and create classes with a custom schedule.">
         <form method="get" className="flex flex-wrap items-center gap-3 mb-4">
-          <label className="text-sm text-navy-700 dark:text-navy-200">Select term</label>
+          <label className="text-sm text-navy-700 dark:text-navy-200">Filter by term</label>
           <select
             name="term"
             defaultValue={selectedTermId}
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
           >
+            <option value="">No term (custom-schedule classes)</option>
             {terms.map((term: any) => (
               <option key={term.id} value={term.id}>
                 {term.name} {term.is_active ? '(Active)' : ''}
@@ -207,124 +224,171 @@ export default async function AdminClassesPage({
           </button>
         </form>
 
-        {selectedTermId ? (
-          <form action={createClass} className="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
-            <input type="hidden" name="term_id" value={selectedTermId} />
-            <input
-              required
-              name="name"
-              placeholder="Class name"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            />
-            <select
-              name="type"
-              defaultValue="novice_debate"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            >
-              {classTypes.map((type) => (
-                <option key={type} value={type}>
-                  {classTypeLabel[type]}
-                </option>
-              ))}
-            </select>
-            <select
-              name="coach_id"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            >
+        <form action={createClass} className="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
+          <input
+            required
+            name="name"
+            placeholder="Class name"
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          />
+          <select
+            name="type"
+            defaultValue="novice_debate"
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          >
+            {classTypes.map((type) => (
+              <option key={type} value={type}>
+                {classTypeLabel[type]}
+              </option>
+            ))}
+          </select>
+          <select
+            name="coach_id"
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          >
+            {coachProfiles.map((coach: any) => (
+              <option key={coach.coach_id} value={coach.coach_id}>
+                {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id} (
+                {formatCoachTier(coach, tiersByCoach)})
+              </option>
+            ))}
+          </select>
+          <select
+            name="term_id"
+            defaultValue={selectedTermId}
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          >
+            <option value="">No term (use start/end dates)</option>
+            {terms.map((term: any) => (
+              <option key={term.id} value={term.id}>
+                Term: {term.name} {term.is_active ? '(Active)' : ''}
+              </option>
+            ))}
+          </select>
+          <fieldset className="col-span-full">
+            <legend className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300 mb-1">
+              Additional Coaches (optional)
+            </legend>
+            <div className="flex flex-wrap gap-2">
               {coachProfiles.map((coach: any) => (
-                <option key={coach.coach_id} value={coach.coach_id}>
-                  {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id} (
-                  {formatCoachTier(coach, tiersByCoach)})
-                </option>
+                <label key={coach.coach_id} className="flex items-center gap-1 text-sm">
+                  <input type="checkbox" name="co_coach_ids" value={coach.coach_id} />
+                  {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id}
+                </label>
               ))}
-            </select>
-            <fieldset className="col-span-full">
-              <legend className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300 mb-1">
-                Additional Coaches (optional)
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                {coachProfiles.map((coach: any) => (
-                  <label key={coach.coach_id} className="flex items-center gap-1 text-sm">
-                    <input type="checkbox" name="co_coach_ids" value={coach.coach_id} />
-                    {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <select
-              name="schedule_day"
-              defaultValue="sat"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            >
+            </div>
+          </fieldset>
+          <div className="col-span-full grid md:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+                Start date
+              </label>
+              <input
+                type="date"
+                name="start_date"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+                End date
+              </label>
+              <input
+                type="date"
+                name="end_date"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+                Start time
+              </label>
+              <input
+                required
+                type="time"
+                name="schedule_start_time"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-navy-700 dark:text-navy-200 mb-1">
+                End time
+              </label>
+              <input
+                required
+                type="time"
+                name="schedule_end_time"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+              />
+            </div>
+          </div>
+          <fieldset className="col-span-full">
+            <legend className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300 mb-1">
+              Days of the week (weekly)
+            </legend>
+            <div className="flex flex-wrap gap-3">
               {scheduleDays.map((day) => (
-                <option key={day} value={day}>
+                <label
+                  key={day}
+                  className="flex items-center gap-1.5 text-sm text-navy-700 dark:text-navy-200"
+                >
+                  <input type="checkbox" name="schedule_days" value={day} />
                   {day.toUpperCase()}
-                </option>
+                </label>
               ))}
-            </select>
-            <input
-              required
-              type="time"
-              name="schedule_start_time"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            />
-            <input
-              required
-              type="time"
-              name="schedule_end_time"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            />
-            <TimezoneSelectNative
-              name="timezone"
-              defaultValue="America/Vancouver"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            />
-            <input
-              name="zoom_link"
-              placeholder="Zoom link"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            />
-            <input
-              name="max_students"
-              type="number"
-              min={1}
-              defaultValue={12}
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            />
-            <select
-              name="eligible_sub_tier"
-              defaultValue="junior"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            >
-              {tiers.map((tier) => (
-                <option key={tier} value={tier}>
-                  {tier}
-                </option>
-              ))}
-            </select>
-            <input
-              name="description"
-              placeholder="Description (optional)"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2 md:col-span-2"
-            />
-            <input
-              name="custom_price_cad"
-              type="number"
-              min={0}
-              step={1}
-              placeholder="Custom price CAD (optional)"
-              className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold justify-self-start"
-            >
-              Create Class
-            </button>
-          </form>
-        ) : (
-          <p className="text-sm text-charcoal/70 dark:text-navy-300">Create a term first to add classes.</p>
-        )}
+            </div>
+            <p className="mt-1 text-xs text-charcoal/55 dark:text-navy-400">
+              Pick one or more days. Sessions repeat weekly on each selected day between the start and end date (or the term window).
+            </p>
+          </fieldset>
+          <TimezoneSelectNative
+            name="timezone"
+            defaultValue="America/Vancouver"
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          />
+          <input
+            name="zoom_link"
+            placeholder="Zoom link"
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          />
+          <input
+            name="max_students"
+            type="number"
+            min={1}
+            defaultValue={12}
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          />
+          <select
+            name="eligible_sub_tier"
+            defaultValue="junior"
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          >
+            {tiers.map((tier) => (
+              <option key={tier} value={tier}>
+                {tier}
+              </option>
+            ))}
+          </select>
+          <input
+            name="description"
+            placeholder="Description (optional)"
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2 md:col-span-2"
+          />
+          <input
+            name="custom_price_cad"
+            type="number"
+            min={0}
+            step={1}
+            placeholder="Custom price CAD (optional)"
+            className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          />
+          <button
+            type="submit"
+            className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold justify-self-start"
+          >
+            Create Class
+          </button>
+        </form>
       </SectionCard>
 
       {terms.length >= 2 ? (
@@ -380,7 +444,7 @@ export default async function AdminClassesPage({
 
       <SectionCard title="Class List" description="Edit, delete, and review class enrollment.">
         <div className="space-y-4">
-          {classes.map((classRow) => {
+          {[...classes, ...termlessClasses].map((classRow) => {
             const studentIds = enrollmentsByClass.get(classRow.id) ?? [];
             return (
               <form
@@ -389,7 +453,6 @@ export default async function AdminClassesPage({
                 className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 p-4 grid lg:grid-cols-4 gap-3"
               >
                 <input type="hidden" name="id" value={classRow.id} />
-                <input type="hidden" name="term_id" value={selectedTermId} />
                 <input
                   name="name"
                   defaultValue={classRow.name}
@@ -442,28 +505,71 @@ export default async function AdminClassesPage({
                   className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
                 />
                 <select
-                  name="schedule_day"
-                  defaultValue={classRow.schedule_day}
+                  name="term_id"
+                  defaultValue={classRow.term_id ?? ''}
                   className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
                 >
-                  {scheduleDays.map((day) => (
-                    <option key={day} value={day}>
-                      {day.toUpperCase()}
+                  <option value="">No term (use start/end dates)</option>
+                  {terms.map((term: any) => (
+                    <option key={term.id} value={term.id}>
+                      Term: {term.name}
                     </option>
                   ))}
                 </select>
                 <input
                   name="schedule_start_time"
                   type="time"
-                  defaultValue={classRow.schedule_start_time}
+                  defaultValue={classRow.schedule_start_time ?? ''}
                   className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
                 />
                 <input
                   name="schedule_end_time"
                   type="time"
-                  defaultValue={classRow.schedule_end_time}
+                  defaultValue={classRow.schedule_end_time ?? ''}
                   className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
                 />
+                <input
+                  name="start_date"
+                  type="date"
+                  defaultValue={classRow.start_date ?? ''}
+                  placeholder="Start date"
+                  className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+                />
+                <input
+                  name="end_date"
+                  type="date"
+                  defaultValue={classRow.end_date ?? ''}
+                  placeholder="End date"
+                  className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+                />
+                <fieldset className="lg:col-span-4">
+                  <legend className="text-xs uppercase tracking-wide text-charcoal/60 dark:text-navy-300 mb-1">
+                    Days of the week
+                  </legend>
+                  <div className="flex flex-wrap gap-3">
+                    {scheduleDays.map((day) => {
+                      const rowDays: string[] = Array.isArray(classRow.schedule_days)
+                        ? (classRow.schedule_days as string[])
+                        : classRow.schedule_day
+                          ? [classRow.schedule_day as string]
+                          : [];
+                      return (
+                        <label
+                          key={day}
+                          className="flex items-center gap-1.5 text-sm text-navy-700 dark:text-navy-200"
+                        >
+                          <input
+                            type="checkbox"
+                            name="schedule_days"
+                            value={day}
+                            defaultChecked={rowDays.includes(day)}
+                          />
+                          {day.toUpperCase()}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
                 <input
                   name="max_students"
                   type="number"
@@ -592,8 +698,8 @@ export default async function AdminClassesPage({
               </form>
             );
           })}
-          {classes.length === 0 ? (
-            <p className="text-sm text-charcoal/70 dark:text-navy-300">No classes found for this term.</p>
+          {classes.length === 0 && termlessClasses.length === 0 ? (
+            <p className="text-sm text-charcoal/70 dark:text-navy-300">No classes found.</p>
           ) : null}
         </div>
       </SectionCard>

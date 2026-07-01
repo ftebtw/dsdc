@@ -68,25 +68,20 @@ export async function GET(request: NextRequest) {
   const headerTerm =
     relevantTerms.find((term) => term.is_active) ?? relevantTerms[0] ?? allTerms.find((t) => t.is_active) ?? null;
 
-  if (relevantTerms.length === 0) {
-    return NextResponse.json({
-      classes: [],
-      events: [],
-      cancellations: [],
-      term: headerTerm
-        ? { start_date: headerTerm.start_date, end_date: headerTerm.end_date, name: headerTerm.name }
-        : null,
-    });
-  }
+  // Note: we used to short-circuit when there were no relevant terms.
+  // With termless custom-schedule classes, we can still have classes to
+  // render — fall through and let the class-window filter decide.
 
-  const { data: classRowsData, error: classError } = await admin
+  // Pull every non-archived, non-private-group class. Term membership is
+  // no longer required; termless classes carry their own start_date/end_date
+  // window. We filter down to the requested calendar range below.
+  const { data: classRowsData, error: classError } = await (admin as any)
     .from("classes")
     .select(
-      "id,name,type,coach_id,schedule_day,schedule_start_time,schedule_end_time,timezone,zoom_link,term_id"
+      "id,name,type,coach_id,schedule_day,schedule_days,schedule_start_time,schedule_end_time,start_date,end_date,timezone,zoom_link,term_id,is_private_session_group"
     )
-    .in("term_id", relevantTerms.map((term) => term.id))
     .is("archived_at", null)
-    .order("schedule_day", { ascending: true })
+    .eq("is_private_session_group", false)
     .order("schedule_start_time", { ascending: true });
 
   if (classError) {
@@ -99,12 +94,15 @@ export async function GET(request: NextRequest) {
     name: string;
     type: string;
     coach_id: string | null;
-    schedule_day: string;
-    schedule_start_time: string;
-    schedule_end_time: string;
+    schedule_day: string | null;
+    schedule_days: string[] | null;
+    schedule_start_time: string | null;
+    schedule_end_time: string | null;
+    start_date: string | null;
+    end_date: string | null;
     timezone: string;
     zoom_link: string | null;
-    term_id: string;
+    term_id: string | null;
   }>;
 
   const coachIds = [...new Set(classRows.map((row) => row.coach_id).filter((value): value is string => Boolean(value)))];
@@ -186,24 +184,42 @@ export async function GET(request: NextRequest) {
   }
 
   const classes = classRows
-    .map((row) => {
+    .flatMap((row) => {
       const isMine = mineClassIds.has(row.id);
-      const term = termById.get(row.term_id);
-      return {
+      const term = row.term_id ? termById.get(row.term_id) : undefined;
+      // Effective window: per-class dates take priority; term dates are the
+      // fallback for term-anchored classes.
+      const windowStart = row.start_date ?? term?.start_date ?? null;
+      const windowEnd = row.end_date ?? term?.end_date ?? null;
+      // Overlap the window with the requested calendar range so we don't
+      // return classes that finished last term or start next year.
+      if (from && windowEnd && windowEnd < from) return [];
+      if (to && windowStart && windowStart > to) return [];
+      if (!windowStart || !windowEnd) return [];
+      if (!row.schedule_start_time || !row.schedule_end_time) return [];
+
+      const days: string[] = Array.isArray(row.schedule_days) && row.schedule_days.length > 0
+        ? row.schedule_days.filter((code): code is string => typeof code === 'string' && code in scheduleDayIndex)
+        : row.schedule_day
+          ? [row.schedule_day]
+          : [];
+      if (days.length === 0) return [];
+
+      return days.map((day) => ({
         id: row.id,
         name: row.name,
         type: row.type,
         coach_name: row.coach_id ? coachNameById.get(row.coach_id) || "Coach" : "Unassigned",
-        schedule_day: row.schedule_day,
-        schedule_start_time: row.schedule_start_time,
-        schedule_end_time: row.schedule_end_time,
+        schedule_day: day,
+        schedule_start_time: row.schedule_start_time!,
+        schedule_end_time: row.schedule_end_time!,
         timezone: row.timezone,
         zoom_link: isMine ? row.zoom_link : null,
         is_mine: isMine,
-        weekday_index: scheduleDayIndex[row.schedule_day] ?? 0,
-        term_start: term?.start_date ?? "",
-        term_end: term?.end_date ?? "",
-      };
+        weekday_index: scheduleDayIndex[day] ?? 0,
+        term_start: windowStart,
+        term_end: windowEnd,
+      }));
     })
     .filter((row) => parsedFilter.data === "all" || row.is_mine);
 

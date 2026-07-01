@@ -11,7 +11,7 @@ type ScheduleDay = Database['public']['Enums']['schedule_day'];
 type ClassOption = {
   id: string;
   name: string;
-  schedule_day: ScheduleDay;
+  schedule_day: ScheduleDay | null;
   timezone: string;
 };
 
@@ -39,12 +39,14 @@ const dayMap: Record<ScheduleDay, string> = {
 
 function upcomingDatesForClass(classRow: ClassOption): string[] {
   const result: string[] = [];
+  if (!classRow.schedule_day) return result;
+  const target = dayMap[classRow.schedule_day];
   const now = new Date();
 
   for (let index = 0; index < 120 && result.length < 12; index += 1) {
     const candidate = new Date(now.getTime() + index * 24 * 60 * 60 * 1000);
     const weekday = formatInTimeZone(candidate, classRow.timezone, 'EEE');
-    if (weekday !== dayMap[classRow.schedule_day]) continue;
+    if (weekday !== target) continue;
     result.push(formatInTimeZone(candidate, classRow.timezone, 'yyyy-MM-dd'));
   }
 

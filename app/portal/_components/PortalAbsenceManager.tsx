@@ -9,7 +9,7 @@ import { portalT } from '@/lib/portal/parent-i18n';
 type ClassOption = {
   id: string;
   name: string;
-  schedule_day: Database['public']['Enums']['schedule_day'];
+  schedule_day: Database['public']['Enums']['schedule_day'] | null;
   timezone: string;
 };
 

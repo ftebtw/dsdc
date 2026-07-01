@@ -363,16 +363,19 @@ export type Database = {
           created_at: string
           custom_price_cad: number | null
           description: string | null
-          eligible_sub_tier: Database["public"]["Enums"]["coach_tier"]
+          eligible_sub_tier: Database["public"]["Enums"]["coach_tier"] | null
+          end_date: string | null
           id: string
           max_students: number
           name: string
-          schedule_day: Database["public"]["Enums"]["schedule_day"]
-          schedule_end_time: string
-          schedule_start_time: string
-          term_id: string
+          schedule_day: Database["public"]["Enums"]["schedule_day"] | null
+          schedule_days: string[] | null
+          schedule_end_time: string | null
+          schedule_start_time: string | null
+          start_date: string | null
+          term_id: string | null
           timezone: string
-          type: Database["public"]["Enums"]["class_type"]
+          type: Database["public"]["Enums"]["class_type"] | null
           zoom_link: string | null
         }
         Insert: {
@@ -380,16 +383,19 @@ export type Database = {
           created_at?: string
           custom_price_cad?: number | null
           description?: string | null
-          eligible_sub_tier: Database["public"]["Enums"]["coach_tier"]
+          eligible_sub_tier?: Database["public"]["Enums"]["coach_tier"] | null
+          end_date?: string | null
           id?: string
           max_students?: number
           name: string
-          schedule_day: Database["public"]["Enums"]["schedule_day"]
-          schedule_end_time: string
-          schedule_start_time: string
-          term_id: string
+          schedule_day?: Database["public"]["Enums"]["schedule_day"] | null
+          schedule_days?: string[] | null
+          schedule_end_time?: string | null
+          schedule_start_time?: string | null
+          start_date?: string | null
+          term_id?: string | null
           timezone?: string
-          type: Database["public"]["Enums"]["class_type"]
+          type?: Database["public"]["Enums"]["class_type"] | null
           zoom_link?: string | null
         }
         Update: {
@@ -397,16 +403,19 @@ export type Database = {
           created_at?: string
           custom_price_cad?: number | null
           description?: string | null
-          eligible_sub_tier?: Database["public"]["Enums"]["coach_tier"]
+          eligible_sub_tier?: Database["public"]["Enums"]["coach_tier"] | null
+          end_date?: string | null
           id?: string
           max_students?: number
           name?: string
-          schedule_day?: Database["public"]["Enums"]["schedule_day"]
-          schedule_end_time?: string
-          schedule_start_time?: string
-          term_id?: string
+          schedule_day?: Database["public"]["Enums"]["schedule_day"] | null
+          schedule_days?: string[] | null
+          schedule_end_time?: string | null
+          schedule_start_time?: string | null
+          start_date?: string | null
+          term_id?: string | null
           timezone?: string
-          type?: Database["public"]["Enums"]["class_type"]
+          type?: Database["public"]["Enums"]["class_type"] | null
           zoom_link?: string | null
         }
         Relationships: [

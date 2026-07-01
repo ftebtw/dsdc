@@ -14,20 +14,89 @@ function parseCustomPriceCad(formData: FormData): number | null {
   return Math.round(value);
 }
 
+const DAY_CODES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+type DayCode = (typeof DAY_CODES)[number];
+
+function parseScheduleDays(formData: FormData): DayCode[] {
+  const raw = formData.getAll("schedule_days").map(String).map((s) => s.toLowerCase());
+  const legacy = String(formData.get("schedule_day") || "").toLowerCase();
+  const seen = new Set<DayCode>();
+  for (const value of [...raw, legacy]) {
+    if ((DAY_CODES as readonly string[]).includes(value)) seen.add(value as DayCode);
+  }
+  return DAY_CODES.filter((code) => seen.has(code));
+}
+
+function parseIsoDate(formData: FormData, key: string): string | null {
+  const raw = String(formData.get(key) || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
+}
+
+function parseOptionalString(formData: FormData, key: string): string | null {
+  const raw = String(formData.get(key) || "").trim();
+  return raw.length ? raw : null;
+}
+
+type ClassSchedulePayload = {
+  term_id: string | null;
+  schedule_day: Database["public"]["Enums"]["schedule_day"] | null;
+  schedule_days: DayCode[] | null;
+  start_date: string | null;
+  end_date: string | null;
+};
+
+function buildSchedulePayload(formData: FormData): ClassSchedulePayload | { error: string } {
+  const termId = parseOptionalString(formData, "term_id");
+  const startDate = parseIsoDate(formData, "start_date");
+  const endDate = parseIsoDate(formData, "end_date");
+  const days = parseScheduleDays(formData);
+
+  if (days.length === 0) {
+    return { error: "schedule_days_required" };
+  }
+  // Custom-schedule path: requires both start and end dates.
+  // Term-anchored path: term_id supplies the window.
+  if (!termId && (!startDate || !endDate)) {
+    return { error: "term_or_dates_required" };
+  }
+  if (startDate && endDate && endDate < startDate) {
+    return { error: "invalid_date_range" };
+  }
+
+  return {
+    term_id: termId,
+    schedule_day: days[0] as Database["public"]["Enums"]["schedule_day"],
+    // Only persist schedule_days when the coach actually selected multiple
+    // days — a single-day class stays fully legacy-shaped so nothing changes
+    // for existing consumers.
+    schedule_days: days.length > 1 ? days : null,
+    start_date: startDate,
+    end_date: endDate,
+  };
+}
+
 export async function createClass(formData: FormData) {
   await requireRole(["admin"]);
   const supabase = await getSupabaseServerClient();
   const primaryCoachId = String(formData.get("coach_id"));
 
+  const schedule = buildSchedulePayload(formData);
+  if ("error" in schedule) {
+    redirect(`/portal/admin/classes?error=${schedule.error}`);
+  }
+
   const { data: createdClass, error: insertError } = await supabase
     .from("classes")
     .insert({
-      term_id: String(formData.get("term_id")),
+      term_id: schedule.term_id,
       name: String(formData.get("name")),
       description: String(formData.get("description") || "") || null,
       type: String(formData.get("type")) as Database["public"]["Enums"]["class_type"],
       coach_id: primaryCoachId,
-      schedule_day: String(formData.get("schedule_day")) as Database["public"]["Enums"]["schedule_day"],
+      schedule_day: schedule.schedule_day,
+      schedule_days: schedule.schedule_days,
+      start_date: schedule.start_date,
+      end_date: schedule.end_date,
       schedule_start_time: String(formData.get("schedule_start_time")),
       schedule_end_time: String(formData.get("schedule_end_time")),
       timezone: String(formData.get("timezone") || "America/Vancouver"),
@@ -74,15 +143,23 @@ export async function updateClass(formData: FormData) {
   }
   const primaryCoachId = String(formData.get("coach_id"));
 
+  const schedule = buildSchedulePayload(formData);
+  if ("error" in schedule) {
+    redirect(`/portal/admin/classes?error=${schedule.error}`);
+  }
+
   const { error: updateError } = await supabase
     .from("classes")
     .update({
-      term_id: String(formData.get("term_id")),
+      term_id: schedule.term_id,
       name: String(formData.get("name")),
       description: String(formData.get("description") || "") || null,
       type: String(formData.get("type")) as Database["public"]["Enums"]["class_type"],
       coach_id: primaryCoachId,
-      schedule_day: String(formData.get("schedule_day")) as Database["public"]["Enums"]["schedule_day"],
+      schedule_day: schedule.schedule_day,
+      schedule_days: schedule.schedule_days,
+      start_date: schedule.start_date,
+      end_date: schedule.end_date,
       schedule_start_time: String(formData.get("schedule_start_time")),
       schedule_end_time: String(formData.get("schedule_end_time")),
       timezone: String(formData.get("timezone") || "America/Vancouver"),

@@ -33,7 +33,7 @@ type AttendanceActivityRow = Pick<
 >;
 type ActiveClassRow = Pick<
   Database['public']['Tables']['classes']['Row'],
-  'id' | 'name' | 'coach_id' | 'schedule_day' | 'timezone'
+  'id' | 'name' | 'coach_id' | 'schedule_day' | 'schedule_days' | 'start_date' | 'end_date' | 'timezone'
 >;
 type TodayCheckinRow = Pick<
   Database['public']['Tables']['coach_checkins']['Row'],
@@ -66,7 +66,7 @@ export default async function AdminDashboardPage() {
   const activeClassesResponse = activeTerm
     ? await supabase
         .from('classes')
-        .select('id,name,coach_id,schedule_day,timezone')
+        .select('id,name,coach_id,schedule_day,schedule_days,start_date,end_date,timezone')
         .eq('term_id', activeTerm.id)
     : { data: [] as ActiveClassRow[] };
 

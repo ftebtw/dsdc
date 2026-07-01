@@ -19,11 +19,18 @@ export function isClassInDateRange(term: Pick<TermRow, 'start_date' | 'end_date'
   return day >= term.start_date && day <= term.end_date;
 }
 
-export function isClassToday(classRow: Pick<ClassRow, 'schedule_day' | 'timezone'>, now = new Date()): boolean {
+export function isClassToday(
+  classRow: Pick<ClassRow, 'schedule_day' | 'schedule_days' | 'timezone' | 'start_date' | 'end_date'>,
+  now = new Date()
+): boolean {
+  const localToday = formatInTimeZone(now, classRow.timezone, 'yyyy-MM-dd');
+  if (classRow.start_date && localToday < classRow.start_date) return false;
+  if (classRow.end_date && localToday > classRow.end_date) return false;
   const zoned = toZonedTime(now, classRow.timezone);
   const weekday = formatInTimeZone(zoned, classRow.timezone, 'EEE');
-  const day = dayMap[classRow.schedule_day as keyof typeof dayMap];
-  return weekday === day;
+  const days = getClassScheduleDays(classRow);
+  if (days.length === 0) return false;
+  return days.some((code) => dayMap[code as keyof typeof dayMap] === weekday);
 }
 
 export function getSessionDateForClassTimezone(timezone: string, now = new Date()): string {
@@ -64,8 +71,8 @@ export function formatSessionTimeForViewer(
 
 export function formatSessionRangeForViewer(
   sessionDate: string,
-  startTime: string,
-  endTime: string,
+  startTime: string | null,
+  endTime: string | null,
   sourceTimezone: string,
   viewerTimezone: string
 ): string {
@@ -147,4 +154,116 @@ export function formatClassScheduleForViewer(
 
   const [viewerDayName, viewerStartTime] = startInViewer.split(' ');
   return `${viewerDayName} ${viewerStartTime}-${endInViewer} ${tzAbbrev}`;
+}
+
+const scheduleDayCodes = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
+type ScheduleDayCode = (typeof scheduleDayCodes)[number];
+
+export function normalizeScheduleDays(input: unknown): ScheduleDayCode[] {
+  if (!Array.isArray(input)) return [];
+  const seen = new Set<ScheduleDayCode>();
+  for (const value of input) {
+    const code = typeof value === 'string' ? value.toLowerCase() : '';
+    if ((scheduleDayCodes as readonly string[]).includes(code)) {
+      seen.add(code as ScheduleDayCode);
+    }
+  }
+  return scheduleDayCodes.filter((code) => seen.has(code));
+}
+
+/**
+ * Returns the days-of-week a class recurs on. Prefers the multi-day
+ * `schedule_days` array; falls back to the legacy single `schedule_day`.
+ * Returns `[]` for classes without a weekly slot (private session groups).
+ */
+export function getClassScheduleDays(
+  classRow: Pick<ClassRow, 'schedule_day' | 'schedule_days'>
+): ScheduleDayCode[] {
+  const fromArray = normalizeScheduleDays(classRow.schedule_days);
+  if (fromArray.length > 0) return fromArray;
+  const single = classRow.schedule_day as string | null;
+  if (single && (scheduleDayCodes as readonly string[]).includes(single)) {
+    return [single as ScheduleDayCode];
+  }
+  return [];
+}
+
+/**
+ * Returns the effective start/end window for a class. Prefers per-class
+ * `start_date`/`end_date`; falls back to the term's dates when the class
+ * is term-anchored.
+ */
+export function getClassWindow(
+  classRow: Pick<ClassRow, 'start_date' | 'end_date'>,
+  term?: Pick<TermRow, 'start_date' | 'end_date'> | null
+): { start: string | null; end: string | null } {
+  const start = classRow.start_date ?? term?.start_date ?? null;
+  const end = classRow.end_date ?? term?.end_date ?? null;
+  return { start, end };
+}
+
+/**
+ * True if `ymd` (YYYY-MM-DD, in the class timezone) is inside the class's
+ * effective window and matches one of its scheduled days.
+ */
+export function isClassSessionDate(
+  ymd: string,
+  classRow: Pick<ClassRow, 'schedule_day' | 'schedule_days' | 'start_date' | 'end_date'>,
+  term?: Pick<TermRow, 'start_date' | 'end_date'> | null
+): boolean {
+  const { start, end } = getClassWindow(classRow, term);
+  if (start && ymd < start) return false;
+  if (end && ymd > end) return false;
+  const days = getClassScheduleDays(classRow);
+  if (days.length === 0) return false;
+  const [y, m, d] = ymd.split('-').map((n) => Number.parseInt(n, 10));
+  if (!y || !m || !d) return false;
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  const code = scheduleDayCodes[dow];
+  return days.includes(code);
+}
+
+/**
+ * Human label for a multi-day schedule, in the viewer's timezone. Handles
+ * timezone-driven weekday shifts by resolving each day independently and
+ * de-duplicating the resulting labels.
+ */
+export function formatClassScheduleDaysForViewer(
+  scheduleDays: string[] | null | undefined,
+  fallbackScheduleDay: string | null | undefined,
+  startTime: string | null,
+  endTime: string | null,
+  classTimezone: string,
+  viewerTimezone: string
+): string {
+  const days = normalizeScheduleDays(scheduleDays);
+  const list =
+    days.length > 0
+      ? days
+      : fallbackScheduleDay && (scheduleDayCodes as readonly string[]).includes(fallbackScheduleDay)
+        ? [fallbackScheduleDay]
+        : [];
+  if (list.length === 0 || !startTime || !endTime) return 'No fixed schedule';
+
+  const parts = list
+    .map((day) => formatClassScheduleForViewer(day, startTime, endTime, classTimezone, viewerTimezone))
+    .filter((s) => s && s !== 'No fixed schedule');
+
+  const dayLabels: string[] = [];
+  let sharedTime = '';
+  for (const part of parts) {
+    const spaceIndex = part.indexOf(' ');
+    if (spaceIndex < 0) continue;
+    const dayLabel = part.slice(0, spaceIndex);
+    const timeLabel = part.slice(spaceIndex + 1);
+    if (!sharedTime) sharedTime = timeLabel;
+    if (!dayLabels.includes(dayLabel)) dayLabels.push(dayLabel);
+    if (timeLabel !== sharedTime) {
+      // Different times per day (rare, e.g. DST edge) — fall back to
+      // listing each schedule line separately.
+      return parts.join(' / ');
+    }
+  }
+  if (dayLabels.length === 0 || !sharedTime) return 'No fixed schedule';
+  return `${dayLabels.join('/')} ${sharedTime}`;
 }

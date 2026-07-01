@@ -1,7 +1,7 @@
 import 'server-only';
 import { formatInTimeZone } from 'date-fns-tz';
 import type { Database } from '@/lib/supabase/database.types';
-import { isClassInDateRange, isClassToday, getSessionDateForClassTimezone } from '@/lib/portal/time';
+import { isClassToday, getSessionDateForClassTimezone } from '@/lib/portal/time';
 
 type Client = any;
 type PortalClass = Database['public']['Tables']['classes']['Row'];
@@ -23,14 +23,18 @@ export async function getClassesForCoachInActiveTerm(
   coachId: string
 ): Promise<PortalClass[]> {
   const activeTerm = await getActiveTerm(supabase);
-  if (!activeTerm) return [];
+
+  // Include classes attached to the active term AND any termless custom-schedule
+  // classes (start_date/end_date-only). The `.or()` predicate below combines
+  // "term matches" with "no term but has an explicit window".
+  const termClause = activeTerm ? `term_id.eq.${activeTerm.id},and(term_id.is.null,start_date.not.is.null)` : `and(term_id.is.null,start_date.not.is.null)`;
 
   // Classes where this coach is primary.
   const { data: primary } = await supabase
     .from('classes')
     .select('*')
     .eq('coach_id', coachId)
-    .eq('term_id', activeTerm.id)
+    .or(termClause)
     .is('archived_at', null)
     .order('schedule_start_time', { ascending: true });
 
@@ -47,7 +51,7 @@ export async function getClassesForCoachInActiveTerm(
       .from('classes')
       .select('*')
       .in('id', coClassIds)
-      .eq('term_id', activeTerm.id)
+      .or(termClause)
       .is('archived_at', null)
       .order('schedule_start_time', { ascending: true });
     secondary = data ?? [];
@@ -71,9 +75,9 @@ export async function getTodayClassesForCoach(
   coachId: string,
   now = new Date()
 ): Promise<PortalClass[]> {
-  const activeTerm = await getActiveTerm(supabase);
-  if (!activeTerm || !isClassInDateRange(activeTerm, now)) return [];
-
+  // With termless custom-schedule classes possible, we can't gate on the
+  // active term's window. isClassToday already enforces each class's own
+  // start/end window and matches any of its scheduled days.
   const classes = await getClassesForCoachInActiveTerm(supabase, coachId);
   return classes.filter((classRow) => isClassToday(classRow, now));
 }

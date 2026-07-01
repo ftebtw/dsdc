@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
           ...manualEnrollmentNotice({
             studentName,
             className: classRow.name || 'Class',
-            termName: termMap[classRow.term_id] || 'Current Term',
+            termName: (classRow.term_id && termMap[classRow.term_id]) || 'Current Term',
             portalUrl: portalPathUrl('/portal/student/classes'),
             preferenceUrl: profilePreferenceUrl(studentProfile.role),
           }),
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
           ...manualEnrollmentNotice({
             studentName,
             className: classRow.name || 'Class',
-            termName: termMap[classRow.term_id] || 'Current Term',
+            termName: (classRow.term_id && termMap[classRow.term_id]) || 'Current Term',
             portalUrl: portalPathUrl('/portal/parent/classes'),
             preferenceUrl: profilePreferenceUrl(parent.role),
           }),
