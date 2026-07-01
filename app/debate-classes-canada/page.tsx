@@ -9,16 +9,16 @@ import { canadaFaqItems as faqItems } from "@/lib/faqData";
 export async function generateMetadata(): Promise<Metadata> {
   return buildLocalizedPageMetadata({
     path: "/debate-classes-canada",
-    title: "Debate Classes for Kids in Canada | Online | DSDC",
+    title: "Debate in Canada: Formats, Tournaments & How to Start | DSDC",
     description:
-      "Online debate classes for kids across Canada. Grades 4-12, small classes, award-winning coaches. Build confidence, critical thinking, and public speaking skills.",
+      "A guide to debate in Canada — the main formats taught in schools (CNDF, BP, World Schools), the national and provincial tournament circuit, and how families can find the right path into competitive debate.",
     keywords: [
-      "debate classes canada",
-      "debate classes for kids canada",
-      "online debate classes canada",
-      "kids debate program canada",
-      "youth debate training canada",
-      "public speaking classes canada",
+      "debate in canada",
+      "canadian debate formats",
+      "canadian nationals debate",
+      "osdu debate",
+      "how to start debate canada",
+      "debate tournaments canada",
     ],
     images: [{ url: "/images/photos/wsc-students-2.jpg" }],
     hasChineseVersion: false,
@@ -94,11 +94,11 @@ export default function DebateClassesCanadaPage() {
         />
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-            Debate Classes for Kids in Canada
+            Debate in Canada: Formats, Tournaments & How to Start
           </h1>
           <p className="text-xl text-white/90 font-sans mb-8 max-w-3xl mx-auto">
-            Live online debate and public speaking classes for students in Grades 4-12 across every province.
-            Small classes, award-winning coaches, proven results.
+            A practical overview of debate education in Canada — the formats taught in schools, the national
+            and provincial tournament circuit, and how families find the right path into competitive debate.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -121,26 +121,29 @@ export default function DebateClassesCanadaPage() {
       <section className="py-16 md:py-24 bg-white dark:bg-navy-900/30">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-navy-800 dark:text-white mb-8 text-center">
-            Why Canadian Families Choose DSDC
+            Debate Education in Canada: An Overview
           </h2>
           <div className="prose prose-lg dark:prose-invert max-w-none font-sans">
             <p>
-              DSDC is Canada&apos;s leading online youth debate training program. Founded in Vancouver in 2017, we&apos;ve
-              coached over 5,000 students from more than 30 cities across Canada &mdash; from Vancouver and Surrey to
-              Toronto, Calgary, Ottawa, and beyond. Our kids debate program combines expert instruction with small class
-              sizes so every student receives personalized feedback every session.
+              Competitive debate in Canada is organized around a handful of well-established formats. The most
+              common in school-based programs is the Canadian National Debate Format (CNDF), with British
+              Parliamentary (BP), World Schools, and Cross-Examination (CX) also widely taught — particularly at
+              the senior and university levels. Each format builds different strengths, and most serious debaters
+              learn more than one.
             </p>
             <p>
-              Unlike traditional debate clubs that rely on volunteer coaches, DSDC&apos;s classes are led by
-              award-winning competitive debaters from top Canadian universities. Our coaches have competed at Canadian
-              Nationals, US Nationals, World Schools, and the World Scholar&apos;s Cup Tournament of Champions at Yale.
-              This depth of experience means your child learns from debaters who have succeeded at the highest levels.
+              The national tournament circuit runs from early Fall through late Spring. Key events include the
+              Canadian Student Debating Federation (CSDF) National Championships, the Ontario Student Debating
+              Union (OSDU) tournaments, BC Provincials through the BC Debate Society, and a growing set of
+              independent invitationals. Many Canadian students also compete at US National qualifiers and the
+              World Scholar&apos;s Cup, which has a strong global footprint across Canadian schools.
             </p>
             <p>
-              All classes are delivered live online via Zoom, making high-quality debate coaching accessible to families
-              in every province and territory. Whether you live in downtown Toronto or rural Alberta, your child can
-              participate in the same program that has produced national champions and World Scholar&apos;s Cup global
-              qualifiers.
+              Most Canadian students first encounter debate through a school club, a public speaking program, or
+              an external provider like DSDC. School clubs vary widely in consistency and coaching depth —
+              especially outside major cities — which is why many families pair a school club with an online
+              program that runs reliably every week. DSDC was founded in Vancouver in 2017 and runs live online
+              classes for families in every province.
             </p>
           </div>
         </div>

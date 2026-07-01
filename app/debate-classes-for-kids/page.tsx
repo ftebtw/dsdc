@@ -47,9 +47,9 @@ const breadcrumbSchema = buildBreadcrumbSchema([
 const courseSchema = {
   "@context": "https://schema.org",
   "@type": "Course",
-  name: "Debate Classes for Kids",
+  name: "Novice Debate Classes for Kids (Grades 4-6)",
   description:
-    "Live online debate classes for kids in Grades 4 through 12 with expert coaching, small groups, and written feedback after class.",
+    "Beginner-level online debate classes for elementary-age kids in Grades 4 through 6. Small Zoom groups, gentle first-speaker coaching, and written feedback after every session.",
   provider: {
     "@type": "EducationalOrganization",
     name: "DSDC",
@@ -61,9 +61,9 @@ const courseSchema = {
 export async function generateMetadata(): Promise<Metadata> {
   return buildLocalizedPageMetadata({
     path: "/debate-classes-for-kids",
-    title: "Debate Classes for Kids — Online Debate for Grades 4-12 | DSDC",
+    title: "Novice Debate Classes for Kids (Grades 4-6) | DSDC",
     description:
-      "Live online debate classes for kids in Grades 4-12. Small classes, expert coaches, personalized feedback. Founded in Vancouver. Book a free consultation.",
+      "Beginner-friendly online debate classes for kids in Grades 4-6. Small Zoom groups, gentle on-ramp for shy first-time speakers, no experience required. Novice level only.",
     images: [{ url: "/images/photos/dsdc-class-photo.jpg" }],
     hasChineseVersion: false,
   });
@@ -86,11 +86,12 @@ export default function DebateClassesForKidsPage() {
         />
         <div className="relative mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
           <h1 className="mb-6 text-4xl font-bold text-white md:text-5xl lg:text-6xl">
-            Debate Classes for Kids That Build Critical Thinkers
+            Novice Debate Classes for Kids in Grades 4-6
           </h1>
           <p className="mx-auto mb-10 max-w-3xl text-xl font-sans text-white/90">
-            Live online debate classes that help students from Grade 4 onward build argumentation, confidence, and the
-            academic speaking habits that matter in school and beyond.
+            A beginner-friendly online debate class built specifically for elementary-age first-timers.
+            Small Zoom groups, patient coaching, and a gentle on-ramp for shy or cautious young speakers —
+            no experience required.
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link
@@ -114,37 +115,37 @@ export default function DebateClassesForKidsPage() {
         title="At a Glance"
         facts={[
           { label: "Format", value: "Live online via Zoom" },
-          { label: "Best for", value: "Students who want critical thinking, argumentation, and competitive skills" },
-          { label: "Typical ages", value: "Grades 4-12" },
+          { label: "Best for", value: "First-time debaters in Grades 4-6 — including shy or cautious kids" },
+          { label: "Level", value: "Novice only (no experience required)" },
           { label: "Class size", value: "Usually 8-12 students" },
           { label: "Feedback", value: "Personalized written feedback after class" },
-          { label: "Next step", value: "Can progress from novice to advanced competitive" },
+          { label: "Next step", value: "Progress into Junior (Grades 7-9) once fundamentals are solid" },
         ]}
       />
 
       <section className="bg-white py-16 dark:bg-navy-900/30 md:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <h2 className="mb-8 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
-            Why Debate for Kids Matters
+            Why Grade 4-6 Is the Right Age to Start
           </h2>
           <div className="space-y-5 text-lg leading-relaxed text-charcoal/80 dark:text-navy-200 font-sans">
             <p>
-              Debate teaches students how to think before they speak. Children learn how to build a claim, support it
-              with reasons and evidence, and explain why it matters. That process develops argumentation, evidence
-              evaluation, and structured thinking in a way that directly supports school essays, presentations, and
-              class discussion.
+              Ages 9 to 12 are a sweet spot for starting debate. Kids at this age can already hold a short
+              conversation, follow a simple argument, and begin to form opinions — but they haven&apos;t yet
+              developed the self-consciousness that can make middle school students reluctant to speak up. Starting
+              in Grades 4-6 means your child builds the confidence habit before it becomes hard to build.
             </p>
             <p>
-              Just as importantly, debate teaches respectful disagreement. Students learn how to listen carefully,
-              respond to opposing ideas, and stay composed while defending a position. That combination of critical
-              listening and rebuttal is one reason parents often see debate students become calmer, clearer, and more
-              mature communicators over time.
+              Our novice curriculum keeps the fundamentals front and center: how to give a short speech, how to
+              listen to someone who disagrees, and how to respond calmly with a reason instead of a reaction. We
+              deliberately keep the pace gentle. Shy kids get time to warm up, and outgoing kids learn to slow
+              down and structure their thoughts rather than just talking fast.
             </p>
             <p>
-              Kids who debate often perform better in academic settings because they become more comfortable with
-              complexity. They get used to comparing ideas, weighing evidence, and explaining their reasoning instead
-              of relying on instinct alone. Those same habits also help in interviews, leadership opportunities, and
-              extracurricular settings where confidence and quick thinking matter.
+              Because this class is novice-only, every student in the room is also a first-time debater. That
+              matters. Kids don&apos;t compare themselves to experienced classmates on day one — they progress
+              together. When students are ready to move up, they graduate into our Junior program (Grades 7-9) or
+              Public Speaking path, both of which assume the groundwork is already in place.
             </p>
             <p>
               Unlike a pure{" "}
@@ -238,9 +239,13 @@ export default function DebateClassesForKidsPage() {
 
       <section className="bg-white py-16 dark:bg-navy-900/30 md:py-24">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-12 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
-            Class Structure and Levels
+          <h2 className="mb-4 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
+            Where Novice Fits in the DSDC Pathway
           </h2>
+          <p className="mx-auto mb-10 max-w-3xl text-center text-base text-charcoal/70 dark:text-navy-200 font-sans">
+            This page covers the Novice level (Grades 4-6). The other levels below show the path forward as
+            your child grows out of novice and into Junior, Senior, and Advanced Competitive debate.
+          </p>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             {[
               {

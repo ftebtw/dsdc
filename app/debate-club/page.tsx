@@ -154,12 +154,12 @@ export async function generateMetadata(): Promise<Metadata> {
     path: "/debate-club",
     title:
       locale === "zh"
-        ? "加拿大线上辩论俱乐部 | 4-12 年级 | DSDC"
-        : "Online Debate Club for Students in Canada | DSDC",
+        ? "加入 DSDC 辩论俱乐部 | 每周线上会员制 4-12 年级 | DSDC"
+        : "Join the DSDC Debate Club — Weekly Online Membership (Grades 4-12) | DSDC",
     description:
       locale === "zh"
-        ? "加入加拿大的线上辩论俱乐部，适合 4-12 年级学生。每周 Zoom 直播课程，加拿大国家辩论队教练亲授，全国同龄伙伴群。比「家门口的辩论俱乐部」更稳定、更结构化。"
-        : "Join Canada's online debate club for students in Grades 4 to 12. Weekly live Zoom practice, small-group coaching from Canadian National Debate Team alumni, and a national peer group. Better than searching for a \"debate club near me\" when you live outside a major city.",
+        ? "DSDC 辩论俱乐部是一种会员制的每周线上社群，而不是一次性课程。分班晋升、学期制比赛周期、展示赛，以及全国同龄伙伴社群。适合 4-12 年级学生。"
+        : "The DSDC Debate Club is a membership-based weekly community, not a one-off class. Cohort progression, a term-by-term tournament cycle, showcase debates, and a national peer group — for members in Grades 4 to 12.",
     keywords: [
       "debate club",
       "debate club near me",
@@ -197,15 +197,15 @@ export default async function DebateClubPage() {
         />
         <div className="relative mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
           <p className="mb-4 text-sm sm:text-base font-bold uppercase tracking-[0.25em] text-gold-300">
-            Live Online Debate Club
+            Weekly Membership Community
           </p>
           <h1 className="mb-6 text-4xl font-bold text-white md:text-5xl lg:text-6xl">
-            Canada&apos;s Online Debate Club for Grades 4-12
+            Join the DSDC Debate Club — a Weekly Online Community for Grades 4-12
           </h1>
           <p className="mx-auto mb-10 max-w-3xl text-xl font-sans text-white/90">
-            A weekly live debate club that meets over Zoom. Small groups, direct coaching from Canadian
-            National Debate Team alumni, and a national peer group you would never find searching
-            &quot;debate club near me&quot;.
+            Membership in a structured weekly club — not a one-off class. Cohort-based progression, a
+            term-by-term tournament cycle, showcase debates, and a national peer group that meets over Zoom
+            all year long.
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link
@@ -242,27 +242,31 @@ export default async function DebateClubPage() {
       <section className="bg-white py-16 dark:bg-navy-900/30 md:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <h2 className="mb-8 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
-            Why Families Are Choosing an Online Debate Club
+            What Makes This a Club, Not Just a Class
           </h2>
           <div className="space-y-5 text-lg leading-relaxed text-charcoal/80 dark:text-navy-200 font-sans">
             <p>
-              Parents searching for &quot;debate clubs near me&quot; usually run into the same problem: the
-              nearest club is either small, irregular, or run by volunteers without coaching experience. In
-              bigger cities, the good clubs are over-subscribed. In smaller cities and rural areas, there
-              is often no real debate club at all.
+              A class is a fixed curriculum you complete. A club is an ongoing community you belong to.
+              DSDC members join a cohort in the Fall, stay with that cohort through the year, and progress
+              together through a three-term arc — foundations, tournament season, and a Spring showcase.
+              Members build real friendships with peers they&apos;ve practiced alongside for months.
             </p>
             <p>
-              An online debate club fixes both problems. DSDC members log into Zoom from home, join a small
-              group of 8 to 12 peers from across Canada, and spend every session on real speaking practice.
-              That is more meaningful speaking time than most in-person clubs can offer, and the coaching
-              quality is consistent because the club is run by full-time debate educators rather than
-              school volunteers.
+              Membership includes more than weekly sessions. Club members get access to internal practice
+              rounds between cohorts, invitations to showcase and demo debates, priority signups for
+              tournament prep intensives, and a shared national peer pool that&apos;s bigger and more varied
+              than any single school club. A student in Ottawa practices regularly with peers from
+              Vancouver, Calgary, Toronto, and Halifax.
             </p>
             <p>
-              The format also builds a national peer group. A student in Ottawa practices alongside
-              students from Vancouver, Calgary, Toronto, and Halifax. That mix matters: better peer groups
-              mean harder practice rounds, more varied perspectives, and a real community that doesn&apos;t
-              disappear when a local school year ends.
+              Because the club is cohort-based, members don&apos;t compete against rotating drop-in
+              strangers each week — they grow into the same group. That continuity is the reason parents
+              see visible progression by term two, rather than repeating the same basics every session. For
+              a single-class experience instead, families usually prefer our{" "}
+              <Link href="/online-debate-classes" className="underline underline-offset-4 transition-colors hover:text-gold-500">
+                online debate classes
+              </Link>
+              .
             </p>
             <p>
               For families who want a closer look at how DSDC structures its programs, the{" "}

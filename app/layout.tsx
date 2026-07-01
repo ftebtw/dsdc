@@ -12,6 +12,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import ClientProviders from "./providers";
 import VisualEditingWrapper from "@/components/VisualEditingWrapper";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -101,6 +103,7 @@ export default async function RootLayout({
     !pathname.startsWith("/auth") &&
     !pathname.startsWith("/payment") &&
     !pathname.startsWith("/_");
+  const hideShell = pathname.startsWith("/studio") || pathname.startsWith("/portal");
 
   return (
     <html lang={locale} className={`${inter.variable} ${playfair.variable} ${dmSans.variable}`}>
@@ -128,7 +131,7 @@ gtag('js', new Date());
 
 gtag('config', 'AW-390603959');`}
         </Script>
-        <Script id="meta-pixel" strategy="beforeInteractive">
+        <Script id="meta-pixel" strategy="afterInteractive">
           {`!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -154,8 +157,14 @@ fbq('track', 'PageView');`}
             __html: 'try{var t=localStorage.getItem("dsdc-theme");var e=document.documentElement;if(t==="dark")e.classList.add("dark");else if(t==="light")e.classList.remove("dark");}catch(n){}',
           }}
         />
-        <ClientProviders initialCmsOverrides={initialCmsOverrides} initialLocale={locale}>
-          {children}
+        <ClientProviders
+          initialCmsOverrides={initialCmsOverrides}
+          initialLocale={locale}
+          hideShell={hideShell}
+        >
+          {!hideShell && <Navbar />}
+          <main id="main-content">{children}</main>
+          {!hideShell && <Footer />}
         </ClientProviders>
         <GlobalContactTracker />
         <VisualEditingWrapper enabled={isEnabled} />
