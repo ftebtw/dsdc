@@ -79,13 +79,17 @@ export default async function AdminClassesPage({
 
   const [{ data: termsData }, { data: coachProfilesData }, { data: tierAssignmentsData }, { data: allClassesData }, { data: classCoachesData }] = await Promise.all([
     supabase.from('terms').select('*').order('start_date', { ascending: false }),
-    supabase.from('coach_profiles').select('coach_id,tier,is_ta'),
+    // Include archived so existing classes assigned to an archived coach can
+    // still render (and be reassigned). Create-form dropdowns filter these
+    // out below; edit-form dropdowns keep them but label them as archived.
+    supabase.from('coach_profiles').select('coach_id,tier,is_ta,archived_at'),
     supabase.from('coach_tier_assignments').select('coach_id,tier'),
     supabase.from('classes').select('id,term_id'),
     supabase.from('class_coaches').select('class_id,coach_id'),
   ]);
   const terms = (termsData ?? []) as Array<Record<string, any>>;
   const coachProfiles = (coachProfilesData ?? []) as Array<Record<string, any>>;
+  const activeCoachProfiles = coachProfiles.filter((row) => !row.archived_at);
   const allClasses = (allClassesData ?? []) as Array<{ id: string; term_id: string }>;
   const tiersByCoach = new Map<string, string[]>();
   for (const row of (tierAssignmentsData ?? []) as Array<{ coach_id: string; tier: string }>) {
@@ -239,7 +243,7 @@ export default async function AdminClassesPage({
             name="coach_id"
             className="rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
           >
-            {coachProfiles.map((coach: any) => (
+            {activeCoachProfiles.map((coach: any) => (
               <option key={coach.coach_id} value={coach.coach_id}>
                 {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id} (
                 {formatCoachTier(coach, tiersByCoach)})
@@ -267,7 +271,7 @@ export default async function AdminClassesPage({
               Additional Coaches (optional)
             </legend>
             <div className="flex flex-wrap gap-2">
-              {coachProfiles.map((coach: any) => (
+              {activeCoachProfiles.map((coach: any) => (
                 <label key={coach.coach_id} className="flex items-center gap-1 text-sm">
                   <input type="checkbox" name="co_coach_ids" value={coach.coach_id} />
                   {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id}
@@ -475,6 +479,7 @@ export default async function AdminClassesPage({
                     <option key={coach.coach_id} value={coach.coach_id}>
                       {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id} (
                       {formatCoachTier(coach, tiersByCoach)})
+                      {coach.archived_at ? ' — archived' : ''}
                     </option>
                   ))}
                 </select>
@@ -492,6 +497,7 @@ export default async function AdminClassesPage({
                           defaultChecked={(classCoachesMap.get(classRow.id) ?? []).includes(coach.coach_id)}
                         />
                         {coachMap[coach.coach_id]?.display_name || coachMap[coach.coach_id]?.email || coach.coach_id}
+                        {coach.archived_at ? ' — archived' : ''}
                       </label>
                     ))}
                   </div>

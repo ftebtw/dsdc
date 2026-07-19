@@ -523,6 +523,7 @@ export type Database = {
       }
       coach_profiles: {
         Row: {
+          archived_at: string | null
           coach_id: string
           created_at: string
           hourly_rate: number | null
@@ -530,6 +531,7 @@ export type Database = {
           tier: Database["public"]["Enums"]["coach_tier"] | null
         }
         Insert: {
+          archived_at?: string | null
           coach_id: string
           created_at?: string
           hourly_rate?: number | null
@@ -537,6 +539,7 @@ export type Database = {
           tier?: Database["public"]["Enums"]["coach_tier"] | null
         }
         Update: {
+          archived_at?: string | null
           coach_id?: string
           created_at?: string
           hourly_rate?: number | null
