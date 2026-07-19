@@ -288,7 +288,8 @@
     {
       "name": "Kevin Nan",
       "title": "Senior Debate Coach",
-      "bio": "A recent graduate of the UBC Allard School of Law, Kevin has coached teams to championship titles at the BC Provincial Championships, Georgetown Invitational, and NSDA Korea Nationals. He specializes in helping students build arguments from first principles, with a particular focus on the analytical rigour that legal training demands. As a competitor, he won the UBC High School Tournament, Mock Trial Provincials, and Lower Mainland Regionals three times, and reached the finals at Heart of Europe and the semifinals at WSDA Slovenia. Kevin currently serves on the board of CAHSMUN and previously served as a Regional Coordinator for the DSABC."
+      "bio": "A recent graduate of the UBC Allard School of Law, Kevin has coached teams to championship titles at the BC Provincial Championships, Georgetown Invitational, and NSDA Korea Nationals. He specializes in helping students build arguments from first principles, with a particular focus on the analytical rigour that legal training demands. As a competitor, he won the UBC High School Tournament, Mock Trial Provincials, and Lower Mainland Regionals three times, and reached the finals at Heart of Europe and the semifinals at WSDA Slovenia. Kevin currently serves on the board of CAHSMUN and previously served as a Regional Coordinator for the DSABC.",
+      "hidden": true
     },
     {
       "name": "Annika Wang",

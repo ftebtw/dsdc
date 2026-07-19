@@ -19,6 +19,7 @@ type CoachProfile = {
   image?: string;
   imageUrl?: string;
   awards?: Award[];
+  hidden?: boolean;
 };
 
 export default function TeamPage() {
@@ -34,7 +35,7 @@ export default function TeamPage() {
   for (const coach of cmsCoaches) {
     coachMap.set(coach.name, { ...(coachMap.get(coach.name) ?? {}), ...coach });
   }
-  const coaches = Array.from(coachMap.values());
+  const coaches = Array.from(coachMap.values()).filter((coach) => !coach.hidden);
   const orderedCoaches = (() => {
     const reordered = [...coaches];
     const timName = "Timothy Hanna";
