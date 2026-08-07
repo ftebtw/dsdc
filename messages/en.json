@@ -165,7 +165,7 @@
       },
       {
         "q": "How much do classes cost?",
-        "a": "We publish our rates openly: Novice & Intermediate Debate and Public Speaking are $720 CAD per 12-week term plus applicable taxes, World Scholar's Cup is $960 CAD per term plus applicable taxes, and Advanced Debate is $1,200 CAD per term plus applicable taxes. Mid-term registrations are prorated based on weeks remaining. Private coaching (1-on-1, 2-on-1, or 3-on-1) is priced separately based on coach and group size. See our Pricing page for full details."
+        "a": "We publish our rates openly. Per 16-class term, before GST: Novice & Intermediate Debate is $960 CAD ($1,008 with GST), Public Speaking is $960 CAD ($1,008 with GST), and Advanced Debate is $1,600 CAD ($1,680 with GST). World Scholar's Cup Tournament of Champions Training pricing will be announced shortly. Mid-term registrations are prorated based on weeks remaining. Private coaching (1-on-1, 2-on-1, or 3-on-1) is priced separately based on coach and group size. See our Pricing page for full details."
       },
       {
         "q": "Does my child need prior debate experience?",
@@ -340,7 +340,7 @@
         "description": "Assignments to reinforce skills between classes"
       }
     ],
-    "pricingNote": "Group classes are billed per 12-week term in CAD: $720 (Novice & Intermediate Debate), $720 (Public Speaking), $960 (World Scholar's Cup), and $1,200 (Advanced Debate), plus applicable taxes. Mid-term registrations are prorated by weeks remaining. Private coaching is customizable with a 2-hour minimum. See our Pricing page for full details.",
+    "pricingNote": "Group classes are billed per 16-class term in CAD (before GST): $960 Novice & Intermediate Debate ($1,008 with GST), $960 Public Speaking ($1,008 with GST), and $1,600 Advanced Debate ($1,680 with GST). WSC Tournament of Champions Training pricing to be announced. Mid-term registrations are prorated by weeks remaining. Private coaching is customizable with a 2-hour minimum. See our Pricing page for full details.",
     "unsure": "Not sure which class is right for your child?",
     "bookCta": "Book a Free Consultation",
     "classes": [
@@ -495,7 +495,7 @@
     "checkoutError": "Checkout could not start. Please try again.",
     "contactUs": "Contact Us",
     "perTerm": "/term + applicable taxes",
-    "termLength": "12-week term",
+    "termLength": "16-class term",
     "wscGlobalsTitle": "WSC Globals Training",
     "wscGlobalsCardDesc": "Custom 15-session cohort preparing students for the WSC Global Round.",
     "wscGlobalsCardTotalSuffix": "total + applicable taxes",

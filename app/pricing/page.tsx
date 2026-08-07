@@ -8,19 +8,19 @@ export const revalidate = 60;
 const tierCopy: Record<(typeof GROUP_TIERS)[number]["key"], { name: string; description: string }> = {
   noviceIntermediate: {
     name: "Novice & Intermediate Debate (Grades 4-9)",
-    description: `12-week group debate class for Grades 4-9. Weekly 90-minute lessons, personalized feedback, and tournament preparation.`,
+    description: `16-week group debate class for Grades 4-9. Weekly 90-minute lessons, personalized feedback, and tournament preparation.`,
   },
   publicSpeaking: {
     name: "Public Speaking (Grades 4-9)",
-    description: `12-week group public speaking class covering impromptu, persuasive, interpretive, and parliamentary formats.`,
+    description: `16-week group public speaking class covering impromptu, persuasive, interpretive, and parliamentary formats.`,
   },
   wsc: {
     name: "World Scholar's Cup Preparation",
-    description: `12-week WSC preparation covering debate, collaborative writing, bowl, and challenge from regionals to Yale ToC.`,
+    description: `16-week WSC preparation covering debate, collaborative writing, bowl, and challenge from regionals to Yale ToC.`,
   },
   advanced: {
     name: "Advanced Competitive Debate (Grades 10-12)",
-    description: `12-week elite program led by world-class university debaters for students committed to competitive debate.`,
+    description: `16-week elite program led by world-class university debaters for students committed to competitive debate.`,
   },
 };
 

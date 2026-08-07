@@ -183,8 +183,8 @@ export default function PricingPageClient() {
             </div>
             <p className="text-sm text-center text-navy-600 dark:text-navy-300 mt-2 mb-4">
               {locale === "zh"
-                ? "当前招生学期：Term 3（4月6日 - 6月28日，12周）"
-                : "Now enrolling for Term 3 (April 6 - June 28, 12 weeks)"}
+                ? "当前招生学期：9月–12月，共16节课"
+                : "Now enrolling for the September–December term (16 classes)"}
             </p>
             <p className="mb-8 text-sm font-semibold text-navy-700 dark:text-navy-200">
               {t("pricingPage.paymentCadOnly")}
@@ -221,6 +221,16 @@ export default function PricingPageClient() {
                           {t("pricingPage.perTerm")}
                         </span>
                       </div>
+                      {currency === "CAD" ? (
+                        <p className="mt-1 text-xs font-medium text-charcoal/60 dark:text-navy-300 font-sans">
+                          {formatDisplayPrice(
+                            Math.round(tier.baseCadPrice * 1.05),
+                            currency,
+                            locale
+                          )}{" "}
+                          {locale === "zh" ? "含 GST" : "with GST"}
+                        </p>
+                      ) : null}
                       <p className="mt-2 text-xs text-charcoal/50 dark:text-navy-300 font-sans">
                         {termLengthLabel}
                       </p>

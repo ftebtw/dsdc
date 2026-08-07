@@ -11,13 +11,17 @@ export interface GroupTier {
   baseCadPrice: number;
 }
 
-export const SESSIONS_PER_TERM = 12;
+export const SESSIONS_PER_TERM = 16;
 
+// Prices are the before-GST amount. Stripe Tax adds GST at checkout
+// (tax_behavior: "exclusive" in app/api/checkout/route.ts).
 export const GROUP_TIERS: GroupTier[] = [
-  { key: "noviceIntermediate", baseCadPrice: 720 },
-  { key: "publicSpeaking", baseCadPrice: 720 },
+  { key: "noviceIntermediate", baseCadPrice: 960 },
+  { key: "publicSpeaking", baseCadPrice: 960 },
+  // wsc: TBA — kept at the previous rate so any legacy WSC class rows
+  // still price something sensible; update once new WSC rate is set.
   { key: "wsc", baseCadPrice: 960 },
-  { key: "advanced", baseCadPrice: 1200 },
+  { key: "advanced", baseCadPrice: 1600 },
 ];
 
 export const SUPPORTED_CURRENCIES: SupportedCurrency[] = ["CAD", "USD", "RMB"];
