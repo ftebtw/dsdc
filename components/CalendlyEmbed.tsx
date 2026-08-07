@@ -8,7 +8,7 @@ const CALENDLY_SCRIPT_SRC = "https://assets.calendly.com/assets/external/widget.
 export default function CalendlyEmbed() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
-  const [calendlyUrl, setCalendlyUrl] = useState("https://calendly.com/rebecca-dsdc");
+  const [calendlyUrl, setCalendlyUrl] = useState("https://calendly.com/debateeducation/10min");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -25,8 +25,8 @@ export default function CalendlyEmbed() {
     }
 
     const nextUrl = calendlyParams.toString()
-      ? `https://calendly.com/rebecca-dsdc?${calendlyParams.toString()}`
-      : "https://calendly.com/rebecca-dsdc";
+      ? `https://calendly.com/debateeducation/10min?${calendlyParams.toString()}`
+      : "https://calendly.com/debateeducation/10min";
 
     setCalendlyUrl(nextUrl);
   }, []);
