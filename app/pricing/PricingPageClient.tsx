@@ -77,8 +77,6 @@ export default function PricingPageClient() {
     []
   );
 
-  const [loadingWscGlobals, setLoadingWscGlobals] = useState(false);
-
   async function startCheckout(tierKey: GroupTierKey) {
     setLoadingTier(tierKey);
     const query = new URLSearchParams({
@@ -86,29 +84,6 @@ export default function PricingPageClient() {
       tier: tierKey,
     });
     window.location.assign(`/register?${query.toString()}`);
-  }
-
-  async function startWscGlobalsCheckout() {
-    if (loadingWscGlobals) return;
-    setLoadingWscGlobals(true);
-    trackEvent("cta_click", { cta: "enroll_wsc_globals" });
-    try {
-      const res = await fetch("/api/checkout/wsc-globals", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale: locale === "zh" ? "zh" : "en" }),
-      });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) {
-        console.error("[pricing] WSC Globals checkout failed", data?.error);
-        setLoadingWscGlobals(false);
-        return;
-      }
-      window.location.assign(data.url);
-    } catch (error) {
-      console.error("[pricing] WSC Globals checkout error", error);
-      setLoadingWscGlobals(false);
-    }
   }
 
   function trackPricingConsultationClick() {
@@ -285,15 +260,11 @@ export default function PricingPageClient() {
 
                   <button
                     type="button"
-                    onClick={() => {
-                      void startWscGlobalsCheckout();
-                    }}
-                    disabled={loadingWscGlobals}
-                    className="mt-6 w-full px-4 py-3 rounded-lg bg-navy-800 text-white font-semibold hover:bg-navy-700 dark:bg-gold-300 dark:text-navy-900 dark:hover:bg-gold-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled
+                    aria-disabled="true"
+                    className="mt-6 w-full px-4 py-3 rounded-lg bg-warm-200 dark:bg-navy-700 text-charcoal/60 dark:text-navy-300 font-semibold cursor-not-allowed"
                   >
-                    {loadingWscGlobals
-                      ? t("pricingPage.checkoutLoading")
-                      : t("pricingPage.enrollNow")}
+                    {locale === "zh" ? "已满" : "Class Full"}
                   </button>
                 </div>
               </div>
