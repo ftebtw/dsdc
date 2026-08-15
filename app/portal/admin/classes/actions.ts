@@ -65,11 +65,12 @@ function buildSchedulePayload(formData: FormData): ClassSchedulePayload | { erro
 
   return {
     term_id: termId,
+    // schedule_day (single) stays populated so legacy consumers keep working;
+    // schedule_days (array) is always persisted so the term-less branch of
+    // classes_required_fields_by_kind (which requires schedule_days
+    // non-empty) passes even for a one-day class.
     schedule_day: days[0] as Database["public"]["Enums"]["schedule_day"],
-    // Only persist schedule_days when the coach actually selected multiple
-    // days — a single-day class stays fully legacy-shaped so nothing changes
-    // for existing consumers.
-    schedule_days: days.length > 1 ? days : null,
+    schedule_days: days,
     start_date: startDate,
     end_date: endDate,
   };
