@@ -38,7 +38,29 @@ export type ClassEntry = {
   recurrence: Recurrence;
 };
 
-export type BuilderMode = "single" | "term";
+export type BuilderMode = "single" | "term" | "coach";
+
+export type CoachCardEntry = {
+  id: string;
+  name: string;
+  title: string;
+  photoDataUrl: string;
+  achievements: string[];
+  tagline: string;
+  handle: string;
+};
+
+export function emptyCoachCardEntry(): CoachCardEntry {
+  return {
+    id: randomId(),
+    name: "",
+    title: "",
+    photoDataUrl: "",
+    achievements: [""],
+    tagline: "Breaking Barriers, Building Confidence",
+    handle: "@debate_education",
+  };
+}
 
 export type PosterAspect = "portrait" | "square" | "landscape";
 

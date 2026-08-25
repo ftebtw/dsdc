@@ -425,7 +425,7 @@ export default function PortalShell({
           items: [
             { href: "/portal/admin/dashboard", label: t("portal.nav.admin.dashboard", "Dashboard"), icon: LayoutDashboard },
             { href: "/portal/admin/calendar", label: t("portal.nav.admin.calendar", "Calendar"), icon: CalendarDays },
-            { href: "/portal/admin/templates", label: t("portal.nav.admin.templates", "Schedule Maker"), icon: LayoutTemplate },
+            { href: "/portal/admin/templates", label: t("portal.nav.admin.templates", "Poster Maker"), icon: LayoutTemplate },
             { href: "/portal/admin/referrals", label: t("portal.nav.admin.referrals", "Referrals"), icon: Share2 },
             { href: "/portal/admin/consultations", label: t("portal.nav.admin.consultations", "Consultations"), icon: ClipboardList },
             { href: "/portal/admin/waitlist", label: t("portal.nav.admin.waitlist", "Waitlist"), icon: Hourglass },

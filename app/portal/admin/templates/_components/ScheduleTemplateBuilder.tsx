@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Download, FileImage, FileText, FolderOpen, Plus, Save, Trash2 } from "lucide-react";
+import CoachCardPoster from "./CoachCardPoster";
 import InstructorsEditor from "./InstructorsEditor";
 import RecurrenceEditor from "./RecurrenceEditor";
 import SingleClassPoster from "./SingleClassPoster";
@@ -9,9 +10,12 @@ import TermOverviewPoster from "./TermOverviewPoster";
 import {
   POSTER_DIMENSIONS,
   emptyClassEntry,
+  emptyCoachCardEntry,
   emptyInstructor,
+  readFileAsDataUrl,
   type BuilderMode,
   type ClassEntry,
+  type CoachCardEntry,
   type Instructor,
   type PosterAspect,
 } from "./types";
@@ -48,6 +52,16 @@ export default function ScheduleTemplateBuilder({
       instructors: [{ ...emptyInstructor(), name: "Alex Smith" }],
     },
   ]);
+  const [coachEntry, setCoachEntry] = useState<CoachCardEntry>(() => ({
+    ...emptyCoachCardEntry(),
+    name: "Ethan Curry",
+    title: "Senior Debate Coach",
+    achievements: [
+      "Octo-finalist, World Universities Debating Championship",
+      "2x National Champion · Finalist, NAUDC",
+      "Former Head Coach, Panamanian National Debate Team",
+    ],
+  }));
   const [aspect, setAspect] = useState<PosterAspect>(mode === "term" ? "landscape" : "portrait");
   const [busy, setBusy] = useState<"png" | "pdf" | null>(null);
 
@@ -87,6 +101,12 @@ export default function ScheduleTemplateBuilder({
         data: { timezone, aspect, entry: singleEntry },
       };
     }
+    if (mode === "coach") {
+      return {
+        mode: "coach",
+        data: { aspect, entry: coachEntry },
+      };
+    }
     return {
       mode: "term",
       data: {
@@ -110,6 +130,8 @@ export default function ScheduleTemplateBuilder({
     setMode(template.mode);
     if (template.mode === "single" && data.entry) {
       setSingleEntry(data.entry as ClassEntry);
+    } else if (template.mode === "coach" && data.entry) {
+      setCoachEntry(data.entry as CoachCardEntry);
     } else if (template.mode === "term") {
       if (typeof data.termTitle === "string") setTermTitle(data.termTitle);
       if (typeof data.termSubtitle === "string") setTermSubtitle(data.termSubtitle);
@@ -251,6 +273,46 @@ export default function ScheduleTemplateBuilder({
     setAspect(next === "term" ? "landscape" : "portrait");
   }
 
+  function updateCoachEntry(patch: Partial<CoachCardEntry>) {
+    setCoachEntry((prev) => ({ ...prev, ...patch }));
+  }
+
+  function updateCoachAchievement(index: number, value: string) {
+    setCoachEntry((prev) => ({
+      ...prev,
+      achievements: prev.achievements.map((line, i) => (i === index ? value : line)),
+    }));
+  }
+
+  function addCoachAchievement() {
+    setCoachEntry((prev) => ({
+      ...prev,
+      achievements: prev.achievements.length >= 8 ? prev.achievements : [...prev.achievements, ""],
+    }));
+  }
+
+  function removeCoachAchievement(index: number) {
+    setCoachEntry((prev) => ({
+      ...prev,
+      achievements: prev.achievements.length <= 1
+        ? [""]
+        : prev.achievements.filter((_, i) => i !== index),
+    }));
+  }
+
+  async function setCoachPhotoFromFile(file: File | null) {
+    if (!file) {
+      updateCoachEntry({ photoDataUrl: "" });
+      return;
+    }
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      updateCoachEntry({ photoDataUrl: dataUrl });
+    } catch (err) {
+      console.error("Failed to read coach photo", err);
+    }
+  }
+
   function addTermEntry() {
     setTermEntries((prev) => [...prev, emptyClassEntry()]);
   }
@@ -267,6 +329,10 @@ export default function ScheduleTemplateBuilder({
     if (mode === "single") {
       const slug = (singleEntry.title || "DSDC-Schedule").trim().replace(/[^\w]+/g, "-").replace(/^-|-$/g, "");
       return slug || "DSDC-Schedule";
+    }
+    if (mode === "coach") {
+      const slug = (coachEntry.name || "DSDC-Coach").trim().replace(/[^\w]+/g, "-").replace(/^-|-$/g, "");
+      return slug ? `DSDC-Coach-${slug}` : "DSDC-Coach";
     }
     const slug = (termTitle || "DSDC-Schedule").trim().replace(/[^\w]+/g, "-").replace(/^-|-$/g, "");
     return slug || "DSDC-Schedule";
@@ -370,11 +436,26 @@ export default function ScheduleTemplateBuilder({
           >
             Term Overview
           </button>
+          <button
+            type="button"
+            onClick={() => changeMode("coach")}
+            className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+              mode === "coach"
+                ? "bg-white text-navy-900 shadow-sm dark:bg-navy-800 dark:text-white"
+                : "text-charcoal/70 hover:text-charcoal dark:text-navy-200/70"
+            }`}
+          >
+            Meet the Coach
+          </button>
         </div>
 
         <div className="space-y-3 rounded-xl border border-warm-200 dark:border-navy-600/70 bg-white/70 dark:bg-navy-900/40 p-4">
-          <FieldLabel>Time zone</FieldLabel>
-          <TimezoneSelect value={timezone} onChange={setTimezone} />
+          {mode !== "coach" ? (
+            <>
+              <FieldLabel>Time zone</FieldLabel>
+              <TimezoneSelect value={timezone} onChange={setTimezone} />
+            </>
+          ) : null}
 
           <FieldLabel>Aspect ratio</FieldLabel>
           <div className="flex flex-wrap gap-2">
@@ -397,6 +478,15 @@ export default function ScheduleTemplateBuilder({
 
         {mode === "single" ? (
           <SingleClassForm entry={singleEntry} onChange={setSingleEntry} />
+        ) : mode === "coach" ? (
+          <CoachCardForm
+            entry={coachEntry}
+            onFieldChange={updateCoachEntry}
+            onAchievementChange={updateCoachAchievement}
+            onAddAchievement={addCoachAchievement}
+            onRemoveAchievement={removeCoachAchievement}
+            onPhotoFile={setCoachPhotoFromFile}
+          />
         ) : (
           <TermForm
             title={termTitle}
@@ -461,6 +551,8 @@ export default function ScheduleTemplateBuilder({
               <div ref={previewRef}>
                 {mode === "single" ? (
                   <SingleClassPoster entry={singleEntry} timezone={timezone} aspect={aspect} />
+                ) : mode === "coach" ? (
+                  <CoachCardPoster entry={coachEntry} aspect={aspect} />
                 ) : (
                   <TermOverviewPoster
                     title={termTitle}
@@ -870,6 +962,132 @@ function TermForm({
               </div>
             ))
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CoachCardForm({
+  entry,
+  onFieldChange,
+  onAchievementChange,
+  onAddAchievement,
+  onRemoveAchievement,
+  onPhotoFile,
+}: {
+  entry: CoachCardEntry;
+  onFieldChange: (patch: Partial<CoachCardEntry>) => void;
+  onAchievementChange: (index: number, value: string) => void;
+  onAddAchievement: () => void;
+  onRemoveAchievement: (index: number) => void;
+  onPhotoFile: (file: File | null) => void;
+}) {
+  return (
+    <div className="space-y-3 rounded-xl border border-warm-200 dark:border-navy-600/70 bg-white/70 dark:bg-navy-900/40 p-4">
+      <FieldLabel>Coach name</FieldLabel>
+      <TextInput
+        value={entry.name}
+        onChange={(t) => onFieldChange({ name: t })}
+        placeholder="e.g. Ethan Curry"
+      />
+
+      <FieldLabel>Title / role</FieldLabel>
+      <TextInput
+        value={entry.title}
+        onChange={(t) => onFieldChange({ title: t })}
+        placeholder="e.g. Senior Debate Coach"
+      />
+
+      <FieldLabel>Headshot</FieldLabel>
+      <div className="flex items-center gap-3">
+        {entry.photoDataUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={entry.photoDataUrl}
+            alt="Coach headshot preview"
+            className="h-16 w-16 rounded-full object-cover ring-2 ring-gold-400/60"
+          />
+        ) : (
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-warm-100 text-xs text-charcoal/50 ring-2 ring-warm-200 dark:bg-navy-800 dark:text-navy-200/60 dark:ring-navy-600">
+            no photo
+          </div>
+        )}
+        <div className="flex flex-col gap-1">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-navy-800 bg-white px-3 py-1.5 text-xs font-semibold text-navy-800 hover:bg-navy-50 dark:border-gold-400 dark:bg-transparent dark:text-gold-300 dark:hover:bg-gold-400/10">
+            {entry.photoDataUrl ? "Replace photo" : "Upload photo"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => onPhotoFile(e.target.files?.[0] ?? null)}
+            />
+          </label>
+          {entry.photoDataUrl ? (
+            <button
+              type="button"
+              onClick={() => onFieldChange({ photoDataUrl: "" })}
+              className="text-xs text-charcoal/60 hover:text-red-600 dark:text-navy-200/60 dark:hover:text-red-300"
+            >
+              Remove photo
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="border-t border-warm-200 dark:border-navy-600/70 pt-3">
+        <div className="mb-2 flex items-center justify-between">
+          <FieldLabel>Highlights</FieldLabel>
+          <button
+            type="button"
+            onClick={onAddAchievement}
+            disabled={entry.achievements.length >= 8}
+            className="inline-flex items-center gap-1 rounded-md bg-navy-800 px-2.5 py-1 text-xs font-semibold text-white hover:bg-navy-700 disabled:opacity-50 dark:bg-gold-400 dark:text-navy-900 dark:hover:bg-gold-300"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add line
+          </button>
+        </div>
+        <div className="space-y-2">
+          {entry.achievements.map((line, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <TextInput
+                value={line}
+                onChange={(t) => onAchievementChange(i, t)}
+                placeholder="e.g. 2x National Champion · Finalist, NAUDC"
+              />
+              {entry.achievements.length > 1 ? (
+                <button
+                  type="button"
+                  onClick={() => onRemoveAchievement(i)}
+                  className="mt-1 shrink-0 rounded-md border border-warm-300 p-1.5 text-charcoal/60 hover:border-red-300 hover:text-red-600 dark:border-navy-600 dark:text-navy-200/60"
+                  aria-label="Remove line"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-charcoal/50 dark:text-navy-200/50">
+          Short, punchy lines. 3-6 works best on the card.
+        </p>
+      </div>
+
+      <div className="border-t border-warm-200 dark:border-navy-600/70 pt-3">
+        <FieldLabel>Footer tagline</FieldLabel>
+        <TextInput
+          value={entry.tagline}
+          onChange={(t) => onFieldChange({ tagline: t })}
+          placeholder="Breaking Barriers, Building Confidence"
+        />
+        <div className="mt-3">
+          <FieldLabel>Social handle</FieldLabel>
+          <TextInput
+            value={entry.handle}
+            onChange={(t) => onFieldChange({ handle: t })}
+            placeholder="@debate_education"
+          />
         </div>
       </div>
     </div>
