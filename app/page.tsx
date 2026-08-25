@@ -170,8 +170,8 @@ export default async function HomePage() {
           </h2>
           <p className="mx-auto mb-10 max-w-3xl text-center text-lg leading-relaxed text-charcoal/80 dark:text-navy-200 font-sans">
             DSDC runs a Canada-wide online debate club for students in Grades 4 to 12. Members meet weekly
-            over Zoom, practice with a consistent peer group, and get direct coaching from Canadian National
-            Debate Team alumni - without leaving home.
+            over Zoom, practice with a consistent peer group, and get direct coaching from top debaters,
+            such as Canadian National Debate Team alumni - without leaving home.
           </p>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {[
