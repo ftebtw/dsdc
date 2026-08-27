@@ -85,6 +85,9 @@ export default function PortalEnrollClient({
   returnTo,
 }: Props) {
   const c = copy[locale] || copy.en;
+  // Zero weeks remaining means the term has ended, not that pricing is
+  // prorated down to a final week — see getProratedCadPrice().
+  const isProrated = weeksRemaining > 0 && weeksRemaining < totalWeeks;
   const [selected, setSelected] = useState<string[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "etransfer" | "already_paid">("card");
   const [loading, setLoading] = useState(false);
@@ -186,7 +189,7 @@ export default function PortalEnrollClient({
     <div className="space-y-6">
       <p className="text-sm text-charcoal/70 dark:text-navy-300">{termName}</p>
 
-      {weeksRemaining < totalWeeks ? (
+      {isProrated ? (
         <p className="text-sm text-amber-700 dark:text-amber-300">
           {c.prorated}: {weeksRemaining}/{totalWeeks}
         </p>

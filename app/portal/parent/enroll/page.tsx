@@ -92,7 +92,13 @@ export default async function ParentEnrollPage({
 
   const admin = getSupabaseAdminClient();
   const [{ data: classRows }, { data: allEnrollments }, { data: studentEnrollments }] = await Promise.all([
-    supabase.from("classes").select("*").eq("term_id", activeTerm.id).order("name"),
+    supabase
+      .from("classes")
+      .select("*")
+      .eq("term_id", activeTerm.id)
+      .is("archived_at", null)
+      .eq("is_private_session_group", false)
+      .order("name"),
     admin
       .from("enrollments")
       .select("class_id,status")

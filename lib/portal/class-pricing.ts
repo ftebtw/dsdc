@@ -35,6 +35,8 @@ export function getCadPriceForClass(classRow: PriceableClass): number {
 
 /**
  * Get the prorated CAD price for a class type based on term timing.
+ * Proration is a late-join discount for a term that is still running, so it
+ * only applies while weeks actually remain.
  */
 export function getProratedCadPrice(
   classType: ClassType,
@@ -43,6 +45,12 @@ export function getProratedCadPrice(
 ): number {
   const fullPrice = getCadPriceForClassType(classType);
   const remaining = weeksRemainingInTerm(termEndDate);
+  // A term whose end date has already passed means the active term is stale,
+  // not that someone is enrolling for one final week. proratedPrice() floors
+  // at one week, so without this guard an expired term quietly bills
+  // 1/totalWeeks of the tier price ($133 instead of $1600) — at Stripe
+  // checkout too, not just on the enrollment screen.
+  if (remaining <= 0) return fullPrice;
   if (remaining >= totalWeeks) return fullPrice;
   return proratedPrice(fullPrice, totalWeeks, remaining);
 }

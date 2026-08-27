@@ -162,6 +162,8 @@ export default async function RegisterClassesPage({
     .from("classes")
     .select("id,name,type,coach_id,schedule_day,schedule_start_time,schedule_end_time,timezone,max_students,term_id")
     .eq("term_id", activeTerm.id)
+    .is("archived_at", null)
+    .eq("is_private_session_group", false)
     .order("schedule_day", { ascending: true });
   const classRows = (classesData ?? []) as any[];
   const classIds = classRows.map((row) => row.id);
