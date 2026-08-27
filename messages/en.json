@@ -236,6 +236,16 @@
   },
   "coaches": [
     {
+      "name": "Ethan Curry",
+      "title": "Senior Debate Coach",
+      "bio": "Ethan is a law student at the University of Western Ontario and has been involved in competitive debate for the better part of the last decade. As a competitor, he was an octo-finalist at the World Universities Debating Championship (WUDC), a finalist at the North American Universities Championship, and a two-time national champion. Ethan has won 10 further tournaments and reached the finals of an additional 30. As a judge, he has adjudicated elimination rounds at WUDC, Yale IV, Cambridge IV, Oxford IV, and other major tournaments. He previously served as the head coach of the Panamanian national debate team and has coached students of all experience levels."
+    },
+    {
+      "name": "David Zu",
+      "title": "Senior Debate Coach",
+      "bio": "David has debated competitively in high school and university for seven years, judged for four, and coached K-12 debate students for three. He has led multiple students to the finals of major Canadian British Parliamentary and World Schools competitions, including Waterloo, Hart House, and McGill. He served as President of the Hart House Debating Club from 2024-2025. Beyond debating, he is an incoming first-year law student, having graduated from Rotman Commerce at the University of Toronto. David enjoys listening to classical music, playing ultimate frisbee, and learning fun geography facts in his spare time."
+    },
+    {
       "name": "Archie Wolifson",
       "title": "Senior Debate Coach",
       "bio": "A scholarship student at the University of Sydney, Archie is the 3rd Ranked Reply Speaker in Australia and Asia and a Quarterfinalist at the 2025 World University Debating Championships. His remarkable record as a Grand Finalist at the 2023 BP World Championships makes him one of the best debaters in the world."
@@ -305,16 +315,6 @@
       "name": "Angela Meng",
       "title": "Teaching Assistant",
       "bio": "Angela is a ninth-grade student at Fraser Heights Secondary School and is entering her fourth year in competitive debate. She first discovered public speaking through the World Scholar's Cup, then quickly fell in love with debate-specific argumentation and logic at DSDC. Over the past two years, she has become deeply involved in the debate world through strong tournament results and a growing interest in helping with coaching whenever she can. Outside of debate, Angela loves yelling at her hockey team, staying up until unreasonable hours to watch cars go in circles, and playing the piano."
-    },
-    {
-      "name": "Ethan Curry",
-      "title": "Senior Coach",
-      "bio": "Ethan is a law student at the University of Western Ontario and has been involved in competitive debate for the better part of the last decade. As a competitor, he was an octo-finalist at the World Universities Debating Championship (WUDC), a finalist at the North American Universities Championship, and a two-time national champion. Ethan has won 10 further tournaments and reached the finals of an additional 30. As a judge, he has adjudicated elimination rounds at WUDC, Yale IV, Cambridge IV, Oxford IV, and other major tournaments. He previously served as the head coach of the Panamanian national debate team and has coached students of all experience levels."
-    },
-    {
-      "name": "David Zu",
-      "title": "Senior Coach",
-      "bio": "David has debated competitively in high school and university for seven years, judged for four, and coached K-12 debate students for three. He has led multiple students to the finals of major Canadian British Parliamentary and World Schools competitions, including Waterloo, Hart House, and McGill. He served as President of the Hart House Debating Club from 2024-2025. Beyond debating, he is an incoming first-year law student, having graduated from Rotman Commerce at the University of Toronto. David enjoys listening to classical music, playing ultimate frisbee, and learning fun geography facts in his spare time."
     },
     {
       "name": "Ten Watanaprakarnchai",
