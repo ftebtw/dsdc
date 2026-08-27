@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Download, FileImage, FileText, FolderOpen, Plus, Save, Trash2 } from "lucide-react";
+import CoachBioPoster from "./CoachBioPoster";
 import CoachCardPoster from "./CoachCardPoster";
 import InstructorsEditor from "./InstructorsEditor";
 import RecurrenceEditor from "./RecurrenceEditor";
@@ -10,11 +11,13 @@ import TermOverviewPoster from "./TermOverviewPoster";
 import {
   POSTER_DIMENSIONS,
   emptyClassEntry,
+  emptyCoachBioEntry,
   emptyCoachCardEntry,
   emptyInstructor,
   readFileAsDataUrl,
   type BuilderMode,
   type ClassEntry,
+  type CoachBioEntry,
   type CoachCardEntry,
   type Instructor,
   type PosterAspect,
@@ -62,6 +65,14 @@ export default function ScheduleTemplateBuilder({
       "Former Head Coach, Panamanian National Debate Team",
     ],
   }));
+  const [bioEntry, setBioEntry] = useState<CoachBioEntry>(() => ({
+    ...emptyCoachBioEntry(),
+    name: "Ethan Curry",
+    body:
+      "Ethan is a law student at the **University of Western Ontario**. He has been involved in competitive debate for the better part of the last decade.\n\n" +
+      "As a competitor, he was an **octo-finalist at the World Universities Debating Championship (WUDC)**, a **finalist at the North American Universities Championship**, and **won two national championships**. Ethan has won a further 10 tournaments, and made the finals of an additional 30.\n\n" +
+      "As a judge, Ethan has judged elimination rounds at **WUDC, Yale IV, Cambridge IV, Oxford IV**, and other major tournaments. He served as **Head Coach of the Panamanian national debate team**, and has coached students of all experience levels.",
+  }));
   const [aspect, setAspect] = useState<PosterAspect>(mode === "term" ? "landscape" : "portrait");
   const [busy, setBusy] = useState<"png" | "pdf" | null>(null);
 
@@ -107,6 +118,12 @@ export default function ScheduleTemplateBuilder({
         data: { aspect, entry: coachEntry },
       };
     }
+    if (mode === "bio") {
+      return {
+        mode: "bio",
+        data: { aspect, entry: bioEntry },
+      };
+    }
     return {
       mode: "term",
       data: {
@@ -132,6 +149,8 @@ export default function ScheduleTemplateBuilder({
       setSingleEntry(data.entry as ClassEntry);
     } else if (template.mode === "coach" && data.entry) {
       setCoachEntry(data.entry as CoachCardEntry);
+    } else if (template.mode === "bio" && data.entry) {
+      setBioEntry(data.entry as CoachBioEntry);
     } else if (template.mode === "term") {
       if (typeof data.termTitle === "string") setTermTitle(data.termTitle);
       if (typeof data.termSubtitle === "string") setTermSubtitle(data.termSubtitle);
@@ -270,7 +289,9 @@ export default function ScheduleTemplateBuilder({
 
   function changeMode(next: BuilderMode) {
     setMode(next);
-    setAspect(next === "term" ? "landscape" : "portrait");
+    if (next === "term") setAspect("landscape");
+    else if (next === "bio") setAspect("square");
+    else setAspect("portrait");
   }
 
   function updateCoachEntry(patch: Partial<CoachCardEntry>) {
@@ -298,6 +319,10 @@ export default function ScheduleTemplateBuilder({
         ? [""]
         : prev.achievements.filter((_, i) => i !== index),
     }));
+  }
+
+  function updateBioEntry(patch: Partial<CoachBioEntry>) {
+    setBioEntry((prev) => ({ ...prev, ...patch }));
   }
 
   async function setCoachPhotoFromFile(file: File | null) {
@@ -333,6 +358,10 @@ export default function ScheduleTemplateBuilder({
     if (mode === "coach") {
       const slug = (coachEntry.name || "DSDC-Coach").trim().replace(/[^\w]+/g, "-").replace(/^-|-$/g, "");
       return slug ? `DSDC-Coach-${slug}` : "DSDC-Coach";
+    }
+    if (mode === "bio") {
+      const slug = (bioEntry.name || "DSDC-Bio").trim().replace(/[^\w]+/g, "-").replace(/^-|-$/g, "");
+      return slug ? `DSDC-Bio-${slug}` : "DSDC-Bio";
     }
     const slug = (termTitle || "DSDC-Schedule").trim().replace(/[^\w]+/g, "-").replace(/^-|-$/g, "");
     return slug || "DSDC-Schedule";
@@ -447,10 +476,21 @@ export default function ScheduleTemplateBuilder({
           >
             Meet the Coach
           </button>
+          <button
+            type="button"
+            onClick={() => changeMode("bio")}
+            className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+              mode === "bio"
+                ? "bg-white text-navy-900 shadow-sm dark:bg-navy-800 dark:text-white"
+                : "text-charcoal/70 hover:text-charcoal dark:text-navy-200/70"
+            }`}
+          >
+            Coach Biography
+          </button>
         </div>
 
         <div className="space-y-3 rounded-xl border border-warm-200 dark:border-navy-600/70 bg-white/70 dark:bg-navy-900/40 p-4">
-          {mode !== "coach" ? (
+          {mode !== "coach" && mode !== "bio" ? (
             <>
               <FieldLabel>Time zone</FieldLabel>
               <TimezoneSelect value={timezone} onChange={setTimezone} />
@@ -487,6 +527,8 @@ export default function ScheduleTemplateBuilder({
             onRemoveAchievement={removeCoachAchievement}
             onPhotoFile={setCoachPhotoFromFile}
           />
+        ) : mode === "bio" ? (
+          <CoachBioForm entry={bioEntry} onFieldChange={updateBioEntry} />
         ) : (
           <TermForm
             title={termTitle}
@@ -553,6 +595,8 @@ export default function ScheduleTemplateBuilder({
                   <SingleClassPoster entry={singleEntry} timezone={timezone} aspect={aspect} />
                 ) : mode === "coach" ? (
                   <CoachCardPoster entry={coachEntry} aspect={aspect} />
+                ) : mode === "bio" ? (
+                  <CoachBioPoster entry={bioEntry} aspect={aspect} />
                 ) : (
                   <TermOverviewPoster
                     title={termTitle}
@@ -1073,6 +1117,55 @@ function CoachCardForm({
           Short, punchy lines. 3-6 works best on the card.
         </p>
       </div>
+
+      <div className="border-t border-warm-200 dark:border-navy-600/70 pt-3">
+        <FieldLabel>Footer tagline</FieldLabel>
+        <TextInput
+          value={entry.tagline}
+          onChange={(t) => onFieldChange({ tagline: t })}
+          placeholder="Breaking Barriers, Building Confidence"
+        />
+        <div className="mt-3">
+          <FieldLabel>Social handle</FieldLabel>
+          <TextInput
+            value={entry.handle}
+            onChange={(t) => onFieldChange({ handle: t })}
+            placeholder="@debate_education"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CoachBioForm({
+  entry,
+  onFieldChange,
+}: {
+  entry: CoachBioEntry;
+  onFieldChange: (patch: Partial<CoachBioEntry>) => void;
+}) {
+  return (
+    <div className="space-y-3 rounded-xl border border-warm-200 dark:border-navy-600/70 bg-white/70 dark:bg-navy-900/40 p-4">
+      <FieldLabel>Coach name</FieldLabel>
+      <TextInput
+        value={entry.name}
+        onChange={(t) => onFieldChange({ name: t })}
+        placeholder="e.g. Ethan Curry"
+      />
+
+      <FieldLabel>Biography</FieldLabel>
+      <TextArea
+        value={entry.body}
+        onChange={(t) => onFieldChange({ body: t })}
+        placeholder={
+          "Ethan is a law student at the **University of Western Ontario**. He has been involved in competitive debate for the better part of the last decade.\n\nAs a competitor, he was an **octo-finalist at WUDC**…"
+        }
+        rows={12}
+      />
+      <p className="text-xs text-charcoal/55 dark:text-navy-200/50">
+        Separate paragraphs with a blank line. Wrap key phrases in <code className="rounded bg-warm-100 px-1 py-0.5 text-[11px] dark:bg-navy-800">**double asterisks**</code> to bold them.
+      </p>
 
       <div className="border-t border-warm-200 dark:border-navy-600/70 pt-3">
         <FieldLabel>Footer tagline</FieldLabel>

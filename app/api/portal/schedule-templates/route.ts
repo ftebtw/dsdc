@@ -9,7 +9,7 @@ function jsonError(message: string, status = 400) {
 
 const createSchema = z.object({
   name: z.string().trim().min(1).max(120),
-  mode: z.enum(['single', 'term', 'coach']),
+  mode: z.enum(['single', 'term', 'coach', 'bio']),
   // data is the full form state; we accept any JSON object and let the
   // client own the shape so we don't need migrations when the form evolves.
   data: z.record(z.string(), z.unknown()),

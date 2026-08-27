@@ -9,7 +9,7 @@ function jsonError(message: string, status = 400) {
 
 const patchSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
-  mode: z.enum(['single', 'term', 'coach']).optional(),
+  mode: z.enum(['single', 'term', 'coach', 'bio']).optional(),
   data: z.record(z.string(), z.unknown()).optional(),
 });
 

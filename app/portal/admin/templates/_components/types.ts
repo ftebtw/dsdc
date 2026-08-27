@@ -38,7 +38,7 @@ export type ClassEntry = {
   recurrence: Recurrence;
 };
 
-export type BuilderMode = "single" | "term" | "coach";
+export type BuilderMode = "single" | "term" | "coach" | "bio";
 
 export type CoachCardEntry = {
   id: string;
@@ -57,6 +57,24 @@ export function emptyCoachCardEntry(): CoachCardEntry {
     title: "",
     photoDataUrl: "",
     achievements: [""],
+    tagline: "Breaking Barriers, Building Confidence",
+    handle: "@debate_education",
+  };
+}
+
+export type CoachBioEntry = {
+  id: string;
+  name: string;
+  body: string;
+  tagline: string;
+  handle: string;
+};
+
+export function emptyCoachBioEntry(): CoachBioEntry {
+  return {
+    id: randomId(),
+    name: "",
+    body: "",
     tagline: "Breaking Barriers, Building Confidence",
     handle: "@debate_education",
   };
