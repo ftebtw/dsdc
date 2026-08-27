@@ -66,6 +66,7 @@ export type CoachBioEntry = {
   id: string;
   name: string;
   body: string;
+  bodyScale: number;
   tagline: string;
   handle: string;
 };
@@ -75,6 +76,7 @@ export function emptyCoachBioEntry(): CoachBioEntry {
     id: randomId(),
     name: "",
     body: "",
+    bodyScale: 1,
     tagline: "Breaking Barriers, Building Confidence",
     handle: "@debate_education",
   };

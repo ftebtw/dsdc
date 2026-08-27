@@ -1167,6 +1167,45 @@ function CoachBioForm({
         Separate paragraphs with a blank line. Wrap key phrases in <code className="rounded bg-warm-100 px-1 py-0.5 text-[11px] dark:bg-navy-800">**double asterisks**</code> to bold them.
       </p>
 
+      <div className="mt-2">
+        <div className="mb-1 flex items-center justify-between">
+          <FieldLabel>Body text size</FieldLabel>
+          <span className="text-xs font-mono text-charcoal/60 dark:text-navy-200/60">
+            {Math.round(entry.bodyScale * 100)}%
+          </span>
+        </div>
+        <input
+          type="range"
+          min={0.5}
+          max={2}
+          step={0.05}
+          value={entry.bodyScale}
+          onChange={(e) => onFieldChange({ bodyScale: Number(e.target.value) })}
+          className="w-full accent-navy-800 dark:accent-gold-400"
+        />
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {[
+            { label: "S", value: 0.75 },
+            { label: "M", value: 1 },
+            { label: "L", value: 1.25 },
+            { label: "XL", value: 1.5 },
+          ].map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => onFieldChange({ bodyScale: preset.value })}
+              className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-colors ${
+                Math.abs(entry.bodyScale - preset.value) < 0.03
+                  ? "border-navy-800 bg-navy-800 text-white dark:border-gold-400 dark:bg-gold-400 dark:text-navy-900"
+                  : "border-warm-300 bg-white text-charcoal/70 hover:border-navy-400 dark:border-navy-500 dark:bg-navy-800 dark:text-navy-100/70"
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="border-t border-warm-200 dark:border-navy-600/70 pt-3">
         <FieldLabel>Footer tagline</FieldLabel>
         <TextInput

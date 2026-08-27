@@ -6,8 +6,10 @@ type LayoutTokens = {
   footerHeight: string;
   eyebrow: string;
   name: string;
-  body: string;
-  paragraphGap: string;
+  /** Base body font size in px BEFORE the user's scale is applied. */
+  bodyPx: number;
+  /** Base paragraph gap in px BEFORE the user's scale is applied. */
+  paragraphGapPx: number;
   tagline: string;
   footerBrand: string;
 };
@@ -20,8 +22,8 @@ function layoutFor(aspect: PosterAspect): LayoutTokens {
       footerHeight: "h-24",
       eyebrow: "text-sm tracking-[0.36em]",
       name: "text-6xl",
-      body: "text-lg",
-      paragraphGap: "mt-4",
+      bodyPx: 28,
+      paragraphGapPx: 20,
       tagline: "text-sm tracking-[0.32em]",
       footerBrand: "text-base",
     };
@@ -33,8 +35,8 @@ function layoutFor(aspect: PosterAspect): LayoutTokens {
       footerHeight: "h-24",
       eyebrow: "text-sm tracking-[0.36em]",
       name: "text-6xl",
-      body: "text-xl",
-      paragraphGap: "mt-5",
+      bodyPx: 30,
+      paragraphGapPx: 24,
       tagline: "text-sm tracking-[0.32em]",
       footerBrand: "text-base",
     };
@@ -45,8 +47,8 @@ function layoutFor(aspect: PosterAspect): LayoutTokens {
     footerHeight: "h-28",
     eyebrow: "text-base tracking-[0.4em]",
     name: "text-8xl",
-    body: "text-2xl",
-    paragraphGap: "mt-6",
+    bodyPx: 36,
+    paragraphGapPx: 28,
     tagline: "text-base tracking-[0.36em]",
     footerBrand: "text-lg",
   };
@@ -86,6 +88,9 @@ export default function CoachBioPoster({
     .filter((p) => p.length > 0);
   const tagline = (entry.tagline.trim() || "Breaking Barriers, Building Confidence").toUpperCase();
   const handle = entry.handle.trim();
+  const scale = Number.isFinite(entry.bodyScale) && entry.bodyScale > 0 ? entry.bodyScale : 1;
+  const bodyFontPx = tokens.bodyPx * scale;
+  const paragraphGapPx = tokens.paragraphGapPx * scale;
 
   return (
     <div
@@ -116,16 +121,20 @@ export default function CoachBioPoster({
         </h1>
         <div className="mt-4 h-[3px] w-32 rounded bg-[#c9a227]" />
 
-        <div className={`mt-8 flex-1 min-h-0 overflow-hidden text-navy-900/80 ${tokens.body}`}>
+        <div
+          className="mt-8 flex-1 min-h-0 overflow-hidden text-navy-900/80"
+          style={{ fontSize: `${bodyFontPx}px` }}
+        >
           {paragraphs.length === 0 ? (
-            <p className="text-navy-900/40 italic">
+            <p className="italic text-navy-900/40">
               Bio paragraphs will appear here. Wrap key phrases in **double asterisks** to bold them.
             </p>
           ) : (
             paragraphs.map((p, i) => (
               <p
                 key={i}
-                className={`leading-relaxed ${i === 0 ? "" : tokens.paragraphGap}`}
+                className="leading-relaxed"
+                style={i === 0 ? undefined : { marginTop: `${paragraphGapPx}px` }}
               >
                 {renderParagraph(p, `p-${i}`)}
               </p>
