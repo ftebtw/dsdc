@@ -113,6 +113,7 @@ export const coachAwards: CoachAwards = {
     { tournament: "Lower Mainland East Regionals (Junior)", year: "2019", award: "5th Place" },
   ],
   "Akash Krishnamurthy": [
+    { tournament: "Team Canada Debate", year: "2026–2027", award: "National Team Member" },
     { tournament: "Meadowridge Fall Tournament", year: "2024", award: "Champion" },
     { tournament: "Dragon's Bowl Tournament", year: "2024", award: "Champion" },
     { tournament: "Lower Mainland East Regionals", year: "2023", award: "Champion" },
