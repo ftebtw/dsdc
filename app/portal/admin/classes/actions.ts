@@ -442,7 +442,7 @@ export async function cloneClassesToTerm(formData: FormData) {
   const { data: sourceClasses, error } = await supabase
     .from("classes")
     .select(
-      "id,name,description,type,coach_id,schedule_day,schedule_start_time,schedule_end_time,timezone,zoom_link,max_students,eligible_sub_tier"
+      "id,name,description,type,coach_id,schedule_day,schedule_start_time,schedule_end_time,timezone,zoom_link,max_students,eligible_sub_tier,custom_price_cad,schedule_days"
     )
     .eq("term_id", sourceTermId);
   if (error) {
@@ -465,6 +465,8 @@ export async function cloneClassesToTerm(formData: FormData) {
     zoom_link: string | null;
     max_students: number;
     eligible_sub_tier: Database["public"]["Enums"]["coach_tier"];
+    custom_price_cad: number | null;
+    schedule_days: string[] | null;
   }>;
 
   const clones = classesToClone.map((cls) => ({
@@ -480,6 +482,13 @@ export async function cloneClassesToTerm(formData: FormData) {
     zoom_link: cls.zoom_link,
     max_students: cls.max_students,
     eligible_sub_tier: cls.eligible_sub_tier,
+    // Flat-fee programs (e.g. Globals Training) price off custom_price_cad.
+    // Dropping it here would silently reprice them at the class-type tier.
+    custom_price_cad: cls.custom_price_cad,
+    // Weekday pattern is term-independent, so it carries over. The per-class
+    // start_date/end_date window deliberately does not: it is an alternative
+    // to term_id, and copying it would pin the clone to the old term's dates.
+    schedule_days: cls.schedule_days,
   }));
 
   const { data: insertedClasses, error: cloneInsertError } = await supabase

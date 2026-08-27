@@ -56,6 +56,9 @@ export default function RegisterClassesClient({
   const [paymentMethod, setPaymentMethod] = useState<"card" | "etransfer" | "already_paid">("card");
 
   const resolvedLocale = locale === "zh" ? "zh" : localeHint;
+  // Zero weeks remaining means the term has ended, not that pricing is
+  // prorated down to a final week — see getProratedCadPrice().
+  const isProrated = weeksRemaining > 0 && weeksRemaining < totalWeeks;
   const enrolledSet = useMemo(() => new Set(enrolledClassIds), [enrolledClassIds]);
   const hasExistingEnrollments = enrolledClassIds.length > 0;
   const selectableClasses = useMemo(
@@ -203,7 +206,9 @@ export default function RegisterClassesClient({
       ) : (
         <div className="rounded-xl bg-gold-100 dark:bg-gold-900/30 border border-gold-300 dark:border-gold-700 p-4 mt-4 mb-4">
           <p className="font-bold text-navy-900 dark:text-white text-lg">
-            {resolvedLocale === "zh" ? "Term 3 报名现已开放！" : "Term 3 Registration Is Now Open!"}
+            {resolvedLocale === "zh"
+              ? `${termName} 报名现已开放！`
+              : `${termName} Registration Is Now Open!`}
           </p>
           <p className="text-sm text-navy-700 dark:text-navy-200 mt-1">
             {termName} - {termDates}
@@ -213,7 +218,7 @@ export default function RegisterClassesClient({
               ? `${termName}（${termDates}）。本学期剩余 ${weeksRemaining} 周（共 ${totalWeeks} 周）。`
               : `${termName} (${termDates}). ${weeksRemaining} of ${totalWeeks} weeks remaining.`}
           </p>
-          {weeksRemaining < totalWeeks ? (
+          {isProrated ? (
             <p className="text-sm text-navy-700 dark:text-navy-200 mt-1 font-medium">
               {resolvedLocale === "zh"
                 ? "中途报名按剩余周数自动调整价格。"
@@ -364,7 +369,7 @@ export default function RegisterClassesClient({
               .toLocaleString()}{" "}
             CAD
           </span>
-          {weeksRemaining < totalWeeks ? (
+          {isProrated ? (
             <span className="text-xs text-charcoal/60 dark:text-navy-400 ml-2">
               {resolvedLocale === "zh" ? "（按剩余周数调整）" : "(prorated)"}
             </span>
