@@ -9,8 +9,10 @@ type LayoutTokens = {
   eyebrow: string;
   name: string;
   title: string;
-  achievement: string;
-  achievementGap: string;
+  /** Base achievement font size in px BEFORE the user's scale is applied. */
+  achievementPx: number;
+  /** Base vertical gap between achievements in px BEFORE the user's scale is applied. */
+  achievementGapPx: number;
   tagline: string;
   footerBrand: string;
 };
@@ -26,8 +28,8 @@ function layoutFor(aspect: PosterAspect): LayoutTokens {
       eyebrow: "text-sm tracking-[0.4em]",
       name: "text-5xl",
       title: "text-sm tracking-[0.28em]",
-      achievement: "text-lg",
-      achievementGap: "space-y-2",
+      achievementPx: 24,
+      achievementGapPx: 12,
       tagline: "text-sm tracking-[0.32em]",
       footerBrand: "text-base",
     };
@@ -42,8 +44,8 @@ function layoutFor(aspect: PosterAspect): LayoutTokens {
       eyebrow: "text-sm tracking-[0.4em]",
       name: "text-5xl",
       title: "text-sm tracking-[0.28em]",
-      achievement: "text-xl",
-      achievementGap: "space-y-2.5",
+      achievementPx: 26,
+      achievementGapPx: 14,
       tagline: "text-sm tracking-[0.32em]",
       footerBrand: "text-base",
     };
@@ -57,8 +59,8 @@ function layoutFor(aspect: PosterAspect): LayoutTokens {
     eyebrow: "text-lg tracking-[0.42em]",
     name: "text-7xl",
     title: "text-xl tracking-[0.32em]",
-    achievement: "text-2xl",
-    achievementGap: "space-y-3",
+    achievementPx: 34,
+    achievementGapPx: 18,
     tagline: "text-lg tracking-[0.36em]",
     footerBrand: "text-2xl",
   };
@@ -80,6 +82,9 @@ export default function CoachCardPoster({
     .filter((line) => line.length > 0);
   const tagline = (entry.tagline.trim() || "Breaking Barriers, Building Confidence").toUpperCase();
   const handle = entry.handle.trim();
+  const scale = Number.isFinite(entry.contentScale) && entry.contentScale > 0 ? entry.contentScale : 1;
+  const achievementFontPx = tokens.achievementPx * scale;
+  const achievementGapPx = tokens.achievementGapPx * scale;
 
   return (
     <div
@@ -134,9 +139,16 @@ export default function CoachCardPoster({
 
         {/* Achievements */}
         {achievements.length > 0 ? (
-          <div className={`mt-8 flex-1 min-h-0 overflow-hidden text-center ${tokens.achievementGap}`}>
+          <div
+            className="mt-8 flex-1 min-h-0 overflow-hidden text-center"
+            style={{ fontSize: `${achievementFontPx}px` }}
+          >
             {achievements.map((line, i) => (
-              <p key={i} className={`leading-snug text-navy-900 ${tokens.achievement}`}>
+              <p
+                key={i}
+                className="leading-snug text-navy-900"
+                style={i === 0 ? undefined : { marginTop: `${achievementGapPx}px` }}
+              >
                 {line}
               </p>
             ))}

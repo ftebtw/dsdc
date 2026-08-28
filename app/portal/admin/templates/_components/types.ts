@@ -46,6 +46,7 @@ export type CoachCardEntry = {
   title: string;
   photoDataUrl: string;
   achievements: string[];
+  contentScale: number;
   tagline: string;
   handle: string;
 };
@@ -57,6 +58,7 @@ export function emptyCoachCardEntry(): CoachCardEntry {
     title: "",
     photoDataUrl: "",
     achievements: [""],
+    contentScale: 1,
     tagline: "Breaking Barriers, Building Confidence",
     handle: "@debate_education",
   };
