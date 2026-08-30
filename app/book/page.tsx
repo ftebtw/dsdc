@@ -60,7 +60,7 @@ export default function BookPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-base md:text-lg text-white/85 font-sans max-w-2xl mx-auto leading-relaxed"
           >
-            A consultation with one an expert from our team. No commitment, no sales pressure.
+            A consultation with an expert from our team. No commitment, no sales pressure.
           </motion.p>
         </div>
       </section>
