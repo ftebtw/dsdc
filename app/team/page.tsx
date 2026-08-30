@@ -28,11 +28,15 @@ export default function TeamPage() {
   const cmsCoaches = ((messages.coaches as CoachProfile[] | undefined) ?? []) as CoachProfile[];
   const fallbackCoaches = (((locale === "zh" ? zhMessages : enMessages) as typeof enMessages).coaches ??
     []) as CoachProfile[];
+  // JSON is authoritative for name/title/bio/hidden. CMS is only allowed to
+  // supply fields we don't ship in JSON (e.g. image/imageUrl). This flips
+  // the previous behaviour where CMS overrode JSON per-field, which meant
+  // stale Sanity bios shadowed the up-to-date repo copy.
   const coachMap = new Map<string, CoachProfile>();
-  for (const coach of fallbackCoaches) {
+  for (const coach of cmsCoaches) {
     coachMap.set(coach.name, coach);
   }
-  for (const coach of cmsCoaches) {
+  for (const coach of fallbackCoaches) {
     coachMap.set(coach.name, { ...(coachMap.get(coach.name) ?? {}), ...coach });
   }
   const coaches = Array.from(coachMap.values()).filter((coach) => !coach.hidden);

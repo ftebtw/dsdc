@@ -60,7 +60,7 @@ export default function BookPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-base md:text-lg text-white/85 font-sans max-w-2xl mx-auto leading-relaxed"
           >
-            Taught live by coaches from Canada&apos;s National Debate Team. No commitment, no sales pressure.
+            A consultation with one an expert from our team. No commitment, no sales pressure.
           </motion.p>
         </div>
       </section>
@@ -150,7 +150,7 @@ export default function BookPage() {
             <div>
               <div className="text-3xl md:text-4xl font-bold text-gold-500 dark:text-gold-400">20+</div>
               <div className="mt-1.5 text-xs md:text-sm text-charcoal/70 dark:text-navy-200 font-sans">
-                National team coaches
+                Expert coaches
               </div>
             </div>
           </div>
