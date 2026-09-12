@@ -34,6 +34,26 @@ export function getCadPriceForClass(classRow: PriceableClass): number {
 }
 
 /**
+ * Prorate a full-term price by how many weeks are left in the term.
+ * Guards against a stale (expired) term billing 1/totalWeeks by mistake.
+ */
+function prorateForTerm(
+  fullPrice: number,
+  termEndDate: string,
+  totalWeeks: number
+): number {
+  const remaining = weeksRemainingInTerm(termEndDate);
+  // A term whose end date has already passed means the active term is stale,
+  // not that someone is enrolling for one final week. proratedPrice() floors
+  // at one week, so without this guard an expired term quietly bills
+  // 1/totalWeeks of the price — at Stripe checkout too, not just on the
+  // enrollment screen.
+  if (remaining <= 0) return fullPrice;
+  if (remaining >= totalWeeks) return fullPrice;
+  return proratedPrice(fullPrice, totalWeeks, remaining);
+}
+
+/**
  * Get the prorated CAD price for a class type based on term timing.
  * Proration is a late-join discount for a term that is still running, so it
  * only applies while weeks actually remain.
@@ -43,28 +63,19 @@ export function getProratedCadPrice(
   termEndDate: string,
   totalWeeks: number
 ): number {
-  const fullPrice = getCadPriceForClassType(classType);
-  const remaining = weeksRemainingInTerm(termEndDate);
-  // A term whose end date has already passed means the active term is stale,
-  // not that someone is enrolling for one final week. proratedPrice() floors
-  // at one week, so without this guard an expired term quietly bills
-  // 1/totalWeeks of the tier price ($133 instead of $1600) — at Stripe
-  // checkout too, not just on the enrollment screen.
-  if (remaining <= 0) return fullPrice;
-  if (remaining >= totalWeeks) return fullPrice;
-  return proratedPrice(fullPrice, totalWeeks, remaining);
+  return prorateForTerm(getCadPriceForClassType(classType), termEndDate, totalWeeks);
 }
 
 /**
- * Custom-priced classes are billed as a flat program fee and are not prorated.
+ * Prorate the class's effective full price by weeks remaining in the term.
+ * Custom-priced classes (custom_price_cad set on the class row) are prorated
+ * off that custom price — the admin is expressing the full-term amount when
+ * they set it; the checkout charges (full / totalWeeks) × weeksRemaining.
  */
 export function getProratedCadPriceForClass(
   classRow: PriceableClass,
   termEndDate: string,
   totalWeeks: number
 ): number {
-  if (typeof classRow.custom_price_cad === "number" && classRow.custom_price_cad > 0) {
-    return classRow.custom_price_cad;
-  }
-  return getProratedCadPrice(classRow.type, termEndDate, totalWeeks);
+  return prorateForTerm(getCadPriceForClass(classRow), termEndDate, totalWeeks);
 }
