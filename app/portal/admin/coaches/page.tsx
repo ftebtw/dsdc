@@ -84,6 +84,54 @@ async function unarchiveCoachProfile(formData: FormData) {
   redirect('/portal/admin/coaches?show_archived=1&unarchived=1');
 }
 
+// Flip a coach_profiles row between coach and TA. Also syncs profiles.role so
+// nav gating (coach vs. TA sidebars) stays consistent. Tier is left alone —
+// a demoted coach keeps their tier as a fallback for future re-promotion.
+async function switchCoachTitle(formData: FormData) {
+  'use server';
+  await requireRole(['admin']);
+  const coachId = String(formData.get('coach_id') || '');
+  const nextTitle = String(formData.get('next_title') || '');
+  const showArchived = String(formData.get('show_archived') || '') === '1';
+  const redirectSuffix = showArchived ? '&show_archived=1' : '';
+  if (!coachId || (nextTitle !== 'coach' && nextTitle !== 'ta')) {
+    redirect(`/portal/admin/coaches?error=missing_record${redirectSuffix}`);
+  }
+  const nextIsTa = nextTitle === 'ta';
+
+  const supabase = await getSupabaseServerClient();
+
+  // Refuse to flip an admin/parent/student — we only touch coach/ta.
+  const { data: profileRow } = await supabase
+    .from('profiles')
+    .select('id,role')
+    .eq('id', coachId)
+    .maybeSingle();
+  if (!profileRow || (profileRow.role !== 'coach' && profileRow.role !== 'ta')) {
+    redirect(`/portal/admin/coaches?error=role_not_switchable${redirectSuffix}`);
+  }
+
+  const [{ error: coachProfileError }, { error: profileError }] = await Promise.all([
+    (supabase as any).from('coach_profiles').update({ is_ta: nextIsTa }).eq('coach_id', coachId),
+    supabase
+      .from('profiles')
+      .update({ role: nextIsTa ? 'ta' : 'coach' })
+      .eq('id', coachId),
+  ]);
+
+  if (coachProfileError || profileError) {
+    console.error('[admin-coaches] switch title failed', {
+      coachProfileError,
+      profileError,
+    });
+    redirect(`/portal/admin/coaches?error=switch_failed${redirectSuffix}`);
+  }
+
+  revalidatePath('/portal/admin/coaches');
+  const flashKey = nextIsTa ? 'changed_to_ta' : 'promoted_to_coach';
+  redirect(`/portal/admin/coaches?${flashKey}=1${redirectSuffix}`);
+}
+
 function isLate(
   checkedInAtIso: string,
   sessionDate: string,
@@ -109,6 +157,8 @@ export default async function AdminCoachesPage({
     show_archived?: string;
     archived?: string;
     unarchived?: string;
+    promoted_to_coach?: string;
+    changed_to_ta?: string;
   }>;
 }) {
   const session = await requireRole(['admin']);
@@ -167,6 +217,8 @@ export default async function AdminCoachesPage({
           saved: 'Coach updated.',
           archived: 'Coach archived. They are hidden from assignment dropdowns until you restore.',
           unarchived: 'Coach restored.',
+          promoted_to_coach: 'Promoted to Coach. Their profile role is now "coach".',
+          changed_to_ta: 'Changed to TA. Their profile role is now "ta".',
         }}
         errorMessages={{
           missing_record: 'Coach not found.',
@@ -174,6 +226,8 @@ export default async function AdminCoachesPage({
           save_failed: 'Could not save the coach. Please try again.',
           archive_failed: 'Could not archive the coach. Please try again.',
           unarchive_failed: 'Could not restore the coach. Please try again.',
+          switch_failed: 'Could not change the coach title. Please try again.',
+          role_not_switchable: 'Only coach and TA accounts can be switched here.',
         }}
       />
       <SectionCard title="Coaches and TAs" description="Assignments, tier, and check-in history.">
@@ -253,6 +307,26 @@ export default async function AdminCoachesPage({
                       </button>
                     </form>
                     <div className="flex items-center gap-2">
+                      <form action={switchCoachTitle}>
+                        <input type="hidden" name="coach_id" value={coachProfile.coach_id} />
+                        <input
+                          type="hidden"
+                          name="next_title"
+                          value={coachProfile.is_ta ? 'coach' : 'ta'}
+                        />
+                        {showArchived ? <input type="hidden" name="show_archived" value="1" /> : null}
+                        <button
+                          type="submit"
+                          className="px-3 py-1.5 rounded-md border border-navy-300 dark:border-gold-400/60 bg-white dark:bg-navy-900 text-navy-900 dark:text-gold-200 text-sm font-semibold hover:bg-navy-50 dark:hover:bg-gold-400/10"
+                          title={
+                            coachProfile.is_ta
+                              ? 'Change this account to a coach (their tier is preserved).'
+                              : 'Change this coach to a TA (their tier is kept for later re-promotion).'
+                          }
+                        >
+                          {coachProfile.is_ta ? 'Promote to Coach' : 'Change to TA'}
+                        </button>
+                      </form>
                       {isArchived ? (
                         <form action={unarchiveCoachProfile}>
                           <input type="hidden" name="coach_id" value={coachProfile.coach_id} />
