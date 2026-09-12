@@ -128,7 +128,11 @@ export default async function AdminClassDetailPage({
 
   const selectedDate = query.date || getSessionDateForClassTimezone(classRow.timezone);
 
-  const [{ data: attendanceForDateData }, { data: absencesForDateData }] = await Promise.all([
+  const [
+    { data: attendanceForDateData },
+    { data: absencesForDateData },
+    { data: sessionNotesForDateData },
+  ] = await Promise.all([
     supabase
       .from('attendance_records')
       .select('student_id,status,camera_on,marked_at')
@@ -139,7 +143,15 @@ export default async function AdminClassDetailPage({
       .select('student_id')
       .eq('class_id', classId)
       .eq('session_date', selectedDate),
+    (supabase as any)
+      .from('class_session_notes')
+      .select('notes')
+      .eq('class_id', classId)
+      .eq('session_date', selectedDate)
+      .maybeSingle(),
   ]);
+  const sessionNotesForDate =
+    (sessionNotesForDateData as { notes?: string } | null)?.notes ?? '';
 
   const attendanceForDate = (attendanceForDateData ?? []) as Array<
     Pick<AttendanceRow, 'student_id' | 'status' | 'camera_on' | 'marked_at'>
@@ -531,6 +543,7 @@ export default async function AdminClassDetailPage({
           students={studentProfiles}
           initialAttendance={attendanceByStudent}
           initialAbsenceStudentIds={(absencesForDateData ?? []).map((row: { student_id: string }) => row.student_id)}
+          initialSessionNotes={sessionNotesForDate}
           allowDelete
         />
       </SectionCard>

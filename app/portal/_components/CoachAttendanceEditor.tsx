@@ -30,6 +30,7 @@ type Props = {
   students: Student[];
   initialAttendance: Record<string, AttendanceRow>;
   initialAbsenceStudentIds: string[];
+  initialSessionNotes?: string;
   restrictedSessionDates?: string[];
   allowDelete?: boolean;
 };
@@ -45,6 +46,7 @@ export default function CoachAttendanceEditor({
   students,
   initialAttendance,
   initialAbsenceStudentIds,
+  initialSessionNotes = '',
   restrictedSessionDates = [],
   allowDelete = false,
 }: Props) {
@@ -58,7 +60,13 @@ export default function CoachAttendanceEditor({
   const [loadingDate, setLoadingDate] = useState(false);
   const [submittingAll, setSubmittingAll] = useState(false);
   const [submitAllResult, setSubmitAllResult] = useState<string | null>(null);
+  const [sessionNotes, setSessionNotes] = useState<string>(initialSessionNotes);
+  const [sessionNotesSaveState, setSessionNotesSaveState] = useState<
+    'idle' | 'saving' | 'saved' | 'error'
+  >('idle');
+  const [sessionNotesError, setSessionNotesError] = useState<string | null>(null);
   const timerRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const sessionNotesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const restrictedDates = useMemo(
     () => [...new Set(restrictedSessionDates)].sort(),
     [restrictedSessionDates]
@@ -89,6 +97,7 @@ export default function CoachAttendanceEditor({
       for (const key of Object.keys(timerRef.current)) {
         clearTimeout(timerRef.current[key]);
       }
+      if (sessionNotesTimerRef.current) clearTimeout(sessionNotesTimerRef.current);
     };
   }, []);
 
@@ -105,7 +114,7 @@ export default function CoachAttendanceEditor({
     setSubmitAllResult(null);
     const supabase = getSupabaseBrowserClient();
 
-    const [attendanceResult, absenceResult] = await Promise.all([
+    const [attendanceResult, absenceResult, notesResult] = await Promise.all([
       supabase
         .from('attendance_records')
         .select('student_id,status,camera_on,marked_at')
@@ -116,6 +125,12 @@ export default function CoachAttendanceEditor({
         .select('student_id')
         .eq('class_id', classId)
         .eq('session_date', date),
+      (supabase as any)
+        .from('class_session_notes')
+        .select('notes')
+        .eq('class_id', classId)
+        .eq('session_date', date)
+        .maybeSingle(),
     ]);
 
     const nextAttendance: Record<string, AttendanceRow> = {};
@@ -130,7 +145,33 @@ export default function CoachAttendanceEditor({
 
     setAttendance(nextAttendance);
     setAbsenceStudentIds(new Set((absenceResult.data ?? []).map((item: any) => item.student_id)));
+    setSessionNotes((notesResult?.data as { notes?: string } | null)?.notes ?? '');
+    setSessionNotesSaveState('idle');
+    setSessionNotesError(null);
     setLoadingDate(false);
+  }
+
+  function scheduleSessionNotesSave(nextValue: string, date: string) {
+    if (sessionNotesTimerRef.current) clearTimeout(sessionNotesTimerRef.current);
+    setSessionNotesSaveState('saving');
+    setSessionNotesError(null);
+    sessionNotesTimerRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch('/api/portal/attendance/session-notes', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ classId, sessionDate: date, notes: nextValue }),
+        });
+        if (!response.ok) {
+          const data = (await response.json().catch(() => ({}))) as { error?: string };
+          throw new Error(data.error || t('portal.coachAttendanceEditor.notesSaveError', 'Could not save notes.'));
+        }
+        setSessionNotesSaveState('saved');
+      } catch (err) {
+        setSessionNotesSaveState('error');
+        setSessionNotesError(err instanceof Error ? err.message : 'Save failed.');
+      }
+    }, 700);
   }
 
   async function persist(studentId: string, nextRecord: AttendanceRow, date: string) {
@@ -471,6 +512,60 @@ export default function CoachAttendanceEditor({
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="rounded-xl border border-warm-200 dark:border-navy-600 bg-warm-50/60 dark:bg-navy-900/40 p-3">
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <label
+            htmlFor="attendance-session-notes"
+            className="text-sm font-semibold text-navy-800 dark:text-white"
+          >
+            {t('portal.coachAttendanceEditor.additionalNotes', 'Additional notes')}
+          </label>
+          <span
+            className={`text-[11px] ${
+              sessionNotesSaveState === 'error'
+                ? 'text-red-600 dark:text-red-300'
+                : sessionNotesSaveState === 'saving'
+                  ? 'text-charcoal/60 dark:text-navy-300'
+                  : sessionNotesSaveState === 'saved'
+                    ? 'text-green-700 dark:text-green-300'
+                    : 'text-transparent'
+            }`}
+          >
+            {sessionNotesSaveState === 'saving'
+              ? t('portal.common.saving', 'Saving...')
+              : sessionNotesSaveState === 'saved'
+                ? t('portal.coachAttendanceEditor.notesSaved', 'Saved')
+                : sessionNotesSaveState === 'error'
+                  ? sessionNotesError || t('portal.coachAttendanceEditor.notesSaveError', 'Could not save notes.')
+                  : ''}
+          </span>
+        </div>
+        <textarea
+          id="attendance-session-notes"
+          rows={3}
+          value={sessionNotes}
+          onChange={(event) => {
+            const nextValue = event.target.value;
+            setSessionNotes(nextValue);
+            if (canManageDate(sessionDate)) {
+              scheduleSessionNotesSave(nextValue, sessionDate);
+            }
+          }}
+          maxLength={4000}
+          placeholder={t(
+            'portal.coachAttendanceEditor.notesPlaceholder',
+            'e.g. try-out student: Jamie · guest speaker · anything worth flagging for admin'
+          )}
+          className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2 text-sm"
+        />
+        <p className="mt-1 text-[11px] text-charcoal/55 dark:text-navy-400">
+          {t(
+            'portal.coachAttendanceEditor.notesHint',
+            'One note per session date. Visible to coaches on the class team and to admins.'
+          )}
+        </p>
       </div>
 
       {students.length > 0 && (

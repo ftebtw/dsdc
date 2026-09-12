@@ -117,7 +117,12 @@ export default async function CoachAttendancePage({
     ? privateGroupSessionDates
     : restrictedSessionDates;
 
-  const [{ data: enrollmentsData }, { data: attendanceRowsData }, { data: absencesData }] = await Promise.all([
+  const [
+    { data: enrollmentsData },
+    { data: attendanceRowsData },
+    { data: absencesData },
+    { data: sessionNotesData },
+  ] = await Promise.all([
     supabase
       .from('enrollments')
       .select('student_id')
@@ -133,10 +138,18 @@ export default async function CoachAttendancePage({
       .select('student_id')
       .eq('class_id', classId)
       .eq('session_date', sessionDate),
+    (supabase as any)
+      .from('class_session_notes')
+      .select('notes')
+      .eq('class_id', classId)
+      .eq('session_date', sessionDate)
+      .maybeSingle(),
   ]);
   const enrollments = (enrollmentsData ?? []) as EnrollmentStudentRow[];
   const attendanceRows = (attendanceRowsData ?? []) as AttendanceRow[];
   const absences = (absencesData ?? []) as AbsenceStudentRow[];
+  const initialSessionNotes =
+    (sessionNotesData as { notes?: string } | null)?.notes ?? '';
 
   const studentIds = enrollments.map((item) => item.student_id);
   const admin = getSupabaseAdminClient();
@@ -185,6 +198,7 @@ export default async function CoachAttendancePage({
         students={profiles}
         initialAttendance={attendanceByStudent}
         initialAbsenceStudentIds={absences.map((row) => row.student_id)}
+        initialSessionNotes={initialSessionNotes}
         restrictedSessionDates={effectiveRestrictedSessionDates}
       />
     </SectionCard>
