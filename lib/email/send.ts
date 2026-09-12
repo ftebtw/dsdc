@@ -1,12 +1,23 @@
 import 'server-only';
 import { getPortalFromEmail, getResendClient } from '@/lib/email/resend';
 
+export type EmailAttachment = {
+  filename: string;
+  /**
+   * Attachment payload. Either a base64 string (Resend accepts base64 for
+   * `content`) or a Buffer.
+   */
+  content: string | Buffer;
+  contentType?: string;
+};
+
 type SendInput = {
   to: string | string[];
   subject: string;
   html: string;
   text: string;
   replyTo?: string | string[];
+  attachments?: EmailAttachment[];
 };
 
 export async function sendPortalEmail(input: SendInput): Promise<{ ok: boolean; error?: string }> {
@@ -25,6 +36,15 @@ export async function sendPortalEmail(input: SendInput): Promise<{ ok: boolean; 
       html: input.html,
       text: input.text,
       replyTo: input.replyTo,
+      ...(input.attachments && input.attachments.length > 0
+        ? {
+            attachments: input.attachments.map((attachment) => ({
+              filename: attachment.filename,
+              content: attachment.content,
+              ...(attachment.contentType ? { contentType: attachment.contentType } : {}),
+            })),
+          }
+        : {}),
     });
 
     const apiError = (result as { error?: { message?: string } | null } | null)?.error;

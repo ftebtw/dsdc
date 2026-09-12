@@ -462,6 +462,7 @@ export default function PortalShell({
             { href: "/portal/admin/parents", label: t("portal.nav.admin.parents", "Parents"), icon: Users },
             { href: "/portal/admin/coaches", label: t("portal.nav.admin.coaches", "Coaches"), icon: UserSquare2 },
             { href: "/portal/admin/feedback", label: t("portal.nav.admin.feedback", "Feedback Review"), icon: MessageSquare },
+            { href: "/portal/admin/emails", label: t("portal.nav.admin.emails", "Emails"), icon: MessageSquare },
             { href: "/portal/admin/enroll", label: t("portal.nav.admin.enroll", "Enroll"), icon: FileCheck2 },
             { href: "/portal/signup", label: t("portal.nav.admin.createUser", "Create User"), icon: Shield },
           ],
