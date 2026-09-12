@@ -9,11 +9,21 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const timeSchema = z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/);
 const visibilitySchema = z.enum(["personal", "all_coaches", "everyone"]);
 
+const tagSchema = z.enum([
+  "novice_intermediate_class",
+  "senior_class",
+  "wsc_class",
+  "in_person_tournament",
+  "online_tournament",
+  "other",
+]);
+
 const updateSchema = z
   .object({
     title: z.string().min(1).max(160).optional(),
     description: z.string().max(4000).nullable().optional(),
     eventDate: dateSchema.optional(),
+    endDate: dateSchema.nullable().optional(),
     startTime: timeSchema.optional(),
     endTime: timeSchema.optional(),
     timezone: z.string().min(1).max(80).optional(),
@@ -21,6 +31,7 @@ const updateSchema = z
     isAllDay: z.boolean().optional(),
     visibility: visibilitySchema.optional(),
     isImportant: z.boolean().optional(),
+    tag: tagSchema.nullable().optional(),
     attachmentName: z.string().trim().min(1).max(200).optional(),
     removeAttachment: z.boolean().optional(),
   })
@@ -115,6 +126,7 @@ export async function PUT(
       title: formString(form, "title"),
       description: formString(form, "description"),
       eventDate: formString(form, "eventDate"),
+      endDate: formString(form, "endDate"),
       startTime: formString(form, "startTime"),
       endTime: formString(form, "endTime"),
       timezone: formString(form, "timezone"),
@@ -122,6 +134,7 @@ export async function PUT(
       isAllDay: formBool(form, "isAllDay"),
       visibility: formString(form, "visibility"),
       isImportant: formBool(form, "isImportant"),
+      tag: formString(form, "tag"),
       attachmentName: formString(form, "attachmentName"),
       removeAttachment: formBool(form, "removeAttachment"),
     };
@@ -187,8 +200,10 @@ export async function PUT(
   if (body.title !== undefined) updateData.title = body.title.trim();
   if (body.description !== undefined) updateData.description = body.description?.trim() || null;
   if (body.eventDate !== undefined) updateData.event_date = body.eventDate;
+  if (body.endDate !== undefined) updateData.end_date = body.endDate;
   if (body.startTime !== undefined) updateData.start_time = body.startTime;
   if (body.endTime !== undefined) updateData.end_time = body.endTime;
+  if (body.tag !== undefined) updateData.tag = body.tag;
   if (body.timezone !== undefined) updateData.timezone = body.timezone;
   if (body.color !== undefined) updateData.color = body.color;
   if (body.isAllDay !== undefined) updateData.is_all_day = body.isAllDay;

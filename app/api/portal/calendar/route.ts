@@ -238,13 +238,19 @@ export async function GET(request: NextRequest) {
   let calendarEventQuery = admin
     .from("calendar_events")
     .select(
-      "id,title,description,event_date,start_time,end_time,timezone,color,is_all_day,visibility,is_important,created_by,attachment_path,attachment_name,attachment_mime_type"
+      "id,title,description,event_date,end_date,start_time,end_time,timezone,color,is_all_day,visibility,is_important,tag,created_by,attachment_path,attachment_name,attachment_mime_type"
     )
     .order("event_date", { ascending: true })
     .order("start_time", { ascending: true });
 
-  if (from) calendarEventQuery = calendarEventQuery.gte("event_date", from);
+  // Include multi-day events whose end_date reaches into the window even when
+  // their event_date is before `from`.
   if (to) calendarEventQuery = calendarEventQuery.lte("event_date", to);
+  if (from) {
+    calendarEventQuery = calendarEventQuery.or(
+      `end_date.gte.${from},and(end_date.is.null,event_date.gte.${from})`
+    );
+  }
 
   const [cancellationsResult, legacyEventsResult, calendarEventsResult] = await Promise.all([
     visibleClassIds.length
@@ -290,6 +296,7 @@ export async function GET(request: NextRequest) {
     title: eventRow.title,
     description: eventRow.description,
     event_date: eventRow.event_date,
+    end_date: null,
     start_time: eventRow.start_time,
     end_time: eventRow.end_time,
     location: eventRow.location,
@@ -300,6 +307,7 @@ export async function GET(request: NextRequest) {
     visibility: "everyone",
     is_all_day: !eventRow.start_time && !eventRow.end_time,
     is_important: false,
+    tag: null,
     created_by: eventRow.created_by ?? null,
     attachment_path: null,
     attachment_name: null,
@@ -311,6 +319,7 @@ export async function GET(request: NextRequest) {
     title: eventRow.title,
     description: eventRow.description,
     event_date: eventRow.event_date,
+    end_date: eventRow.end_date ?? null,
     start_time: eventRow.start_time,
     end_time: eventRow.end_time,
     location: null,
@@ -321,6 +330,7 @@ export async function GET(request: NextRequest) {
     visibility: eventRow.visibility || "personal",
     is_all_day: Boolean(eventRow.is_all_day),
     is_important: Boolean(eventRow.is_important),
+    tag: eventRow.tag ?? null,
     created_by: eventRow.created_by,
     attachment_path: eventRow.attachment_path ?? null,
     attachment_name: eventRow.attachment_name ?? null,

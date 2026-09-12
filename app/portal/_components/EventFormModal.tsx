@@ -4,11 +4,29 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { portalT } from "@/lib/portal/parent-i18n";
 
+export type CalendarEventTag =
+  | "novice_intermediate_class"
+  | "senior_class"
+  | "wsc_class"
+  | "in_person_tournament"
+  | "online_tournament"
+  | "other";
+
+export const CALENDAR_EVENT_TAGS: Array<{ value: CalendarEventTag; label: string }> = [
+  { value: "novice_intermediate_class", label: "Novice / Intermediate class" },
+  { value: "senior_class", label: "Senior class" },
+  { value: "wsc_class", label: "WSC class" },
+  { value: "in_person_tournament", label: "In-person tournament" },
+  { value: "online_tournament", label: "Online tournament" },
+  { value: "other", label: "Other" },
+];
+
 export type EventItem = {
   id: string;
   title: string;
   description: string | null;
   event_date: string;
+  end_date: string | null;
   start_time: string | null;
   end_time: string | null;
   location: string | null;
@@ -19,6 +37,7 @@ export type EventItem = {
   visibility: "personal" | "all_coaches" | "everyone";
   is_all_day: boolean;
   is_important: boolean;
+  tag: CalendarEventTag | null;
   created_by: string | null;
   attachment_path: string | null;
   attachment_name: string | null;
@@ -66,6 +85,8 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [title, setTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [tag, setTag] = useState<CalendarEventTag | "">("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [description, setDescription] = useState("");
@@ -95,6 +116,8 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
     if (!open) return;
     setTitle(event?.title ?? "");
     setEventDate(event?.event_date ?? initialDate ?? "");
+    setEndDate(event?.end_date ?? "");
+    setTag(event?.tag ?? "");
     setStartTime(normalizeTime(event?.start_time) || "09:00");
     setEndTime(normalizeTime(event?.end_time) || "10:00");
     setDescription(event?.description ?? "");
@@ -125,8 +148,9 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
   const canSubmit = useMemo(() => {
     if (!title.trim() || !eventDate) return false;
     if (!isAllDay && !isLegacyEvent && endTime <= startTime) return false;
+    if (endDate && endDate < eventDate) return false;
     return true;
-  }, [endTime, eventDate, isAllDay, isLegacyEvent, startTime, title]);
+  }, [endDate, endTime, eventDate, isAllDay, isLegacyEvent, startTime, title]);
 
   async function submit() {
     if (!canSubmit) return;
@@ -153,6 +177,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
       form.append("title", title.trim());
       form.append("description", description.trim());
       form.append("eventDate", eventDate);
+      if (endDate && endDate !== eventDate) form.append("endDate", endDate);
       form.append("startTime", isAllDay ? "00:00" : startTime);
       form.append("endTime", isAllDay ? "23:59" : endTime);
       form.append("timezone", timezone);
@@ -160,6 +185,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
       form.append("visibility", visibility);
       form.append("isAllDay", String(isAllDay));
       form.append("isImportant", String(visibility === "personal" ? false : isImportant));
+      if (tag) form.append("tag", tag);
       if (attachmentFile) {
         form.append("file", attachmentFile);
         const trimmedName = attachmentName.trim();
@@ -262,7 +288,7 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
 
           <label>
             <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
-              {t("portal.eventForm.date", "Date")}
+              {t("portal.eventForm.date", "Start date")}
             </span>
             <input
               type="date"
@@ -271,6 +297,41 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
               onChange={(eventValue) => setEventDate(eventValue.target.value)}
             />
           </label>
+
+          {!isLegacyEvent ? (
+            <label>
+              <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+                {t("portal.eventForm.endDate", "End date (optional, for multi-day)")}
+              </span>
+              <input
+                type="date"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+                value={endDate}
+                min={eventDate || undefined}
+                onChange={(eventValue) => setEndDate(eventValue.target.value)}
+              />
+            </label>
+          ) : null}
+
+          {!isLegacyEvent ? (
+            <label className="sm:col-span-2">
+              <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+                {t("portal.eventForm.category", "Category (optional)")}
+              </span>
+              <select
+                value={tag}
+                onChange={(eventValue) => setTag(eventValue.target.value as CalendarEventTag | "")}
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+              >
+                <option value="">— None —</option>
+                {CALENDAR_EVENT_TAGS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
 
           <label>
             <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">

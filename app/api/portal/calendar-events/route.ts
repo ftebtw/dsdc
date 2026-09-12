@@ -10,10 +10,20 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const timeSchema = z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/);
 const visibilitySchema = z.enum(["personal", "all_coaches", "everyone"]);
 
+const tagSchema = z.enum([
+  "novice_intermediate_class",
+  "senior_class",
+  "wsc_class",
+  "in_person_tournament",
+  "online_tournament",
+  "other",
+]);
+
 const createSchema = z.object({
   title: z.string().min(1).max(160),
   description: z.string().max(4000).optional(),
   eventDate: dateSchema,
+  endDate: dateSchema.nullish(),
   startTime: timeSchema,
   endTime: timeSchema,
   timezone: z.string().min(1).max(80).optional(),
@@ -21,6 +31,7 @@ const createSchema = z.object({
   isAllDay: z.boolean().optional(),
   visibility: visibilitySchema.optional(),
   isImportant: z.boolean().optional(),
+  tag: tagSchema.nullish(),
   attachmentName: z.string().trim().min(1).max(200).optional(),
 });
 
@@ -100,11 +111,15 @@ export async function GET(request: NextRequest) {
   const supabaseResponse = NextResponse.next();
   const supabase = getSupabaseRouteClient(request, supabaseResponse);
 
+  // An event overlaps the [startDate, endDate] range when:
+  //   event_date <= endDate                            (starts on or before the window ends)
+  //   AND (end_date IS NULL AND event_date >= startDate)   (single-day inside the window)
+  //        OR end_date >= startDate                     (multi-day whose end reaches into the window)
   const { data, error } = await supabase
     .from("calendar_events")
     .select("*")
-    .gte("event_date", startDate)
     .lte("event_date", endDate)
+    .or(`end_date.gte.${startDate},and(end_date.is.null,event_date.gte.${startDate})`)
     .order("event_date")
     .order("start_time");
 
@@ -137,6 +152,7 @@ export async function POST(request: NextRequest) {
       title: formString(form, "title"),
       description: formString(form, "description"),
       eventDate: formString(form, "eventDate"),
+      endDate: formString(form, "endDate"),
       startTime: formString(form, "startTime"),
       endTime: formString(form, "endTime"),
       timezone: formString(form, "timezone"),
@@ -144,6 +160,7 @@ export async function POST(request: NextRequest) {
       isAllDay: formBool(form, "isAllDay"),
       visibility: formString(form, "visibility"),
       isImportant: formBool(form, "isImportant"),
+      tag: formString(form, "tag"),
       attachmentName: formString(form, "attachmentName"),
     };
   } else {
@@ -156,6 +173,9 @@ export async function POST(request: NextRequest) {
   }
 
   const body = parsed.data;
+  if (body.endDate && body.endDate < body.eventDate) {
+    return mergeCookies(supabaseResponse, jsonError("End date must be on or after the start date."));
+  }
   const timezone = body.timezone || session.profile.timezone || "America/Vancouver";
   if (!isValidTimezone(timezone)) {
     return mergeCookies(supabaseResponse, jsonError("Invalid timezone."));
@@ -205,6 +225,7 @@ export async function POST(request: NextRequest) {
       title: body.title.trim(),
       description: body.description?.trim() || null,
       event_date: body.eventDate,
+      end_date: body.endDate ?? null,
       start_time: body.startTime,
       end_time: body.endTime,
       timezone,
@@ -213,6 +234,7 @@ export async function POST(request: NextRequest) {
       visibility: body.visibility || "personal",
       is_important:
         (body.visibility || "personal") === "personal" ? false : (body.isImportant ?? false),
+      tag: body.tag ?? null,
       attachment_path: attachmentPath,
       attachment_name: attachmentName,
       attachment_mime_type: attachmentMimeType,

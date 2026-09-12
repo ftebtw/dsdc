@@ -15,7 +15,11 @@ import {
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import type { PortalRole } from "@/lib/portal/auth";
-import EventFormModal, { type EventItem } from "@/app/portal/_components/EventFormModal";
+import EventFormModal, {
+  CALENDAR_EVENT_TAGS,
+  type CalendarEventTag,
+  type EventItem,
+} from "@/app/portal/_components/EventFormModal";
 import { useI18n } from "@/lib/i18n";
 import { portalT } from "@/lib/portal/parent-i18n";
 import ClassDetailSheet from "./ClassDetailSheet";
@@ -46,6 +50,40 @@ type CalendarCacheEntry = {
 
 const CALENDAR_CACHE_TTL_MS = 60_000;
 const calendarPayloadCache = new Map<string, CalendarCacheEntry>();
+
+const CALENDAR_TAG_FILTER_STORAGE_KEY = "dsdc-calendar-tag-filter";
+const ALL_TAG_VALUES: CalendarEventTag[] = CALENDAR_EVENT_TAGS.map((tag) => tag.value);
+
+function classTypeToTag(classType: string | null | undefined): CalendarEventTag {
+  switch (classType) {
+    case "novice_debate":
+    case "intermediate_debate":
+      return "novice_intermediate_class";
+    case "advanced_debate":
+      return "senior_class";
+    case "wsc":
+      return "wsc_class";
+    default:
+      return "other";
+  }
+}
+
+function loadInitialTagFilter(): Set<CalendarEventTag> {
+  if (typeof window === "undefined") return new Set(ALL_TAG_VALUES);
+  try {
+    const raw = window.localStorage.getItem(CALENDAR_TAG_FILTER_STORAGE_KEY);
+    if (!raw) return new Set(ALL_TAG_VALUES);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set(ALL_TAG_VALUES);
+    const allowed = new Set(ALL_TAG_VALUES);
+    const filtered = parsed.filter((value): value is CalendarEventTag =>
+      typeof value === "string" && allowed.has(value as CalendarEventTag)
+    );
+    return filtered.length > 0 ? new Set(filtered) : new Set(ALL_TAG_VALUES);
+  } catch {
+    return new Set(ALL_TAG_VALUES);
+  }
+}
 
 function calendarCacheKey(
   role: PortalRole,
@@ -81,6 +119,7 @@ export default function PortalCalendar({
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTags, setActiveTags] = useState<Set<CalendarEventTag>>(() => loadInitialTagFilter());
   const [selectedClass, setSelectedClass] = useState<CalendarClass | null>(null);
   const [selectedClassDate, setSelectedClassDate] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
@@ -95,6 +134,35 @@ export default function PortalCalendar({
       setFilter("mine");
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(
+        CALENDAR_TAG_FILTER_STORAGE_KEY,
+        JSON.stringify([...activeTags])
+      );
+    } catch {
+      /* ignore storage failures */
+    }
+  }, [activeTags]);
+
+  function toggleTag(next: CalendarEventTag) {
+    setActiveTags((prev) => {
+      const copy = new Set(prev);
+      if (copy.has(next)) copy.delete(next);
+      else copy.add(next);
+      // Never leave the calendar filtered to nothing — snap back to All.
+      if (copy.size === 0) return new Set(ALL_TAG_VALUES);
+      return copy;
+    });
+  }
+
+  function setAllTagsSelected() {
+    setActiveTags(new Set(ALL_TAG_VALUES));
+  }
+
+  const allTagsSelected = activeTags.size === ALL_TAG_VALUES.length;
 
   useEffect(() => {
     const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -204,6 +272,8 @@ export default function PortalCalendar({
         // Each class renders only within its own term's run, so classes from
         // different (overlapping) terms each show across their own dates.
         if (!inClassRun(sourceDate, classItem)) continue;
+        // Skip classes whose auto-derived tag is filtered out.
+        if (!activeTags.has(classTypeToTag(classItem.type))) continue;
         const displayKey = convertDateKeyForDisplay(
           sourceKey,
           classItem.schedule_start_time,
@@ -220,30 +290,56 @@ export default function PortalCalendar({
     }
 
     return map;
-  }, [displayTimezone, gridEnd, gridStart, payload.classes, payload.term, visibleDateKeys]);
+  }, [activeTags, displayTimezone, gridEnd, gridStart, payload.classes, payload.term, visibleDateKeys]);
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, EventItem[]>();
     for (const eventItem of payload.events) {
-      const key = eventDisplayDateKey(eventItem);
-      const existing = map.get(key) ?? [];
+      // Filter out events whose tag isn't in the active set. Untagged events
+      // fall under "other" for filtering purposes.
+      const effectiveTag: CalendarEventTag = eventItem.tag ?? "other";
+      if (!activeTags.has(effectiveTag)) continue;
+
+      const firstKey = eventDisplayDateKey(eventItem);
+      const existing = map.get(firstKey) ?? [];
       existing.push(eventItem);
-      map.set(key, existing);
+      map.set(firstKey, existing);
+
+      // Multi-day events: put a copy on every day in [event_date, end_date].
+      // firstKey already covers the timezone-shifted start day; subsequent
+      // days walk the raw date range which is stored in the class timezone.
+      if (eventItem.end_date && eventItem.end_date > eventItem.event_date) {
+        const startParsed = parseISO(eventItem.event_date);
+        const endParsed = parseISO(eventItem.end_date);
+        for (let d = addDays(startParsed, 1); d <= endParsed; d = addDays(d, 1)) {
+          const dayKey = toKey(d);
+          const listForDay = map.get(dayKey) ?? [];
+          listForDay.push(eventItem);
+          map.set(dayKey, listForDay);
+        }
+      }
     }
     return map;
-  }, [displayTimezone, payload.events]);
+  }, [activeTags, displayTimezone, payload.events]);
 
   const upcomingEvents = useMemo(() => {
     const todayKey = todayKeyForTimezone(displayTimezone);
     return [...payload.events]
+      .filter((eventItem) => activeTags.has(eventItem.tag ?? "other"))
       .map((eventItem) => ({ eventItem, displayDateKey: eventDisplayDateKey(eventItem) }))
-      .filter(({ displayDateKey }) => displayDateKey >= todayKey)
+      // Multi-day events count as upcoming while their end date is still in the future.
+      .filter(({ eventItem, displayDateKey }) => {
+        const effectiveEnd = eventItem.end_date && eventItem.end_date > eventItem.event_date
+          ? eventItem.end_date
+          : displayDateKey;
+        return effectiveEnd >= todayKey;
+      })
       .sort((a, b) => {
         if (a.displayDateKey !== b.displayDateKey) return a.displayDateKey < b.displayDateKey ? -1 : 1;
         return (a.eventItem.start_time ?? "00:00") < (b.eventItem.start_time ?? "00:00") ? -1 : 1;
       })
       .slice(0, 10);
-  }, [displayTimezone, payload.events]);
+  }, [activeTags, displayTimezone, payload.events]);
 
   const upcomingSidebar = (
     <div className="space-y-2">
@@ -437,6 +533,41 @@ export default function PortalCalendar({
             </button>
           ) : null}
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-charcoal/60 dark:text-navy-300">
+          {t("portal.portalCalendar.filter", "Show")}:
+        </span>
+        <button
+          type="button"
+          onClick={setAllTagsSelected}
+          className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+            allTagsSelected
+              ? "border-navy-800 bg-navy-800 text-white dark:border-gold-300 dark:bg-gold-300 dark:text-navy-900"
+              : "border-warm-300 bg-white text-charcoal/70 hover:border-navy-400 dark:border-navy-600 dark:bg-navy-900 dark:text-navy-100"
+          }`}
+        >
+          {t("portal.portalCalendar.filterAll", "All")}
+        </button>
+        {CALENDAR_EVENT_TAGS.map((tag) => {
+          const isActive = activeTags.has(tag.value);
+          return (
+            <button
+              key={tag.value}
+              type="button"
+              onClick={() => toggleTag(tag.value)}
+              className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+                isActive
+                  ? "border-navy-800 bg-navy-800 text-white dark:border-gold-300 dark:bg-gold-300 dark:text-navy-900"
+                  : "border-warm-300 bg-white text-charcoal/60 hover:border-navy-400 dark:border-navy-600 dark:bg-navy-900 dark:text-navy-400"
+              }`}
+              aria-pressed={isActive}
+            >
+              {tag.label}
+            </button>
+          );
+        })}
       </div>
 
       {payload.term ? (
