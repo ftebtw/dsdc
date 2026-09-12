@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import AdminDeleteUserButton from "@/app/portal/_components/AdminDeleteUserButton";
 import FlashBanners from "@/app/portal/_components/FlashBanners";
 import SectionCard from "@/app/portal/_components/SectionCard";
 import { requireRole } from "@/lib/portal/auth";
@@ -155,6 +156,7 @@ export default async function AdminParentsPage({
               <th className="px-4 py-3 text-left">Phone</th>
               <th className="px-4 py-3 text-left">Linked Students</th>
               <th className="px-4 py-3 text-left">Created</th>
+              <th className="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -252,6 +254,9 @@ export default async function AdminParentsPage({
                     </form>
                   </td>
                   <td className="px-4 py-3">{formatCreated(parent.created_at)}</td>
+                  <td className="px-4 py-3">
+                    <AdminDeleteUserButton userId={parent.id} displayName={parent.display_name} />
+                  </td>
                 </tr>
               );
             })}
