@@ -1581,3 +1581,71 @@ export function homeworkGradedTemplate(input: {
     text,
   };
 }
+
+export function feedbackRequestToCoachTemplate(input: {
+  coachName: string;
+  className: string;
+  studentName: string;
+  requesterName: string;
+  requesterRole: string;
+  message: string;
+  portalUrl: string;
+}) {
+  const subject = `New feedback request: ${input.studentName} (${input.className})`;
+  const { html, text } = renderTemplate({
+    title: 'New Feedback Request',
+    bodyLines: [
+      `Hi ${input.coachName}, ${input.requesterName} (${input.requesterRole}) asked for feedback on ${input.studentName} in ${input.className}.`,
+      `Their message: "${input.message}"`,
+      `Draft a response in the portal. An admin will review it before it reaches the family.`,
+    ],
+    buttonLabel: 'Respond in Portal',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}
+
+export function feedbackResponseToAdminTemplate(input: {
+  className: string;
+  studentName: string;
+  coachName: string;
+  responsePreview: string;
+  portalUrl: string;
+}) {
+  const subject = `Feedback response needs review: ${input.studentName} (${input.className})`;
+  const { html, text } = renderTemplate({
+    title: 'Feedback Ready for Review',
+    bodyLines: [
+      `${input.coachName} drafted a feedback response for ${input.studentName} in ${input.className}.`,
+      `Preview: "${input.responsePreview}"`,
+      `Approve it to send to the family, or bounce it back with notes.`,
+    ],
+    buttonLabel: 'Review in Portal',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}
+
+export function feedbackApprovedToRequesterTemplate(input: {
+  recipientName: string;
+  className: string;
+  studentName: string;
+  coachName: string;
+  coachResponse: string;
+  portalUrl: string;
+}) {
+  const subject = `Feedback from ${input.coachName} on ${input.studentName}`;
+  const { html, text } = renderTemplate({
+    title: 'Feedback From Your Coach',
+    bodyLines: [
+      `Hi ${input.recipientName}, ${input.coachName} shared feedback about ${input.studentName} in ${input.className}.`,
+      `Response: ${input.coachResponse}`,
+    ],
+    buttonLabel: 'View in Portal',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}
