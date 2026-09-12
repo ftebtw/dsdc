@@ -15,7 +15,7 @@ import {
 import { fetchPayrollTotalHours } from '@/lib/portal/payroll';
 import type { Database } from '@/lib/supabase/database.types';
 
-type EnrollmentStudentRow = Pick<Database['public']['Tables']['enrollments']['Row'], 'student_id'>;
+type EnrollmentStudentRow = Pick<Database['public']['Tables']['enrollments']['Row'], 'student_id' | 'class_id'>;
 type LegalDocumentRow = Pick<Database['public']['Tables']['legal_documents']['Row'], 'id' | 'required_for'>;
 type LegalSignatureRow = {
   document_id: string;
@@ -101,7 +101,7 @@ export default async function AdminDashboardPage() {
     { data: attendanceRowsData },
     { data: acceptedSubRowsData },
   ] = await Promise.all([
-    supabase.from('enrollments').select('student_id').eq('status', 'active'),
+    supabase.from('enrollments').select('student_id,class_id').eq('status', 'active'),
     supabase.from('legal_documents').select('id,required_for'),
     supabase.from('report_cards').select('id', { count: 'exact', head: true }).in('status', ['draft', 'submitted']),
     supabase.from('legal_signatures').select('document_id,signer_id,signer_role,signed_for_student_id'),
@@ -260,7 +260,31 @@ export default async function AdminDashboardPage() {
   const pendingApprovalsCount = pendingApprovalsCountResponse.count ?? 0;
   const studentCount = studentCountResponse.count ?? 0;
   const coachCount = coachCountResponse.count ?? 0;
-  const activeStudentsCount = new Set(activeEnrollments.map((row) => row.student_id)).size;
+
+  // "Active students" = students with at least one 'active' enrollment on a
+  // NON-archived class. A student who only ever appears in archived classes
+  // (i.e. their season has ended, no re-enrolment yet) doesn't count.
+  const activeEnrollmentClassIds = [
+    ...new Set(activeEnrollments.map((row) => row.class_id).filter(Boolean) as string[]),
+  ];
+  const archivedClassIdSet = activeEnrollmentClassIds.length
+    ? new Set(
+        (
+          ((
+            await (supabase as any)
+              .from('classes')
+              .select('id')
+              .in('id', activeEnrollmentClassIds)
+              .not('archived_at', 'is', null)
+          ).data ?? []) as Array<{ id: string }>
+        ).map((row) => row.id)
+      )
+    : new Set<string>();
+  const activeStudentsCount = new Set(
+    activeEnrollments
+      .filter((row) => !row.class_id || !archivedClassIdSet.has(row.class_id))
+      .map((row) => row.student_id)
+  ).size;
 
   const signaturesByDocument = new Map<string, LegalSignatureRow[]>();
   for (const signature of legalSignatures) {
@@ -308,6 +332,16 @@ export default async function AdminDashboardPage() {
           <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
             <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Active students</p>
             <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{activeStudentsCount}</p>
+            <Link href="/portal/admin/students?status=active" className="text-xs underline text-navy-700 dark:text-navy-200">
+              View list
+            </Link>
+          </div>
+          <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
+            <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Total students</p>
+            <p className="portal-stat-number text-[2.2rem] font-bold text-[#1a1712] dark:text-white">{studentCount}</p>
+            <Link href="/portal/admin/students" className="text-xs underline text-navy-700 dark:text-navy-200">
+              View all
+            </Link>
           </div>
           <div className="portal-stat-card rounded-xl bg-white dark:bg-navy-900 p-4 border border-warm-200 dark:border-navy-600 shadow-sm">
             <p className="portal-stat-label text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/55 dark:text-navy-300">Active classes</p>
