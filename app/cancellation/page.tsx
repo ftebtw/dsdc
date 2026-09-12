@@ -7,7 +7,7 @@ export async function generateMetadata(): Promise<Metadata> {
     path: "/cancellation",
     title: "Cancellation & Refund Policy | DSDC",
     description:
-      "Read DSDC's cancellation and refund policy, including the 7-day cancellation window, first-class refund exception, and Stripe refund processing timelines.",
+      "Read DSDC's cancellation and refund policy, including paid trial sessions, make-up options for missed classes, DSDC-initiated cancellations, and Stripe refund processing timelines.",
     noIndex: true,
   });
 }

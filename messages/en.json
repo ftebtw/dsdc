@@ -1673,27 +1673,27 @@
     },
     "cancellation": {
       "title": "Cancellation & Refund Policy",
-      "subtitle": "Understand DSDC's enrollment cancellation window, refund rules, and how refund requests are processed.",
+      "subtitle": "How DSDC handles paid trials, missed classes, DSDC-initiated cancellations, and refund requests.",
       "sections": {
-        "window": {
-          "title": "7-Day Cancellation Window",
-          "body": "Families may cancel an enrollment within 7 days of the enrollment date and receive a full refund."
+        "trials": {
+          "title": "Paid Trial Sessions",
+          "body": "Paid trial sessions are non-refundable. Enrollments that follow a paid trial session — for example, paying for a full term after completing a trial — are also non-refundable."
         },
-        "noMidSemester": {
-          "title": "No Mid-Semester Cancellations",
-          "body": "Once the semester has begun, enrollments cannot be cancelled partway through the semester. DSDC reserves class space, staffing, and scheduling based on confirmed registrations."
+        "missedClasses": {
+          "title": "Missed Classes & Make-Up Sessions",
+          "body": "Missed classes are the responsibility of the student and parents, and make-up sessions are subject to class availability and capacity. Students can attend another class during the same semester for a missed session at the same tuition cost. Make-up sessions can be arranged through the portal or by emailing us at education@dsdc.ca."
         },
-        "firstClass": {
-          "title": "Refunds After Classes Begin",
-          "body": "No refunds are issued after classes begin, except in one situation: a full refund is available if the student has attended only the very first class. After the first class, no refunds will be issued for any reason."
+        "dsdcCancellations": {
+          "title": "If DSDC Cancels a Class",
+          "body": "If DSDC cancels a class, DSDC will arrange a make-up session, issue credit toward the following semester, or — in applicable cases — issue a refund."
         },
         "request": {
-          "title": "How to Request a Cancellation",
-          "body": "To request a cancellation or refund, email education@dsdc.ca and include the student's name, the parent or guardian's name, and the class or program enrolled in."
+          "title": "How to Request a Cancellation or Refund",
+          "body": "To request a cancellation or refund in one of the situations above, email education@dsdc.ca and include the student's name, the parent or guardian's name, and the class or program enrolled in."
         },
         "processing": {
           "title": "Refund Processing",
-          "body": "Approved refunds are issued to the original payment method through Stripe and may take 5 to 10 business days to appear, depending on the financial institution involved."
+          "body": "When a refund does apply, it is issued to the original payment method through Stripe and may take 5 to 10 business days to appear, depending on the financial institution involved."
         },
         "contact": {
           "title": "Contact Us",

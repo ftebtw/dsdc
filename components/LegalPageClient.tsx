@@ -136,9 +136,9 @@ const pageConfig: Record<
     titleKey: "legal.cancellation.title",
     subtitleKey: "legal.cancellation.subtitle",
     sections: [
-      { headingKey: "legal.cancellation.sections.window.title", paragraphKeys: ["legal.cancellation.sections.window.body"] },
-      { headingKey: "legal.cancellation.sections.noMidSemester.title", paragraphKeys: ["legal.cancellation.sections.noMidSemester.body"] },
-      { headingKey: "legal.cancellation.sections.firstClass.title", paragraphKeys: ["legal.cancellation.sections.firstClass.body"] },
+      { headingKey: "legal.cancellation.sections.trials.title", paragraphKeys: ["legal.cancellation.sections.trials.body"] },
+      { headingKey: "legal.cancellation.sections.missedClasses.title", paragraphKeys: ["legal.cancellation.sections.missedClasses.body"] },
+      { headingKey: "legal.cancellation.sections.dsdcCancellations.title", paragraphKeys: ["legal.cancellation.sections.dsdcCancellations.body"] },
       { headingKey: "legal.cancellation.sections.request.title", paragraphKeys: ["legal.cancellation.sections.request.body"] },
       { headingKey: "legal.cancellation.sections.processing.title", paragraphKeys: ["legal.cancellation.sections.processing.body"] },
       {
