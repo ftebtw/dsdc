@@ -23,6 +23,11 @@ type ClassGroup = {
   className: string;
   classType: string;
   students: StudentReportCardRow[];
+  adminRequest?: {
+    message: string | null;
+    dueDate: string | null;
+    requestedAt: string;
+  } | null;
 };
 
 type Props = {
@@ -111,6 +116,22 @@ export default function CoachReportCardsManager({ termId, groups }: Props) {
                 .replace('{total}', String(totals[group.classId]?.total ?? 0))}
             </p>
           </div>
+
+          {group.adminRequest ? (
+            <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-900/25 dark:text-amber-100">
+              <p className="font-semibold">
+                Admin requested report cards for this class.
+                {group.adminRequest.dueDate
+                  ? ` Due ${group.adminRequest.dueDate}.`
+                  : ""}
+              </p>
+              {group.adminRequest.message ? (
+                <p className="mt-1 whitespace-pre-wrap text-xs italic">
+                  "{group.adminRequest.message}"
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="space-y-3">
             {group.students.map((student) => {

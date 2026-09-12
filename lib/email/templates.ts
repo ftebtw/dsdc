@@ -1628,6 +1628,31 @@ export function feedbackResponseToAdminTemplate(input: {
   return { subject, html, text };
 }
 
+export function reportCardRequestToCoachTemplate(input: {
+  coachName: string;
+  className: string;
+  termName: string;
+  message: string | null;
+  dueDate: string | null;
+  portalUrl: string;
+}) {
+  const subject = `Report cards requested for ${input.className} (${input.termName})`;
+  const bodyLines: string[] = [
+    `Hi ${input.coachName}, please submit report cards for your class ${input.className} (${input.termName}).`,
+  ];
+  if (input.dueDate) bodyLines.push(`Due by ${input.dueDate}.`);
+  if (input.message) bodyLines.push(`Admin note: ${input.message}`);
+  bodyLines.push("Upload one PDF per student in the portal. An admin will review before it reaches the family.");
+  const { html, text } = renderTemplate({
+    title: "Report Cards Requested",
+    bodyLines,
+    buttonLabel: "Open Portal",
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}
+
 export function feedbackApprovedToRequesterTemplate(input: {
   recipientName: string;
   className: string;

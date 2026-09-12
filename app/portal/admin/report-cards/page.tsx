@@ -71,6 +71,17 @@ export default async function AdminReportCardsPage({
       title="Report Cards"
       description="Review submitted report cards and inspect historical status across terms."
     >
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-charcoal/60 dark:text-navy-300">
+          Need coaches to submit? Use the request page to nudge them per class.
+        </p>
+        <Link
+          href="/portal/admin/report-cards/request"
+          className="rounded-md bg-gold-300 text-navy-900 px-3 py-1.5 text-sm font-semibold"
+        >
+          Request report cards
+        </Link>
+      </div>
       <form method="get" className="mb-4 grid sm:grid-cols-5 gap-3">
         <select
           name="status"

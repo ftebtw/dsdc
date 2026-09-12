@@ -432,6 +432,7 @@ export default function PortalShell({
             { href: "/portal/admin/terms", label: t("portal.nav.admin.terms", "Terms"), icon: Calendar },
             { href: "/portal/admin/classes", label: t("portal.nav.admin.classes", "Classes"), icon: BookOpen },
             { href: "/portal/admin/report-cards", label: t("portal.nav.admin.reportCards", "Report Cards"), icon: GraduationCap },
+            { href: "/portal/admin/report-cards/request", label: t("portal.nav.admin.reportCardsRequest", "Request Report Cards"), icon: GraduationCap },
             { href: "/portal/admin/payroll", label: t("portal.nav.admin.payroll", "Payroll"), icon: ClipboardCheck },
             { href: "/portal/admin/availability", label: t("portal.nav.admin.availability", "Availability"), icon: Calendar },
             { href: "/portal/admin/subs", label: t("portal.nav.admin.subRequests", "Sub/TA Requests"), icon: Users },

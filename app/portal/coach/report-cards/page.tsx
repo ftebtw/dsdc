@@ -97,6 +97,25 @@ export default async function CoachReportCardsPage() {
     studentsByClass.set(enrollment.class_id, list);
   }
 
+  // Any open admin request(s) for this term's classes get surfaced as a
+  // banner on the coach report cards page.
+  const { data: requestRows } = classIds.length
+    ? await (supabase as any)
+        .from('report_card_requests')
+        .select('class_id,message,due_date,requested_at')
+        .in('class_id', classIds)
+        .eq('term_id', activeTerm.id)
+        .is('resolved_at', null)
+    : { data: [] };
+  const openRequestByClass = new Map(
+    ((requestRows ?? []) as Array<{
+      class_id: string;
+      message: string | null;
+      due_date: string | null;
+      requested_at: string;
+    }>).map((row) => [row.class_id, row])
+  );
+
   const groups = classes.map((classRow) => {
     const students = (studentsByClass.get(classRow.id) ?? []).map((studentId) => {
       const card = reportCardMap.get(`${classRow.id}|${studentId}`) || null;
@@ -112,11 +131,20 @@ export default async function CoachReportCardsPage() {
       };
     });
 
+    const openRequest = openRequestByClass.get(classRow.id) ?? null;
+
     return {
       classId: classRow.id,
       className: classRow.name,
       classType: classTypeLabel[classRow.type as keyof typeof classTypeLabel] || classRow.type,
       students,
+      adminRequest: openRequest
+        ? {
+            message: openRequest.message,
+            dueDate: openRequest.due_date,
+            requestedAt: openRequest.requested_at,
+          }
+        : null,
     };
   });
 
