@@ -278,10 +278,25 @@ export default async function AdminCoachesPage({
                         Archived on {new Date(coachProfile.archived_at).toLocaleDateString()}. Hidden from assignment dropdowns.
                       </p>
                     ) : null}
-                    <p className="text-sm mt-2">
-                      Assigned classes:{' '}
-                      {assignedClasses.length ? assignedClasses.map((classRow) => classRow.name).join(', ') : 'none'}
-                    </p>
+                    {(() => {
+                      const activeClasses = assignedClasses.filter((classRow: any) => !classRow.archived_at);
+                      const archivedClasses = assignedClasses.filter((classRow: any) => classRow.archived_at);
+                      return (
+                        <div className="text-sm mt-2 space-y-0.5">
+                          <p>
+                            Assigned classes:{' '}
+                            {activeClasses.length
+                              ? activeClasses.map((classRow) => classRow.name).join(', ')
+                              : 'none'}
+                          </p>
+                          {archivedClasses.length ? (
+                            <p className="text-charcoal/60 dark:text-navy-300">
+                              Archived: {archivedClasses.map((classRow) => classRow.name).join(', ')}
+                            </p>
+                          ) : null}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div className="flex flex-col items-end gap-2">
