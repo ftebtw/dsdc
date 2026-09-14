@@ -189,6 +189,7 @@ export default async function AdminStudentsPage({
           <tbody>
             {visibleStudents.map((student: any) => {
               const rows = enrollments.filter((enrollment: any) => enrollment.student_id === student.id);
+              const isActive = activeStudentIdSet.has(student.id);
               return (
                 <tr key={student.id} className="border-t border-warm-200 dark:border-navy-700">
                   <td className="px-4 py-3 font-medium text-navy-800 dark:text-white">
@@ -197,10 +198,25 @@ export default async function AdminStudentsPage({
                   <td className="px-4 py-3">{student.email}</td>
                   <td className="px-4 py-3">
                     {rows.length
-                      ? rows.map((row) => classMap[row.class_id]?.name || row.class_id).join(', ')
+                      ? rows
+                          .map((row) => {
+                            const name = classMap[row.class_id]?.name || row.class_id;
+                            return archivedClassIdSet.has(row.class_id) ? `${name} (archived)` : name;
+                          })
+                          .join(', ')
                       : '—'}
                   </td>
-                  <td className="px-4 py-3">{rows.length ? rows.map((row) => row.status).join(', ') : '—'}</td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={
+                        isActive
+                          ? 'inline-flex items-center rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 px-2 py-0.5 text-xs font-medium'
+                          : 'inline-flex items-center rounded-full bg-warm-200 text-charcoal/70 dark:bg-navy-700 dark:text-navy-200 px-2 py-0.5 text-xs font-medium'
+                      }
+                    >
+                      {isActive ? 'active' : 'inactive'}
+                    </span>
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
