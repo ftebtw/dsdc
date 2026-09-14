@@ -43,6 +43,12 @@ type Props = {
   email?: string | null;
   locale?: "en" | "zh";
   timezone?: string;
+  /**
+   * Optional map of `href -> count`. When a sidebar item's href appears
+   * in this map with a positive count, a small red pill renders next to
+   * the label so the coach/admin can't miss pending work.
+   */
+  badgeCounts?: Record<string, number>;
   children: ReactNode;
 };
 
@@ -119,6 +125,7 @@ function PortalNav({
   onLocaleChange,
   onTimezoneChange,
   onNavClick,
+  badgeCounts,
 }: {
   role: PortalRole | null;
   isAdminPortal: boolean;
@@ -135,6 +142,7 @@ function PortalNav({
   onLocaleChange: (nextLocale: "en" | "zh") => void;
   onTimezoneChange: (nextTimezone: string) => void;
   onNavClick: (href: string) => void;
+  badgeCounts?: Record<string, number>;
 }) {
   return (
     <>
@@ -234,6 +242,7 @@ function PortalNav({
                     ? `${link.href}?student=${encodeURIComponent(studentParam)}`
                     : link.href;
                 const Icon = link.icon;
+                const badgeCount = badgeCounts?.[link.href] ?? 0;
                 return (
                   <Link
                     key={link.href}
@@ -252,7 +261,15 @@ function PortalNav({
                     }`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
-                    <span>{link.label}</span>
+                    <span className="flex-1">{link.label}</span>
+                    {badgeCount > 0 ? (
+                      <span
+                        aria-label={`${badgeCount} pending`}
+                        className="ml-auto inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-semibold leading-none shadow-sm"
+                      >
+                        {badgeCount > 99 ? "99+" : badgeCount}
+                      </span>
+                    ) : null}
                   </Link>
                 );
               })}
@@ -270,6 +287,7 @@ export default function PortalShell({
   email,
   locale = "en",
   timezone = "America/Vancouver",
+  badgeCounts,
   children,
 }: Props) {
   const pathname = usePathname();
@@ -710,6 +728,7 @@ export default function PortalShell({
                 onLocaleChange={onLocaleChange}
                 onTimezoneChange={onTimezoneChange}
                 onNavClick={onNavClick}
+                badgeCounts={badgeCounts}
               />
               <div className={`mt-4 pt-3 ${isAdminPortal ? "border-t border-white/10" : "border-t border-warm-200 dark:border-navy-700"}`}>
                 <button
@@ -760,6 +779,7 @@ export default function PortalShell({
                 onLocaleChange={onLocaleChange}
                 onTimezoneChange={onTimezoneChange}
                 onNavClick={onNavClick}
+                badgeCounts={badgeCounts}
               />
               <div className={`mt-4 pt-3 ${isAdminPortal ? "border-t border-white/10" : "border-t border-warm-200 dark:border-navy-700"}`}>
                 <button

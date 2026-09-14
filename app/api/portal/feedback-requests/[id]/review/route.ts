@@ -81,34 +81,37 @@ export async function PATCH(
 
   if (parsed.data.action === "approve") {
     try {
-      const [{ data: requester }, { data: classRow }, { data: student }, { data: coach }] = await Promise.all([
+      const [{ data: requester }, { data: classRow }, { data: student }] = await Promise.all([
         adminClient
           .from("profiles")
           .select("email,display_name,role")
           .eq("id", row.requested_by)
           .maybeSingle(),
-        adminClient.from("classes").select("name,coach_id").eq("id", row.class_id).maybeSingle(),
+        adminClient
+          .from("classes")
+          .select("name,coach_id")
+          .eq("id", row.class_id)
+          .maybeSingle(),
         adminClient.from("profiles").select("display_name,email").eq("id", row.student_id).maybeSingle(),
-        row.coach_response
-          ? adminClient
-              .from("profiles")
-              .select("display_name,email")
-              .eq(
-                "id",
-                (
-                  await adminClient
-                    .from("classes")
-                    .select("coach_id")
-                    .eq("id", row.class_id)
-                    .maybeSingle()
-                ).data?.coach_id ?? row.requested_by
-              )
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
       ]);
+      // Look up the coach name only after we know who the class coach is;
+      // avoids the nested-await-in-Promise.all mess and skips the query
+      // entirely when there's no coach on the class.
+      const { data: coach } = classRow?.coach_id
+        ? await adminClient
+            .from("profiles")
+            .select("display_name,email")
+            .eq("id", classRow.coach_id)
+            .maybeSingle()
+        : { data: null };
+
       if (requester?.email) {
+        // Point at the new feedback-requests page (not the anonymous
+        // /portal/student/feedback page, which is a different flow).
         const portalPath =
-          requester.role === "parent" ? "/portal/parent/feedback" : "/portal/student/feedback";
+          requester.role === "parent"
+            ? "/portal/parent/feedback-requests"
+            : "/portal/student/feedback-requests";
         const template = feedbackApprovedToRequesterTemplate({
           recipientName: requester.display_name || requester.email,
           className: classRow?.name ?? "class",

@@ -113,15 +113,30 @@ export async function POST(request: NextRequest) {
     return mergeCookies(supabaseResponse, jsonError(insertError.message, 400));
   }
 
-  // Fire-and-forget: email the primary coach so nothing sits waiting.
-  if (classRow.coach_id) {
-    try {
-      const [{ data: coach }, { data: student }, { data: requester }] = await Promise.all([
-        admin.from("profiles").select("email,display_name,notification_preferences").eq("id", classRow.coach_id).maybeSingle(),
-        admin.from("profiles").select("display_name,email").eq("id", studentId).maybeSingle(),
-        admin.from("profiles").select("display_name,email").eq("id", session.userId).maybeSingle(),
-      ]);
-      if (coach?.email) {
+  // Fire-and-forget: email the primary coach AND any co-coaches on the class
+  // so a two-coach class doesn't accidentally miss the request.
+  try {
+    const [{ data: coCoachRows }, { data: student }, { data: requester }] = await Promise.all([
+      admin.from("class_coaches").select("coach_id").eq("class_id", classId),
+      admin.from("profiles").select("display_name,email").eq("id", studentId).maybeSingle(),
+      admin.from("profiles").select("display_name,email").eq("id", session.userId).maybeSingle(),
+    ]);
+    const coachIds = new Set<string>();
+    if (classRow.coach_id) coachIds.add(classRow.coach_id);
+    for (const row of (coCoachRows ?? []) as Array<{ coach_id: string }>) {
+      if (row.coach_id) coachIds.add(row.coach_id);
+    }
+    if (coachIds.size > 0) {
+      const { data: coachProfiles } = await admin
+        .from("profiles")
+        .select("email,display_name")
+        .in("id", [...coachIds]);
+      const emails: Array<{ to: string; subject: string; html: string; text: string }> = [];
+      for (const coach of (coachProfiles ?? []) as Array<{
+        email: string | null;
+        display_name: string | null;
+      }>) {
+        if (!coach.email) continue;
         const template = feedbackRequestToCoachTemplate({
           coachName: coach.display_name || coach.email,
           className: classRow.name,
@@ -131,11 +146,12 @@ export async function POST(request: NextRequest) {
           message,
           portalUrl: portalPathUrl("/portal/coach/feedback"),
         });
-        await sendPortalEmails([{ to: coach.email, ...template }]);
+        emails.push({ to: coach.email, ...template });
       }
-    } catch (err) {
-      console.error("[feedback-requests] coach email failed", err);
+      if (emails.length > 0) await sendPortalEmails(emails);
     }
+  } catch (err) {
+    console.error("[feedback-requests] coach email failed", err);
   }
 
   return mergeCookies(supabaseResponse, NextResponse.json({ request: inserted }));
