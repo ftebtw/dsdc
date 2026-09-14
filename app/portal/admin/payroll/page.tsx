@@ -172,6 +172,51 @@ export default async function AdminPayrollPage({
     range.end
   )}${params.coachId ? `&coachId=${encodeURIComponent(params.coachId)}` : ''}`;
 
+  // Load the most recent monthly self-verification submissions so admin can
+  // see whose approved / adjusted / still hasn't submitted. Limit to the last
+  // 12 rows so the page stays snappy.
+  const { data: recentSubmissionsData } = await (supabase as any)
+    .from('payroll_submissions')
+    .select('id,coach_id,year_month,status,computed_hours,adjustment_hours_total,final_hours,submitted_at')
+    .order('year_month', { ascending: false })
+    .order('submitted_at', { ascending: false, nullsFirst: false })
+    .limit(200);
+  const recentSubmissions = (recentSubmissionsData ?? []) as Array<{
+    id: string;
+    coach_id: string;
+    year_month: string;
+    status: 'draft' | 'submitted';
+    computed_hours: number;
+    adjustment_hours_total: number;
+    final_hours: number;
+    submitted_at: string | null;
+  }>;
+  const submissionIds = recentSubmissions.map((row) => row.id);
+  const { data: submissionAdjustmentRowsData } = submissionIds.length
+    ? await (supabase as any)
+        .from('payroll_submission_adjustments')
+        .select('submission_id,hours_delta,reason,adjustment_date')
+        .in('submission_id', submissionIds)
+    : { data: [] as Array<{ submission_id: string; hours_delta: number; reason: string; adjustment_date: string | null }> };
+  const adjustmentsBySubmission = new Map<
+    string,
+    Array<{ hours_delta: number; reason: string; adjustment_date: string | null }>
+  >();
+  for (const row of (submissionAdjustmentRowsData ?? []) as Array<{
+    submission_id: string;
+    hours_delta: number;
+    reason: string;
+    adjustment_date: string | null;
+  }>) {
+    const list = adjustmentsBySubmission.get(row.submission_id) ?? [];
+    list.push({
+      hours_delta: row.hours_delta,
+      reason: row.reason,
+      adjustment_date: row.adjustment_date,
+    });
+    adjustmentsBySubmission.set(row.submission_id, list);
+  }
+
   return (
     <div className="space-y-6">
       <FlashBanners
@@ -443,6 +488,92 @@ export default async function AdminPayrollPage({
           </div>
         </SectionCard>
       ) : null}
+
+      <SectionCard
+        title="Monthly submissions"
+        description="Coach self-verified hours by month. Coaches see a draft on the 1st of every month, approve or attach adjustments, then submit."
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead className="bg-warm-100 dark:bg-navy-800">
+              <tr>
+                <th className="px-3 py-2 text-left">Month</th>
+                <th className="px-3 py-2 text-left">Coach</th>
+                <th className="px-3 py-2 text-left">Status</th>
+                <th className="px-3 py-2 text-right">Computed</th>
+                <th className="px-3 py-2 text-right">Adjustments</th>
+                <th className="px-3 py-2 text-right">Final</th>
+                <th className="px-3 py-2 text-left">Adjustment notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentSubmissions.map((row) => {
+                const coach = coachMap[row.coach_id];
+                const yearMonth = row.year_month;
+                const label = /^(\d{4})-(\d{2})$/.test(yearMonth)
+                  ? new Date(`${yearMonth}-01T00:00:00Z`).toLocaleString('en-US', {
+                      month: 'long',
+                      year: 'numeric',
+                      timeZone: 'UTC',
+                    })
+                  : yearMonth;
+                const adjustments = adjustmentsBySubmission.get(row.id) ?? [];
+                return (
+                  <tr key={row.id} className="border-t border-warm-200 dark:border-navy-700 align-top">
+                    <td className="px-3 py-2 font-medium">{label}</td>
+                    <td className="px-3 py-2">
+                      {coach?.display_name || coach?.email || row.coach_id}
+                    </td>
+                    <td className="px-3 py-2">
+                      {row.status === 'draft' ? (
+                        <span className="inline-flex items-center rounded-full bg-gold-100 text-navy-900 px-2 py-0.5 text-xs font-medium">
+                          Draft — awaiting coach
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 px-2 py-0.5 text-xs font-medium">
+                          Submitted{row.submitted_at ? ` ${new Date(row.submitted_at).toLocaleDateString()}` : ''}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-right">{Number(row.computed_hours).toFixed(2)}</td>
+                    <td className="px-3 py-2 text-right">
+                      {row.status === 'draft'
+                        ? '—'
+                        : `${Number(row.adjustment_hours_total) >= 0 ? '+' : ''}${Number(row.adjustment_hours_total).toFixed(2)}`}
+                    </td>
+                    <td className="px-3 py-2 text-right font-semibold">
+                      {row.status === 'draft'
+                        ? Number(row.computed_hours).toFixed(2)
+                        : Number(row.final_hours).toFixed(2)}
+                    </td>
+                    <td className="px-3 py-2">
+                      {adjustments.length === 0 ? (
+                        <span className="text-charcoal/50 dark:text-navy-400">—</span>
+                      ) : (
+                        <ul className="list-disc pl-4 space-y-0.5">
+                          {adjustments.map((entry, idx) => (
+                            <li key={idx}>
+                              {entry.hours_delta >= 0 ? '+' : ''}
+                              {Number(entry.hours_delta).toFixed(2)}h — {entry.reason}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {recentSubmissions.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-3 py-4 text-center text-charcoal/65 dark:text-navy-300">
+                    No monthly submissions yet. Drafts are created on the 1st of each month.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
     </div>
   );
 }

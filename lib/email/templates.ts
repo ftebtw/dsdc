@@ -1674,3 +1674,60 @@ export function feedbackApprovedToRequesterTemplate(input: {
   });
   return { subject, html, text };
 }
+
+export function payrollMonthlyReviewToCoachTemplate(input: {
+  coachName: string;
+  monthLabel: string;
+  computedHours: number;
+  portalUrl: string;
+}) {
+  const subject = `Verify your hours for ${input.monthLabel}`;
+  const { html, text } = renderTemplate({
+    title: 'Verify Your Monthly Hours',
+    bodyLines: [
+      `Hi ${input.coachName}, your paid hours for ${input.monthLabel} are ready to review.`,
+      `We have you at ${input.computedHours.toFixed(2)} hour${input.computedHours === 1 ? '' : 's'} for the month based on your check-ins and completed private sessions.`,
+      `Please approve this total or attach adjustments (covered classes, missed check-ins, etc.) and submit. It only takes a minute.`,
+    ],
+    buttonLabel: 'Review My Hours',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}
+
+export function payrollSubmissionToAdminTemplate(input: {
+  coachName: string;
+  monthLabel: string;
+  computedHours: number;
+  adjustmentHours: number;
+  finalHours: number;
+  adjustments: Array<{ hoursDelta: number; reason: string }>;
+  portalUrl: string;
+}) {
+  const hasAdjustments = input.adjustments.length > 0;
+  const subject = hasAdjustments
+    ? `Payroll submitted (with adjustments): ${input.coachName} — ${input.monthLabel}`
+    : `Payroll approved: ${input.coachName} — ${input.monthLabel}`;
+  const bodyLines: string[] = [
+    `${input.coachName} verified their hours for ${input.monthLabel}.`,
+    `Computed hours: ${input.computedHours.toFixed(2)}`,
+  ];
+  if (hasAdjustments) {
+    const totalLabel = input.adjustmentHours >= 0 ? `+${input.adjustmentHours.toFixed(2)}` : input.adjustmentHours.toFixed(2);
+    bodyLines.push(`Adjustments: ${totalLabel} hour${Math.abs(input.adjustmentHours) === 1 ? '' : 's'}`);
+    for (const adjustment of input.adjustments) {
+      const prefix = adjustment.hoursDelta >= 0 ? '+' : '';
+      bodyLines.push(`  ${prefix}${adjustment.hoursDelta.toFixed(2)}h — ${adjustment.reason}`);
+    }
+  }
+  bodyLines.push(`Final hours: ${input.finalHours.toFixed(2)}`);
+  const { html, text } = renderTemplate({
+    title: hasAdjustments ? 'Payroll Submitted With Adjustments' : 'Payroll Approved',
+    bodyLines,
+    buttonLabel: 'View Payroll',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { Suspense, type ReactNode } from 'react';
 import PortalShell from './_components/PortalShell';
+import PayrollReviewBanner from './_components/PayrollReviewBanner';
 import { getCurrentSessionProfile } from '@/lib/portal/auth';
+import { parseYearMonthKey } from '@/lib/portal/payroll-submissions';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
@@ -35,12 +37,19 @@ async function fetchSidebarBadgeCounts(role: string | undefined): Promise<Record
     if (role === 'coach' || role === 'ta') {
       // RLS scopes the query to the coach's class team, so a plain
       // pending_coach count is what the coach owes.
-      const { count } = await (supabase as any)
-        .from('feedback_requests')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending_coach');
+      const [{ count: feedbackCount }, { count: payrollCount }] = await Promise.all([
+        (supabase as any)
+          .from('feedback_requests')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'pending_coach'),
+        (supabase as any)
+          .from('payroll_submissions')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'draft'),
+      ]);
       return {
-        '/portal/coach/feedback': count ?? 0,
+        '/portal/coach/feedback': feedbackCount ?? 0,
+        '/portal/coach/payroll-review': payrollCount ?? 0,
       };
     }
     return {};
@@ -50,9 +59,37 @@ async function fetchSidebarBadgeCounts(role: string | undefined): Promise<Record
   }
 }
 
+async function fetchPendingPayrollForBanner(role: string | undefined, userId: string | undefined) {
+  if (!userId || (role !== 'coach' && role !== 'ta')) return null;
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data } = await (supabase as any)
+      .from('payroll_submissions')
+      .select('id,year_month,computed_hours')
+      .eq('coach_id', userId)
+      .eq('status', 'draft')
+      .order('year_month', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!data) return null;
+    const label = parseYearMonthKey(data.year_month)?.label ?? data.year_month;
+    return {
+      id: data.id as string,
+      monthLabel: label,
+      computedHours: Number(data.computed_hours),
+    };
+  } catch (error) {
+    console.error('[portal-layout] payroll banner fetch failed', error);
+    return null;
+  }
+}
+
 export default async function PortalLayout({ children }: { children: ReactNode }) {
   const session = await getCurrentSessionProfile();
-  const badgeCounts = await fetchSidebarBadgeCounts(session?.profile.role);
+  const [badgeCounts, pendingPayroll] = await Promise.all([
+    fetchSidebarBadgeCounts(session?.profile.role),
+    fetchPendingPayrollForBanner(session?.profile.role, session?.userId),
+  ]);
   return (
     <Suspense fallback={<PortalSkeleton />}>
       <PortalShell
@@ -63,6 +100,13 @@ export default async function PortalLayout({ children }: { children: ReactNode }
         timezone={session?.profile.timezone ?? 'America/Vancouver'}
         badgeCounts={badgeCounts}
       >
+        {pendingPayroll ? (
+          <PayrollReviewBanner
+            submissionId={pendingPayroll.id}
+            monthLabel={pendingPayroll.monthLabel}
+            computedHours={pendingPayroll.computedHours}
+          />
+        ) : null}
         {children}
       </PortalShell>
     </Suspense>

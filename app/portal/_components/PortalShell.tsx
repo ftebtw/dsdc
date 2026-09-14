@@ -508,6 +508,7 @@ export default function PortalShell({
             { href: "/portal/coach/homework", label: t("portal.nav.coach.homework", "Homework Review"), icon: FileText },
             { href: "/portal/coach/feedback", label: t("portal.nav.coach.feedback", "Feedback Requests"), icon: MessageSquare },
             { href: "/portal/coach/hours", label: t("portal.nav.coach.myHours", "My Hours"), icon: Calendar },
+            { href: "/portal/coach/payroll-review", label: t("portal.nav.coach.payrollReview", "Payroll Review"), icon: ClipboardCheck },
           ],
         },
         {
