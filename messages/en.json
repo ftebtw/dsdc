@@ -1679,6 +1679,10 @@
           "title": "Paid Trial Sessions",
           "body": "Paid trial sessions are non-refundable. Enrollments that follow a paid trial session — for example, paying for a full term after completing a trial — are also non-refundable."
         },
+        "firstTermNoTrial": {
+          "title": "First-Term Refund Window (No Trial)",
+          "body": "If you're brand new to DSDC and pay for a full term without doing a trial class first, you can request a refund within the first 7 days of enrolment — we'll refund what you paid minus any classes already attended. Outside that window (and outside the specific situations covered above), refunds aren't guaranteed; we review other requests case-by-case at the DSDC team's discretion."
+        },
         "missedClasses": {
           "title": "Missed Classes & Make-Up Sessions",
           "body": "Missed classes are the responsibility of the student and parents, and make-up sessions are subject to class availability and capacity. Students can attend another class during the same semester for a missed session at the same tuition cost. Make-up sessions can be arranged through the portal or by emailing us at education@dsdc.ca."
