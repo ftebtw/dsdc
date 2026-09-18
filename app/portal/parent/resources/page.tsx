@@ -4,7 +4,11 @@ import { redirect } from 'next/navigation';
 import EnrollmentRequiredBanner from '@/app/portal/_components/EnrollmentRequiredBanner';
 import SectionCard from '@/app/portal/_components/SectionCard';
 import ResourceList from '@/app/portal/_components/ResourceList';
+import WeeklyFeedbackList, {
+  type WeeklyFeedbackListRow,
+} from '@/app/portal/_components/WeeklyFeedbackList';
 import { requireRole } from '@/lib/portal/auth';
+import { getProfileMap } from '@/lib/portal/data';
 import { getParentSelection } from '@/lib/portal/parent';
 import { parentT } from '@/lib/portal/parent-i18n';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -123,7 +127,16 @@ export default async function ParentResourcesPage({
   const termStartDate =
     (selectedClass?.term_id ? termStartDateById[selectedClass.term_id] : null) || activeTermStartDate || '2025-01-01';
 
+  const weeklyFeedbackEntries = await loadWeeklyFeedbackForStudent({
+    supabase,
+    classIds,
+    classMap,
+    studentId: selectedStudentId,
+    fallbackStudentName: selectedStudent?.display_name || selectedStudent?.email || 'Your student',
+  });
+
   return (
+    <div className="space-y-6">
     <SectionCard
       title={parentT(locale, 'portal.parent.resources.title', 'Resources')}
       description={`${parentT(locale, 'portal.parent.selectedStudent', 'Selected student')}: ${
@@ -171,5 +184,76 @@ export default async function ParentResourcesPage({
         }}
       />
     </SectionCard>
+    {weeklyFeedbackEntries.length > 0 ? (
+      <SectionCard
+        title="Class feedback"
+        description="Weekly feedback the coach has posted for your student's classes. Personal notes are only visible to your household."
+      >
+        <WeeklyFeedbackList entries={weeklyFeedbackEntries} emptyMessage="No feedback yet." />
+      </SectionCard>
+    ) : null}
+    </div>
   );
+}
+
+async function loadWeeklyFeedbackForStudent({
+  supabase,
+  classIds,
+  classMap,
+  studentId,
+  fallbackStudentName,
+}: {
+  supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>;
+  classIds: string[];
+  classMap: Record<string, string>;
+  studentId: string;
+  fallbackStudentName: string;
+}): Promise<WeeklyFeedbackListRow[]> {
+  if (classIds.length === 0) return [];
+  const { data: weeklyRowsData } = await (supabase as any)
+    .from('class_feedback')
+    .select('id,class_id,session_date,general_feedback,updated_at')
+    .in('class_id', classIds)
+    .order('session_date', { ascending: false });
+  const weeklyRows = (weeklyRowsData ?? []) as Array<{
+    id: string;
+    class_id: string;
+    session_date: string;
+    general_feedback: string | null;
+    updated_at: string;
+  }>;
+  if (weeklyRows.length === 0) return [];
+
+  const feedbackIds = weeklyRows.map((r) => r.id);
+  const { data: individualRowsData } = await (supabase as any)
+    .from('class_feedback_individual')
+    .select('class_feedback_id,student_id,feedback')
+    .in('class_feedback_id', feedbackIds)
+    .eq('student_id', studentId);
+  const profileMap = await getProfileMap(supabase, [studentId]);
+  const studentName =
+    profileMap[studentId]?.display_name || profileMap[studentId]?.email || fallbackStudentName;
+  const individualByFeedback = new Map<string, Array<{ studentId: string; feedback: string }>>();
+  for (const row of (individualRowsData ?? []) as Array<{
+    class_feedback_id: string;
+    student_id: string;
+    feedback: string;
+  }>) {
+    const list = individualByFeedback.get(row.class_feedback_id) ?? [];
+    list.push({ studentId: row.student_id, feedback: row.feedback });
+    individualByFeedback.set(row.class_feedback_id, list);
+  }
+
+  return weeklyRows.map((row) => ({
+    id: row.id,
+    classId: row.class_id,
+    className: classMap[row.class_id] ?? 'Class',
+    sessionDate: row.session_date,
+    generalFeedback: row.general_feedback,
+    individual: (individualByFeedback.get(row.id) ?? []).map((r) => ({
+      studentId: r.studentId,
+      studentName,
+      feedback: r.feedback,
+    })),
+  }));
 }
