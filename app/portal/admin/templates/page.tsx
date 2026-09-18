@@ -10,7 +10,7 @@ export default async function AdminTemplatesPage() {
   return (
     <SectionCard
       title="Poster Maker"
-      description="Build branded class schedules and coach cards. Pick single-class, term overview, or meet-the-coach, fill in the details, and download as PNG or PDF."
+      description="Build branded class schedules, coach cards, and hiring posts. Pick a template, fill in the details, and download as PNG or PDF."
     >
       <ScheduleTemplateBuilder
         defaultTimezone={session.profile.timezone || "America/Vancouver"}

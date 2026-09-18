@@ -38,7 +38,7 @@ export type ClassEntry = {
   recurrence: Recurrence;
 };
 
-export type BuilderMode = "single" | "term" | "coach" | "bio";
+export type BuilderMode = "single" | "term" | "coach" | "bio" | "hiring";
 
 export type CoachCardEntry = {
   id: string;
@@ -79,6 +79,32 @@ export function emptyCoachBioEntry(): CoachBioEntry {
     name: "",
     body: "",
     bodyScale: 1,
+    tagline: "Breaking Barriers, Building Confidence",
+    handle: "@debate_education",
+  };
+}
+
+export type HiringEntry = {
+  id: string;
+  role: string;
+  subtitle: string;
+  description: string;
+  bodyScale: number;
+  deadline: string;
+  applyLine: string;
+  tagline: string;
+  handle: string;
+};
+
+export function emptyHiringEntry(): HiringEntry {
+  return {
+    id: randomId(),
+    role: "",
+    subtitle: "Remote · Part-time",
+    description: "",
+    bodyScale: 1,
+    deadline: "",
+    applyLine: "Email your resume to hiring@dsdc.ca",
     tagline: "Breaking Barriers, Building Confidence",
     handle: "@debate_education",
   };

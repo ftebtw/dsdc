@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Download, FileImage, FileText, FolderOpen, Plus, Save, Trash2 } from "lucide-react";
 import CoachBioPoster from "./CoachBioPoster";
 import CoachCardPoster from "./CoachCardPoster";
+import HiringPoster from "./HiringPoster";
 import InstructorsEditor from "./InstructorsEditor";
 import RecurrenceEditor from "./RecurrenceEditor";
 import SingleClassPoster from "./SingleClassPoster";
@@ -13,12 +14,14 @@ import {
   emptyClassEntry,
   emptyCoachBioEntry,
   emptyCoachCardEntry,
+  emptyHiringEntry,
   emptyInstructor,
   readFileAsDataUrl,
   type BuilderMode,
   type ClassEntry,
   type CoachBioEntry,
   type CoachCardEntry,
+  type HiringEntry,
   type Instructor,
   type PosterAspect,
 } from "./types";
@@ -73,6 +76,16 @@ export default function ScheduleTemplateBuilder({
       "As a competitor, he was an **octo-finalist at the World Universities Debating Championship (WUDC)**, a **finalist at the North American Universities Championship**, and **won two national championships**. Ethan has won a further 10 tournaments, and made the finals of an additional 30.\n\n" +
       "As a judge, Ethan has judged elimination rounds at **WUDC, Yale IV, Cambridge IV, Oxford IV**, and other major tournaments. He served as **Head Coach of the Panamanian national debate team**, and has coached students of all experience levels.",
   }));
+  const [hiringEntry, setHiringEntry] = useState<HiringEntry>(() => ({
+    ...emptyHiringEntry(),
+    role: "Debate Coach",
+    subtitle: "Remote · Part-time · Paid",
+    description:
+      "DSDC is looking for a **Debate Coach** to teach live online classes to students in Grades 4-12. You will run practice rounds, deliver personalized feedback, and help students prepare for tournaments including **Canadian Nationals** and **World Scholar's Cup**.\n\n" +
+      "We're looking for someone with **competitive debate experience** (CNDF, BP, or World Schools), strong communication skills, and a genuine excitement for coaching younger students. Prior teaching experience is a plus but not required.",
+    applyLine: "Email your resume and a short intro to hiring@dsdc.ca",
+    deadline: "",
+  }));
   const [aspect, setAspect] = useState<PosterAspect>(mode === "term" ? "landscape" : "portrait");
   const [busy, setBusy] = useState<"png" | "pdf" | null>(null);
 
@@ -124,6 +137,12 @@ export default function ScheduleTemplateBuilder({
         data: { aspect, entry: bioEntry },
       };
     }
+    if (mode === "hiring") {
+      return {
+        mode: "hiring",
+        data: { aspect, entry: hiringEntry },
+      };
+    }
     return {
       mode: "term",
       data: {
@@ -151,6 +170,8 @@ export default function ScheduleTemplateBuilder({
       setCoachEntry(data.entry as CoachCardEntry);
     } else if (template.mode === "bio" && data.entry) {
       setBioEntry(data.entry as CoachBioEntry);
+    } else if (template.mode === "hiring" && data.entry) {
+      setHiringEntry(data.entry as HiringEntry);
     } else if (template.mode === "term") {
       if (typeof data.termTitle === "string") setTermTitle(data.termTitle);
       if (typeof data.termSubtitle === "string") setTermSubtitle(data.termSubtitle);
@@ -291,7 +312,12 @@ export default function ScheduleTemplateBuilder({
     setMode(next);
     if (next === "term") setAspect("landscape");
     else if (next === "bio") setAspect("square");
+    else if (next === "hiring") setAspect("portrait");
     else setAspect("portrait");
+  }
+
+  function updateHiringEntry(patch: Partial<HiringEntry>) {
+    setHiringEntry((prev) => ({ ...prev, ...patch }));
   }
 
   function updateCoachEntry(patch: Partial<CoachCardEntry>) {
@@ -362,6 +388,10 @@ export default function ScheduleTemplateBuilder({
     if (mode === "bio") {
       const slug = (bioEntry.name || "DSDC-Bio").trim().replace(/[^\w]+/g, "-").replace(/^-|-$/g, "");
       return slug ? `DSDC-Bio-${slug}` : "DSDC-Bio";
+    }
+    if (mode === "hiring") {
+      const slug = (hiringEntry.role || "DSDC-Hiring").trim().replace(/[^\w]+/g, "-").replace(/^-|-$/g, "");
+      return slug ? `DSDC-Hiring-${slug}` : "DSDC-Hiring";
     }
     const slug = (termTitle || "DSDC-Schedule").trim().replace(/[^\w]+/g, "-").replace(/^-|-$/g, "");
     return slug || "DSDC-Schedule";
@@ -487,10 +517,21 @@ export default function ScheduleTemplateBuilder({
           >
             Coach Biography
           </button>
+          <button
+            type="button"
+            onClick={() => changeMode("hiring")}
+            className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+              mode === "hiring"
+                ? "bg-white text-navy-900 shadow-sm dark:bg-navy-800 dark:text-white"
+                : "text-charcoal/70 hover:text-charcoal dark:text-navy-200/70"
+            }`}
+          >
+            We&rsquo;re Hiring
+          </button>
         </div>
 
         <div className="space-y-3 rounded-xl border border-warm-200 dark:border-navy-600/70 bg-white/70 dark:bg-navy-900/40 p-4">
-          {mode !== "coach" && mode !== "bio" ? (
+          {mode !== "coach" && mode !== "bio" && mode !== "hiring" ? (
             <>
               <FieldLabel>Time zone</FieldLabel>
               <TimezoneSelect value={timezone} onChange={setTimezone} />
@@ -529,6 +570,8 @@ export default function ScheduleTemplateBuilder({
           />
         ) : mode === "bio" ? (
           <CoachBioForm entry={bioEntry} onFieldChange={updateBioEntry} />
+        ) : mode === "hiring" ? (
+          <HiringForm entry={hiringEntry} onFieldChange={updateHiringEntry} />
         ) : (
           <TermForm
             title={termTitle}
@@ -597,6 +640,8 @@ export default function ScheduleTemplateBuilder({
                   <CoachCardPoster entry={coachEntry} aspect={aspect} />
                 ) : mode === "bio" ? (
                   <CoachBioPoster entry={bioEntry} aspect={aspect} />
+                ) : mode === "hiring" ? (
+                  <HiringPoster entry={hiringEntry} aspect={aspect} />
                 ) : (
                   <TermOverviewPoster
                     title={termTitle}
@@ -694,7 +739,17 @@ function SavedTemplatesPanel({
           <option value="">— New template (unsaved) —</option>
           {templates.map((t) => (
             <option key={t.id} value={t.id}>
-              {t.name} ({t.mode === "single" ? "Single class" : "Term overview"})
+              {t.name} (
+              {t.mode === "single"
+                ? "Single class"
+                : t.mode === "term"
+                  ? "Term overview"
+                  : t.mode === "coach"
+                    ? "Coach card"
+                    : t.mode === "bio"
+                      ? "Coach bio"
+                      : "We're hiring"}
+              )
             </option>
           ))}
         </select>
@@ -1242,6 +1297,118 @@ function CoachBioForm({
               {preset.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      <div className="border-t border-warm-200 dark:border-navy-600/70 pt-3">
+        <FieldLabel>Footer tagline</FieldLabel>
+        <TextInput
+          value={entry.tagline}
+          onChange={(t) => onFieldChange({ tagline: t })}
+          placeholder="Breaking Barriers, Building Confidence"
+        />
+        <div className="mt-3">
+          <FieldLabel>Social handle</FieldLabel>
+          <TextInput
+            value={entry.handle}
+            onChange={(t) => onFieldChange({ handle: t })}
+            placeholder="@debate_education"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HiringForm({
+  entry,
+  onFieldChange,
+}: {
+  entry: HiringEntry;
+  onFieldChange: (patch: Partial<HiringEntry>) => void;
+}) {
+  return (
+    <div className="space-y-3 rounded-xl border border-warm-200 dark:border-navy-600/70 bg-white/70 dark:bg-navy-900/40 p-4">
+      <FieldLabel>Role</FieldLabel>
+      <TextInput
+        value={entry.role}
+        onChange={(t) => onFieldChange({ role: t })}
+        placeholder="e.g. Debate Coach"
+      />
+
+      <FieldLabel>Subtitle (optional)</FieldLabel>
+      <TextInput
+        value={entry.subtitle}
+        onChange={(t) => onFieldChange({ subtitle: t })}
+        placeholder="e.g. Remote · Part-time · Paid"
+      />
+
+      <FieldLabel>Job description</FieldLabel>
+      <TextArea
+        value={entry.description}
+        onChange={(t) => onFieldChange({ description: t })}
+        placeholder={
+          "Describe the role, day-to-day, and who you're looking for.\n\nWrap key phrases in **double asterisks** to bold them. Separate paragraphs with a blank line."
+        }
+        rows={12}
+      />
+      <p className="text-xs text-charcoal/55 dark:text-navy-200/50">
+        Wrap key phrases in <code className="rounded bg-warm-100 px-1 py-0.5 text-[11px] dark:bg-navy-800">**double asterisks**</code> to bold them.
+      </p>
+
+      <div className="mt-2">
+        <div className="mb-1 flex items-center justify-between">
+          <FieldLabel>Body text size</FieldLabel>
+          <span className="text-xs font-mono text-charcoal/60 dark:text-navy-200/60">
+            {Math.round(entry.bodyScale * 100)}%
+          </span>
+        </div>
+        <input
+          type="range"
+          min={0.5}
+          max={2}
+          step={0.05}
+          value={entry.bodyScale}
+          onChange={(e) => onFieldChange({ bodyScale: Number(e.target.value) })}
+          className="w-full accent-navy-800 dark:accent-gold-400"
+        />
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {[
+            { label: "S", value: 0.75 },
+            { label: "M", value: 1 },
+            { label: "L", value: 1.25 },
+            { label: "XL", value: 1.5 },
+          ].map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => onFieldChange({ bodyScale: preset.value })}
+              className={`rounded-md border px-2.5 py-1 text-xs font-semibold transition-colors ${
+                Math.abs(entry.bodyScale - preset.value) < 0.03
+                  ? "border-navy-800 bg-navy-800 text-white dark:border-gold-400 dark:bg-gold-400 dark:text-navy-900"
+                  : "border-warm-300 bg-white text-charcoal/70 hover:border-navy-400 dark:border-navy-500 dark:bg-navy-800 dark:text-navy-100/70"
+              }`}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t border-warm-200 dark:border-navy-600/70 pt-3">
+        <FieldLabel>Apply / contact line</FieldLabel>
+        <TextInput
+          value={entry.applyLine}
+          onChange={(t) => onFieldChange({ applyLine: t })}
+          placeholder="Email your resume to hiring@dsdc.ca"
+        />
+        <div className="mt-3">
+          <FieldLabel>Deadline (optional)</FieldLabel>
+          <TextInput
+            value={entry.deadline}
+            onChange={(t) => onFieldChange({ deadline: t })}
+            placeholder="e.g. Applications due October 31, 2026"
+          />
         </div>
       </div>
 
