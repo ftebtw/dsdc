@@ -19,4 +19,5 @@ export const coachImages: Record<string, string> = {
   "Ten Watanaprakarnchai": "/images/coaches/ten-watanaprakarnchai.jpg",
   "Jessie Zhang": "/images/coaches/jessie-zhang.jpg",
   "Leanna Liu": "/images/coaches/leanna_liu.jpg",
+  "Gin Nguyen": "/images/coaches/gin_nguyen.png",
 };

@@ -203,4 +203,11 @@ export const coachAwards: CoachAwards = {
     { tournament: "Canada International Model United Nations", year: "2024–2025", award: "USG Conference" },
     { tournament: "Canada High School Model United Nations Horizons", year: "2023–2024", award: "USG Delegate Affairs" },
   ],
+  "Gin Nguyen": [
+    { tournament: "Ho Chi Minh Debate Open", year: "2023", award: "Quarterfinalist" },
+    { tournament: "Hart House High Schools", year: "2024", award: "Novice Final Panelist" },
+    { tournament: "McGill IV", year: "2026", award: "Semifinal Panelist" },
+    { tournament: "Ottawa IV", year: "2026", award: "Semifinal Panelist" },
+    { tournament: "Diliman Pre-ABP", year: "2026", award: "EFL Final Panelist" },
+  ],
 };
