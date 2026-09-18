@@ -101,6 +101,7 @@ export default async function CoachSubsPage() {
       whenText,
       isMine,
       canAccept,
+      isClassArchived: Boolean((classRow as { archived_at?: string | null } | undefined)?.archived_at),
     };
   });
 
@@ -128,6 +129,7 @@ export default async function CoachSubsPage() {
       whenText,
       isMine,
       canAccept,
+      isClassArchived: Boolean((classRow as { archived_at?: string | null } | undefined)?.archived_at),
     };
   });
 

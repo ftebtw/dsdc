@@ -13,6 +13,7 @@ type ClassOption = {
   schedule_day: string | null;
   schedule_start_time: string | null;
   schedule_end_time: string | null;
+  archived_at?: string | null;
 };
 
 type RequestItem = {
@@ -30,6 +31,7 @@ type RequestItem = {
   acceptingName?: string | null;
   isMine: boolean;
   canAccept: boolean;
+  isClassArchived?: boolean;
 };
 
 const DAY_MAP: Record<string, number> = {
@@ -118,22 +120,28 @@ export default function CoachSubsManager({
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const [loading, setLoading] = useState<'sub' | 'ta' | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [subClassId, setSubClassId] = useState(classes[0]?.id ?? '');
-  const [taClassId, setTaClassId] = useState(classes[0]?.id ?? '');
+
+  // Coaches can only request subs for classes they still run.
+  const activeClasses = useMemo(
+    () => classes.filter((classRow) => !classRow.archived_at),
+    [classes]
+  );
+  const [subClassId, setSubClassId] = useState(activeClasses[0]?.id ?? '');
+  const [taClassId, setTaClassId] = useState(activeClasses[0]?.id ?? '');
 
   useEffect(() => {
-    if (!classes.length) {
+    if (!activeClasses.length) {
       setSubClassId('');
       setTaClassId('');
       return;
     }
-    if (!classes.some((classRow) => classRow.id === subClassId)) {
-      setSubClassId(classes[0].id);
+    if (!activeClasses.some((classRow) => classRow.id === subClassId)) {
+      setSubClassId(activeClasses[0].id);
     }
-    if (!classes.some((classRow) => classRow.id === taClassId)) {
-      setTaClassId(classes[0].id);
+    if (!activeClasses.some((classRow) => classRow.id === taClassId)) {
+      setTaClassId(activeClasses[0].id);
     }
-  }, [classes, subClassId, taClassId]);
+  }, [activeClasses, subClassId, taClassId]);
 
   const subClass = useMemo(
     () => classes.find((classRow) => classRow.id === subClassId),
@@ -197,10 +205,18 @@ export default function CoachSubsManager({
     return { ok: true };
   }
 
-  const mySubs = subRequests.filter((row) => row.isMine);
-  const availableSubs = subRequests.filter((row) => !row.isMine && row.status === 'open' && row.canAccept);
-  const myTas = taRequests.filter((row) => row.isMine);
-  const availableTas = taRequests.filter((row) => !row.isMine && row.status === 'open' && row.canAccept);
+  const mySubs = subRequests.filter((row) => row.isMine && !row.isClassArchived);
+  const myArchivedSubs = subRequests.filter((row) => row.isMine && row.isClassArchived);
+  // Never offer archived-class requests in the available queue — those classes
+  // no longer run, so accepting one wouldn't mean anything.
+  const availableSubs = subRequests.filter(
+    (row) => !row.isMine && row.status === 'open' && row.canAccept && !row.isClassArchived
+  );
+  const myTas = taRequests.filter((row) => row.isMine && !row.isClassArchived);
+  const myArchivedTas = taRequests.filter((row) => row.isMine && row.isClassArchived);
+  const availableTas = taRequests.filter(
+    (row) => !row.isMine && row.status === 'open' && row.canAccept && !row.isClassArchived
+  );
 
   return (
     <div className="space-y-6">
@@ -227,7 +243,7 @@ export default function CoachSubsManager({
               onChange={(event) => setSubClassId(event.target.value)}
               className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
             >
-              {classes.map((classRow) => (
+              {activeClasses.map((classRow) => (
                 <option key={classRow.id} value={classRow.id}>
                   {classRow.name}
                 </option>
@@ -271,7 +287,7 @@ export default function CoachSubsManager({
             />
           </label>
           <button
-            disabled={loading !== null || !classes.length || subWeeks.length === 0}
+            disabled={loading !== null || !activeClasses.length || subWeeks.length === 0}
             className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-70"
           >
             {loading === 'sub'
@@ -302,7 +318,7 @@ export default function CoachSubsManager({
               onChange={(event) => setTaClassId(event.target.value)}
               className="mt-1 w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
             >
-              {classes.map((classRow) => (
+              {activeClasses.map((classRow) => (
                 <option key={classRow.id} value={classRow.id}>
                   {classRow.name}
                 </option>
@@ -346,7 +362,7 @@ export default function CoachSubsManager({
             />
           </label>
           <button
-            disabled={loading !== null || !classes.length || taWeeks.length === 0}
+            disabled={loading !== null || !activeClasses.length || taWeeks.length === 0}
             className="px-4 py-2 rounded-lg bg-navy-800 text-white font-semibold disabled:opacity-70"
           >
             {loading === 'ta'
@@ -386,6 +402,33 @@ export default function CoachSubsManager({
             {t('portal.coachSubs.noSubRequests', 'No sub requests created yet.')}
           </p>
         )}
+        {myArchivedSubs.length > 0 ? (
+          <details className="mt-2 rounded-xl border border-dashed border-warm-300 dark:border-navy-600 p-3">
+            <summary className="cursor-pointer text-sm font-semibold text-charcoal/80 dark:text-navy-200">
+              Archived-class sub requests ({myArchivedSubs.length})
+            </summary>
+            <div className="mt-3 space-y-3">
+              {myArchivedSubs.map((request) => (
+                <SubRequestCard
+                  key={request.id}
+                  requestType="sub"
+                  className={`${request.className} (archived)`}
+                  whenText={request.whenText}
+                  requestingName={request.requestingName}
+                  status={request.status}
+                  reason={request.reason}
+                  acceptedByName={request.acceptingName}
+                  attachmentName={request.attachment_name}
+                  attachmentEndpoint={
+                    request.attachment_path ? `/api/portal/subs/${request.id}/attachment` : null
+                  }
+                  canCancel={request.status === 'open'}
+                  onCancel={() => runAction(`/api/portal/subs/${request.id}/cancel`)}
+                />
+              ))}
+            </div>
+          </details>
+        ) : null}
       </div>
 
       <div className="space-y-3">
@@ -445,6 +488,33 @@ export default function CoachSubsManager({
             {t('portal.coachSubs.noTaRequests', 'No TA requests created yet.')}
           </p>
         )}
+        {myArchivedTas.length > 0 ? (
+          <details className="mt-2 rounded-xl border border-dashed border-warm-300 dark:border-navy-600 p-3">
+            <summary className="cursor-pointer text-sm font-semibold text-charcoal/80 dark:text-navy-200">
+              Archived-class TA requests ({myArchivedTas.length})
+            </summary>
+            <div className="mt-3 space-y-3">
+              {myArchivedTas.map((request) => (
+                <SubRequestCard
+                  key={request.id}
+                  requestType="ta"
+                  className={`${request.className} (archived)`}
+                  whenText={request.whenText}
+                  requestingName={request.requestingName}
+                  status={request.status}
+                  reason={request.reason}
+                  acceptedByName={request.acceptingName}
+                  attachmentName={request.attachment_name}
+                  attachmentEndpoint={
+                    request.attachment_path ? `/api/portal/ta-requests/${request.id}/attachment` : null
+                  }
+                  canCancel={request.status === 'open'}
+                  onCancel={() => runAction(`/api/portal/ta-requests/${request.id}/cancel`)}
+                />
+              ))}
+            </div>
+          </details>
+        ) : null}
       </div>
 
       <div className="space-y-3">

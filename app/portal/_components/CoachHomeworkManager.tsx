@@ -5,7 +5,7 @@ import OpenSignedUrlButton from '@/app/portal/_components/OpenSignedUrlButton';
 import { useI18n } from '@/lib/i18n';
 import { portalT } from '@/lib/portal/parent-i18n';
 
-type ClassOption = { id: string; name: string };
+type ClassOption = { id: string; name: string; archived?: boolean };
 
 type StudentRef = { studentId: string; studentName: string; studentEmail: string };
 
@@ -188,9 +188,25 @@ export default function CoachHomeworkManager({
     setEditingAssignmentId(null);
   }
 
+  const archivedClassIds = useMemo(
+    () => new Set(classes.filter((c) => c.archived).map((c) => c.id)),
+    [classes]
+  );
+  const activeClasses = useMemo(() => classes.filter((c) => !c.archived), [classes]);
+  const archivedClasses = useMemo(() => classes.filter((c) => c.archived), [classes]);
+
   const filteredAssignments = useMemo(
     () => assignments.filter((a) => !filterClassId || a.class_id === filterClassId),
     [assignments, filterClassId]
+  );
+
+  const activeAssignments = useMemo(
+    () => filteredAssignments.filter((a) => !archivedClassIds.has(a.class_id)),
+    [filteredAssignments, archivedClassIds]
+  );
+  const archivedAssignments = useMemo(
+    () => filteredAssignments.filter((a) => archivedClassIds.has(a.class_id)),
+    [filteredAssignments, archivedClassIds]
   );
 
   // Legacy submissions: not tied to any assignment we know about.
@@ -201,6 +217,15 @@ export default function CoachHomeworkManager({
       ),
     [submissions, filterClassId]
   );
+  const activeLegacySubmissions = useMemo(
+    () => legacySubmissions.filter((s) => !archivedClassIds.has(s.class_id)),
+    [legacySubmissions, archivedClassIds]
+  );
+  const archivedLegacySubmissions = useMemo(
+    () => legacySubmissions.filter((s) => archivedClassIds.has(s.class_id)),
+    [legacySubmissions, archivedClassIds]
+  );
+  const [showArchived, setShowArchived] = useState(false);
 
   function submissionsForAssignment(assignmentId: string): Submission[] {
     return submissions.filter((s) => s.assignment_id === assignmentId);
@@ -349,11 +374,24 @@ export default function CoachHomeworkManager({
           className="w-full max-w-xs rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
         >
           <option value="">All classes</option>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
+          {activeClasses.length > 0 ? (
+            <optgroup label="Active">
+              {activeClasses.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
+          {archivedClasses.length > 0 ? (
+            <optgroup label="Archived">
+              {archivedClasses.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} (archived)
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
         </select>
         <button
           type="button"
@@ -389,7 +427,7 @@ export default function CoachHomeworkManager({
                 onChange={(event) => setClassId(event.target.value)}
                 className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
               >
-                {classes.map((c) => (
+                {activeClasses.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
@@ -493,14 +531,17 @@ export default function CoachHomeworkManager({
 
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
-      {filteredAssignments.length === 0 && legacySubmissions.length === 0 ? (
+      {activeAssignments.length === 0 && activeLegacySubmissions.length === 0 ? (
         <p className="text-sm text-charcoal/70 dark:text-navy-300">
-          No homework yet. Post one above.
+          {archivedAssignments.length > 0 || archivedLegacySubmissions.length > 0
+            ? 'No homework in your active classes. Archived-class homework is grouped below.'
+            : 'No homework yet. Post one above.'}
         </p>
       ) : null}
 
       <div className="space-y-3">
-        {filteredAssignments.map((assignment) => {
+        {(() => {
+          const renderAssignmentCard = (assignment: Assignment) => {
           const roster = rosterForAssignment(assignment);
           const submittedCount = roster.filter((entry) => entry.submission).length;
           const overdue = isOverdue(assignment.due_date);
@@ -799,15 +840,35 @@ export default function CoachHomeworkManager({
               ) : null}
             </article>
           );
-        })}
+          };
+          return (
+            <>
+              {activeAssignments.map(renderAssignmentCard)}
+              {archivedAssignments.length > 0 ? (
+                <details
+                  className="mt-4 rounded-xl border border-dashed border-warm-300 dark:border-navy-600 p-3"
+                  open={showArchived}
+                  onToggle={(event) => setShowArchived(event.currentTarget.open)}
+                >
+                  <summary className="cursor-pointer text-sm font-semibold text-charcoal/80 dark:text-navy-200">
+                    Archived class homework ({archivedAssignments.length}) — from classes that have been archived
+                  </summary>
+                  <div className="mt-3 space-y-3">
+                    {archivedAssignments.map(renderAssignmentCard)}
+                  </div>
+                </details>
+              ) : null}
+            </>
+          );
+        })()}
 
-        {legacySubmissions.length > 0 ? (
+        {activeLegacySubmissions.length > 0 ? (
           <details className="mt-4">
             <summary className="cursor-pointer text-sm font-semibold text-navy-800 hover:underline dark:text-navy-100">
-              Legacy submissions ({legacySubmissions.length}) — student-created without an assignment
+              Legacy submissions ({activeLegacySubmissions.length}) — student-created without an assignment
             </summary>
             <div className="mt-3 space-y-3">
-              {legacySubmissions.map((submission) => {
+              {activeLegacySubmissions.map((submission) => {
                 const draft = drafts[submission.id] || { grade: submission.grade || '', feedback: submission.feedback || '' };
                 return (
                   <article

@@ -52,12 +52,12 @@ export default async function CoachHomeworkPage() {
   const t = (key: string, fallback: string) => portalT(locale, key, fallback);
   const supabase = await getSupabaseServerClient();
 
-  const { data: primaryClassesData } = await supabase
+  const { data: primaryClassesData } = await (supabase as any)
     .from('classes')
-    .select('id,name')
+    .select('id,name,archived_at')
     .eq('coach_id', session.userId)
     .order('name', { ascending: true });
-  const primaryClasses = (primaryClassesData ?? []) as Array<{ id: string; name: string }>;
+  const primaryClasses = (primaryClassesData ?? []) as Array<{ id: string; name: string; archived_at: string | null }>;
 
   const { data: coCoachRowsData } = await supabase
     .from('class_coaches')
@@ -67,9 +67,9 @@ export default async function CoachHomeworkPage() {
     ...new Set(((coCoachRowsData ?? []) as Array<{ class_id: string }>).map((row) => row.class_id)),
   ];
   const { data: coCoachClassesData } = coCoachIds.length
-    ? await supabase.from('classes').select('id,name').in('id', coCoachIds).order('name', { ascending: true })
-    : { data: [] as Array<{ id: string; name: string }> };
-  const coCoachClasses = (coCoachClassesData ?? []) as Array<{ id: string; name: string }>;
+    ? await (supabase as any).from('classes').select('id,name,archived_at').in('id', coCoachIds).order('name', { ascending: true })
+    : { data: [] as Array<{ id: string; name: string; archived_at: string | null }> };
+  const coCoachClasses = (coCoachClassesData ?? []) as Array<{ id: string; name: string; archived_at: string | null }>;
 
   const [{ data: subRowsData }, { data: taRowsData }] = await Promise.all([
     (supabase as any)
@@ -90,15 +90,15 @@ export default async function CoachHomeworkPage() {
     ]),
   ];
   const { data: subClassesData } = subClassIds.length
-    ? await supabase.from('classes').select('id,name').in('id', subClassIds).order('name', { ascending: true })
-    : { data: [] as Array<{ id: string; name: string }> };
-  const subClasses = (subClassesData ?? []) as Array<{ id: string; name: string }>;
+    ? await (supabase as any).from('classes').select('id,name,archived_at').in('id', subClassIds).order('name', { ascending: true })
+    : { data: [] as Array<{ id: string; name: string; archived_at: string | null }> };
+  const subClasses = (subClassesData ?? []) as Array<{ id: string; name: string; archived_at: string | null }>;
 
   const classOptions = [
     ...new Map(
       [...primaryClasses, ...coCoachClasses, ...subClasses].map((classRow) => [classRow.id, classRow] as const)
     ).values(),
-  ];
+  ].map((row) => ({ id: row.id, name: row.name, archived: Boolean(row.archived_at) }));
 
   if (classOptions.length === 0) {
     return (
