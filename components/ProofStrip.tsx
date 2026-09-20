@@ -82,7 +82,7 @@ function Counter({ value, label, delay }: CounterProps) {
 
 const statItems = [
   { value: "5000+", labelKey: "stats.students" },
-  { value: "7+", labelKey: "stats.years" },
+  { value: "9+", labelKey: "stats.years" },
   { value: "100%", labelKey: "stats.wscRate" },
   { value: "20+", labelKey: "stats.coaches" },
 ];
