@@ -42,6 +42,7 @@ export type EventItem = {
   attachment_path: string | null;
   attachment_name: string | null;
   attachment_mime_type: string | null;
+  registration_deadline: string | null;
 };
 
 type Props = {
@@ -97,6 +98,8 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
   const [isImportant, setIsImportant] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registrationDeadline, setRegistrationDeadline] = useState("");
+  const [sendNotification, setSendNotification] = useState(true);
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
   const [attachmentName, setAttachmentName] = useState("");
   const [existingAttachment, setExistingAttachment] = useState<{
@@ -126,6 +129,10 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
     setColor(event?.color || "#3b82f6");
     setIsAllDay(Boolean(event?.is_all_day));
     setIsImportant(Boolean(event?.is_important));
+    setRegistrationDeadline(event?.registration_deadline ?? "");
+    // Default: send notification on create for a broadcast event, don't
+    // re-blast on edit unless the admin explicitly opts in.
+    setSendNotification(event ? false : true);
     setLoading(false);
     setError(null);
     setAttachmentFile(null);
@@ -186,6 +193,11 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
       form.append("isAllDay", String(isAllDay));
       form.append("isImportant", String(visibility === "personal" ? false : isImportant));
       if (tag) form.append("tag", tag);
+      if (registrationDeadline) form.append("registrationDeadline", registrationDeadline);
+      else if (isEditing) form.append("registrationDeadline", "");
+      if (visibility === "all_coaches" || visibility === "everyone") {
+        form.append("sendNotification", String(sendNotification));
+      }
       if (attachmentFile) {
         form.append("file", attachmentFile);
         const trimmedName = attachmentName.trim();
@@ -333,6 +345,30 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
             </label>
           ) : null}
 
+          {!isLegacyEvent ? (
+            <label className="sm:col-span-2">
+              <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
+                {t(
+                  "portal.eventForm.registrationDeadline",
+                  "Registration deadline (optional)"
+                )}
+              </span>
+              <input
+                type="date"
+                className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-800 px-3 py-2"
+                value={registrationDeadline}
+                max={eventDate || undefined}
+                onChange={(eventValue) => setRegistrationDeadline(eventValue.target.value)}
+              />
+              <span className="block text-xs mt-1 text-charcoal/55 dark:text-navy-400">
+                {t(
+                  "portal.eventForm.registrationDeadlineHint",
+                  "Shown on the calendar next to the event. Leave blank if there isn't one."
+                )}
+              </span>
+            </label>
+          ) : null}
+
           <label>
             <span className="block text-xs mb-1 text-charcoal/70 dark:text-navy-300">
               {t("portal.displayTimezone", "Timezone")}
@@ -433,6 +469,34 @@ export default function EventFormModal({ open, initialDate, event, onClose, onSa
                 disabled={isLegacyEvent}
               />
               {t("portal.eventForm.important", "Important event")}
+            </label>
+          ) : null}
+
+          {!isLegacyEvent && (visibility === "all_coaches" || visibility === "everyone") ? (
+            <label className="sm:col-span-2 inline-flex items-start gap-2 text-sm text-navy-800 dark:text-navy-100">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={sendNotification}
+                onChange={(eventValue) => setSendNotification(eventValue.target.checked)}
+              />
+              <span>
+                {t(
+                  "portal.eventForm.sendNotification",
+                  "Send email notification"
+                )}
+                <span className="block text-xs text-charcoal/55 dark:text-navy-400">
+                  {isEditing
+                    ? t(
+                        "portal.eventForm.sendNotificationEditHint",
+                        "Off by default when editing so recipients don't get re-blasted. Tick to send a fresh update."
+                      )
+                    : t(
+                        "portal.eventForm.sendNotificationCreateHint",
+                        "Emails go to the audience above (all coaches & TAs, or everyone, per each person's preferences)."
+                      )}
+                </span>
+              </span>
             </label>
           ) : null}
 

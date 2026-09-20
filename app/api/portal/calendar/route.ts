@@ -238,7 +238,7 @@ export async function GET(request: NextRequest) {
   let calendarEventQuery = admin
     .from("calendar_events")
     .select(
-      "id,title,description,event_date,end_date,start_time,end_time,timezone,color,is_all_day,visibility,is_important,tag,created_by,attachment_path,attachment_name,attachment_mime_type"
+      "id,title,description,event_date,end_date,start_time,end_time,timezone,color,is_all_day,visibility,is_important,tag,created_by,attachment_path,attachment_name,attachment_mime_type,registration_deadline"
     )
     .order("event_date", { ascending: true })
     .order("start_time", { ascending: true });
@@ -312,6 +312,7 @@ export async function GET(request: NextRequest) {
     attachment_path: null,
     attachment_name: null,
     attachment_mime_type: null,
+    registration_deadline: null,
   }));
 
   const calendarEvents = filteredCalendarEvents.map((eventRow: any) => ({
@@ -335,6 +336,7 @@ export async function GET(request: NextRequest) {
     attachment_path: eventRow.attachment_path ?? null,
     attachment_name: eventRow.attachment_name ?? null,
     attachment_mime_type: eventRow.attachment_mime_type ?? null,
+    registration_deadline: eventRow.registration_deadline ?? null,
   }));
 
   const events = [...legacyEvents, ...calendarEvents].sort((left, right) => {

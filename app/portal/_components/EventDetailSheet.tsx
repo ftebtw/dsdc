@@ -4,6 +4,18 @@ import { useState } from "react";
 import type { EventItem } from "./EventFormModal";
 import { convertDateKeyForDisplay, eventTimeRange } from "./calendarUtils";
 
+function formatDeadline(iso: string): string {
+  const parts = iso.split("-").map((n) => parseInt(n, 10));
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return iso;
+  return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2])).toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 type Props = {
   event: EventItem;
   displayTimezone: string;
@@ -73,6 +85,24 @@ export default function EventDetailSheet({
         <p className="text-sm text-charcoal/80 dark:text-navy-200 mt-2">
           {displayDate} {eventTimeRange(event, displayTimezone, t)}
         </p>
+        {event.registration_deadline ? (
+          <p
+            className={`text-sm mt-2 font-medium ${
+              new Date(event.registration_deadline + "T23:59:59").getTime() < Date.now()
+                ? "text-red-600 dark:text-red-300"
+                : "text-amber-700 dark:text-amber-300"
+            }`}
+          >
+            ⏰{" "}
+            {t("portal.eventDetail.registrationDeadline", "Registration deadline")}:{" "}
+            {formatDeadline(event.registration_deadline)}
+            {new Date(event.registration_deadline + "T23:59:59").getTime() < Date.now() ? (
+              <span className="ml-2 text-xs uppercase tracking-wide">
+                {t("portal.eventDetail.registrationDeadlinePassed", "passed")}
+              </span>
+            ) : null}
+          </p>
+        ) : null}
         {event.location ? (
           <p className="text-sm text-charcoal/70 dark:text-navy-300 mt-1">
             📍 {event.location}

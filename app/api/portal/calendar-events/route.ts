@@ -33,6 +33,8 @@ const createSchema = z.object({
   isImportant: z.boolean().optional(),
   tag: tagSchema.nullish(),
   attachmentName: z.string().trim().min(1).max(200).optional(),
+  registrationDeadline: dateSchema.nullish(),
+  sendNotification: z.boolean().optional(),
 });
 
 const ATTACHMENT_BUCKET = process.env.PORTAL_BUCKET_CALENDAR || "portal-calendar";
@@ -162,6 +164,8 @@ export async function POST(request: NextRequest) {
       isImportant: formBool(form, "isImportant"),
       tag: formString(form, "tag"),
       attachmentName: formString(form, "attachmentName"),
+      registrationDeadline: formString(form, "registrationDeadline"),
+      sendNotification: formBool(form, "sendNotification"),
     };
   } else {
     rawPayload = await request.json();
@@ -235,6 +239,7 @@ export async function POST(request: NextRequest) {
       is_important:
         (body.visibility || "personal") === "personal" ? false : (body.isImportant ?? false),
       tag: body.tag ?? null,
+      registration_deadline: body.registrationDeadline ?? null,
       attachment_path: attachmentPath,
       attachment_name: attachmentName,
       attachment_mime_type: attachmentMimeType,
@@ -249,7 +254,11 @@ export async function POST(request: NextRequest) {
     return mergeCookies(supabaseResponse, jsonError(error.message, 500));
   }
 
-  if (data.visibility === "everyone" || data.visibility === "all_coaches") {
+  // Fire audience-scoped email notifications when the caller opted in. Default
+  // is true for backwards compatibility with clients that don't send the flag;
+  // only when the flag is explicitly `false` do we suppress the send.
+  const notifyOptIn = body.sendNotification !== false;
+  if (notifyOptIn && (data.visibility === "everyone" || data.visibility === "all_coaches")) {
     void sendCalendarEventNotifications(data, {
       display_name: session.profile.display_name,
       email: session.profile.email,

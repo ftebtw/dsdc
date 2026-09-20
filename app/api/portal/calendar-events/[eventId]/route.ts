@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { sendCalendarEventNotifications } from "@/lib/email/calendar-notifications";
 import { requireApiRole } from "@/lib/portal/auth";
 import { isValidTimezone } from "@/lib/portal/timezone";
 import { getSupabaseRouteClient, mergeCookies } from "@/lib/supabase/route";
@@ -34,6 +35,8 @@ const updateSchema = z
     tag: tagSchema.nullable().optional(),
     attachmentName: z.string().trim().min(1).max(200).optional(),
     removeAttachment: z.boolean().optional(),
+    registrationDeadline: dateSchema.nullable().optional(),
+    sendNotification: z.boolean().optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
     message: "Provide at least one field to update.",
@@ -137,6 +140,11 @@ export async function PUT(
       tag: formString(form, "tag"),
       attachmentName: formString(form, "attachmentName"),
       removeAttachment: formBool(form, "removeAttachment"),
+      // Distinguish "not sent" (leave alone) from "sent as empty" (clear it).
+      registrationDeadline: form.has("registrationDeadline")
+        ? formString(form, "registrationDeadline") ?? null
+        : undefined,
+      sendNotification: formBool(form, "sendNotification"),
     };
 
     for (const key of Object.keys(rawPayload)) {
@@ -204,6 +212,7 @@ export async function PUT(
   if (body.startTime !== undefined) updateData.start_time = body.startTime;
   if (body.endTime !== undefined) updateData.end_time = body.endTime;
   if (body.tag !== undefined) updateData.tag = body.tag;
+  if (body.registrationDeadline !== undefined) updateData.registration_deadline = body.registrationDeadline;
   if (body.timezone !== undefined) updateData.timezone = body.timezone;
   if (body.color !== undefined) updateData.color = body.color;
   if (body.isAllDay !== undefined) updateData.is_all_day = body.isAllDay;
@@ -241,6 +250,18 @@ export async function PUT(
     existingAttachmentPath && (attachmentFile || body.removeAttachment);
   if (shouldRemoveOldFile) {
     await supabase.storage.from(ATTACHMENT_BUCKET).remove([existingAttachmentPath!]);
+  }
+
+  // PATCH only sends notifications when the caller EXPLICITLY opts in
+  // (unlike POST, which defaults to sending). Editing an event routinely
+  // shouldn't spam every recipient with a fresh email.
+  if (body.sendNotification === true && (data.visibility === "everyone" || data.visibility === "all_coaches")) {
+    void sendCalendarEventNotifications(data, {
+      display_name: session.profile.display_name,
+      email: session.profile.email,
+    }).catch((sendError) => {
+      console.error("[calendar-event-notification] Failed:", sendError);
+    });
   }
 
   return mergeCookies(supabaseResponse, NextResponse.json({ event: data }));

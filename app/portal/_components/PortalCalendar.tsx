@@ -379,6 +379,17 @@ export default function PortalCalendar({
                       Location: {eventItem.location}
                     </p>
                   ) : null}
+                  {eventItem.registration_deadline ? (
+                    <p
+                      className={`text-xs mt-0.5 font-medium ${
+                        new Date(eventItem.registration_deadline + "T23:59:59").getTime() < Date.now()
+                          ? "text-red-600 dark:text-red-300"
+                          : "text-amber-700 dark:text-amber-300"
+                      }`}
+                    >
+                      ⏰ {t("portal.portalCalendar.deadline", "Deadline")}: {format(parseISO(eventItem.registration_deadline), "MMM d")}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </button>
