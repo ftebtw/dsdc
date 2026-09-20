@@ -16,7 +16,12 @@ const bodySchema = z.object({
   phone: z.string().max(40).optional().or(z.literal('')),
   timezone: z.string().min(1).max(80).default('America/Vancouver'),
   tiers: z.array(z.enum(['junior', 'senior', 'wsc'])).optional(),
-  send_invite: z.boolean().default(true),
+  // Legacy boolean flag kept for backwards compatibility. New callers should
+  // pass credential_method instead.
+  send_invite: z.boolean().optional(),
+  credential_method: z
+    .enum(['invite', 'temp_password', 'default_password'])
+    .optional(),
 });
 
 function jsonError(message: string, status = 400) {
@@ -33,17 +38,46 @@ function createTemporaryPassword(): string {
   return `Tmp${randomBytes(6).toString('hex')}!1A`;
 }
 
-function staffTemporaryPasswordTemplate(input: {
+function roleLabelFor(role: 'admin' | 'coach' | 'ta' | 'student' | 'parent', locale: 'en' | 'zh'): string {
+  if (locale === 'zh') {
+    switch (role) {
+      case 'admin':
+        return '管理员';
+      case 'coach':
+        return '教练';
+      case 'ta':
+        return '助教';
+      case 'student':
+        return '学生';
+      case 'parent':
+        return '家长';
+    }
+  }
+  switch (role) {
+    case 'admin':
+      return 'Admin';
+    case 'coach':
+      return 'Coach';
+    case 'ta':
+      return 'TA';
+    case 'student':
+      return 'Student';
+    case 'parent':
+      return 'Parent';
+  }
+}
+
+function temporaryPasswordTemplate(input: {
   locale: 'en' | 'zh';
   displayName: string;
-  role: 'coach' | 'ta';
+  role: 'admin' | 'coach' | 'ta' | 'student' | 'parent';
   email: string;
   temporaryPassword: string;
   loginUrl: string;
 }) {
   const isZh = input.locale === 'zh';
   const subject = isZh ? 'DSDC 门户账号已创建（临时密码）' : 'Your DSDC portal account (temporary password)';
-  const roleLabel = input.role === 'ta' ? 'TA' : 'Coach';
+  const roleLabel = roleLabelFor(input.role, input.locale);
 
   const lines = isZh
     ? [
@@ -94,8 +128,7 @@ export async function POST(request: NextRequest) {
   }
 
   const supabaseAdmin = getSupabaseAdminClient();
-  const staffRole = body.role === 'coach' || body.role === 'ta' ? body.role : null;
-  const isStaffAccount = Boolean(staffRole);
+  const isStaffAccount = body.role === 'coach' || body.role === 'ta';
   const portalBase = getPortalAppUrl().replace(/\/$/, '');
   const loginUrl = `${portalBase}/portal/login`;
   const metadata: Record<string, string> = {
@@ -106,11 +139,20 @@ export async function POST(request: NextRequest) {
   };
   if (body.phone) metadata.phone = body.phone;
 
+  // Resolve the credential method. Coach/TA always get a temp password.
+  // For other roles, honor the explicit `credential_method`; fall back to the
+  // legacy `send_invite` boolean (true → invite, false → default_password).
+  type CredentialMethod = 'invite' | 'temp_password' | 'default_password';
+  const credentialMethod: CredentialMethod = isStaffAccount
+    ? 'temp_password'
+    : body.credential_method ??
+      (body.send_invite === false ? 'default_password' : 'invite');
+
   let userId: string | undefined;
   let temporaryPassword: string | null = null;
   let credentialsEmailSent = false;
 
-  if (isStaffAccount) {
+  if (credentialMethod === 'temp_password') {
     temporaryPassword = createTemporaryPassword();
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email: body.email,
@@ -120,7 +162,7 @@ export async function POST(request: NextRequest) {
     });
     if (error) return jsonError(error.message, 400);
     userId = data.user?.id;
-  } else if (body.send_invite) {
+  } else if (credentialMethod === 'invite') {
     const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(body.email, {
       data: metadata,
       redirectTo: `${portalBase}/auth/callback/complete?next=${encodeURIComponent('/portal')}`,
@@ -197,11 +239,11 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  if (isStaffAccount && temporaryPassword) {
-    const template = staffTemporaryPasswordTemplate({
+  if (credentialMethod === 'temp_password' && temporaryPassword) {
+    const template = temporaryPasswordTemplate({
       locale: body.locale,
       displayName: body.display_name,
-      role: staffRole!,
+      role: body.role,
       email: body.email,
       temporaryPassword,
       loginUrl,
@@ -221,13 +263,13 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     message:
-      isStaffAccount && !credentialsEmailSent
-        ? 'User created, but temporary password email failed to send.'
-        : isStaffAccount
+      credentialMethod === 'temp_password'
+        ? credentialsEmailSent
           ? 'User created and temporary password email sent.'
-          : body.send_invite
-            ? 'User invited successfully.'
-            : 'User created successfully.',
+          : 'User created, but temporary password email failed to send.'
+        : credentialMethod === 'invite'
+          ? 'User invited successfully.'
+          : 'User created successfully.',
     userId,
   });
 }

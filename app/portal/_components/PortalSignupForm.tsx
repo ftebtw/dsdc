@@ -7,6 +7,8 @@ import TimezoneSelect from '@/app/portal/_components/TimezoneSelect';
 type AppRole = Database['public']['Enums']['app_role'];
 type CoachTier = Database['public']['Enums']['coach_tier'];
 
+type CredentialMethod = 'invite' | 'temp_password' | 'default_password';
+
 type FormState = {
   email: string;
   display_name: string;
@@ -15,7 +17,7 @@ type FormState = {
   phone: string;
   timezone: string;
   tiers: CoachTier[];
-  send_invite: boolean;
+  credential_method: CredentialMethod;
 };
 
 const initialState: FormState = {
@@ -26,7 +28,7 @@ const initialState: FormState = {
   phone: '',
   timezone: 'America/Vancouver',
   tiers: [],
-  send_invite: true,
+  credential_method: 'invite',
 };
 
 const tierLabels: Record<CoachTier, string> = {
@@ -138,15 +140,28 @@ export default function PortalSignupForm() {
         </div>
       ) : null}
 
-      <label className="flex items-center gap-2 text-sm text-navy-700 dark:text-navy-200">
-        <input
-          type="checkbox"
-          checked={isStaffRole ? true : state.send_invite}
-          disabled={isStaffRole}
-          onChange={(e) => setState({ ...state, send_invite: e.target.checked })}
-        />
-        {isStaffRole ? 'Email temporary password (required for coach/TA)' : 'Send invite email'}
-      </label>
+      <div>
+        <label className="block text-sm mb-1 text-navy-700 dark:text-navy-200">
+          How should they get their credentials?
+        </label>
+        {isStaffRole ? (
+          <p className="text-sm text-navy-700 dark:text-navy-200 rounded-lg border border-warm-300 dark:border-navy-600 bg-warm-50 dark:bg-navy-900 px-3 py-2">
+            A temporary password will be emailed (required for coach / TA).
+          </p>
+        ) : (
+          <select
+            value={state.credential_method}
+            onChange={(event) =>
+              setState({ ...state, credential_method: event.target.value as CredentialMethod })
+            }
+            className="w-full rounded-lg border border-warm-300 dark:border-navy-600 bg-white dark:bg-navy-900 px-3 py-2"
+          >
+            <option value="invite">Send invite email (magic link)</option>
+            <option value="temp_password">Email temporary password</option>
+            <option value="default_password">Create silently with default password</option>
+          </select>
+        )}
+      </div>
 
       {message ? <p className="text-sm text-green-700">{message}</p> : null}
       {error ? <p className="text-sm text-red-700">{error}</p> : null}
