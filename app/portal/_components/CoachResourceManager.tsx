@@ -280,32 +280,46 @@ export default function CoachResourceManager({
     }
     if (file) formData.append('file', file);
 
-    const response = await fetch('/api/portal/resources/upload', {
-      method: 'POST',
-      body: formData,
-    });
-    const data = (await response.json()) as {
-      error?: string;
-      resource?: Resource;
-    };
+    // Always release the "Saving..." state via finally, and surface network
+    // errors instead of letting a thrown fetch/JSON parse hang the button.
+    try {
+      const response = await fetch('/api/portal/resources/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      let data: { error?: string; resource?: Resource } = {};
+      try {
+        data = (await response.json()) as { error?: string; resource?: Resource };
+      } catch {
+        // Non-JSON response (server crash, HTML error page). Fall through to
+        // the response.ok check below with an empty payload.
+      }
 
-    setLoading(false);
+      if (!response.ok || !data.resource) {
+        setError(
+          data.error ||
+            `${t('portal.coachResource.createError', 'Failed to create resource.')} (HTTP ${response.status})`
+        );
+        return;
+      }
 
-    if (!response.ok || !data.resource) {
+      setResources((prev) => [data.resource!, ...prev]);
+      setTitle('');
+      setDescription('');
+      setType('lesson_plan');
+      setSection('');
+      setUrls(['']);
+      clearSelectedFile();
+    } catch (err) {
+      console.error('[coach-resources] create failed', err);
       setError(
-        data.error ||
-          t('portal.coachResource.createError', 'Failed to create resource.')
+        err instanceof Error
+          ? err.message
+          : t('portal.coachResource.createError', 'Failed to create resource.')
       );
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    setResources((prev) => [data.resource!, ...prev]);
-    setTitle('');
-    setDescription('');
-    setType('lesson_plan');
-    setSection('');
-    setUrls(['']);
-    clearSelectedFile();
   }
 
   async function onDelete(resourceId: string) {
