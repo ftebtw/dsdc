@@ -1731,3 +1731,74 @@ export function payrollSubmissionToAdminTemplate(input: {
   });
   return { subject, html, text };
 }
+
+export function weeklyFeedbackSubmittedToAdminTemplate(input: {
+  coachName: string;
+  className: string;
+  sessionDate: string;
+  individualCount: number;
+  hasGeneral: boolean;
+  portalUrl: string;
+}) {
+  const subject = `Weekly feedback awaiting review: ${input.className} (${input.sessionDate})`;
+  const bodyLines: string[] = [
+    `${input.coachName} submitted weekly feedback for ${input.className} on ${input.sessionDate}.`,
+  ];
+  if (input.hasGeneral) bodyLines.push('Includes a general class message.');
+  bodyLines.push(
+    input.individualCount === 0
+      ? 'No per-student entries.'
+      : `Includes ${input.individualCount} individual entr${input.individualCount === 1 ? 'y' : 'ies'}.`
+  );
+  bodyLines.push('Review it before it reaches students and parents.');
+  const { html, text } = renderTemplate({
+    title: 'Weekly Feedback Awaiting Review',
+    bodyLines,
+    buttonLabel: 'Review in Portal',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}
+
+export function weeklyFeedbackApprovedToCoachTemplate(input: {
+  coachName: string;
+  className: string;
+  sessionDate: string;
+  portalUrl: string;
+}) {
+  const subject = `Feedback approved: ${input.className} (${input.sessionDate})`;
+  const { html, text } = renderTemplate({
+    title: 'Feedback Approved',
+    bodyLines: [
+      `Hi ${input.coachName}, your weekly feedback for ${input.className} on ${input.sessionDate} has been approved.`,
+      'Students and parents on this class can now see it in their portal.',
+    ],
+    buttonLabel: 'Open Portal',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}
+
+export function weeklyFeedbackRejectedToCoachTemplate(input: {
+  coachName: string;
+  className: string;
+  sessionDate: string;
+  notes: string;
+  portalUrl: string;
+}) {
+  const subject = `Feedback needs edits: ${input.className} (${input.sessionDate})`;
+  const { html, text } = renderTemplate({
+    title: 'Feedback Needs Edits',
+    bodyLines: [
+      `Hi ${input.coachName}, admin asked for changes on your weekly feedback for ${input.className} on ${input.sessionDate}.`,
+      `Notes: ${input.notes}`,
+      'Open the portal to edit and resubmit.',
+    ],
+    buttonLabel: 'Edit Feedback',
+    buttonUrl: input.portalUrl,
+    preferenceUrl: input.portalUrl,
+  });
+  return { subject, html, text };
+}

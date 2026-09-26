@@ -26,12 +26,18 @@ async function fetchSidebarBadgeCounts(role: string | undefined): Promise<Record
   try {
     const supabase = await getSupabaseServerClient();
     if (role === 'admin') {
-      const { count } = await (supabase as any)
-        .from('feedback_requests')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending_admin');
+      const [{ count: requestsCount }, { count: weeklyCount }] = await Promise.all([
+        (supabase as any)
+          .from('feedback_requests')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'pending_admin'),
+        (supabase as any)
+          .from('class_feedback')
+          .select('id', { count: 'exact', head: true })
+          .eq('status', 'pending_admin'),
+      ]);
       return {
-        '/portal/admin/feedback': count ?? 0,
+        '/portal/admin/feedback': (requestsCount ?? 0) + (weeklyCount ?? 0),
       };
     }
     if (role === 'coach' || role === 'ta') {

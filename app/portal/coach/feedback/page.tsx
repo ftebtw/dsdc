@@ -148,7 +148,7 @@ export default async function CoachFeedbackPage() {
   const { data: existingFeedbackData } = feedbackClassIds.length
     ? await (supabase as any)
         .from('class_feedback')
-        .select('id,class_id,session_date,general_feedback,coach_id,updated_at')
+        .select('id,class_id,session_date,general_feedback,coach_id,updated_at,status,admin_rejection_notes,reviewed_at')
         .in('class_id', feedbackClassIds)
         .order('session_date', { ascending: false })
         .order('updated_at', { ascending: false })
@@ -160,6 +160,9 @@ export default async function CoachFeedbackPage() {
     general_feedback: string | null;
     coach_id: string;
     updated_at: string;
+    status: 'pending_admin' | 'approved' | 'rejected';
+    admin_rejection_notes: string | null;
+    reviewed_at: string | null;
   }>;
 
   const feedbackIds = existingFeedback.map((f) => f.id);
@@ -188,6 +191,9 @@ export default async function CoachFeedbackPage() {
     generalFeedback: row.general_feedback ?? '',
     individual: individualByFeedback[row.id] ?? [],
     updatedAt: row.updated_at,
+    status: row.status,
+    rejectionNotes: row.admin_rejection_notes,
+    reviewedAt: row.reviewed_at,
   }));
 
   return (

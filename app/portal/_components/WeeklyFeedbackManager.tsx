@@ -14,6 +14,27 @@ export type WeeklyFeedbackEntry = {
   generalFeedback: string;
   individual: Array<{ studentId: string; feedback: string }>;
   updatedAt: string;
+  status: 'pending_admin' | 'approved' | 'rejected';
+  rejectionNotes: string | null;
+  reviewedAt: string | null;
+};
+
+const STATUS_META: Record<WeeklyFeedbackEntry['status'], { label: string; classes: string }> = {
+  pending_admin: {
+    label: 'Pending admin review',
+    classes:
+      'bg-gold-100 text-navy-900 dark:bg-gold-500/25 dark:text-gold-100',
+  },
+  approved: {
+    label: 'Approved · Visible to students',
+    classes:
+      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200',
+  },
+  rejected: {
+    label: 'Rejected — please edit and resubmit',
+    classes:
+      'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200',
+  },
 };
 
 function todayIso(): string {
@@ -178,15 +199,36 @@ export default function WeeklyFeedbackManager({
           </label>
         </div>
         {existingForCurrent ? (
-          <p className="text-xs text-charcoal/60 dark:text-navy-300">
-            Editing existing feedback for {formatShortDate(existingForCurrent.sessionDate)} — last
-            updated {new Date(existingForCurrent.updatedAt).toLocaleString()}. Submitting again
-            replaces the current version.
-          </p>
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                  STATUS_META[existingForCurrent.status].classes
+                }`}
+              >
+                {STATUS_META[existingForCurrent.status].label}
+              </span>
+              <span className="text-xs text-charcoal/60 dark:text-navy-300">
+                Last updated {new Date(existingForCurrent.updatedAt).toLocaleString()}
+              </span>
+            </div>
+            {existingForCurrent.status === 'rejected' && existingForCurrent.rejectionNotes ? (
+              <div className="rounded-md border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-900 dark:text-red-100">
+                <p className="text-xs font-semibold uppercase tracking-wide">
+                  Admin notes
+                </p>
+                <p className="mt-1 whitespace-pre-wrap">{existingForCurrent.rejectionNotes}</p>
+              </div>
+            ) : null}
+            <p className="text-xs text-charcoal/60 dark:text-navy-300">
+              Editing existing feedback for {formatShortDate(existingForCurrent.sessionDate)}.
+              Submitting again sends it back to admin for review.
+            </p>
+          </div>
         ) : (
           <p className="text-xs text-charcoal/60 dark:text-navy-300">
             New feedback for {formatShortDate(sessionDate)}. Fill general or per-student (or both)
-            and submit.
+            and submit to admin for review.
           </p>
         )}
       </div>
@@ -274,10 +316,12 @@ export default function WeeklyFeedbackManager({
           className="px-4 py-2 rounded-md bg-gold-300 text-navy-900 font-semibold disabled:opacity-60"
         >
           {saving
-            ? 'Saving…'
+            ? 'Submitting…'
             : existingForCurrent
-              ? 'Update feedback'
-              : 'Post feedback to class'}
+              ? existingForCurrent.status === 'rejected'
+                ? 'Resubmit to admin'
+                : 'Update and resubmit'
+              : 'Submit to admin'}
         </button>
       </div>
     </div>

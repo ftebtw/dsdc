@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { sendPortalEmails } from "@/lib/email/send";
+import { weeklyFeedbackSubmittedToAdminTemplate } from "@/lib/email/templates";
 import { requireApiRole } from "@/lib/portal/auth";
+import { portalPathUrl } from "@/lib/portal/phase-c";
+import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseRouteClient, mergeCookies } from "@/lib/supabase/route";
 
 const individualEntrySchema = z.object({
@@ -54,11 +58,18 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   let feedbackId: string;
+  // Every fresh coach submit (create OR resubmit of a rejected row) flips
+  // the row into 'pending_admin' so it goes through review again.
   if (existing?.id) {
     const { data: updated, error } = await (supabase as any)
       .from("class_feedback")
       .update({
         general_feedback: trimmedGeneral || null,
+        status: "pending_admin",
+        // Clear any prior review so admin sees this as fresh in the queue.
+        reviewed_by: null,
+        reviewed_at: null,
+        admin_rejection_notes: null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", existing.id)
@@ -74,6 +85,7 @@ export async function POST(request: NextRequest) {
         session_date: sessionDate,
         coach_id: session.userId,
         general_feedback: trimmedGeneral || null,
+        status: "pending_admin",
       })
       .select("id")
       .single();
@@ -132,6 +144,35 @@ export async function POST(request: NextRequest) {
         return mergeCookies(supabaseResponse, jsonError(insertError.message, 400));
       }
     }
+  }
+
+  // Fire-and-forget: notify every admin so they know a fresh entry is
+  // waiting for review. Uses the service role client so we don't rely on
+  // the coach's RLS view of profiles.
+  try {
+    const admin = getSupabaseAdminClient();
+    const [{ data: coachProfile }, { data: classRow }, { data: adminProfiles }] = await Promise.all([
+      admin.from("profiles").select("display_name,email").eq("id", session.userId).maybeSingle(),
+      admin.from("classes").select("name").eq("id", classId).maybeSingle(),
+      admin.from("profiles").select("email,display_name").eq("role", "admin"),
+    ]);
+    const recipients = ((adminProfiles ?? []) as Array<{
+      email: string | null;
+      display_name: string | null;
+    }>).filter((row) => row.email);
+    if (recipients.length > 0) {
+      const template = weeklyFeedbackSubmittedToAdminTemplate({
+        coachName: coachProfile?.display_name || coachProfile?.email || "A coach",
+        className: (classRow as { name?: string } | null)?.name || "a class",
+        sessionDate,
+        individualCount: nonEmptyIndividual.length - droppedStudentCount,
+        hasGeneral: trimmedGeneral.length > 0,
+        portalUrl: portalPathUrl("/portal/admin/feedback"),
+      });
+      await sendPortalEmails(recipients.map((row) => ({ to: row.email!, ...template })));
+    }
+  } catch (err) {
+    console.error("[class-feedback] admin notify failed", err);
   }
 
   return mergeCookies(
