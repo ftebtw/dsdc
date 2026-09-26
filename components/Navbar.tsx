@@ -34,6 +34,15 @@ export default function Navbar() {
   const pathname = usePathname();
   const { t, locale } = useI18n();
 
+  // Belt-and-braces: the root layout also gates the Navbar via a middleware
+  // header, but on cached routes / prefetches that header can drop off and
+  // the public Navbar sneaks onto portal pages. When that happens on mobile
+  // it covers the Portal shell header (z-50 vs z-40) — so the coach sees the
+  // marketing burger instead of the portal one. Hide client-side too.
+  if (pathname.startsWith("/portal") || pathname.startsWith("/studio")) {
+    return null;
+  }
+
   const registerHref = `/register?lang=${locale === "zh" ? "zh" : "en"}`;
   const solidNavPages = ["/register", "/portal", "/payment", "/pricing"];
   const needsSolidNav = solidNavPages.some((prefix) => pathname.startsWith(prefix));

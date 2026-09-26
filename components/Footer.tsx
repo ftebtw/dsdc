@@ -2,12 +2,19 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Mail, Instagram, Linkedin } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import LanguageToggle from "./LanguageToggle";
 
 export default function Footer() {
+  const pathname = usePathname();
   const { t, locale } = useI18n();
+  // Same rationale as Navbar: keep the marketing footer off portal / studio
+  // pages even when the server-side hideShell flag drops off a cached route.
+  if (pathname.startsWith("/portal") || pathname.startsWith("/studio")) {
+    return null;
+  }
   const registerHref = `/register?lang=${locale === "zh" ? "zh" : "en"}`;
   const currentYear = new Date().getFullYear();
   const footerTagline = t("footer.tagline");
