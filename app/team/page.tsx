@@ -40,26 +40,36 @@ export default function TeamPage() {
     coachMap.set(coach.name, { ...(coachMap.get(coach.name) ?? {}), ...coach });
   }
   const coaches = Array.from(coachMap.values()).filter((coach) => !coach.hidden);
-  const orderedCoaches = (() => {
-    const reordered = [...coaches];
-    const timName = "Timothy Hanna";
-    const annikaName = "Annika Wang";
-    const timIndex = reordered.findIndex((coach) => coach.name === timName);
-    const annikaIndex = reordered.findIndex((coach) => coach.name === annikaName);
 
-    if (timIndex === -1 || annikaIndex === -1) {
-      return reordered;
+  // Sort by role tier so the /team page reads as a hierarchy:
+  //   1. Senior Debate Coaches (title starts with 'Senior Debate')
+  //   2. Debate + WSC / Public Speaking / Model UN specialists (non-senior)
+  //   3. Debate Coaches (plain 'Debate Coach')
+  //   4. Other roles (e.g. Manager) — non-coach team members
+  //   5. Teaching Assistants — at the bottom
+  // Rebecca is rendered above as founder and isn't in this list.
+  function tierOf(title: string): number {
+    const raw = (title || "").trim();
+    const lower = raw.toLowerCase();
+    if (lower.startsWith("senior debate")) return 1;
+    if (
+      (lower.includes("wsc") ||
+        lower.includes("public speaking") ||
+        lower.includes("model un") ||
+        lower.includes("model united nations")) &&
+      !lower.startsWith("senior")
+    ) {
+      return 2;
     }
+    if (raw === "Debate Coach") return 3;
+    if (lower === "teaching assistant") return 5;
+    return 4;
+  }
 
-    const [annika] = reordered.splice(annikaIndex, 1);
-    const adjustedTimIndex = reordered.findIndex((coach) => coach.name === timName);
-    const [tim] = reordered.splice(adjustedTimIndex, 1);
-
-    reordered.splice(adjustedTimIndex, 0, annika);
-    reordered.splice(Math.min(adjustedTimIndex + 3, reordered.length), 0, tim);
-
-    return reordered;
-  })();
+  const orderedCoaches = coaches
+    .map((coach, index) => ({ coach, index, tier: tierOf(coach.title) }))
+    .sort((a, b) => (a.tier === b.tier ? a.index - b.index : a.tier - b.tier))
+    .map((entry) => entry.coach);
 
   const teamPageMessages =
     ((messages.teamPage as {
