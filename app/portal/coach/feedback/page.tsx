@@ -131,6 +131,10 @@ export default async function CoachFeedbackPage() {
     Array<{ studentId: string; studentName: string; studentEmail: string }>
   > = {};
   for (const row of enrollments) {
+    // Skip enrollments whose student profile was deleted — otherwise they
+    // render as a ghost "Student" row on the form and cause a foreign-key
+    // error when the coach submits feedback for them.
+    if (!rosterProfileMap[row.student_id]) continue;
     (rosterByClass[row.class_id] ??= []).push({
       studentId: row.student_id,
       studentName:

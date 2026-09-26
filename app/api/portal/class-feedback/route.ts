@@ -89,17 +89,53 @@ export async function POST(request: NextRequest) {
     .eq("class_feedback_id", feedbackId);
   if (deleteError) return mergeCookies(supabaseResponse, jsonError(deleteError.message, 500));
 
+  let droppedStudentCount = 0;
   if (nonEmptyIndividual.length > 0) {
-    const rows = nonEmptyIndividual.map((row) => ({
-      class_feedback_id: feedbackId,
-      student_id: row.studentId,
-      feedback: row.feedback,
-    }));
-    const { error: insertError } = await (supabase as any)
-      .from("class_feedback_individual")
-      .insert(rows);
-    if (insertError) return mergeCookies(supabaseResponse, jsonError(insertError.message, 400));
+    // Defensive check: a student can only be written to class_feedback_individual
+    // if their profile row still exists. When admin has deleted a student from
+    // profiles but their enrollment record lingers, the roster on the client
+    // still shows them; without this pre-check the insert would fail with an
+    // opaque foreign-key error. Silently drop the orphans and report the count.
+    const uniqueStudentIds = [...new Set(nonEmptyIndividual.map((row) => row.studentId))];
+    const { data: existingProfilesData } = await (supabase as any)
+      .from("profiles")
+      .select("id")
+      .in("id", uniqueStudentIds);
+    const validStudentIds = new Set(
+      ((existingProfilesData ?? []) as Array<{ id: string }>).map((r) => r.id)
+    );
+    const validRows = nonEmptyIndividual.filter((row) => validStudentIds.has(row.studentId));
+    droppedStudentCount = nonEmptyIndividual.length - validRows.length;
+
+    if (validRows.length > 0) {
+      const rows = validRows.map((row) => ({
+        class_feedback_id: feedbackId,
+        student_id: row.studentId,
+        feedback: row.feedback,
+      }));
+      const { error: insertError } = await (supabase as any)
+        .from("class_feedback_individual")
+        .insert(rows);
+      if (insertError) {
+        // 23503 = foreign_key_violation. Something else was invalidated
+        // between the pre-check and the insert (or the parent feedback row
+        // vanished). Surface a friendly message rather than the raw error.
+        if ((insertError as { code?: string }).code === "23503") {
+          return mergeCookies(
+            supabaseResponse,
+            jsonError(
+              "Some individual entries couldn't be saved because a student or class record has changed. Reload the page and try again.",
+              400
+            )
+          );
+        }
+        return mergeCookies(supabaseResponse, jsonError(insertError.message, 400));
+      }
+    }
   }
 
-  return mergeCookies(supabaseResponse, NextResponse.json({ id: feedbackId, ok: true }));
+  return mergeCookies(
+    supabaseResponse,
+    NextResponse.json({ id: feedbackId, ok: true, droppedStudentCount })
+  );
 }
