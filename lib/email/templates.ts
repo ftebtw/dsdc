@@ -1802,3 +1802,44 @@ export function weeklyFeedbackRejectedToCoachTemplate(input: {
   });
   return { subject, html, text };
 }
+
+export function inviteAccountTemplate(input: {
+  name: string;
+  role: 'student' | 'parent' | 'admin' | 'coach' | 'ta';
+  inviteUrl: string;
+  locale: 'en' | 'zh';
+}) {
+  const isZh = input.locale === 'zh';
+  const roleLabel = (() => {
+    if (isZh) {
+      if (input.role === 'student') return '学生';
+      if (input.role === 'parent') return '家长';
+      if (input.role === 'coach') return '教练';
+      if (input.role === 'ta') return '助教';
+      return '管理员';
+    }
+    if (input.role === 'ta') return 'TA';
+    return input.role.charAt(0).toUpperCase() + input.role.slice(1);
+  })();
+  const subject = isZh ? 'DSDC 门户账号邀请' : 'Your DSDC portal account is ready';
+  const { html, text } = renderTemplate({
+    title: isZh ? '门户账号邀请' : 'Set Up Your Portal Account',
+    bodyLines: isZh
+      ? [
+          `您好 ${input.name}，`,
+          `管理员为您创建了 DSDC 门户账号（角色：${roleLabel}）。`,
+          '请点击下方按钮完成邮箱验证并设置密码。链接 24 小时内有效。',
+          '如果链接无法使用，请返回登录页，在下方点击 "重新发送验证邮件"。',
+        ]
+      : [
+          `Hi ${input.name},`,
+          `An admin created your DSDC portal account (${roleLabel}).`,
+          'Click the button below to verify your email and set a password. This link is valid for 24 hours.',
+          'If the link fails, go to the portal sign-in page and click "Resend verification email" to get a fresh one.',
+        ],
+    buttonLabel: isZh ? '完成账号设置' : 'Set Up My Account',
+    buttonUrl: input.inviteUrl,
+    preferenceUrl: input.inviteUrl,
+  });
+  return { subject, html, text };
+}

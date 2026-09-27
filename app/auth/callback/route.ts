@@ -114,7 +114,26 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       console.error("[auth/callback] code exchange failed", error.message);
-      return NextResponse.redirect(new URL("/portal/login?error=verification_failed", request.url));
+      // If the PKCE exchange failed because this browser doesn't have the
+      // code_verifier cookie (very common for invite links opened on a
+      // different device from the one that created the account), we still
+      // want the student to be able to proceed — check whether they already
+      // have a valid session from a prior successful click.
+      const { data: existingUser } = await supabase.auth.getUser();
+      if (existingUser?.user) {
+        return buildRedirect(supabase, request, sessionResponse, type, nextPath);
+      }
+      // Give the login page a more specific error tag so the message can
+      // tell the student to click "Resend verification email" — the resend
+      // flow uses generateLink (token_hash) which works cross-device.
+      const errorCode = /expired/i.test(error.message)
+        ? "verification_expired"
+        : /code verifier|verifier is/i.test(error.message)
+          ? "verification_wrong_device"
+          : "verification_failed";
+      const loginUrl = new URL("/portal/login", request.url);
+      loginUrl.searchParams.set("error", errorCode);
+      return NextResponse.redirect(loginUrl);
     }
     return buildRedirect(supabase, request, sessionResponse, type, nextPath);
   }
@@ -127,7 +146,12 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("[auth/callback] OTP verification failed", error.message);
-      return NextResponse.redirect(new URL("/portal/login?error=verification_failed", request.url));
+      const errorCode = /expired/i.test(error.message)
+        ? "verification_expired"
+        : "verification_failed";
+      const loginUrl = new URL("/portal/login", request.url);
+      loginUrl.searchParams.set("error", errorCode);
+      return NextResponse.redirect(loginUrl);
     }
 
     return buildRedirect(supabase, request, sessionResponse, type, nextPath);

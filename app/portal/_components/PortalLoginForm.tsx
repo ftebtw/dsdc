@@ -31,7 +31,12 @@ export default function PortalLoginForm({ locale }: Props) {
           recoveryModeEnabled: "已进入密码找回模式，请输入新密码。",
           resetLinkExpired: "此重置链接已过期，请重新申请。",
           emailVerified: "邮箱验证成功！请登录您的账户。",
-          verificationFailed: "验证链接已过期或无效。请重新注册或联系支持。",
+          verificationFailed:
+            "验证链接无效。请在下方输入邮箱并点击 “重新发送验证邮件” 获取新链接。",
+          verificationExpired:
+            "验证链接已过期。请在下方输入邮箱并点击 “重新发送验证邮件” 获取新链接。",
+          verificationWrongDevice:
+            "验证链接需要在您首次收到邮件的浏览器中打开。请在下方输入邮箱并点击 “重新发送验证邮件”，新链接支持在任意设备打开。",
           enterEmailFirst: "请先输入电子邮箱，然后点击“忘记密码”。",
           resetSent: "密码重置邮件已发送，请检查收件箱（含垃圾邮件）并点击链接。",
           newPasswordMin: "新密码至少需要 8 个字符。",
@@ -58,7 +63,11 @@ export default function PortalLoginForm({ locale }: Props) {
           resetLinkExpired: "This reset link has expired. Please request a new one.",
           emailVerified: "Email verified successfully! Please sign in to your account.",
           verificationFailed:
-            "Verification link expired or invalid. Please register again or contact support.",
+            "That verification link isn't valid. Enter your email below and click 'Resend verification email' to get a fresh link.",
+          verificationExpired:
+            "That verification link has expired. Enter your email below and click 'Resend verification email' to get a fresh link.",
+          verificationWrongDevice:
+            "That link needs to be opened in the same browser it was sent to. Enter your email below and click 'Resend verification email' — the new link will work on any device.",
           enterEmailFirst: "Enter your email first, then click Forgot password.",
           resetSent:
             "Password reset email sent. Check your inbox (and spam/junk folder) and follow the link.",
@@ -107,6 +116,14 @@ export default function PortalLoginForm({ locale }: Props) {
         setError(t.verificationFailed);
         setInfo(null);
       }
+      if (mode !== "recovery" && callbackError === "verification_expired") {
+        setError(t.verificationExpired);
+        setInfo(null);
+      }
+      if (mode !== "recovery" && callbackError === "verification_wrong_device") {
+        setError(t.verificationWrongDevice);
+        setInfo(null);
+      }
     }
 
     const { data } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
@@ -128,6 +145,8 @@ export default function PortalLoginForm({ locale }: Props) {
     t.resetLinkExpired,
     t.emailVerified,
     t.verificationFailed,
+    t.verificationExpired,
+    t.verificationWrongDevice,
   ]);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {

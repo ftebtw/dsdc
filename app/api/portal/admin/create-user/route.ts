@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireApiRole } from '@/lib/portal/auth';
 import { getPortalAppUrl } from '@/lib/email/resend';
 import { sendPortalEmail } from '@/lib/email/send';
+import { inviteAccountTemplate } from '@/lib/email/templates';
 import { isValidTimezone } from '@/lib/portal/timezone';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/lib/supabase/database.types';
@@ -163,12 +164,44 @@ export async function POST(request: NextRequest) {
     if (error) return jsonError(error.message, 400);
     userId = data.user?.id;
   } else if (credentialMethod === 'invite') {
-    const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(body.email, {
-      data: metadata,
-      redirectTo: `${portalBase}/auth/callback/complete?next=${encodeURIComponent('/portal')}`,
+    // Use generateLink({ type: 'invite' }) instead of inviteUserByEmail so we
+    // get a token_hash-based verification URL rather than a PKCE code URL.
+    // PKCE links fail with "verification_failed" whenever the student opens
+    // the email on a different device from the admin who created the account,
+    // or when their email client (Gmail, Outlook) pre-fetches the link and
+    // burns the token before the student clicks. token_hash links don't need
+    // any browser state — the callback verifies them server-side.
+    //
+    // generateLink({ type: 'invite' }) creates the auth user AND returns the
+    // action_link in one call, so no separate createUser.
+    const redirectTo = `${portalBase}/auth/callback?type=invite&next=${encodeURIComponent('/portal')}`;
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'invite',
+      email: body.email,
+      options: { redirectTo, data: metadata },
     });
-    if (error) return jsonError(error.message, 400);
-    userId = data.user?.id;
+    if (linkError || !linkData?.user?.id || !linkData.properties?.action_link) {
+      const message = linkError?.message || 'Could not generate invite link.';
+      console.error('[admin-create-user] generateLink failed', linkError);
+      return jsonError(message, 400);
+    }
+    userId = linkData.user.id;
+
+    const template = inviteAccountTemplate({
+      name: body.display_name,
+      role: body.role,
+      inviteUrl: linkData.properties.action_link,
+      locale: body.locale,
+    });
+    const sendResult = await sendPortalEmail({
+      to: body.email,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+    if (!sendResult.ok) {
+      console.error('[admin-create-user] invite email send failed', sendResult.error);
+    }
   } else {
     const defaultPassword = process.env.PORTAL_DEFAULT_STUDENT_PASSWORD;
     if (!defaultPassword) return jsonError('Server misconfiguration: default student password is not set.', 500);
