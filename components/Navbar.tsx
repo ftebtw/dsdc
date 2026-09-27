@@ -34,21 +34,11 @@ export default function Navbar() {
   const pathname = usePathname();
   const { t, locale } = useI18n();
 
-  // Belt-and-braces: the root layout also gates the Navbar via a middleware
-  // header, but on cached routes / prefetches that header can drop off and
-  // the public Navbar sneaks onto portal pages. When that happens on mobile
-  // it covers the Portal shell header (z-50 vs z-40) — so the coach sees the
-  // marketing burger instead of the portal one. Hide client-side too.
-  // Guard against a null usePathname() (Next can return null in some render
-  // contexts) — without the guard we'd throw a TypeError and crash every
-  // page that mounts this component.
-  if (pathname && (pathname.startsWith("/portal") || pathname.startsWith("/studio"))) {
-    return null;
-  }
-
   const registerHref = `/register?lang=${locale === "zh" ? "zh" : "en"}`;
   const solidNavPages = ["/register", "/portal", "/payment", "/pricing"];
-  const needsSolidNav = solidNavPages.some((prefix) => pathname.startsWith(prefix));
+  const needsSolidNav = pathname
+    ? solidNavPages.some((prefix) => pathname.startsWith(prefix))
+    : false;
   const navSolid = scrolled || isOpen || !isDesktop || needsSolidNav;
 
   const navBackgroundClass = navSolid
@@ -82,6 +72,20 @@ export default function Navbar() {
       document.body.style.overflow = prev;
     };
   }, [isOpen]);
+
+  // Belt-and-braces: the root layout gates Navbar via a middleware header,
+  // but cached routes and prefetches can drop it. Hide the public Navbar
+  // client-side too so on mobile it never covers the Portal shell header
+  // (z-50 over z-40) and the burger stays the portal one.
+  //
+  // Critical: this early return must come AFTER every hook above so the
+  // hook order stays stable across routes — an early return before the
+  // useEffects makes React see fewer hooks on portal pages than on the
+  // marketing page and throws "Rendered fewer hooks than expected",
+  // which surfaces as Next's generic 'client-side exception' page.
+  if (pathname && (pathname.startsWith("/portal") || pathname.startsWith("/studio"))) {
+    return null;
+  }
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navBackgroundClass}`}>
