@@ -12,7 +12,9 @@ export default function Footer() {
   const { t, locale } = useI18n();
   // Same rationale as Navbar: keep the marketing footer off portal / studio
   // pages even when the server-side hideShell flag drops off a cached route.
-  if (pathname.startsWith("/portal") || pathname.startsWith("/studio")) {
+  // Guard against a null usePathname() to avoid a TypeError that would
+  // client-side crash the whole page.
+  if (pathname && (pathname.startsWith("/portal") || pathname.startsWith("/studio"))) {
     return null;
   }
   const registerHref = `/register?lang=${locale === "zh" ? "zh" : "en"}`;

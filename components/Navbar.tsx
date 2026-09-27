@@ -39,7 +39,10 @@ export default function Navbar() {
   // the public Navbar sneaks onto portal pages. When that happens on mobile
   // it covers the Portal shell header (z-50 vs z-40) — so the coach sees the
   // marketing burger instead of the portal one. Hide client-side too.
-  if (pathname.startsWith("/portal") || pathname.startsWith("/studio")) {
+  // Guard against a null usePathname() (Next can return null in some render
+  // contexts) — without the guard we'd throw a TypeError and crash every
+  // page that mounts this component.
+  if (pathname && (pathname.startsWith("/portal") || pathname.startsWith("/studio"))) {
     return null;
   }
 
