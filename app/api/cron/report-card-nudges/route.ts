@@ -42,10 +42,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: true, sent: 0, skipped: 0, reason: 'outside_nudge_window' });
   }
 
-  const { data: classesData, error: classesError } = await admin
+  // Skip archived classes — the coach already finished with that cohort and
+  // shouldn't be nagged to write report cards for a retired class.
+  const { data: classesData, error: classesError } = await (admin as any)
     .from('classes')
     .select('id,name,coach_id,term_id')
-    .eq('term_id', activeTerm.id);
+    .eq('term_id', activeTerm.id)
+    .is('archived_at', null);
 
   if (classesError) return jsonError(classesError.message, 500);
   const classes = (classesData ?? []) as Array<{ id: string; name: string; coach_id: string; term_id: string }>;

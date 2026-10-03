@@ -77,10 +77,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: true, sent: 0, skipped: 0, reason: 'no_active_term' });
   }
 
-  const { data: classesData, error: classesError } = await admin
+  // Exclude archived classes so the hourly reminder cron doesn't email every
+  // enrolled student + parent about a cohort that's been retired. Enrollment
+  // rows stay 'active' when a class is archived, so the enrollment-side query
+  // can't catch this on its own.
+  const { data: classesData, error: classesError } = await (admin as any)
     .from('classes')
     .select('id,name,term_id,schedule_day,schedule_start_time,schedule_end_time,timezone,zoom_link')
-    .eq('term_id', activeTerm.id);
+    .eq('term_id', activeTerm.id)
+    .is('archived_at', null);
 
   if (classesError) return jsonError(classesError.message, 500);
   const classes = (classesData ?? []) as Array<{

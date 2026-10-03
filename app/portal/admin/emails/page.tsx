@@ -16,10 +16,14 @@ export default async function AdminEmailsPage() {
         .select('id,display_name,email,role')
         .not('email', 'is', null)
         .order('display_name', { ascending: true, nullsFirst: false }),
-      supabase
+      // Only live classes in the composer so admin can't accidentally send a
+      // mass email to an archived cohort's roster. The server-side resolver
+      // trusts the picked class id, so filtering here is the only guard.
+      (supabase as any)
         .from('classes')
         .select('id,name,term_id,is_private_session_group')
         .eq('is_private_session_group', false)
+        .is('archived_at', null)
         .order('name', { ascending: true }),
       supabase.from('terms').select('id,name'),
       (supabase as any)
