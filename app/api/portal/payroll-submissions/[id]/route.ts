@@ -99,6 +99,36 @@ export async function POST(
     .single();
   if (updateError) return mergeCookies(supabaseResponse, jsonError(updateError.message, 500));
 
+  // Push the coach's submitted adjustments into the admin-owned
+  // payroll_adjustments ledger so they actually affect the Payroll
+  // page totals. Without this, admins saw the adjustments in the
+  // Monthly Submissions card and the email, but the Payroll table
+  // itself kept rendering only computed hours. Service-role client
+  // because payroll_adjustments is admin-only via RLS.
+  //
+  // Each row is tagged with [Coach submission] + the submission id so
+  // admins can tell them apart from manual admin adjustments and
+  // delete them if they disagree.
+  if (adjustments.length > 0) {
+    try {
+      const ledgerRows = adjustments.map((entry) => ({
+        coach_id: submission.coach_id,
+        adjustment_date: submission.period_end,
+        hours_delta: entry.hoursDelta,
+        note: `[Coach submission ${id.slice(0, 8)}] ${entry.reason}`,
+        created_by: submission.coach_id,
+      }));
+      const { error: ledgerError } = await (admin as any)
+        .from('payroll_adjustments')
+        .insert(ledgerRows);
+      if (ledgerError) {
+        console.error('[payroll-submissions] ledger insert failed', ledgerError);
+      }
+    } catch (err) {
+      console.error('[payroll-submissions] ledger insert threw', err);
+    }
+  }
+
   // Fire-and-forget admin email.
   try {
     const yearMonth = parseYearMonthKey(submission.year_month);

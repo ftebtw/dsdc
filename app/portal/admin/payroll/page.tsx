@@ -266,37 +266,45 @@ export default async function AdminPayrollPage({
             </select>
           </label>
           <div className="lg:col-span-2 flex flex-wrap items-end gap-2">
-            <button className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm">
+            <button
+              type="submit"
+              className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+            >
               Apply
             </button>
-            <Link
-              href={`?preset=thisMonth${params.coachId ? `&coachId=${encodeURIComponent(params.coachId)}` : ''}`}
-              className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
-            >
-              This month
-            </Link>
-            <Link
-              href={`?preset=lastMonth${params.coachId ? `&coachId=${encodeURIComponent(params.coachId)}` : ''}`}
-              className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
-            >
-              Last month
-            </Link>
-            {activeTerm ? (
-              <Link
-                href={`?preset=thisTerm${params.coachId ? `&coachId=${encodeURIComponent(params.coachId)}` : ''}`}
-                className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
-              >
-                This term
-              </Link>
-            ) : null}
-            <a
-              href={exportHref}
-              className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold"
-            >
-              Export CSV
-            </a>
           </div>
         </form>
+        {/* Preset range links sit OUTSIDE the form so clicking them doesn't
+            serialize the form inputs into the URL (which was overwriting the
+            preset=... query string the moment the browser navigated). */}
+        <div className="flex flex-wrap items-end gap-2 mb-4">
+          <Link
+            href={`/portal/admin/payroll?preset=thisMonth${params.coachId ? `&coachId=${encodeURIComponent(params.coachId)}` : ''}`}
+            className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+          >
+            This month
+          </Link>
+          <Link
+            href={`/portal/admin/payroll?preset=lastMonth${params.coachId ? `&coachId=${encodeURIComponent(params.coachId)}` : ''}`}
+            className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+          >
+            Last month
+          </Link>
+          {activeTerm ? (
+            <Link
+              href={`/portal/admin/payroll?preset=thisTerm${params.coachId ? `&coachId=${encodeURIComponent(params.coachId)}` : ''}`}
+              className="px-3 py-1.5 rounded-md border border-warm-300 dark:border-navy-600 text-sm"
+            >
+              This term
+            </Link>
+          ) : null}
+          <a
+            href={exportHref}
+            className="px-3 py-1.5 rounded-md bg-gold-300 text-navy-900 text-sm font-semibold"
+          >
+            Export CSV
+          </a>
+        </div>
 
         <PayrollTable
           rows={dataset.summary}
