@@ -64,10 +64,11 @@ export default async function AdminDashboardPage() {
 
   const activeTerm = await getActiveTerm(supabase);
   const activeClassesResponse = activeTerm
-    ? await supabase
+    ? await (supabase as any)
         .from('classes')
         .select('id,name,coach_id,schedule_day,schedule_days,start_date,end_date,timezone')
         .eq('term_id', activeTerm.id)
+        .is('archived_at', null)
     : { data: [] as ActiveClassRow[] };
 
   const activeClasses = (activeClassesResponse.data ?? []) as ActiveClassRow[];
