@@ -5,24 +5,46 @@ import type { RegionalLandingPageData } from "@/lib/regionalLandingPages";
 import { getBlogPostHref } from "@/lib/blogPostPaths";
 import { buildBreadcrumbSchema, buildFaqSchema } from "@/lib/structuredData";
 
-const testimonials = [
+// Full pool of real DSDC testimonials (source: messages/en.json → testimonials
+// → items). Each regional page selects 3 via `data.testimonialNames` so the
+// pages don't ship the same block of text to Google. Fallback = first 3 if
+// a page didn't specify a selection.
+const testimonialPool: Array<{ name: string; role: string; quote: string }> = [
   {
     name: "Angela M.",
     role: "Student, Grade 8",
     quote:
-      "DSDC has been my home for debate ever since I started three years ago. I've seen myself visibly improve in confidence and critical thinking.",
+      "DSDC has been my home for debate ever since I started three years ago. Under the guidance of Tim, Archie, and Rebecca, I've seen myself visibly improve in confidence and critical thinking. The lessons on social issues have helped broaden my horizons tremendously.",
   },
   {
     name: "Ryland C.",
     role: "Student, Grade 9",
     quote:
-      "The coaches always provide thoughtful feedback and put real effort into developing lessons with student growth in mind.",
+      "The coaches always provide thoughtful feedback and put real effort into developing lessons with student growth in mind. The skills I've developed have been invaluable for school presentations, writing, and logical reasoning.",
   },
   {
     name: "Daniel W.",
     role: "Student, Grade 9",
     quote:
-      "The environment at DSDC is simply wonderful. The teachers are supportive of every individual student and are passionate about developing young minds.",
+      "The environment at DSDC is simply wonderful. The teachers are supportive of every individual student and are passionate about developing young minds. You would not believe how much I've learned over the years.",
+  },
+  {
+    name: "Bob Z.",
+    role: "Student, Grade 12",
+    quote:
+      "My first class with Rebecca completely changed my perspective. Thanks to her coaching, I improved my confidence, participated in numerous tournaments, and even traveled to Australia for the World Scholar's Cup. These experiences profoundly shaped who I am today.",
+  },
+  {
+    name: "Zoe L.",
+    role: "Junior Coach",
+    quote:
+      "As a former DSDC student, I've experienced firsthand how debate changes you. Every challenge I overcame built my confidence. Now as a teacher, I help students discover that the most important growth comes from facing seemingly impossible challenges.",
+  },
+  {
+    name: "Emily C.",
+    role: "Junior Coach",
+    quote:
+      "DSDC shaped me into the debater I am today. Beyond argumentation, I formed lifelong friendships in a warm, collaborative environment. Rebecca sparked my interest in law and social justice, transforming me into a confident person.",
   },
 ];
 
@@ -268,9 +290,8 @@ export default function RegionalDebateLandingPage({ data }: { data: RegionalLand
             Debate Formats Taught at DSDC
           </h2>
           <p className="mx-auto mb-12 max-w-3xl text-center text-base md:text-lg text-charcoal/70 dark:text-navy-200 font-sans leading-relaxed">
-            Students choose the format that matches their goals, from provincial and national tournaments to
-            university and international competition. Every format is taught by coaches who have competed in it at a
-            high level.
+            {data.formatsIntro ??
+              "Students choose the format that matches their goals, from provincial and national tournaments to university and international competition. Every format is taught by coaches who have competed in it at a high level."}
           </p>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             {debateFormats.map((item) => (
@@ -293,8 +314,8 @@ export default function RegionalDebateLandingPage({ data }: { data: RegionalLand
             Our Class Levels
           </h2>
           <p className="mx-auto mb-12 max-w-3xl text-center text-base md:text-lg text-charcoal/70 dark:text-navy-200 font-sans leading-relaxed">
-            A clear progression from beginner to advanced. Students stay with the same program as they grow, instead
-            of restarting every year with a new provider.
+            {data.classLevelsIntro ??
+              "A clear progression from beginner to advanced. Students stay with the same program as they grow, instead of restarting every year with a new provider."}
           </p>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {classLevels.map((item) => (
@@ -349,21 +370,32 @@ export default function RegionalDebateLandingPage({ data }: { data: RegionalLand
       <section className="bg-warm-100 py-16 dark:bg-navy-900/50 md:py-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <h2 className="mb-12 text-center text-3xl font-bold text-navy-800 dark:text-white md:text-4xl">
-            What Families Say About DSDC
+            {data.testimonialsHeading ?? "What Families Say About DSDC"}
           </h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {testimonials.map((item) => (
-              <article
-                key={`${data.slug}-${item.name}`}
-                className="rounded-2xl border border-warm-200 bg-warm-50 p-6 shadow-sm dark:border-navy-700 dark:bg-navy-800"
-              >
-                <p className="text-base leading-relaxed text-charcoal/75 dark:text-navy-200 font-sans">&ldquo;{item.quote}&rdquo;</p>
-                <div className="mt-5 border-t border-warm-200 pt-4 dark:border-navy-700">
-                  <p className="font-bold text-navy-800 dark:text-white">{item.name}</p>
-                  <p className="text-sm text-charcoal/55 dark:text-navy-300">{item.role}</p>
-                </div>
-              </article>
-            ))}
+            {(() => {
+              // Resolve each city's chosen testimonials from the pool. Falls
+              // back to the first three if a page didn't specify. Preserves
+              // order so the same selection renders in the same positions.
+              const chosen = data.testimonialNames
+                ? data.testimonialNames
+                    .map((name) => testimonialPool.find((item) => item.name === name))
+                    .filter((item): item is (typeof testimonialPool)[number] => Boolean(item))
+                : testimonialPool.slice(0, 3);
+              const items = chosen.length > 0 ? chosen : testimonialPool.slice(0, 3);
+              return items.map((item) => (
+                <article
+                  key={`${data.slug}-${item.name}`}
+                  className="rounded-2xl border border-warm-200 bg-warm-50 p-6 shadow-sm dark:border-navy-700 dark:bg-navy-800"
+                >
+                  <p className="text-base leading-relaxed text-charcoal/75 dark:text-navy-200 font-sans">&ldquo;{item.quote}&rdquo;</p>
+                  <div className="mt-5 border-t border-warm-200 pt-4 dark:border-navy-700">
+                    <p className="font-bold text-navy-800 dark:text-white">{item.name}</p>
+                    <p className="text-sm text-charcoal/55 dark:text-navy-300">{item.role}</p>
+                  </div>
+                </article>
+              ));
+            })()}
           </div>
         </div>
       </section>

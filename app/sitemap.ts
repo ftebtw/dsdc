@@ -81,24 +81,9 @@ const staticEntries: StaticSitemapEntry[] = [
     files: ["app/blog/layout.tsx", "app/blog/page.tsx", "components/BlogListingContent.tsx", "lib/blogLocalizations.ts"],
     includeZh: true,
   },
-  {
-    path: "/register",
-    changeFrequency: "monthly",
-    priority: 0.8,
-    files: ["app/register/layout.tsx", "app/register/page.tsx", "app/register/RegisterForm.tsx"],
-  },
-  {
-    path: "/book",
-    changeFrequency: "monthly",
-    priority: 0.75,
-    files: ["app/book/layout.tsx", "app/book/page.tsx"],
-  },
-  {
-    path: "/compare",
-    changeFrequency: "monthly",
-    priority: 0.75,
-    files: ["app/compare/page.tsx"],
-  },
+  // /register, /book, /compare intentionally excluded — all three emit
+  // `noIndex: true` via buildLocalizedPageMetadata, so listing them in the
+  // sitemap sends conflicting signals to Google and wastes crawl budget.
   {
     path: "/online-debate-classes",
     changeFrequency: "monthly",

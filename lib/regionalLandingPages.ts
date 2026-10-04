@@ -33,6 +33,19 @@ export type RegionalLandingPageData = {
     longitude: number;
   };
   relatedBlogPosts: Array<{ slug: string; title: string; description: string }>;
+  /** Per-city framing above the shared Debate Formats grid. Keeps the format
+   *  descriptions factual while making every page's byte stream distinct for
+   *  Google (the audit flagged these regional pages as near-duplicates). */
+  formatsIntro?: string;
+  /** Per-city framing above the shared Class Levels grid. Same rationale. */
+  classLevelsIntro?: string;
+  /** Section heading above the testimonials for this city. */
+  testimonialsHeading?: string;
+  /** Which real DSDC testimonials from messages/en.json to feature on this
+   *  page. We rotate across the 6-quote pool so no two regional pages ship
+   *  the same three quotes. Fabricating city-specific testimonials would be
+   *  dishonest, so we vary the SELECTION instead of inventing content. */
+  testimonialNames?: string[];
 };
 
 export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandingPageData> = {
@@ -191,6 +204,12 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
           "How competitive debate and Model UN compare for Alberta students thinking about enrichment activities.",
       },
     ],
+    formatsIntro:
+      "Calgary debaters mostly compete in CNDF through Alberta provincials, then branch into British Parliamentary once they reach the university-circuit tournaments at the University of Calgary and the University of Alberta. DSDC coaches teach every format that matters for the Alberta pathway, so students never have to choose a program based on which single format a local club happens to run.",
+    classLevelsIntro:
+      "Alberta families often start their kids in debate for the public-speaking confidence benefits and discover the competitive pathway later. Our class ladder is built for exactly that — a smooth progression from first-ever Novice speech through Alberta provincials, Canadian Nationals, and university-circuit tournaments if the student decides to go deeper.",
+    testimonialsHeading: "What DSDC Families Say",
+    testimonialNames: ["Angela M.", "Bob Z.", "Zoe L."],
   },
   ottawa: {
     slug: "ottawa",
@@ -347,6 +366,12 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
           "The academic side of debate that matters most for school-focused Ottawa students.",
       },
     ],
+    formatsIntro:
+      "Ottawa students have ready access to the Eastern Ontario tournament circuit and Canadian Nationals, where CNDF and World Schools dominate. Our coaches focus heavily on structured case-building and clean summary speeches — the elements that separate a strong Ottawa-circuit debater from a middle-of-the-pack competitor at Hart House and Carleton tournaments.",
+    classLevelsIntro:
+      "Ottawa parents often ask us where their child fits once they have a few years of in-school debate under their belt. Our ladder is explicit: Novice is a true starting point, Junior is where competitive habits form, and Senior / Advanced are where students start preparing for Canadian Nationals and Doxbridge-style international tournaments.",
+    testimonialsHeading: "DSDC Student Voices",
+    testimonialNames: ["Ryland C.", "Daniel W.", "Emily C."],
   },
   ontario: {
     slug: "ontario",
@@ -505,6 +530,12 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
           "How competitive debate actually works, written for parents who are new to the ecosystem.",
       },
     ],
+    formatsIntro:
+      "Ontario is the single most active province for high-school debate in Canada. Students have the choice of CNDF through Ontario Student Debating Union events, British Parliamentary through Hart House and McGill tournaments, and World Schools through international invitationals. Our coaches have competed in all three circuits, so students aren't locked into one format based on which teacher their school happens to have.",
+    classLevelsIntro:
+      "Ontario families usually arrive at DSDC after their child has outgrown a school club or wants structured training beyond what weekly in-person meetups can provide. Our tiered classes let a Grade 7 student doing well in local tournaments jump straight into Junior-level training without waiting for the next September cohort to start.",
+    testimonialsHeading: "What Students Say About DSDC",
+    testimonialNames: ["Bob Z.", "Ryland C.", "Zoe L."],
   },
   alberta: {
     slug: "alberta",
@@ -661,6 +692,12 @@ export const regionalLandingPages: Record<RegionalLandingPageSlug, RegionalLandi
           "Why public speaking is often the best first step before debate for younger Alberta students.",
       },
     ],
+    formatsIntro:
+      "Alberta's debate circuit — from Calgary and Edmonton through the Alberta Debate and Speech Association — centers on CNDF and parliamentary formats. DSDC teaches each format alongside the specific habits Alberta judges reward: tight time management, visible structure, and arguments that trace back to clear principles rather than impressive-sounding jargon.",
+    classLevelsIntro:
+      "Alberta families often start debate as an alternative to speech-and-drama arts programs. Our ladder reflects that: Novice is heavy on confidence and clean execution, Junior introduces competitive formats, and Senior / Advanced focus on tournament preparation for the ADSA circuit, Alberta Championships, and Canadian Nationals.",
+    testimonialsHeading: "Hear From DSDC Students",
+    testimonialNames: ["Daniel W.", "Emily C.", "Angela M."],
   },
 };
 
